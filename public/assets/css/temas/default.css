@@ -1,0 +1,74 @@
+:root {
+  /* Light theme variables - GOOD VIBES PALETTE */
+  --background: #F4F7F6;
+  --background-gradient: linear-gradient(152deg, #F4F7F6 0%, #E8ECEB 100%);
+  --foreground: #1A1C20;
+  --light: #6A6A6A;
+  --mate: #FFFFFF;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1C20;
+  --card: #FFFFFF;
+  --card-foreground: #1A1C20;
+  --border: #E0E4E3;
+  --input: #F0F3F2;
+  
+  /* ACENTO AMARILLO (10%) */
+  --primary: #FFD600;  /* Amarillo vibrante */
+  --primary-foreground: #1A1C20;  /* Texto negro sobre amarillo */
+  
+  /* SIDEBAR NEGRO MATE (30%) */
+  --sidebar-bg: #1A1C20;  /* Negro mate */
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-hover-bg: #FFD600;  /* Amarillo al hacer hover */
+  --sidebar-hover-color: #1A1C20;  /* Texto negro sobre hover amarillo */
+  
+  /* OTROS COLORES */
+  --update: #3b28a3;
+  --update-foreground: #FFFFFF;
+  --secondary: #E8ECEB;
+  --secondary-foreground: #1A1C20;
+  --accent: #FFD600;
+  --accent-foreground: #1A1C20;
+  --destructive: #dc3545;
+  --destructive-foreground: #FFFFFF;
+  --ring: #FFD600;
+  --radius: 0.5rem;
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 80px;
+  --bg-switch: #d1d5db;
+}
+
+.dark {
+  /* Dark theme variables */
+  --background: #121212;
+  --background-gradient: linear-gradient(152deg, #121212 0%, #1A1C20 100%);
+  --foreground: #E0E0E0;
+  --light: #A0A0A0;
+  --mate: #000000;
+  --muted: #1f2937;
+  --muted-foreground: #94a3b8;
+  --popover: #1A1C20;
+  --popover-foreground: #E0E0E0;
+  --card: #1A1C20;
+  --card-foreground: #E0E0E0;
+  --border: #2d3748;
+  --input: #2a2a2a;
+  --primary: #FFD600;  /* Mantenemos amarillo en dark mode */
+  --primary-foreground: #1A1C20;
+  --update: #4a3bb5;
+  --update-foreground: #FFFFFF;
+  --secondary: #2A2A2A;
+  --secondary-foreground: #E0E0E0;
+  --accent: #FFD600;
+  --accent-foreground: #1A1C20;
+  --destructive: #992424;
+  --destructive-foreground: #FFFFFF;
+  --ring: #FFD600;
+  --bg-switch: #444;
+  --sidebar-bg: #1A1C20;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-hover-bg: #FFD600;
+  --sidebar-hover-color: #1A1C20;
+}

@@ -1,0 +1,44 @@
+#particle{
+	background: transparent;
+	border: none;
+	margin: 1px;
+}
+
+#logo{
+	width: 15vw;
+	height: 5vw;
+}
+
+.alert{
+	width: 26%;
+	position: absolute;
+	left: 37%;
+	top: 10vh;
+}
+
+@media (max-width: 768px){
+	#logo{
+		width: 30vw;
+		height: 10vw;
+	}
+
+	.alert{
+		width: 42%;
+		left: 29%;
+		top: 1vh;
+	}
+}
+
+@media (max-width: 425px){
+	#logo{
+		width: 90vw;
+		height: 30vw;
+	}
+
+	.alert{
+		width: 90%;
+		left: 5%;
+		top: 1vh;
+	}
+	 
+}

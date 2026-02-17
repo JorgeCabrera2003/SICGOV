@@ -1,0 +1,12 @@
+td {
+  margin: 15px;
+  padding: 15px;
+}
+
+.carousel-inner{
+  padding-bottom: 15px;
+}
+
+.row span{
+  height: 100vh;
+}

@@ -1,0 +1,90 @@
+:root {
+  /* Light theme variables */
+  --background: #ffffff;
+  --background: linear-gradient(152deg, rgba(255, 255, 255, 1) 0%, rgba(240, 255, 240, 1) 67%, rgba(220, 255, 220, 1) 100%);
+  --foreground: #333333;
+  /* Gris oscuro */
+  --light: #6A6A6A;
+  /* Gris medio */
+  --mate: #ffffff;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  --popover: #ffffff;
+  --popover-foreground: #333333;
+  --card: #ffffff;
+  --card-foreground: #333333;
+  --border: #e5e7eb;
+  --input: #f3f4f6;
+  --primary: #1D7C1D;
+  /* Verde corporativo */
+  --primary-foreground: #ffffff;
+  --update: #28a33b;
+  --update-foreground: #ffffff;
+  --secondary: #8FD16F;
+  /* Verde más claro */
+  --secondary-foreground: #ffffff;
+  --accent: #F4C542;
+  /* Amarillo más cálido */
+  --accent-foreground: #333333;
+  --destructive: #ff4d4d;
+  --destructive-foreground: #ffffff;
+  --ring: #cbd5e1;
+  --radius: 0.5rem;
+  --sidebar-width: 16rem;
+  --sidebar-collapsed-width: 4.5rem;
+  --bg-switch: #d1d5db;
+  --sidebar-bg: #1D7C1D;
+  /* Verde corporativo */
+  --sidebar-foreground: #ffffff;
+  /* Texto claro para contraste */
+  --sidebar-hover-bg: #24992A;
+  /* Verde ligeramente más oscuro para hover */
+}
+
+.dark {
+  /* Dark theme variables */
+  --background: #121212;
+  --background: linear-gradient(152deg, rgba(18, 18, 18, 1) 0%, rgba(30, 40, 30, 1) 67%, rgba(50, 60, 50, 1) 100%);
+  --foreground: #E0E0E0;
+  /* Gris claro */
+  --light: #A0A0A0;
+  /* Gris medio */
+  --mate: #000000;
+  --muted: #1f2937;
+  --muted-foreground: #000000;
+  --popover: #1a1a1a;
+  --popover-foreground: #94a3b8;
+  --card: #242424;
+  --card-foreground: #E0E0E0;
+  --border: #2d3748;
+  --input: #2a2a2a;
+  --primary: #2DA52D;
+  /* Verde más claro */
+  --primary-foreground: #ffffff;
+  --update: #28a33b;
+  --update-foreground: #ffffff;
+  --secondary: #9FEA7C;
+  /* Verde más claro para modo oscuro */
+  --secondary-foreground: #ffffff;
+  --accent: #E6B93A;
+  /* Amarillo suavizado */
+  --accent-foreground: #121212;
+  --destructive: #249924;
+  --destructive-foreground: #ffffff;
+  --ring: #4a5568;
+  --bg-switch: #444;
+  --sidebar-bg: #1D7C1D;
+  /* Verde corporativo */
+  --sidebar-foreground: #ffffff;
+  /* Texto claro para contraste */
+  --sidebar-hover-bg: #24992A;
+  /* Verde ligeramente más oscuro para hover */
+}
+
+/* El resto del CSS permanece igual */
+/* Base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}

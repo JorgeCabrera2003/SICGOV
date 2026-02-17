@@ -1,0 +1,86 @@
+:root {
+  /* Light theme variables */
+  --background: #ffffff;
+  --background: linear-gradient(152deg, rgba(255, 255, 255, 1) 0%, rgba(240, 240, 240, 1) 67%, rgba(220, 220, 220, 1) 100%);
+  --foreground: #333333;
+  /* Gris oscuro */
+  --light: #6A6A6A;
+  /* Gris medio */
+  --mate: #ffffff;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  --popover: #ffffff;
+  --popover-foreground: #333333;
+  --card: #ffffff;
+  --card-foreground: #333333;
+  --border: #e5e7eb;
+  --input: #f3f4f6;
+  --primary: #6A1B9A;
+  /* Morado corporativo */
+  --primary-foreground: #ffffff;
+  --update: #7E57C2;
+  /* Morado claro */
+  --update-foreground: #ffffff;
+  --secondary: #BA68C8;
+  /* Morado secundario */
+  --secondary-foreground: #ffffff;
+  --accent: #CE93D8;
+  /* Morado acento */
+  --accent-foreground: #333333;
+  --destructive: #D81B60;
+  /* Rosado oscuro */
+  --destructive-foreground: #ffffff;
+  --ring: #cbd5e1;
+  --radius: 0.5rem;
+  --sidebar-width: 16rem;
+  --sidebar-collapsed-width: 4.5rem;
+  --bg-switch: #d1d5db;
+  --sidebar-bg: #6A1B9A;
+  /* Morado corporativo */
+  --sidebar-foreground: #ffffff;
+  /* Texto claro para contraste */
+  --sidebar-hover-bg: #7B1FA2;
+  /* Morado ligeramente más claro para hover */
+}
+
+.dark {
+  /* Dark theme variables */
+  --background: #121212;
+  --background: linear-gradient(152deg, rgba(18, 18, 18, 1) 0%, rgba(30, 30, 30, 1) 67%, rgba(50, 50, 50, 1) 100%);
+  --foreground: #E0E0E0;
+  /* Gris claro */
+  --light: #A0A0A0;
+  /* Gris medio */
+  --mate: #000000;
+  --muted: #1f2937;
+  --muted-foreground: #000000;
+  --popover: #1a1a1a;
+  --popover-foreground: #94a3b8;
+  --card: #242424;
+  --card-foreground: #E0E0E0;
+  --border: #2d3748;
+  --input: #2a2a2a;
+  --primary: #9C27B0;
+  /* Morado más claro */
+  --primary-foreground: #ffffff;
+  --update: #9575CD;
+  --update-foreground: #ffffff;
+  --secondary: #AB47BC;
+  /* Morado secundario para modo oscuro */
+  --secondary-foreground: #ffffff;
+  --accent: #D1C4E9;
+  /* Morado claro acento */
+  --accent-foreground: #121212;
+  --destructive: #C2185B;
+  --destructive-foreground: #ffffff;
+  --ring: #4a5568;
+  --bg-switch: #444;
+  --sidebar-bg: #6A1B9A;
+  /* Morado corporativo */
+  --sidebar-foreground: #ffffff;
+  /* Texto claro para contraste */
+  --sidebar-hover-bg: #7B1FA2;
+  /* Morado ligeramente más claro para hover */
+}
+
+/* El resto del CSS permanece igual, solo cambian las referencias a los colores */

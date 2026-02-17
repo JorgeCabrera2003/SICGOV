@@ -1,0 +1,28 @@
+#num, #particle{
+	background: transparent;
+	border: none;
+	margin: 1px;
+}
+
+#number label{
+	height: 1vw;
+}
+.table_users thead{
+	border:1px solid #0002;
+	background-color: #eee;
+	text-align: center;
+}
+.table_users td{
+  border:1px solid #0002;
+  padding: .5em;
+}
+.table_users tbody tr:hover{
+	background-color: #eee;
+}
+.table_users td span{
+  display: flex;
+  width: 100%;
+  height: 3em;
+  justify-content: center;
+  align-items: center;
+}

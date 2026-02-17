@@ -1,0 +1,84 @@
+:root {
+  /* Light theme variables */
+  --background: #ffffff;
+  --background: linear-gradient(152deg, rgba(255, 255, 255, 1) 0%, rgba(240, 240, 240, 1) 67%, rgba(220, 220, 220, 1) 100%);
+  --foreground: #333333;
+  /* Gris oscuro */
+  --light: #6A6A6A;
+  /* Gris medio */
+  --mate: #ffffff;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
+  --popover: #ffffff;
+  --popover-foreground: #333333;
+  --card: #ffffff;
+  --card-foreground: #333333;
+  --border: #e5e7eb;
+  --input: #f3f4f6;
+  --primary: #1D4E7C;
+  /* Azul corporativo */
+  --primary-foreground: #ffffff;
+  --update: #283ba3;
+  --update-foreground: #ffffff;
+  --secondary: #6F8FD1;
+  /* Azul más claro */
+  --secondary-foreground: #ffffff;
+  --accent: #4290F4;
+  /* Azul más claro */
+  --accent-foreground: #333333;
+  --destructive: #4d7dff;
+  --destructive-foreground: #ffffff;
+  --ring: #cbd5e1;
+  --radius: 0.5rem;
+  --sidebar-width: 16rem;
+  --sidebar-collapsed-width: 4.5rem;
+  --bg-switch: #d1d5db;
+  --sidebar-bg: #1D4E7C;
+  /* Azul corporativo */
+  --sidebar-foreground: #ffffff;
+  /* Texto claro para contraste */
+  --sidebar-hover-bg: #245A99;
+  /* Azul ligeramente más oscuro para hover */
+}
+
+.dark {
+  /* Dark theme variables */
+  --background: #121212;
+  --background: linear-gradient(152deg, rgba(18, 18, 18, 1) 0%, rgba(30, 30, 30, 1) 67%, rgba(50, 50, 50, 1) 100%);
+  --foreground: #E0E0E0;
+  /* Gris claro */
+  --light: #A0A0A0;
+  /* Gris medio */
+  --mate: #000000;
+  --muted: #1f2937;
+  --muted-foreground: #000000;
+  --popover: #1a1a1a;
+  --popover-foreground: #94a3b8;
+  --card: #242424;
+  --card-foreground: #E0E0E0;
+  --border: #2d3748;
+  --input: #2a2a2a;
+  --primary: #2D6AA5;
+  /* Azul más claro */
+  --primary-foreground: #ffffff;
+  --update: #283ba3;
+  --update-foreground: #ffffff;
+  --secondary: #7C9FEA;
+  /* Azul más claro para modo oscuro */
+  --secondary-foreground: #ffffff;
+  --accent: #3A8EE6;
+  /* Azul suavizado */
+  --accent-foreground: #121212;
+  --destructive: #244499;
+  --destructive-foreground: #ffffff;
+  --ring: #4a5568;
+  --bg-switch: #444;
+  --sidebar-bg: #1D4E7C;
+  /* Azul corporativo */
+  --sidebar-foreground: #ffffff;
+  /* Texto claro para contraste */
+  --sidebar-hover-bg: #245A99;
+  /* Azul ligeramente más oscuro para hover */
+}
+
+/* El resto del CSS permanece igual, solo cambian las variables de color */

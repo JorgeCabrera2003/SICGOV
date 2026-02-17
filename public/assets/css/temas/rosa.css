@@ -1,0 +1,66 @@
+:root {
+  /* Paleta rosa suavizada y armoniosa */
+  --background: #fff7fb;
+  --background: linear-gradient(152deg, rgba(255,247,251,1) 0%, rgba(255,236,246,1) 67%, rgba(255,243,250,1) 100%);
+  --foreground: #6b1640; /* texto principal: fucsia oscuro pero menos saturado */
+  --light: #ff85c1; /* rosa suave para acentos */
+  --mate: #ffdff2; /* rosa pálido */
+  --muted: #fff5f9;
+  --muted-foreground: #b83b6f;
+  --popover: #ffffff;
+  --popover-foreground: #6b1640;
+  --card: #fff7fb;
+  --card-foreground: #6b1640;
+  --border: #f4c2da;
+  --input: #fff0f6;
+  --primary: #d63384; /* fucsia equilibrado (no tan chillón) */
+  --primary-foreground: #ffffff;
+  --update: #b4226d;
+  --update-foreground: #ffffff;
+  --secondary: #ffb6db; /* rosa medio */
+  --secondary-foreground: #6b1640;
+  --accent: #ffdced; /* acento muy suave */
+  --accent-foreground: #6b1640;
+  --destructive: #ff6b81;
+  --destructive-foreground: #ffffff;
+  --ring: #f7c6e3;
+  --radius: 0.5rem;
+  --sidebar-width: 16rem;
+  --sidebar-collapsed-width: 4.5rem;
+  --bg-switch: #f4c2da;
+  --sidebar-bg: #a52b5a; /* sidebar ligeramente más oscuro para contraste */
+  --sidebar-foreground: #ffffff;
+  --sidebar-hover-bg: #c23e74; /* hover más vivo */
+}
+
+.dark {
+  /* Versión oscura suavizada */
+  --background: #1a0b12;
+  --background: linear-gradient(152deg, rgba(26,11,18,1) 0%, rgba(48,17,30,1) 67%, rgba(72,24,44,1) 100%);
+  --foreground: #ffd6ea; /* rosa claro para texto en oscuro */
+  --light: #e89abf;
+  --mate: #12060a;
+  --muted: #29141d;
+  --muted-foreground: #ffd6ea;
+  --popover: #2a121b;
+  --popover-foreground: #ffd6ea;
+  --card: #2a121b;
+  --card-foreground: #ffd6ea;
+  --border: #4a1f2e;
+  --input: #371826;
+  --primary: #e89abf; /* tono rosa para elementos principales en oscuro */
+  --primary-foreground: #1a0b12;
+  --update: #c25a8f;
+  --update-foreground: #1a0b12;
+  --secondary: #dca3c9;
+  --secondary-foreground: #1a0b12;
+  --accent: #b54b88;
+  --accent-foreground: #ffd6ea;
+  --destructive: #ff6b81;
+  --destructive-foreground: #ffffff;
+  --ring: #5a2438;
+  --bg-switch: #5a2438;
+  --sidebar-bg: #8a2048;
+  --sidebar-foreground: #ffffff;
+  --sidebar-hover-bg: #b84577;
+}

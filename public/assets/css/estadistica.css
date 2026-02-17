@@ -1,0 +1,78 @@
+/* Estilos para la vista de Estadistica */
+.puertos-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 5px;
+}
+
+.puerto-item {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.puerto-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    transition: all 0.3s ease;
+}
+
+.puerto-btn:hover {
+    transform: scale(1.1);
+}
+
+.puerto-btn i {
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.puerto-btn small {
+    font-size: 10px;
+    line-height: 1;
+}
+
+/* Animaciones */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.puerto-btn:hover {
+    animation: pulse 0.6s infinite;
+}
+
+/* Estilos para tooltips personalizados */
+.tooltip-inner {
+    background-color: #333;
+    color: white;
+    border-radius: 4px;
+    padding: 5px 10px;
+}
+
+.bs-tooltip-top .tooltip-arrow::before {
+    border-top-color: #333;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .puertos-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .puertos-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    .puerto-btn {
+        width: 35px;
+        height: 35px;
+    }
+}

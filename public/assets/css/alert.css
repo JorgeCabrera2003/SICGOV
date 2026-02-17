@@ -1,0 +1,23 @@
+.alert{
+	width: 35%;
+	position: absolute;
+	right: 2vw;
+	top: 12vh;
+}
+
+@media (max-width: 768px){
+
+	.alert{
+		width: 50%;
+		right: 3vw;
+		top: 12vh;
+	}
+}
+
+@media (max-width: 425px){
+	.alert{
+		width: 90%;
+		right: 5vw;
+		top: 12vh;
+	}
+}
