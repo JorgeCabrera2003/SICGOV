@@ -101,10 +101,18 @@ class Producto
 
     private function listarCategorias()
     {
-        $sql = "SELECT * FROM categoria_producto WHERE estatus = 1 ORDER BY nombre_categoria";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $sql = "SELECT id_categoria, nombre_categoria, descripcion, icono 
+                FROM categoria_producto 
+                WHERE estatus = 1 
+                ORDER BY nombre_categoria";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            error_log("Error en listarCategorias: " . $e->getMessage());
+            return [];
+        }
     }
 
     private function guardarProducto()
@@ -221,32 +229,65 @@ class Producto
 
     public function subirImagen($archivo)
     {
-        $target_dir = $_SERVER['DOCUMENT_ROOT'] . '/good-vibes/public/assets/img/productos/';
+        try {
+            $target_dir = BASE_PATH . '/public/assets/img/productos/';
 
-        if (!file_exists($target_dir)) {
-            mkdir($target_dir, 0777, true);
-        }
+            // Crear la carpeta si no existe
+            if (!file_exists($target_dir)) {
+                if (!mkdir($target_dir, 0777, true)) {
+                    error_log("Error: No se pudo crear la carpeta: " . $target_dir);
+                    return false;
+                }
+            }
 
-        $extension = pathinfo($archivo["name"], PATHINFO_EXTENSION);
-        $nombre_archivo = uniqid() . '.' . $extension;
-        $target_file = $target_dir . $nombre_archivo;
+            // Verificar que la carpeta tenga permisos de escritura
+            if (!is_writable($target_dir)) {
+                error_log("Error: La carpeta no tiene permisos de escritura: " . $target_dir);
+                return false;
+            }
 
-        $allowed = ['jpg', 'jpeg', 'png', 'gif'];
-        if (!in_array(strtolower($extension), $allowed)) {
+            $extension = strtolower(pathinfo($archivo["name"], PATHINFO_EXTENSION));
+            $allowed = ['jpg', 'jpeg', 'png', 'gif', 'jfif'];
+
+            if (!in_array($extension, $allowed)) {
+                error_log("Error: Extensión no permitida: " . $extension);
+                return false;
+            }
+
+            // Validar tamaño (2MB máximo)
+            if ($archivo["size"] > 2 * 1024 * 1024) {
+                error_log("Error: Archivo demasiado grande: " . $archivo["size"]);
+                return false;
+            }
+
+            $check = getimagesize($archivo["tmp_name"]);
+            if ($check === false) {
+                error_log("Error: El archivo no es una imagen válida");
+                return false;
+            }
+
+            $nombre_archivo = uniqid('prod_') . '.' . $extension;
+            $target_file = $target_dir . $nombre_archivo;
+
+            // Mover archivo
+            if (move_uploaded_file($archivo["tmp_name"], $target_file)) {
+                error_log(" Imagen subida correctamente: " . $nombre_archivo);
+                return $nombre_archivo;
+            } else {
+                error_log(" Error al mover el archivo. Error: " . error_get_last()['message']);
+                return false;
+            }
+        } catch (\Exception $e) {
+            error_log(" Excepción en subirImagen: " . $e->getMessage());
             return false;
         }
-
-        if (move_uploaded_file($archivo["tmp_name"], $target_file)) {
-            return $nombre_archivo;
-        }
-        return false;
     }
 
     private function generarIdProducto()
-{
-    $prefijo = 'PROD';
-    $fecha = date('YmdHis');
-    $random = rand(1000, 9999);
-    return $prefijo . $fecha . $random;
-}
+    {
+        $prefijo = 'PROD';
+        $fecha = date('YmdHis');
+        $random = rand(1000, 9999);
+        return $prefijo . $fecha . $random;
+    }
 }

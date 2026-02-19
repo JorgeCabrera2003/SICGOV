@@ -64,7 +64,7 @@ class BusinessSeeder {
                 'stock'          => $this->faker->numberBetween(10, 100), // Stock aleatorio
                 'stock_minimo'   => $this->faker->numberBetween(1, 10), // Stock mínimo aleatorio
                 'tiempo'         => $this->faker->numberBetween(5, 30), // Minutos
-                'imagen'         => $this->faker->imageUrl(200, 200, 'food', true), // Imagen fake
+                'imagen'         => null, // Sin imagen por defecto
                 'personalizable' => $this->faker->boolean(30) // 30% de probabilidad de ser personalizable
             ]);
         }

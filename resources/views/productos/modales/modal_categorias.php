@@ -27,16 +27,23 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($categorias as $cat): ?>
-                                <tr data-id="<?= $cat['id_categoria'] ?>">
-                                    <td><?= $cat['nombre_categoria'] ?></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-danger btn-eliminar-categoria" data-id="<?= $cat['id_categoria'] ?>">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
+                            <?php if (!empty($categorias)): ?>
+                                <?php foreach ($categorias as $cat): ?>
+                                    <tr data-id="<?= $cat['id_categoria'] ?>">
+                                        <td><?= $cat['nombre_categoria'] ?></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-danger btn-eliminar-categoria"
+                                                data-id="<?= $cat['id_categoria'] ?>">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="2" class="text-center">No hay categorías disponibles</td>
                                 </tr>
-                            <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>

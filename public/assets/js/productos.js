@@ -265,24 +265,25 @@ var ProductosModule = (function () {
             type: 'GET',
             dataType: 'json',
             success: function (response) {
-                // Actualizar select
-                var select = $('#id_categoria');
-                select.empty().append('<option value="" hidden>Seleccionar categoría</option>');
+                console.log('Categorías recibidas:', response); // Para depuración
 
-                response.forEach(function (cat) {
-                    select.append('<option value="' + cat.id_categoria + '">' + cat.nombre + '</option>');
-                });
-
-                // Actualizar tabla de categorías
                 var tbody = $('#tablaCategorias tbody');
                 tbody.empty();
-                response.forEach(function (cat) {
-                    tbody.append('<tr data-id="' + cat.id_categoria + '">' +
-                        '<td>' + cat.nombre + '</td>' +
-                        '<td><button class="btn btn-sm btn-danger btn-eliminar-categoria" data-id="' + cat.id_categoria + '">' +
-                        '<i class="fas fa-trash"></i></button></td>' +
-                        '</tr>');
-                });
+
+                if (response && response.length > 0) {
+                    response.forEach(function (cat) {
+                        tbody.append('<tr data-id="' + cat.id_categoria + '">' +
+                            '<td>' + cat.nombre_categoria + '</td>' +  // ← CORREGIDO
+                            '<td><button class="btn btn-sm btn-danger btn-eliminar-categoria" data-id="' + cat.id_categoria + '">' +
+                            '<i class="fas fa-trash"></i></button></td>' +
+                            '</tr>');
+                    });
+                } else {
+                    tbody.append('<tr><td colspan="2" class="text-center">No hay categorías disponibles</td></tr>');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error al cargar categorías:', error);
             }
         });
     }

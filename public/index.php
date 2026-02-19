@@ -50,9 +50,8 @@ if ($page === 'productos' && !empty($action)) {
     exit();
 }
 
-// Categorías (si existe)
 if ($page === 'categorias' && !empty($action)) {
-    $controller = new CategoriaController();
+    $controller = new \App\Controllers\CategoriaController();
     switch ($action) {
         case 'listar':
             $controller->listar();
