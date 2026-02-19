@@ -6,6 +6,9 @@ use App\Core\Database;
 use App\Database\Seeders\SecuritySeeder;
 use App\Database\Seeders\BusinessSeeder;
 
+$nombre = readline("Por favor, introduce tu nombre: ");
+echo "Hola, $nombre!";
+
 echo "\n INICIANDO INSTALACIÓN LIMPIA DEL SISTEMA GOOD VIBES...\n";
 echo "-----------------------------------------------------------\n";
 
@@ -58,7 +61,7 @@ try {
 
     echo "-----------------------------------------------------------\n";
     echo " INSTALACIÓN COMPLETADA CON ÉXITO.\n";
-    echo " Usuario: admin_root | Clave: 1234\n";
+    echo " Usuario: v-00000000 | Clave: 1234\n";
 
 } catch (Exception $e) {
     echo "\n ERROR DURANTE LA INSTALACIÓN:\n";

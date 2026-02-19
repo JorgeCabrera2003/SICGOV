@@ -2,37 +2,105 @@
 namespace App\Helpers;
 
 use App\Models\Security\Bitacora;
-use App\Models\Security\Usuario;
 
 class Helper {
 
-    /**
-     * Registra un movimiento en la bitácora
-     */
     public static function Bitacora($accion, $modulo) {
         $bitacora = new Bitacora();
         
-        // Obtenemos la sesión actual (Namespace de tu sistema)
         if (isset($_SESSION['user'])) {
-            $bitacora->set_usuario($_SESSION['user']['cedula']);
+            $bitacora->set_usuario($_SESSION['user']['cedula'] ?? '');
             $bitacora->set_modulo($modulo);
             $bitacora->set_accion($accion);
-            
-            // Enviamos fecha y hora actual juntas para el campo 'fecha' de tu DB
             $bitacora->set_fecha(date('Y-m-d'));
-            $bitacora->set_hora(date('H:i:s')); 
+            $bitacora->set_hora(date('H:i:s'));
             
             return $bitacora->Transaccion(['peticion' => 'registrar']);
         }
         return false;
     }
 
-    /**
-     * Función para enviar notificaciones a usuarios
-     */
-    public static function Notificar($msg, $modulo, $busqueda = 'todos') {
-        // Aquí puedes adaptar la lógica de notificaciones que tenías
-        // usando los nuevos modelos de tu sistema
-        // ...
+    public static function verificarSesion() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        if (!isset($_SESSION['user'])) {
+            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                // Es una petición AJAX
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Sesión no iniciada']);
+                exit();
+            } else {
+                // Es una petición normal
+                header("Location: " . BASE_URL . "/?page=login");
+                exit();
+            }
+        }
+        
+        return true;
+    }
+
+    public static function getDatosUsuario() {
+        self::verificarSesion();
+        
+        $user = $_SESSION['user'];
+        
+        return [
+            'nombres' => $user['nombres'] ?? $user['username'] ?? 'Usuario',
+            'apellidos' => $user['apellidos'] ?? '',
+            'cedula' => $user['cedula'] ?? '',
+            'rol' => $user['rol'] ?? 'Usuario',
+            'foto' => BASE_URL . '/assets/img/default.jpg',
+            'username' => $user['username'] ?? ''
+        ];
+    }
+
+    public static function getVarsVista($tituloPagina = 'Good Vibes') {
+        self::verificarSesion();
+        
+        return [
+            'titulo' => $tituloPagina,
+            'page' => $_GET['page'] ?? 'home',
+            'tema_actual' => $_SESSION['tema'] ?? 0,
+            'datos' => self::getDatosUsuario(),
+            'base_url' => BASE_URL,
+            'base_path' => dirname(__DIR__, 2)
+        ];
+    }
+
+    public static function cargarVista($vistaPath, $titulo = 'Good Vibes', $vars = []) {
+        self::verificarSesion();
+        
+        $varsVista = self::getVarsVista($titulo);
+        $vars = array_merge($varsVista, $vars);
+        extract($vars);
+        
+        $basePath = dirname(__DIR__, 2);
+        
+        // Verificar que los archivos existen
+        $headFile = $basePath . '/resources/views/layout/head.php';
+        $menuFile = $basePath . '/resources/views/layout/menu.php';
+        $vistaFile = $basePath . '/resources/views/' . $vistaPath . '.php';
+        $footerFile = $basePath . '/resources/views/layout/footer.php';
+        
+        if (!file_exists($headFile)) {
+            die("Error: No se encuentra el archivo head.php en: $headFile");
+        }
+        if (!file_exists($menuFile)) {
+            die("Error: No se encuentra el archivo menu.php en: $menuFile");
+        }
+        if (!file_exists($vistaFile)) {
+            die("Error: No se encuentra la vista en: $vistaFile");
+        }
+        if (!file_exists($footerFile)) {
+            die("Error: No se encuentra el archivo footer.php en: $footerFile");
+        }
+        
+        require_once $headFile;
+        require_once $menuFile;
+        require_once $vistaFile;
+        require_once $footerFile;
     }
 }
