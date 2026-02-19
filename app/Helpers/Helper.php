@@ -28,12 +28,10 @@ class Helper {
         if (!isset($_SESSION['user'])) {
             if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
                 strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-                // Es una petición AJAX
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Sesión no iniciada']);
                 exit();
             } else {
-                // Es una petición normal
                 header("Location: " . BASE_URL . "/?page=login");
                 exit();
             }
@@ -78,8 +76,7 @@ class Helper {
         extract($vars);
         
         $basePath = dirname(__DIR__, 2);
-        
-        // Verificar que los archivos existen
+
         $headFile = $basePath . '/resources/views/layout/head.php';
         $menuFile = $basePath . '/resources/views/layout/menu.php';
         $vistaFile = $basePath . '/resources/views/' . $vistaPath . '.php';

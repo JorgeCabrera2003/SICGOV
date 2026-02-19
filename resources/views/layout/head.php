@@ -61,7 +61,7 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/all.min.css" />
 
-    <!-- DataTables -->
+    <!-- DataTables CSS -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/DataTables/datatables.css" />
 
     <!-- Tema oscuro -->
@@ -76,7 +76,15 @@
         }
     </script>
 
-    <!-- ===== SCRIPTS ===== -->
+    <!-- ===== PASAR VARIABLES PHP A JAVASCRIPT ===== -->
+    <script>
+        // Variables globales del sistema
+        const BASE_URL = '<?php echo BASE_URL; ?>';
+        const CSRF_TOKEN = '<?php echo $_SESSION['csrf_token'] ?? ''; ?>';
+        console.log('BASE_URL cargada en JS:', BASE_URL);
+    </script>
+
+    <!-- ===== SCRIPTS (UNA SOLA VEZ) ===== -->
     <script src="<?php echo BASE_URL; ?>/assets/js/jquery.min.js"></script>
     <script src="<?php echo BASE_URL; ?>/assets/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
@@ -87,6 +95,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
     <script src="<?php echo BASE_URL; ?>/assets/js/main.js"></script>
     <script src="<?php echo BASE_URL; ?>/assets/js/utils.js"></script>
+    <!-- Scripts específicos de la página (se cargan después) -->
+    <?php if (isset($page) && file_exists(__DIR__ . '/../../public/assets/js/' . $page . '.js')): ?>
+        <script src="<?php echo BASE_URL; ?>/assets/js/<?php echo $page; ?>.js"></script>
+    <?php endif; ?>
 
     <!-- Estilos adicionales -->
     <style>
