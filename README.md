@@ -1,27 +1,51 @@
-# 📋 README - SISTEMA GOOD VIBES TAPAS & BAR
+## 📚 **README.md - SICGOV (Sistema de Información Complementario Good Vibes)**
 
-## 📌 Tabla de Contenidos
-1. [Descripción del Proyecto](#-descripción-del-proyecto)
-2. [Tecnologías Utilizadas](#-tecnologías-utilizadas)
-3. [Estructura del Proyecto](#-estructura-del-proyecto)
-4. [Requisitos Previos](#-requisitos-previos)
-5. [Instalación](#-instalación)
-6. [Configuración](#-configuración)
-7. [Base de Datos](#-base-de-datos)
-8. [Estructura de Carpetas](#-estructura-de-carpetas)
-9. [Nomenclatura y Convenciones](#-nomenclatura-y-convenciones)
-10. [Comandos Útiles](#-comandos-útiles)
-11. [Flujo de Trabajo con Git](#-flujo-de-trabajo-con-git)
-12. [Módulos del Sistema](#-módulos-del-sistema)
-13. [Guía de Estilos](#-guía-de-estilos)
-14. [Solución de Problemas Comunes](#-solución-de-problemas-comunes)
-15. [Contribución](#-contribución)
+```markdown
+# 🎸 SICGOV - Sistema de Información Complementario Good Vibes
+
+<div align="center">
+  
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![PHP](https://img.shields.io/badge/PHP-8.2-purple)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-orange)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Contributors](https://img.shields.io/badge/contributors-5-yellow)
+
+**Sistema de gestión complementario para restaurante temático Good Vibes Tapas & Bar**
+  
+</div>
 
 ---
 
-## 🎯 Descripción del Proyecto
+## 📋 TABLA DE CONTENIDOS
+- [🎸 SICGOV - Sistema de Información Complementario Good Vibes](#-sicgov---sistema-de-información-complementario-good-vibes)
+  - [📋 TABLA DE CONTENIDOS](#-tabla-de-contenidos)
+  - [📌 DESCRIPCIÓN DEL PROYECTO](#-descripción-del-proyecto)
+  - [🎯 VISIÓN Y PROPÓSITO](#-visión-y-propósito)
+  - [👥 EQUIPO DE DESARROLLO](#-equipo-de-desarrollo)
+  - [🛠 TECNOLOGÍAS UTILIZADAS](#-tecnologías-utilizadas)
+  - [📁 ESTRUCTURA DEL PROYECTO](#-estructura-del-proyecto)
+  - [⚙️ REQUISITOS PREVIOS](#️-requisitos-previos)
+  - [🚀 INSTALACIÓN](#-instalación)
+  - [🔧 CONFIGURACIÓN](#-configuración)
+  - [💾 BASE DE DATOS](#-base-de-datos)
+  - [🌳 ESTRATEGIA DE RAMAS (GIT FLOW)](#-estrategia-de-ramas-git-flow)
+  - [📝 REGLAS DE COMMITS](#-reglas-de-commits)
+  - [🔄 FLUJO DE TRABAJO DIARIO](#-flujo-de-trabajo-diario)
+  - [🔍 PULL REQUESTS](#-pull-requests)
+  - [🧩 MÓDULOS DEL SISTEMA](#-módulos-del-sistema)
+  - [🎨 GUÍA DE ESTILOS](#-guía-de-estilos)
+  - [📝 NOMENCLATURA Y CONVENCIONES](#-nomenclatura-y-convenciones)
+  - [📊 DIAGRAMA DE BASE DE DATOS](#-diagrama-de-base-de-datos)
+  - [🔧 SOLUCIÓN DE PROBLEMAS COMUNES](#-solución-de-problemas-comunes)
+  - [📚 DOCUMENTACIÓN ADICIONAL](#-documentación-adicional)
+  - [📜 LICENCIA](#-licencia)
 
-**Good Vibes Tapas & Bar** es un sistema de información complementario diseñado para optimizar la administración de un restaurante temático de los años 80s y 90s. El sistema complementa las funciones administrativas faltantes del sistema principal de ventas (Eco Logical), ofreciendo:
+---
+
+## 📌 DESCRIPCIÓN DEL PROYECTO
+
+**SICGOV** es un sistema de información complementario diseñado para optimizar la administración del restaurante temático **Good Vibes Tapas & Bar** (años 80s y 90s). El sistema complementa las funciones administrativas faltantes del sistema principal de ventas (Eco Logical), ofreciendo:
 
 - **Gestión de Personal**: Control de asistencia, horarios, turnos y permisos
 - **Gestión de Inventario**: Control de existencias, alertas de reposición
@@ -32,16 +56,44 @@
 
 ---
 
-## 🛠 Tecnologías Utilizadas
+## 🎯 VISIÓN Y PROPÓSITO
 
-### Backend
+> "Desarrollar un sistema web integral de gestión que optimice todas las operaciones del restaurante, desde la administración interna hasta la experiencia del cliente, garantizando eficiencia, control y un servicio ágil."
+
+El restaurante **Good Vibes** transporta a sus clientes a la estética vibrante de los años 80s y 90s, combinando una ambientación retro con talento en vivo. Su menú diverso ofrece desde comida rápida hasta platillos de preparación elaborada, todos con nombres icónicos que refuerzan la experiencia nostalgia.
+
+---
+
+## 👥 EQUIPO DE DESARROLLO
+
+| Rol | Nombre | Rama Personal |
+|-----|--------|---------------|
+| **Líder Técnico / Desarrollador** | Jorge Cabrera | `jorge-dev` |
+| **Desarrollador** | Leizer Torrealba | `leizer-dev` |
+| **Desarrollador** | Mariangel Bokor | `mariangel-dev` |
+| **Desarrollador** | Santiago Coello | `santiago-dev` |
+| **Desarrollador** | Abrahan Rodriguez | `abrahan-dev` |
+
+### **Responsabilidades del Líder:**
+- ✅ Aprobar Pull Requests a `dev`
+- ✅ Mantener la visión del proyecto
+- ✅ Resolver conflictos grandes
+- ✅ Asegurar calidad del código
+- ✅ Hacer merge a `main` (producción)
+
+---
+
+## 🛠 TECNOLOGÍAS UTILIZADAS
+
+### **Backend**
 | Tecnología | Versión | Descripción |
 |------------|---------|-------------|
 | PHP | 8.2+ | Lenguaje principal (tipado estricto) |
 | MySQL/MariaDB | 8.0/10.6 | Base de datos relacional |
 | PDO | - | Extensión para conexiones seguras |
+| Composer | 2.5+ | Gestor de dependencias |
 
-### Frontend
+### **Frontend**
 | Tecnología | Versión | Descripción |
 |------------|---------|-------------|
 | HTML5 | - | Estructura semántica |
@@ -55,110 +107,80 @@
 | DataTables | 1.13 | Tablas dinámicas |
 | Select2 | 4.1 | Selectores avanzados |
 
-### Herramientas de Desarrollo
+### **Herramientas de Desarrollo**
 | Herramienta | Versión | Uso |
 |-------------|---------|-----|
 | XAMPP | 8.2+ | Entorno de desarrollo local |
-| Composer | 2.5+ | Gestor de dependencias PHP |
 | Git | 2.40+ | Control de versiones |
+| GitHub | - | Repositorio remoto |
 | FakerPHP | 1.23+ | Generación de datos de prueba |
 
 ---
 
-## 📁 Estructura del Proyecto
+## 📁 ESTRUCTURA DEL PROYECTO
 
 ```
 good-vibes/
 ├── app/
 │   ├── Controllers/          # Controladores MVC
-│   │   ├── LoginController.php
-│   │   ├── DashboardController.php
-│   │   ├── ProductoController.php
-│   │   └── CategoriaController.php
-│   ├── Models/
-│   │   ├── Security/         # Modelos BD Seguridad
-│   │   │   ├── Usuario.php
-│   │   │   ├── Bitacora.php
-│   │   │   └── LoginSettings.php
-│   │   └── System/            # Modelos BD Sistema
-│   │       ├── Producto.php
-│   │       ├── CategoriaProducto.php
-│   │       └── Empleado.php
-│   ├── Core/
-│   │   ├── Database.php       # Singleton multi-conexión
-│   │   └── Router.php         # Enrutador (opcional)
-│   └── Helpers/
-│       └── Helper.php         # Funciones auxiliares
-├── config/
-│   └── database.php           # Configuración de BD
-├── database/
-│   ├── migrations/            # Archivos SQL de estructura
-│   │   ├── goobv-usuarios.sql
-│   │   └── goobv-sistema.sql
-│   ├── seeders/               # Pobladores de datos
-│   │   ├── SecuritySeeder.php
-│   │   └── BusinessSeeder.php
-│   └── setup.php              # Instalador automático
-├── public/
-│   ├── index.php              # Punto de entrada único
-│   ├── logout.php             # Cierre de sesión
-│   ├── .htaccess              # Reescribir URLs
-│   └── assets/
-│       ├── css/
-│       │   ├── main.css
-│       │   ├── style.css
-│       │   └── temas/
-│       ├── js/
-│       │   ├── main.js
-│       │   └── utils.js
-│       ├── img/
-│       ├── bootstrap/
-│       ├── DataTables/
-│       └── Select2/
-├── resources/
+│   ├── Models/                # Modelos (Security/System)
+│   ├── Core/                  # Clases base (Database, Router)
+│   └── Helpers/               # Funciones auxiliares (Helper.php)
+├── config/                    # Configuración de BD
+├── database/                  # Migraciones y seeders
+├── public/                    # Front Controller (index.php)
+│   └── assets/                # CSS, JS, imágenes
+├── resources/                 # Vistas
 │   └── views/
-│       ├── layouts/
-│       │   ├── head.php
-│       │   ├── menu.php
-│       │   └── footer.php
-│       ├── auth/
-│       │   └── login.php
-│       └── productos/
-│           └── index.php
-├── vendor/                     # Dependencias Composer
-├── .env                        # Variables de entorno
-├── .gitignore
-├── composer.json               # Dependencias PHP
-└── README.md                   # Este archivo
+│       ├── layouts/           # Head, menú, footer
+│       ├── auth/              # Login
+│       └── productos/         # Módulo de productos
+├── vendor/                    # Dependencias Composer
+├── .env                       # Variables de entorno
+├── composer.json              # Dependencias PHP
+└── README.md                  # Este archivo
 ```
 
 ---
 
-## 📋 Requisitos Previos
+## ⚙️ REQUISITOS PREVIOS
 
 - **XAMPP** 8.2+ (Apache + MySQL + PHP)
 - **Composer** 2.5+
 - **Git** 2.40+
 - **Navegador** moderno (Chrome, Firefox, Edge)
 - **Editor de código** (VS Code, PHPStorm, Sublime)
+- **Cuenta en GitHub** (para colaborar)
 
 ---
 
-## 🚀 Instalación
+## 🚀 INSTALACIÓN
 
-### 1. Clonar el repositorio
+### **1. Clonar el repositorio**
 ```bash
 cd C:\xampp\htdocs
-git clone https://github.com/tu-repo/good-vibes.git
+git clone https://github.com/tu-repo/sicgov.git good-vibes
 cd good-vibes
 ```
 
-### 2. Instalar dependencias
+### **2. Configurar rama personal (solo primera vez)**
+```bash
+# Traer todas las ramas
+git fetch origin
+
+# Crear y cambiarte a tu rama personal
+git checkout -b jorge-dev origin/jorge-dev  # Reemplaza con tu nombre
+
+# Configurar seguimiento
+git branch --set-upstream-to=origin/jorge-dev jorge-dev
+```
+
+### **3. Instalar dependencias**
 ```bash
 composer install
 ```
 
-### 3. Configurar variables de entorno
+### **4. Configurar variables de entorno**
 Crear archivo `.env` en la raíz:
 
 ```env
@@ -169,31 +191,25 @@ DB_NAME_SYSTEM=goobv-sistema
 DB_NAME_USER=goobv-usuarios
 ```
 
-### 4. Configurar base de datos
-Ejecutar el instalador automático:
+### **5. Configurar base de datos**
 ```bash
 php database/setup.php
 ```
 
-### 5. Configurar Apache
-Asegurar que `mod_rewrite` está activado en XAMPP:
-- Abrir `httpd.conf`
-- Descomentar: `LoadModule rewrite_module modules/mod_rewrite.so`
-
-### 6. Acceder al sistema
+### **6. Acceder al sistema**
 ```
 http://localhost/good-vibes/public/
 ```
 
 **Credenciales por defecto:**
-- Usuario: `admin_root` o cédula del SQL original
+- Usuario: `admin_root`
 - Contraseña: `1234`
 
 ---
 
-## ⚙️ Configuración
+## 🔧 CONFIGURACIÓN
 
-### Archivo `.env`
+### **Archivo `.env`**
 | Variable | Descripción | Ejemplo |
 |----------|-------------|---------|
 | DB_HOST | Host de la base de datos | localhost |
@@ -202,7 +218,7 @@ http://localhost/good-vibes/public/
 | DB_NAME_SYSTEM | BD del negocio | goobv-sistema |
 | DB_NAME_USER | BD de seguridad | goobv-usuarios |
 
-### Archivo `config/database.php`
+### **Archivo `config/database.php`**
 ```php
 <?php
 return [
@@ -223,9 +239,9 @@ return [
 
 ---
 
-## 💾 Base de Datos
+## 💾 BASE DE DATOS
 
-### Conexiones (Singleton Multi-BD)
+### **Conexiones (Singleton Multi-BD)**
 ```php
 // BD de seguridad (usuarios, roles, bitácora)
 $dbSecurity = Database::getConnection('security');
@@ -234,235 +250,220 @@ $dbSecurity = Database::getConnection('security');
 $dbBusiness = Database::getConnection('business');
 ```
 
-### Migraciones
-Los archivos SQL deben:
-- ❌ **NO** incluir `CREATE DATABASE` ni `USE`
-- ✅ Empezar directamente con `CREATE TABLE`
-- ✅ Incluir `INSERT` para datos base
-- ✅ Usar `IF NOT EXISTS` para evitar errores
-
-### Seeders
-Los seeders usan **FakerPHP** para datos de prueba:
+### **Migraciones**
 ```bash
-# Ejecutar instalación completa
+# Instalar/Resetear base de datos
 php database/setup.php
 ```
 
----
-
-## 📂 Estructura de Carpetas
-
-### Reglas PSR-4
-```json
-{
-    "autoload": {
-        "psr-4": {
-            "App\\": "app/",
-            "App\\Database\\Seeders\\": "database/seeders/"
-        }
-    }
-}
-```
-
-### Namespaces
-- Controladores: `namespace App\Controllers;`
-- Modelos (Seguridad): `namespace App\Models\Security;`
-- Modelos (Sistema): `namespace App\Models\System;`
-- Helpers: `namespace App\Helpers;`
-- Seeders: `namespace App\Database\Seeders;`
+### **Seeders con Faker**
+Los seeders generan datos de prueba realistas usando FakerPHP.
 
 ---
 
-## 📝 Nomenclatura y Convenciones
+## 🌳 ESTRATEGIA DE RAMAS (GIT FLOW)
 
-### Archivos y Carpetas
-| Tipo | Convención | Ejemplo |
-|------|------------|---------|
-| Clases | PascalCase | `ProductoController.php` |
-| Modelos | PascalCase (singular) | `Usuario.php` |
-| Vistas | snake_case | `perfil_usuario.php` |
-| Tablas | minúsculas, plural | `usuarios`, `productos` |
-| Métodos | camelCase | `obtenerMenu()` |
-| Variables | camelCase | `$nombreProducto` |
-| Constantes | MAYÚSCULAS | `BASE_URL` |
-| IDs BD | prefijo + timestamp | `PROD20250217123456` |
-
-### Estructura de Commits
 ```
-[TIPO]: Descripción breve (≤50 caracteres)
+main (producción - solo Jorge hace merge aquí)
+  ↑
+dev (integración - todos via PR, Jorge aprueba)
+  ├── jorge-dev (Jorge - también programa)
+  ├── leizer-dev
+  ├── mariangel-dev
+  ├── santiago-dev
+  └── abrahan-dev
+```
 
-Cuerpo opcional con explicación detallada
-- Qué se cambió
-- Por qué se cambió
-- Impacto en otros módulos
+### **Reglas de Oro:**
+1. ✅ **Nunca hacer push directo a `main` o `dev`**
+2. ✅ **Siempre trabajar en tu rama personal** (`nombre-dev`)
+3. ✅ **Pull Request obligatorio** para mergear a `dev`
+4. ✅ **Mínimo 1 revisor** antes de mergear
+5. ✅ **Sincronizar con `dev` diariamente**
+6. ✅ **Jorge aprueba los PRs a `dev`**
+
+---
+
+## 📝 REGLAS DE COMMITS
+
+### **Formato obligatorio:**
+```
+[TIPO]: Descripción breve (max 50 caracteres)
+
+Cuerpo opcional (explicar QUÉ y POR QUÉ, no el CÓMO)
 
 Referencias: #issue, PR relacionado
 ```
 
-### Tipos de Commit
-| Tag | Descripción |
-|-----|-------------|
-| FEAT | Nueva funcionalidad |
-| FIX | Corrección de bug |
-| DOCS | Documentación |
-| STYLE | Estilos/CSS |
-| REFACTOR | Refactorización |
-| PERF | Mejora de rendimiento |
-| TEST | Pruebas |
-| CONFIG | Configuraciones |
-| CHORE | Mantenimiento |
-| REMOVE | Eliminación de código |
-| MOVE | Movimiento/renombrado |
-| DEPS | Dependencias |
-| MERGE | Fusiones |
+### **Tipos de Commit (Tags)**
+| Tag | Cuándo usarlo | Ejemplo |
+|-----|---------------|---------|
+| `FEAT` | Nueva funcionalidad | `FEAT: Agregar filtro de búsqueda en productos` |
+| `FIX` | Corrección de bug | `FIX: Error al guardar producto sin imagen` |
+| `DOCS` | Documentación | `DOCS: Actualizar README con instrucciones` |
+| `STYLE` | Cambios de formato (CSS, espacios) | `STYLE: Ajustar padding del buscador` |
+| `REFACTOR` | Reestructurar código (sin cambiar funcionalidad) | `REFACTOR: Mover lógica de bitácora a Helper` |
+| `PERF` | Mejora de rendimiento | `PERF: Optimizar consulta de listar productos` |
+| `TEST` | Agregar/modificar tests | `TEST: Pruebas para el modelo Producto` |
+| `CONFIG` | Cambios en configuración | `CONFIG: Actualizar dependencias en composer.json` |
+| `CHORE` | Tareas de mantenimiento | `CHORE: Limpiar archivos temporales` |
+| `MERGE` | Fusiones de ramas | `MERGE: jorge-dev → dev` |
 
-### Ramas Git
-| Rama | Propósito |
-|------|-----------|
-| `main` | Código estable para producción |
-| `develop` | Integración de funcionalidades |
-| `feature/[modulo]-[desc]` | Nueva característica |
-| `bugfix/[issue]-[desc]` | Corrección de bugs |
-| `hotfix/[desc]` | Corrección urgente |
-| `release/v*.*.*` | Preparación de versión |
+### **Ejemplo Correcto:**
+```
+FEAT: Agregar buscador en tiempo real de productos
 
----
+- Implementar filtro por nombre y categoría
+- Usar AJAX para no recargar la página
+- Agregar indicador de carga
 
-## 🖥 Comandos Útiles
-
-### Composer
-```bash
-# Instalar dependencias
-composer install
-
-# Actualizar autoload
-composer dump-autoload
-
-# Agregar nueva dependencia
-composer require vendor/paquete
-
-# Actualizar dependencias
-composer update
+Closes #45
 ```
 
-### Base de Datos
-```bash
-# Instalar/Resetear base de datos
-php database/setup.php
-
-# (Recomendado) Limpiar todo y reinstalar
-# El script ya incluye DROP DATABASE IF EXISTS
+### **Ejemplo INCORRECTO (NO USAR):**
 ```
-
-### Git
-```bash
-# Crear rama de feature
-git checkout develop
-git checkout -b feature/nuevo-modulo
-
-# Commit con mensaje estándar
-git add .
-git commit -m "FEAT: Agregar módulo de inventario"
-
-# Sincronizar con develop
-git checkout develop
-git pull origin develop
-git checkout feature/nuevo-modulo
-git rebase develop
-
-# Merge a develop (vía Pull Request)
-git push origin feature/nuevo-modulo
+cambios varios
+fix cosas
+actualizaciones
 ```
 
 ---
 
-## 🔄 Flujo de Trabajo con Git
+## 🔄 FLUJO DE TRABAJO DIARIO
 
-### 1. Desarrollo Normal
+### **1. Comenzar el día - Sincronizar**
 ```bash
-# Desde develop
-git checkout develop
-git pull origin develop
-git checkout -b feature/mi-feature
+# Ir a tu rama
+git checkout jorge-dev
 
-# Trabajar y commitear
+# Traer cambios de dev
+git checkout dev
+git pull origin dev
+git checkout jorge-dev
+git merge dev
+
+# Si hay conflictos, resolverlos
 git add .
-git commit -m "FEAT: Descripción"
+git commit -m "MERGE: Resolver conflictos con dev"
 
-# Sincronizar
-git checkout develop
-git pull origin develop
-git checkout feature/mi-feature
-git rebase develop
-
-# Subir y crear Pull Request
-git push origin feature/mi-feature
+# Subir tu rama
+git push origin jorge-dev
 ```
 
-### 2. Hotfix (Urgente)
+### **2. Trabajar en features**
 ```bash
-# Desde main
-git checkout main
-git checkout -b hotfix/error-critico
-
-# Corregir y commitear
+# Commits frecuentes con TAGS
 git add .
-git commit -m "FIX: Error crítico en login"
+git commit -m "FEAT: Agregar modal de pedidos"
+git commit -m "STYLE: Diseño responsive del modal"
+git commit -m "FIX: Validar campos vacíos"
+```
 
-# Merge a main
-git checkout main
-git merge hotfix/error-critico
-git push origin main
+### **3. Sincronizar varias veces al día**
+```bash
+git checkout dev
+git pull origin dev
+git checkout jorge-dev
+git merge dev
+git push origin jorge-dev
+```
 
-# También a develop
-git checkout develop
-git merge hotfix/error-critico
-git push origin develop
+### **4. Subir cambios al final del día**
+```bash
+git push origin jorge-dev
 ```
 
 ---
 
-## 🧩 Módulos del Sistema
+## 🔍 PULL REQUESTS
 
-### 1. Autenticación y Seguridad
+### **Plantilla de Pull Request**
+```markdown
+## 📋 Descripción
+[Explica qué hace este PR]
+
+## 🎯 Cambios realizados
+- [ ] Feature 1
+- [ ] Bug fix 2
+- [ ] Tests
+
+## ✅ Cómo probar
+1. Paso 1
+2. Paso 2
+3. Verificar que...
+
+## 📸 Screenshots (si aplica)
+
+## 🔗 Issues relacionados
+Closes #[número]
+
+## 👥 Revisores
+@jorge
+@otro-compañero
+```
+
+### **Checklist antes de PR**
+- [ ] ¿Los commits siguen el formato de tags?
+- [ ] ¿El código funciona localmente?
+- [ ] ¿No rompe otras funcionalidades?
+- [ ] ¿Sin código comentado?
+- [ ] ¿Sin console.log de depuración?
+
+---
+
+## 🧩 MÓDULOS DEL SISTEMA
+
+### **1. Autenticación y Seguridad** (Jorge)
 - Login con reCAPTCHA
 - Registro de bitácora
 - Cierre de sesión seguro
 - Roles y permisos
 
-### 2. Gestión de Personal
+### **2. Gestión de Productos** (✅ Completado)
+- CRUD de productos
+- Categorías de productos
+- Subida de imágenes
+- DataTables con búsqueda
+
+### **3. Gestión de Personal** (Leizer)
 - Registro de empleados
 - Marcación de asistencia
 - Control de horarios y turnos
 - Reportes de personal
 
-### 3. Gestión de Inventario
+### **4. Gestión de Inventario** (Mariangel)
 - Control de existencias
 - Historial de movimientos
 - Alertas de reposición
 - Cálculo automático de compras
 
-### 4. Menú Inteligente
+### **5. Menú Inteligente** (Santiago)
 - Catálogo digital de platillos
 - Filtros por categoría
 - Personalización de ingredientes
 - QR por mesa
 
-### 5. Control Financiero
+### **6. Pedidos y Mesas** (Abrahan)
+- Plano interactivo del salón
+- Estados de mesa (Libre, Ocupada, Reservada)
+- Toma de pedidos con modificadores
+- Envío a cocina (KDS)
+
+### **7. Control Financiero** (Jorge)
 - Ingresos y egresos
 - Cálculo de ganancias
 - Reportes detallados
 
-### 6. Gestión de Clientes
+### **8. Gestión de Clientes** (Leizer/Mariangel)
 - Historial de clientes
 - Sistema de puntos por lealtad
 - Reservaciones de mesas
 
 ---
 
-## 🎨 Guía de Estilos
+## 🎨 GUÍA DE ESTILOS
 
-### Paleta de Colores (60-30-10)
+### **Paleta de Colores (60-30-10)**
 
 | Porcentaje | Uso | Color | Código |
 |------------|-----|-------|--------|
@@ -471,12 +472,12 @@ git push origin develop
 | **30%** | Sidebar/Navegación | Negro mate | `#1A1C20` |
 | **10%** | Acento (botones, hover) | Amarillo vibrante | `#FFD600` |
 
-### Tipografía
+### **Tipografía**
 ```css
 font-family: 'Poppins', sans-serif;
 ```
 
-### Botones
+### **Botones**
 ```css
 .btn-primary {
     background-color: #FFD600;
@@ -491,68 +492,81 @@ font-family: 'Poppins', sans-serif;
 }
 ```
 
-### Tarjetas
-```css
-.card {
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    transition: transform 0.2s;
-}
+---
 
-.card:hover {
-    transform: translateY(-3px);
-}
-```
+## 📝 NOMENCLATURA Y CONVENCIONES
 
-### Menú Activo
-```css
-.menu-item.active a {
-    border-left: 4px solid #FFD600;
-    color: #FFD600;
-}
-```
+### **Archivos y Carpetas**
+| Tipo | Convención | Ejemplo |
+|------|------------|---------|
+| Clases | PascalCase | `ProductoController.php` |
+| Modelos | PascalCase (singular) | `Usuario.php` |
+| Vistas | snake_case | `perfil_usuario.php` |
+| Tablas | minúsculas, plural | `usuarios`, `productos` |
+| Métodos | camelCase | `obtenerMenu()` |
+| Variables | camelCase | `$nombreProducto` |
+| Constantes | MAYÚSCULAS | `BASE_URL` |
+| IDs BD | prefijo + timestamp | `PROD20250217123456` |
+
+### **Namespaces**
+- Controladores: `namespace App\Controllers;`
+- Modelos (Seguridad): `namespace App\Models\Security;`
+- Modelos (Sistema): `namespace App\Models\System;`
+- Helpers: `namespace App\Helpers;`
 
 ---
 
-## 🔧 Solución de Problemas Comunes
+## 📊 DIAGRAMA DE BASE DE DATOS
 
-### Error: "Class not found"
+### **Base de Datos `goobv-usuarios` (Seguridad)**
+- `usuario`
+- `rol`
+- `bitacora`
+- `configuracion`
+
+### **Base de Datos `goobv-sistema` (Negocio)**
+- `personal`
+- `cargo`
+- `asistencia`
+- `categoria_producto`
+- `producto`
+- `ingrediente`
+- `inventario`
+- `mesa`
+- `pedido`
+- `detalle_pedido`
+- `cliente`
+- `pago`
+- `transaccion_financiera`
+
+---
+
+## 🔧 SOLUCIÓN DE PROBLEMAS COMUNES
+
+### **Error: "Class not found"**
 ```bash
 composer dump-autoload
 ```
 
-### Error: "Unknown column"
-Verificar nombres de columnas en BD vs modelo SQL:
+### **Error: "BASE_URL is not defined" en JS**
+Asegurar que en `head.php` está:
+```php
+<script>const BASE_URL = '<?php echo BASE_URL; ?>';</script>
+```
+
+### **Error: "Unknown column"**
+Verificar nombres de columnas en BD:
 ```sql
 DESCRIBE nombre_tabla;
 ```
 
-### Error: "Field doesn't have a default value"
+### **Error: "Field doesn't have a default value"**
 Generar ID manualmente (para campos VARCHAR como PK):
 ```php
 $this->id_producto = $this->generarIdProducto();
 ```
 
-### Error: reCAPTCHA no funciona
-Activar extensión GD en `php.ini`:
-```ini
-extension=gd
-```
-
-### Error: 404 en assets
-Verificar rutas en `head.php`:
-```php
-<link href="<?php echo BASE_URL; ?>/assets/css/style.css">
-```
-
-### Error: "Invalid JSON response" en DataTables
-Verificar que el controlador devuelve:
-```php
-echo json_encode(['data' => $data]);
-```
-
-### Error: Sesión no persiste
+### **Error: Sesión no persiste**
 Configurar sesiones seguras:
 ```php
 session_start([
@@ -562,100 +576,50 @@ session_start([
 ]);
 ```
 
----
-
-## 👥 Contribución
-
-### Buenas Prácticas
-
-1. **Un commit = un cambio lógico**
-2. **Mensajes en presente** ("Agrega" no "Agregué")
-3. **Línea de asunto ≤ 50 caracteres**
-4. **Cuerpo explica el QUÉ y POR QUÉ**
-5. **Referenciar issues** (`Closes #123`)
-6. **Commit temprano, commit frecuente**
-7. **Usar Guard Clauses** (validar y salir rápido)
-8. **Siempre usar PDO con prepared statements**
-9. **Usar Singleton para conexiones BD**
-10. **Nunca incluir variables directamente en SQL**
-
-### Tags Específicos Sugeridos
-
-| Tag | Ámbito |
-|-----|--------|
-| MENU | Cambios en menú interactivo |
-| FINANCE | Módulo financiero |
-| STAFF | Gestión de personal |
-| INVENTORY | Control de inventario |
-| KITCHEN | Optimización de cocina |
-| VIBES | Elementos temáticos retro |
-
-### Ejemplo de Commit
-```
-FEAT: Sistema de alertas para reposición de inventario
-
-- Implementar notificaciones por stock bajo
-- Configurar umbrales personalizados por producto
-- Agregar panel de alertas pendientes
-
-Closes #123
-```
-
-### Ejemplo de Pull Request
-```
-## Descripción
-Agrega módulo de inventario con alertas automáticas
-
-## Cambios realizados
-- [x] Modelo Inventario con PDO
-- [x] Controlador con listado JSON
-- [x] Vista con DataTables
-- [x] Sistema de alertas por stock mínimo
-
-## Cómo probar
-1. Ejecutar `php database/setup.php`
-2. Ir a `/inventario`
-3. Modificar stock por debajo del mínimo
-
-## Issues relacionados
-Closes #123, Relates to #45
-
-## Screenshots
-[imagen aquí]
-```
+### **Error: DataTables "Cannot reinitialise"**
+Verificar que los scripts de DataTables se cargan UNA sola vez.
 
 ---
 
-## 📚 Documentación Adicional
+## 📚 DOCUMENTACIÓN ADICIONAL
 
 - [PHP Manual](https://www.php.net/manual/es/)
 - [MySQL Documentation](https://dev.mysql.com/doc/)
 - [Bootstrap 5 Docs](https://getbootstrap.com/docs/5.3/)
 - [DataTables Manual](https://datatables.net/manual/)
 - [FakerPHP Docs](https://fakerphp.github.io/)
-- [Font Awesome Icons](https://fontawesome.com/icons)
+- [Git Handbook](https://guides.github.com/introduction/git-handbook/)
 
 ---
 
-## 📞 Contacto
+## 📜 LICENCIA
 
-**Equipo de Desarrollo:**
-- Jorge Cabrera - 31.843.937
-- Leizer Torrealba - 30.266.398
-- Mariangel Bokor - 30.587.785
-- Santiago Coello - 28.165.452
-- Abrahan Rodriguez - 30.405.566
+**© 2026 Equipo SICGOV - Good Vibes Tapas & Bar**
 
-**Repositorio:** [https://github.com/tu-repo/good-vibes](https://github.com/tu-repo/good-vibes)
+Este proyecto es desarrollado con fines académicos y profesionales. Todos los derechos reservados.
 
 ---
 
-## 📅 Versión
+<div align="center">
+  
+**¿Listo para empezar?** 🚀
 
-**Versión Actual:** 1.0.0  
-**Fecha:** Febrero 2026  
-**Estado:** Desarrollo Activo
+[Volver al inicio](#-sicgov---sistema-de-información-complementario-good-vibes)
+
+</div>
+```
 
 ---
 
-*¡Good Vibes! 🌟 Un sistema con onda retro para un restaurante con mucha energía.*
+## 🎯 **RESUMEN DE LO AGREGADO**
+
+| Sección | Novedad |
+|---------|---------|
+| **Nombre del sistema** | SICGOV |
+| **Equipo de desarrollo** | Roles y ramas personales |
+| **Estrategia de ramas** | Git Flow adaptado con ramas personales |
+| **Reglas de commits** | Tags y formato obligatorio |
+| **Flujo de trabajo diario** | Comandos paso a paso |
+| **Pull Requests** | Plantilla y checklist |
+| **Módulos** | Asignados por persona |
+| **Solución de problemas** | Errores comunes y soluciones |
