@@ -1,4 +1,4 @@
-# 📋 README - SISTEMA GOOD VIBES TAPAS & BAR
+# 📋 **README - SICGOV (Sistema de Información Complementario Good Vibes)**
 
 ## 📌 Tabla de Contenidos
 1. [Descripción del Proyecto](#-descripción-del-proyecto)
@@ -12,17 +12,20 @@
 9. [Nomenclatura y Convenciones](#-nomenclatura-y-convenciones)
 10. [Comandos Útiles](#-comandos-útiles)
 11. [Flujo de Trabajo con Git](#-flujo-de-trabajo-con-git)
-12. [Módulos del Sistema](#-módulos-del-sistema)
-13. [Guía de Estilos](#-guía-de-estilos)
-14. [Solución de Problemas Comunes](#-solución-de-problemas-comunes)
-15. [Contribución](#-contribución)
+12. [Estrategia de Ramas](#-estrategia-de-ramas)
+13. [Pull Requests y Revisión de Código](#-pull-requests-y-revisión-de-código)
+14. [Módulos del Sistema](#-módulos-del-sistema)
+15. [Guía de Estilos](#-guía-de-estilos)
+16. [Solución de Problemas Comunes](#-solución-de-problemas-comunes)
+17. [Contribución](#-contribución)
 
 ---
 
 ## 🎯 Descripción del Proyecto
 
-**Good Vibes Tapas & Bar** es un sistema de información complementario diseñado para optimizar la administración de un restaurante temático de los años 80s y 90s. El sistema complementa las funciones administrativas faltantes del sistema principal de ventas (Eco Logical), ofreciendo:
+**SICGOV (Sistema de Información Complementario Good Vibes)** es un sistema diseñado para optimizar la administración del restaurante temático **Good Vibes Tapas & Bar** (años 80s y 90s). El sistema complementa las funciones administrativas faltantes del sistema principal de ventas (Eco Logical), ofreciendo una solución completa y profesional.
 
+### Objetivos Principales:
 - **Gestión de Personal**: Control de asistencia, horarios, turnos y permisos
 - **Gestión de Inventario**: Control de existencias, alertas de reposición
 - **Menú Inteligente**: Catálogo digital, QR por mesa, personalización de platillos
@@ -123,12 +126,25 @@ good-vibes/
 │       │   └── footer.php
 │       ├── auth/
 │       │   └── login.php
-│       └── productos/
-│           └── index.php
+│       ├── productos/
+│       │   ├── index.php
+│       │   ├── modales/
+│       │   │   ├── modal_producto.php
+│       │   │   └── modal_categorias.php
+│       │   ├── js/
+│       │   │   └── productos.js
+│       │   └── css/
+│       │       └── productos.css
+│       └── pedidos/           # (Estructura propuesta)
+│           ├── index.php
+│           ├── modales/
+│           ├── js/
+│           └── css/
 ├── vendor/                     # Dependencias Composer
 ├── .env                        # Variables de entorno
 ├── .gitignore
 ├── composer.json               # Dependencias PHP
+├── CONTRIBUTING.md             # Guía de contribución
 └── README.md                   # Este archivo
 ```
 
@@ -141,6 +157,7 @@ good-vibes/
 - **Git** 2.40+
 - **Navegador** moderno (Chrome, Firefox, Edge)
 - **Editor de código** (VS Code, PHPStorm, Sublime)
+- **Cuenta en GitHub** (para colaborar)
 
 ---
 
@@ -149,16 +166,25 @@ good-vibes/
 ### 1. Clonar el repositorio
 ```bash
 cd C:\xampp\htdocs
-git clone https://github.com/tu-repo/good-vibes.git
-cd good-vibes
+git clone https://github.com/tu-repo/sicgov.git
+cd sicgov
 ```
 
-### 2. Instalar dependencias
+### 2. Configurar ramas (primera vez)
+```bash
+# Ver ramas disponibles
+git branch -a
+
+# Crear y cambiarte a tu rama personal (ej: jorge-dev)
+git checkout -b jorge-dev origin/jorge-dev
+```
+
+### 3. Instalar dependencias
 ```bash
 composer install
 ```
 
-### 3. Configurar variables de entorno
+### 4. Configurar variables de entorno
 Crear archivo `.env` en la raíz:
 
 ```env
@@ -169,20 +195,20 @@ DB_NAME_SYSTEM=goobv-sistema
 DB_NAME_USER=goobv-usuarios
 ```
 
-### 4. Configurar base de datos
+### 5. Configurar base de datos
 Ejecutar el instalador automático:
 ```bash
 php database/setup.php
 ```
 
-### 5. Configurar Apache
+### 6. Configurar Apache
 Asegurar que `mod_rewrite` está activado en XAMPP:
 - Abrir `httpd.conf`
 - Descomentar: `LoadModule rewrite_module modules/mod_rewrite.so`
 
-### 6. Acceder al sistema
+### 7. Acceder al sistema
 ```
-http://localhost/good-vibes/public/
+http://localhost/sicgov/public/
 ```
 
 **Credenciales por defecto:**
@@ -287,7 +313,7 @@ php database/setup.php
 | Constantes | MAYÚSCULAS | `BASE_URL` |
 | IDs BD | prefijo + timestamp | `PROD20250217123456` |
 
-### Estructura de Commits
+### Estructura de Commits (OBLIGATORIA)
 ```
 [TIPO]: Descripción breve (≤50 caracteres)
 
@@ -299,32 +325,19 @@ Cuerpo opcional con explicación detallada
 Referencias: #issue, PR relacionado
 ```
 
-### Tipos de Commit
-| Tag | Descripción |
-|-----|-------------|
-| FEAT | Nueva funcionalidad |
-| FIX | Corrección de bug |
-| DOCS | Documentación |
-| STYLE | Estilos/CSS |
-| REFACTOR | Refactorización |
-| PERF | Mejora de rendimiento |
-| TEST | Pruebas |
-| CONFIG | Configuraciones |
-| CHORE | Mantenimiento |
-| REMOVE | Eliminación de código |
-| MOVE | Movimiento/renombrado |
-| DEPS | Dependencias |
-| MERGE | Fusiones |
-
-### Ramas Git
-| Rama | Propósito |
-|------|-----------|
-| `main` | Código estable para producción |
-| `develop` | Integración de funcionalidades |
-| `feature/[modulo]-[desc]` | Nueva característica |
-| `bugfix/[issue]-[desc]` | Corrección de bugs |
-| `hotfix/[desc]` | Corrección urgente |
-| `release/v*.*.*` | Preparación de versión |
+### Tipos de Commit (Tags)
+| Tag | Descripción | Ejemplo |
+|-----|-------------|---------|
+| `FEAT` | Nueva funcionalidad | `FEAT: Agregar módulo de pedidos` |
+| `FIX` | Corrección de bug | `FIX: Error al guardar producto sin imagen` |
+| `DOCS` | Documentación | `DOCS: Actualizar README con nuevo módulo` |
+| `STYLE` | Estilos/CSS | `STYLE: Ajustar padding del buscador` |
+| `REFACTOR` | Refactorización | `REFACTOR: Mover lógica de bitácora a Helper` |
+| `PERF` | Mejora de rendimiento | `PERF: Optimizar consultas SQL de productos` |
+| `TEST` | Pruebas | `TEST: Agregar tests para modelo Producto` |
+| `CONFIG` | Configuraciones | `CONFIG: Actualizar dependencias en composer.json` |
+| `CHORE` | Mantenimiento | `CHORE: Limpiar archivos temporales` |
+| `MERGE` | Fusiones | `MERGE: jorge-dev → dev` |
 
 ---
 
@@ -349,111 +362,172 @@ composer update
 ```bash
 # Instalar/Resetear base de datos
 php database/setup.php
-
-# (Recomendado) Limpiar todo y reinstalar
-# El script ya incluye DROP DATABASE IF EXISTS
 ```
 
-### Git
+### Git (Básico)
 ```bash
-# Crear rama de feature
-git checkout develop
-git checkout -b feature/nuevo-modulo
+# Ver en qué rama estás
+git branch
 
-# Commit con mensaje estándar
+# Ver estado de cambios
+git status
+
+# Agregar cambios
 git add .
-git commit -m "FEAT: Agregar módulo de inventario"
-
-# Sincronizar con develop
-git checkout develop
-git pull origin develop
-git checkout feature/nuevo-modulo
-git rebase develop
-
-# Merge a develop (vía Pull Request)
-git push origin feature/nuevo-modulo
+git commit -m "FEAT: Descripción del cambio"
+git push origin tu-rama
 ```
 
 ---
 
 ## 🔄 Flujo de Trabajo con Git
 
-### 1. Desarrollo Normal
-```bash
-# Desde develop
-git checkout develop
-git pull origin develop
-git checkout -b feature/mi-feature
-
-# Trabajar y commitear
-git add .
-git commit -m "FEAT: Descripción"
-
-# Sincronizar
-git checkout develop
-git pull origin develop
-git checkout feature/mi-feature
-git rebase develop
-
-# Subir y crear Pull Request
-git push origin feature/mi-feature
+### Estructura de Ramas
+```
+main (producción - solo Jorge mergea aquí)
+  ↑
+dev (integración - todos via Pull Request)
+  ├── jorge-dev (Jorge)
+  ├── leizer-dev
+  ├── mariangel-dev
+  ├── santiago-dev
+  └── abrahan-dev
 ```
 
-### 2. Hotfix (Urgente)
+### Comandos Diarios
+
+#### 1. Comenzar el día - Sincronizar
 ```bash
-# Desde main
-git checkout main
-git checkout -b hotfix/error-critico
+# Ir a tu rama
+git checkout jorge-dev  # (o tu rama)
 
-# Corregir y commitear
+# Traer cambios de dev
+git checkout dev
+git pull origin dev
+git checkout jorge-dev
+git merge dev
+
+# Si hay conflictos, resolverlos y commitear
 git add .
-git commit -m "FIX: Error crítico en login"
+git commit -m "MERGE: Resolver conflictos con dev"
 
-# Merge a main
-git checkout main
-git merge hotfix/error-critico
-git push origin main
-
-# También a develop
-git checkout develop
-git merge hotfix/error-critico
-git push origin develop
+# Subir tu rama (opcional)
+git push origin jorge-dev
 ```
+
+#### 2. Trabajar en features
+```bash
+# Hacer cambios pequeños y commits frecuentes
+git add .
+git commit -m "FEAT: Agregar modal de pedidos"
+git commit -m "STYLE: Diseño responsive del modal"
+git commit -m "FIX: Validar campos vacíos"
+```
+
+#### 3. Subir cambios al final del día
+```bash
+git push origin jorge-dev
+```
+
+---
+
+## 📥 Pull Requests y Revisión de Código
+
+### Cómo crear un Pull Request
+
+1. **Subir tu rama** (si no lo has hecho)
+   ```bash
+   git push origin tu-rama
+   ```
+
+2. **En GitHub:**
+   - Ir al repositorio
+   - Verás un banner: "tu-rama had recent pushes"
+   - Click "Compare & pull request"
+
+3. **Completar la plantilla:**
+   ```markdown
+   ## 📋 Descripción
+   [Explica qué hace este PR]
+
+   ## 🎯 Cambios realizados
+   - [ ] Feature 1
+   - [ ] Bug fix 2
+
+   ## ✅ Cómo probar
+   1. Paso 1
+   2. Paso 2
+
+   ## 🔗 Issues relacionados
+   Closes #[número]
+
+   ## 👥 Revisores
+   @jorge
+   @otro-compañero
+   ```
+
+### Reglas de Pull Request
+- ✅ Mínimo **1 revisor** (cualquier miembro del equipo)
+- ✅ Jorge debe aprobar para mergear a `dev`
+- ✅ Todos los checks deben pasar
+- ✅ No mergear código que rompa funcionalidad existente
+
+---
+
+## 👥 Roles del Equipo
+
+| Rol | Persona | Responsabilidades |
+|-----|---------|-------------------|
+| **Líder Técnico** | Jorge Cabrera | • Aprobar Pull Requests a `dev`<br>• Mantener la visión del proyecto<br>• Resolver conflictos grandes<br>• Asegurar calidad del código<br>• Hacer merge a `main` (producción) |
+| **Desarrolladores** | Leizer Torrealba<br>Mariangel Bokor<br>Santiago Coello<br>Abrahan Rodriguez | • Trabajar en sus ramas<br>• Crear Pull Requests<br>• Revisar PRs de compañeros<br>• Seguir las reglas de commits |
 
 ---
 
 ## 🧩 Módulos del Sistema
 
-### 1. Autenticación y Seguridad
+### 1. Autenticación y Seguridad (✅ Implementado)
 - Login con reCAPTCHA
 - Registro de bitácora
 - Cierre de sesión seguro
 - Roles y permisos
 
-### 2. Gestión de Personal
+### 2. Gestión de Productos (✅ Implementado)
+- CRUD completo de productos
+- Gestión de categorías
+- Subida de imágenes
+- DataTables con búsqueda
+
+### 3. Gestión de Pedidos/Mesas (🔄 En desarrollo)
+- Plano del salón interactivo
+- Estados de mesa (Libre, Ocupada, Reservada)
+- Toma de pedidos con modificadores
+- Visualización en cocina (KDS)
+- Cierre y pago
+
+### 4. Gestión de Personal (📅 Pendiente)
 - Registro de empleados
 - Marcación de asistencia
 - Control de horarios y turnos
 - Reportes de personal
 
-### 3. Gestión de Inventario
+### 5. Gestión de Inventario (📅 Pendiente)
 - Control de existencias
 - Historial de movimientos
 - Alertas de reposición
 - Cálculo automático de compras
 
-### 4. Menú Inteligente
+### 6. Menú Inteligente (📅 Pendiente)
 - Catálogo digital de platillos
 - Filtros por categoría
 - Personalización de ingredientes
 - QR por mesa
 
-### 5. Control Financiero
+### 7. Control Financiero (📅 Pendiente)
 - Ingresos y egresos
 - Cálculo de ganancias
 - Reportes detallados
 
-### 6. Gestión de Clientes
+### 8. Gestión de Clientes (📅 Pendiente)
 - Historial de clientes
 - Sistema de puntos por lealtad
 - Reservaciones de mesas
@@ -566,6 +640,17 @@ session_start([
 
 ## 👥 Contribución
 
+### Reglas de Oro
+
+1. **Nunca hacer push directo a `main` o `dev`** ❌
+2. **Siempre trabajar en tu rama personal** (`jorge-dev`, etc.) ✅
+3. **Hacer commits pequeños y frecuentes** (no un commit gigante al final)
+4. **Usar los tags correctamente** (FEAT, FIX, STYLE, etc.)
+5. **Pull Request obligatorio** para mergear a `dev`
+6. **Mínimo 1 revisor** antes de mergear
+7. **Sincronizar con `dev` diariamente** para evitar conflictos grandes
+8. **Nunca dejar código comentado** (eso es para lo que está Git)
+
 ### Buenas Prácticas
 
 1. **Un commit = un cambio lógico**
@@ -579,18 +664,7 @@ session_start([
 9. **Usar Singleton para conexiones BD**
 10. **Nunca incluir variables directamente en SQL**
 
-### Tags Específicos Sugeridos
-
-| Tag | Ámbito |
-|-----|--------|
-| MENU | Cambios en menú interactivo |
-| FINANCE | Módulo financiero |
-| STAFF | Gestión de personal |
-| INVENTORY | Control de inventario |
-| KITCHEN | Optimización de cocina |
-| VIBES | Elementos temáticos retro |
-
-### Ejemplo de Commit
+### Ejemplo de Commit Bueno
 ```
 FEAT: Sistema de alertas para reposición de inventario
 
@@ -601,27 +675,34 @@ FEAT: Sistema de alertas para reposición de inventario
 Closes #123
 ```
 
-### Ejemplo de Pull Request
+### Ejemplo de Commit Malo (NO USAR)
 ```
-## Descripción
+cambios varios
+fix cosas
+actualizaciones
+```
+
+### Ejemplo de Pull Request
+```markdown
+## 📋 Descripción
 Agrega módulo de inventario con alertas automáticas
 
-## Cambios realizados
+## 🎯 Cambios realizados
 - [x] Modelo Inventario con PDO
 - [x] Controlador con listado JSON
 - [x] Vista con DataTables
 - [x] Sistema de alertas por stock mínimo
 
-## Cómo probar
+## ✅ Cómo probar
 1. Ejecutar `php database/setup.php`
 2. Ir a `/inventario`
 3. Modificar stock por debajo del mínimo
 
-## Issues relacionados
+## 🔗 Issues relacionados
 Closes #123, Relates to #45
 
-## Screenshots
-[imagen aquí]
+## 👥 Revisores
+@jorge @leizer
 ```
 
 ---
@@ -640,13 +721,13 @@ Closes #123, Relates to #45
 ## 📞 Contacto
 
 **Equipo de Desarrollo:**
-- Jorge Cabrera - 31.843.937
+- **Jorge Cabrera** (Líder Técnico) - 31.843.937
 - Leizer Torrealba - 30.266.398
 - Mariangel Bokor - 30.587.785
 - Santiago Coello - 28.165.452
 - Abrahan Rodriguez - 30.405.566
 
-**Repositorio:** [https://github.com/tu-repo/good-vibes](https://github.com/tu-repo/good-vibes)
+**Repositorio:** [https://github.com/tu-repo/sicgov](https://github.com/tu-repo/sicgov)
 
 ---
 
@@ -658,4 +739,11 @@ Closes #123, Relates to #45
 
 ---
 
-*¡Good Vibes! 🌟 Un sistema con onda retro para un restaurante con mucha energía.*
+## 🏆 Reconocimientos
+
+Este proyecto es desarrollado como parte de un trabajo estudiantil con visión profesional, con el objetivo de crear una solución que pueda ser utilizada en un entorno real de restaurante.
+
+---
+
+*¡SICGOV - Sistema de Información Complementario Good Vibes! 🌟  
+Un sistema con onda retro para un restaurante con mucha energía.*
