@@ -1,74 +1,370 @@
+/**
+ * TEMA DEFAULT - GOOD VIBES
+ * 
+ * Diseño profesional con paleta 60-30-10
+ * Un solo color protagonista: #FCA434 (naranja)
+ * 
+ * Los otros colores son puramente funcionales:
+ * - Verde (#3AAE49): Solo para estados de éxito
+ * - Turquesa (#58B2B3): Solo para información
+ * - Naranja oscuro (#F36223): Solo para advertencias
+ * 
+ * @version 2.0.0
+ */
+
+/* ==========================================
+    VARIABLES GLOBALES (FÁCIL DE CAMBIAR)
+   ========================================== */
+
 :root {
-  /* Light theme variables - GOOD VIBES PALETTE */
-  --background: #F4F7F6;
-  --background-gradient: linear-gradient(152deg, #F4F7F6 0%, #E8ECEB 100%);
-  --foreground: #1A1C20;
-  --light: #6A6A6A;
-  --mate: #FFFFFF;
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
-  --popover: #FFFFFF;
-  --popover-foreground: #1A1C20;
-  --card: #FFFFFF;
-  --card-foreground: #1A1C20;
-  --border: #E0E4E3;
-  --input: #F0F3F2;
-  
-  /* ACENTO AMARILLO (10%) */
-  --primary: #FFD600;  /* Amarillo vibrante */
-  --primary-foreground: #1A1C20;  /* Texto negro sobre amarillo */
-  
-  /* SIDEBAR NEGRO MATE (30%) */
-  --sidebar-bg: #1A1C20;  /* Negro mate */
-  --sidebar-foreground: #FFFFFF;
-  --sidebar-hover-bg: #FFD600;  /* Amarillo al hacer hover */
-  --sidebar-hover-color: #1A1C20;  /* Texto negro sobre hover amarillo */
-  
-  /* OTROS COLORES */
-  --update: #3b28a3;
-  --update-foreground: #FFFFFF;
-  --secondary: #E8ECEB;
-  --secondary-foreground: #1A1C20;
-  --accent: #FFD600;
-  --accent-foreground: #1A1C20;
-  --destructive: #dc3545;
-  --destructive-foreground: #FFFFFF;
-  --ring: #FFD600;
-  --radius: 0.5rem;
-  --sidebar-width: 280px;
-  --sidebar-collapsed-width: 80px;
-  --bg-switch: #d1d5db;
+    /* ===== COLOR PRINCIPAL (ÚNICO PROTAGONISTA) ===== */
+    --color-primary: #FCA434;        /* Naranja cálido - acento principal */
+    --color-primary-hover: #E08C2C;   /* Naranja más oscuro para hover */
+    --color-primary-light: rgba(252, 164, 52, 0.1); /* Versión transparente */
+    --color-primary-rgb: 252, 164, 52; /* Para usar con rgba() */
+    
+    /* ===== COLORES FUNCIONALES (SOLO PARA ESTADOS) ===== */
+    --color-success: #3AAE49;         /* Verde - solo para éxito */
+    --color-success-rgb: 58, 174, 73;
+    --color-info: #58B2B3;            /* Turquesa - solo para información */
+    --color-info-rgb: 88, 178, 179;
+    --color-warning: #F36223;          /* Naranja oscuro - solo para advertencias */
+    --color-warning-rgb: 243, 98, 35;
+    
+    /* ===== COLORES NEUTROS (60-30-10) ===== */
+    --color-bg-light: #F8F9FA;        /* 60% - Fondo principal claro */
+    --color-bg-dark: #1A1C20;          /* 60% - Fondo principal oscuro */
+    
+    --color-surface-light: #FFFFFF;    /* 30% - Tarjetas, modales (claro) */
+    --color-surface-dark: #2C2F33;     /* 30% - Tarjetas, modales (oscuro) */
+    
+    --color-border-light: #E9ECEF;     /* Bordes suaves (claro) */
+    --color-border-dark: #404448;      /* Bordes suaves (oscuro) */
+    
+    --color-text-light: #212529;       /* Texto principal (claro) */
+    --color-text-dark: #F8F9FA;        /* Texto principal (oscuro) */
+    --color-text-muted: #6C757D;       /* Texto secundario */
+    
+    /* ===== DIMENSIONES ===== */
+    --sidebar-width: 280px;
+    --sidebar-collapsed-width: 80px;
+    --header-height: 60px;
+    --border-radius: 0.5rem;
 }
 
+/* ==========================================
+   TEMA CLARO (POR DEFECTO)
+   ========================================== */
+
+:root {
+    color-scheme: light;
+    
+    /* Asignación de variables a elementos específicos */
+    --bs-body-bg: var(--color-bg-light);
+    --bs-body-color: var(--color-text-light);
+    --bs-border-color: var(--color-border-light);
+    --bs-card-bg: var(--color-surface-light);
+    --bs-dropdown-bg: var(--color-surface-light);
+    --bs-dropdown-link-color: var(--color-text-light);
+    
+    /* Colores de Bootstrap */
+    --bs-primary: var(--color-primary);
+    --bs-primary-rgb: var(--color-primary-rgb);
+    --bs-success: var(--color-success);
+    --bs-success-rgb: var(--color-success-rgb);
+    --bs-info: var(--color-info);
+    --bs-info-rgb: var(--color-info-rgb);
+    --bs-warning: var(--color-warning);
+    --bs-warning-rgb: var(--color-warning-rgb);
+}
+
+/* ==========================================
+   TEMA OSCURO
+   ========================================== */
+
 .dark {
-  /* Dark theme variables */
-  --background: #121212;
-  --background-gradient: linear-gradient(152deg, #121212 0%, #1A1C20 100%);
-  --foreground: #E0E0E0;
-  --light: #A0A0A0;
-  --mate: #000000;
-  --muted: #1f2937;
-  --muted-foreground: #94a3b8;
-  --popover: #1A1C20;
-  --popover-foreground: #E0E0E0;
-  --card: #1A1C20;
-  --card-foreground: #E0E0E0;
-  --border: #2d3748;
-  --input: #2a2a2a;
-  --primary: #FFD600;  /* Mantenemos amarillo en dark mode */
-  --primary-foreground: #1A1C20;
-  --update: #4a3bb5;
-  --update-foreground: #FFFFFF;
-  --secondary: #2A2A2A;
-  --secondary-foreground: #E0E0E0;
-  --accent: #FFD600;
-  --accent-foreground: #1A1C20;
-  --destructive: #992424;
-  --destructive-foreground: #FFFFFF;
-  --ring: #FFD600;
-  --bg-switch: #444;
-  --sidebar-bg: #1A1C20;
-  --sidebar-foreground: #FFFFFF;
-  --sidebar-hover-bg: #FFD600;
-  --sidebar-hover-color: #1A1C20;
+    color-scheme: dark;
+    
+    --bs-body-bg: var(--color-bg-dark);
+    --bs-body-color: var(--color-text-dark);
+    --bs-border-color: var(--color-border-dark);
+    --bs-card-bg: var(--color-surface-dark);
+    --bs-dropdown-bg: var(--color-surface-dark);
+    --bs-dropdown-link-color: var(--color-text-dark);
+    --bs-dropdown-link-hover-bg: rgba(255, 255, 255, 0.1);
+    
+    /* Los colores de acento se mantienen igual */
+    --bs-primary: var(--color-primary);
+    --bs-success: var(--color-success);
+    --bs-info: var(--color-info);
+    --bs-warning: var(--color-warning);
+}
+
+/* ==========================================
+   SOBRESCRITURAS DE BOOTSTRAP
+   ========================================== */
+
+/* Botón primario - nuestro protagonista */
+.btn-primary {
+    --bs-btn-bg: var(--color-primary);
+    --bs-btn-border-color: var(--color-primary);
+    --bs-btn-color: #000000;
+    --bs-btn-hover-bg: var(--color-primary-hover);
+    --bs-btn-hover-border-color: var(--color-primary-hover);
+    --bs-btn-hover-color: #000000;
+    --bs-btn-active-bg: var(--color-primary-hover);
+    --bs-btn-active-border-color: var(--color-primary-hover);
+    --bs-btn-disabled-bg: var(--color-primary);
+    --bs-btn-disabled-border-color: var(--color-primary);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--color-primary);
+    --bs-btn-border-color: var(--color-primary);
+    --bs-btn-hover-bg: var(--color-primary);
+    --bs-btn-hover-border-color: var(--color-primary);
+    --bs-btn-hover-color: #000000;
+    --bs-btn-active-bg: var(--color-primary);
+    --bs-btn-active-border-color: var(--color-primary);
+}
+
+/* Badges - colores funcionales */
+.badge.bg-success {
+    background-color: var(--color-success) !important;
+    color: white !important;
+}
+
+.badge.bg-info {
+    background-color: var(--color-info) !important;
+    color: white !important;
+}
+
+.badge.bg-warning {
+    background-color: var(--color-warning) !important;
+    color: white !important;
+}
+
+/* Textos de acento */
+.text-primary {
+    color: var(--color-primary) !important;
+}
+
+/* Bordes de acento */
+.border-primary {
+    border-color: var(--color-primary) !important;
+}
+
+/* ==========================================
+    SIDEBAR
+   ========================================== */
+
+.sidebar {
+    background-color: var(--bs-body-bg) !important;
+    border-right: 1px solid var(--bs-border-color);
+}
+
+/* Items del menú - solo el activo tiene color */
+.nav-link {
+    color: var(--bs-body-color) !important;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    background-color: var(--color-primary-light) !important;
+    color: var(--color-primary) !important;
+}
+
+.nav-link.active {
+    background-color: var(--color-primary) !important;
+    color: #000000 !important;
+    font-weight: 500;
+}
+
+.nav-link.active i {
+    color: #000000 !important;
+}
+
+/* Iconos en el menú */
+.nav-link i {
+    color: var(--color-text-muted);
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover i {
+    color: var(--color-primary) !important;
+}
+
+/* ==========================================
+   BANDEJA DE USUARIO Y NOTIFICACIONES
+   ========================================== */
+
+/* Dropdowns */
+.dropdown-menu {
+    background-color: var(--bs-dropdown-bg);
+    border: 1px solid var(--bs-border-color);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    min-width: 280px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.dropdown-header {
+    background-color: var(--color-primary-light);
+    padding: 1rem;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.dropdown-header h6 {
+    color: var(--color-primary);
+    margin: 0;
+    font-weight: 600;
+}
+
+/* Lista de notificaciones */
+.notification-list {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--bs-border-color);
+    transition: background-color 0.2s ease;
+}
+
+.notification-item:hover {
+    background-color: var(--color-primary-light);
+}
+
+.notification-item.unread {
+    background-color: rgba(var(--color-primary-rgb), 0.05);
+}
+
+.notification-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.notification-icon.success {
+    background-color: rgba(var(--color-success-rgb), 0.1);
+    color: var(--color-success);
+}
+
+.notification-icon.info {
+    background-color: rgba(var(--color-info-rgb), 0.1);
+    color: var(--color-info);
+}
+
+.notification-icon.warning {
+    background-color: rgba(var(--color-warning-rgb), 0.1);
+    color: var(--color-warning);
+}
+
+.notification-icon.primary {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--bs-body-color);
+}
+
+.notification-text {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.notification-time {
+    font-size: 0.7rem;
+    color: var(--color-text-muted);
+}
+
+.notification-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.dropdown-footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--bs-border-color);
+    background-color: var(--bs-dropdown-bg);
+}
+
+/* Perfil de usuario en el menú */
+.user-profile {
+    padding: 1rem;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--color-primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    font-size: 1.5rem;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--bs-body-color);
+}
+
+.user-role {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+}
+
+/* ==========================================
+   ANIMACIONES
+   ========================================== */
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.dropdown-menu.show {
+    animation: slideIn 0.2s ease;
+}
+
+/* ==========================================
+   UTILIDADES
+   ========================================== */
+
+.transition-rotate {
+    transition: transform 0.3s ease;
+}
+
+.collapsed .transition-rotate {
+    transform: rotate(90deg);
 }

@@ -1,136 +1,59 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <!-- Favicon y CSS con BASE_URL -->
-    <link rel="shortcut icon" href="<?php echo BASE_URL; ?>/assets/img/favicon.png" type="image/x-icon">
-    <link href="<?php echo BASE_URL; ?>/assets/Select2/css/select2.min.css" rel="stylesheet" />
-    <link href="<?php echo BASE_URL; ?>/assets/Select2/css/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><?php echo $titulo ?></title>
-
-    <!-- Bootstrap CSS -->
-    <link href="<?php echo BASE_URL; ?>/assets/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-
-    <!-- Temas -->
-    <?php
-    $theme_href = BASE_URL . '/assets/css/temas/default.css';
-    if (isset($tema_actual)) {
-        switch ($tema_actual) {
-            case 1: $theme_href = BASE_URL . '/assets/css/temas/rosa.css'; break;
-            case 2: $theme_href = BASE_URL . '/assets/css/temas/azul.css'; break;
-            case 3: $theme_href = BASE_URL . '/assets/css/temas/verde.css'; break;
-            case 4: $theme_href = BASE_URL . '/assets/css/temas/rojo.css'; break;
-            case 5: $theme_href = BASE_URL . '/assets/css/temas/morado.css'; break;
-            default: $theme_href = BASE_URL . '/assets/css/temas/default.css'; break;
-        }
-    }
-    ?>
-    <link id="theme-stylesheet" rel="stylesheet" href="<?php echo $theme_href; ?>" />
-
+    <!-- Título dinámico -->
+    <title><?php echo $titulo ?? 'SICGOV - Good Vibes'; ?></title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="<?php echo BASE_URL; ?>/assets/img/favicon.ico">
+    <link rel="apple-touch-icon" href="<?php echo BASE_URL; ?>/assets/img/logo.png">
+    
+    <!-- Bootstrap 5.3 + Iconos -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Font Awesome 6 (opcional, como respaldo) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- DataTables + Bootstrap 5 -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+    
+    <!-- Select2 + Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+    
+    <!-- Estilos personalizados (después de Bootstrap) -->
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/main.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/temas/default.css" id="theme-stylesheet">
+    
+    <!-- Temas dinámicos -->
+    <?php if (isset($tema_actual) && $tema_actual > 0): ?>
     <script>
-        // Aplicar tema guardado en localStorage
-        (function() {
-            try {
-                const map = {
-                    0: '<?php echo BASE_URL; ?>/assets/css/temas/default.css',
-                    1: '<?php echo BASE_URL; ?>/assets/css/temas/rosa.css',
-                    2: '<?php echo BASE_URL; ?>/assets/css/temas/azul.css',
-                    3: '<?php echo BASE_URL; ?>/assets/css/temas/verde.css',
-                    4: '<?php echo BASE_URL; ?>/assets/css/temas/rojo.css',
-                    5: '<?php echo BASE_URL; ?>/assets/css/temas/morado.css'
-                };
-                const sel = localStorage.getItem('selectedTheme');
-                if (sel !== null && typeof sel !== 'undefined') {
-                    const id = parseInt(sel, 10);
-                    if (!isNaN(id) && map[id]) {
-                        var link = document.getElementById('theme-stylesheet');
-                        if (link) link.href = map[id];
-                    }
-                }
-            } catch (e) {}
-        })();
-    </script>
-
-    <!-- Estilos principales con BASE_URL -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/main.css" />
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/style.css" />
-
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/all.min.css" />
-
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/DataTables/datatables.css" />
-
-    <!-- Tema oscuro -->
-    <script>
-        const htmlElement = document.documentElement;
-        const savedTheme = localStorage.getItem("theme");
-        if (
-            savedTheme === "dark" ||
-            (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)
-        ) {
-            htmlElement.classList.add("dark");
+        // Cambiar tema si es necesario
+        const temas = {
+            1: '<?php echo BASE_URL; ?>/assets/css/temas/rosa.css',
+            2: '<?php echo BASE_URL; ?>/assets/css/temas/azul.css',
+            3: '<?php echo BASE_URL; ?>/assets/css/temas/verde.css',
+            4: '<?php echo BASE_URL; ?>/assets/css/temas/rojo.css',
+            5: '<?php echo BASE_URL; ?>/assets/css/temas/morado.css'
+        };
+        if (temas[<?php echo $tema_actual; ?>]) {
+            document.getElementById('theme-stylesheet').href = temas[<?php echo $tema_actual; ?>];
         }
     </script>
-
-    <!-- ===== PASAR VARIABLES PHP A JAVASCRIPT ===== -->
-    <script>
-        // Variables globales del sistema
-        const BASE_URL = '<?php echo BASE_URL; ?>';
-        const CSRF_TOKEN = '<?php echo $_SESSION['csrf_token'] ?? ''; ?>';
-        console.log('BASE_URL cargada en JS:', BASE_URL);
-    </script>
-
-    <!-- ===== SCRIPTS (UNA SOLA VEZ) ===== -->
-    <script src="<?php echo BASE_URL; ?>/assets/js/jquery.min.js"></script>
-    <script src="<?php echo BASE_URL; ?>/assets/bootstrap/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-    <script src="<?php echo BASE_URL; ?>/assets/js/main.js"></script>
-    <script src="<?php echo BASE_URL; ?>/assets/js/utils.js"></script>
-    <!-- Scripts específicos de la página (se cargan después) -->
-    <?php if (isset($page) && file_exists(__DIR__ . '/../../public/assets/js/' . $page . '.js')): ?>
-        <script src="<?php echo BASE_URL; ?>/assets/js/<?php echo $page; ?>.js"></script>
     <?php endif; ?>
-
-    <!-- Estilos adicionales -->
-    <style>
-        #tabla1 td, #tabla1 th { text-align: center; }
-        .select2-container { width: 100% !important; }
-    </style>
-
-    <!-- Loader styles -->
-    <style>
-        html:not(.page-ready)>body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            background: #ffffff;
-            z-index: 2000;
-        }
-        html:not(.page-ready)>body::after {
-            content: "";
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            width: 64px;
-            height: 64px;
-            margin-left: -32px;
-            margin-top: -32px;
-            border-radius: 50%;
-            border: 8px solid #e9ecef;
-            border-top-color: #7C1D21;
-            animation: _sys_spin 1s linear infinite;
-            z-index: 2001;
-        }
-        @keyframes _sys_spin { to { transform: rotate(360deg); } }
-        html:not(.page-ready) body * { transition: none !important; }
-    </style>
+    
+    <!-- Variables globales para JavaScript -->
+    <script>
+        const BASE_URL = '<?php echo BASE_URL; ?>';
+        const CURRENT_PAGE = '<?php echo $page ?? ''; ?>';
+        const CSRF_TOKEN = '<?php echo $_SESSION['csrf_token'] ?? ''; ?>';
+    </script>
 </head>
+<body class="d-flex flex-column min-vh-100">
+    <!-- El contenido se carga después -->
