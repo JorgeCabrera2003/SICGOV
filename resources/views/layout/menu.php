@@ -1,198 +1,237 @@
+<?php
+/**
+ * MENÚ PRINCIPAL - SICGOV
+ * 
+ * Características:
+ * - Sidebar colapsable con botón visible
+ * - Bandeja de notificaciones interactiva
+ * - Perfil de usuario con menú
+ * - Sin color de fondo fijo (se adapta al tema)
+ */
+?>
+
 <!-- Sidebar -->
-<aside id="sidebar" class="sidebar">
-    <div class="sidebar-header">
-        <h1 class="logo">
-            <span class="ms-2" id="logo-text">GOOD VIBES</span>
-        </h1>
-        <button id="collapse-btn" class="collapse-btn">
-            <i class="fas fa-chevron-left"></i>
+<aside class="sidebar d-flex flex-column flex-shrink-0 vh-100 position-fixed" id="sidebar">
+    <!-- Cabecera con logo -->
+    <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
+        <div class="d-flex align-items-center gap-2">
+            <!-- BOTON DE COLLAPSE -->
+            <button class="btn btn-link p-0 text-decoration-none" id="collapse-btn" aria-label="Colapsar menú">
+                <i class="bi bi-chevron-left fs-5" id="collapse-icon"></i>
+            </button>
+            <a href="<?php echo BASE_URL; ?>/?page=home" class="text-decoration-none">
+                <span class="h5 mb-0 fw-bold" id="logo-text">SICGOV</span>
+            </a>
+        </div>
+        <button class="btn btn-link d-lg-none p-0" id="sidebar-close" aria-label="Cerrar menú">
+            <i class="bi bi-x-lg fs-5"></i>
         </button>
     </div>
 
-    <div class="sidebar-content">
-        <nav class="sidebar-menu">
-            <ul>
-                <li class="menu-item <?php echo ($page == "home") ? "active" : "" ?>" title="Dashboard">
-                    <a href="<?php echo BASE_URL; ?>/?page=home">
-                        <i class="fas fa-home"></i>
-                        <span class="ms-2 me-2 menu-text">Dashboard</span>
-                    </a>
-                </li>
-                
-                <li class="menu-item <?php echo ($page == "pedidos") ? "active" : "" ?>" title="Pedidos">
-                    <a href="<?php echo BASE_URL; ?>/?page=pedidos">
-                        <i class="fas fa-utensils"></i>
-                        <span class="ms-2 me-2 menu-text">Pedidos / Mesas</span>
-                    </a>
-                </li>
-                
-                <li class="menu-item <?php echo ($page == "productos") ? "active" : "" ?>" title="Productos">
-                    <a href="<?php echo BASE_URL; ?>/?page=productos">
-                        <i class="fas fa-box"></i>
-                        <span class="ms-2 me-2 menu-text">Productos</span>
-                    </a>
-                </li>
-                
-                <hr/>
-                
-                <li class="menu-item <?php echo ($page == "estadistica") ? "active" : "" ?>" title="Reportes Estadísticos">
-                    <a href="<?php echo BASE_URL; ?>/?page=estadistica">
-                        <i class="fa-solid fa-chart-line"></i>
-                        <span class="ms-2 me-2 menu-text">Estadísticas</span>
-                    </a>
-                </li>
-                
-                <!-- Gestión de Equipos -->
-                <li class="menu-item <?php echo in_array($page, ["bien", "equipo", "material"]) ? "active" : "" ?>" title="Gestión de Equipos">
-                    <a class="nav-link collapsed" data-bs-target="#equipos-submenu" data-bs-toggle="collapse" href="#">
-                        <i class="fas fa-laptop"></i>
-                        <span class="ms-2 me-2 menu-text">Gestión de Equipos</span>
-                        <i class="fa-solid fa-angle-right"></i>
-                    </a>
-                </li>
-                <ul id="equipos-submenu" style="margin-left: 1em;" class="nav-content collapse<?php echo in_array($page, ["bien", "equipo", "material"]) ? " show" : "" ?>" data-bs-parent="#sidebar-nav">
-                    <li class="menu-item <?php echo ($page == "bien") ? "active" : "" ?>" title="Bienes">
-                        <a href="<?php echo BASE_URL; ?>/?page=bien">
-                            <i class="fas fa-box"></i>
-                            <span class="ms-2 me-2 menu-text">Bienes</span>
-                        </a>
-                    </li>
-                    <li class="menu-item <?php echo ($page == "equipo") ? "active" : "" ?>" title="Equipos">
-                        <a href="<?php echo BASE_URL; ?>/?page=equipo">
-                            <i class="fa-solid fa-computer"></i>
-                            <span class="ms-2 me-2 menu-text">Equipos</span>
-                        </a>
-                    </li>
-                    <li class="menu-item <?php echo ($page == "material") ? "active" : "" ?>" title="Materiales">
-                        <a href="<?php echo BASE_URL; ?>/?page=material">
-                            <i class="fa-solid fa-toolbox"></i>
-                            <span class="ms-2 me-2 menu-text">Materiales</span>
-                        </a>
-                    </li>
-                </ul>
-                
-                <hr/>
-                
-                <li class="menu-item <?php echo ($page == "bitacora") ? "active" : "" ?>" title="Bitácora">
-                    <a href="<?php echo BASE_URL; ?>/?page=bitacora">
-                        <i class="fas fa-history"></i>
-                        <span class="ms-2 me-2 menu-text">Bitácora</span>
-                    </a>
-                </li>
-                
-                <li class="menu-item <?php echo ($page == "ayuda") ? "active" : "" ?>" title="Ayuda">
-                    <a href="<?php echo BASE_URL; ?>/?page=ayuda">
-                        <i class="fas fa-question-circle"></i>
-                        <span class="ms-2 me-2 menu-text">Ayuda</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
+    <!-- Perfil de usuario -->
+    <div class="user-profile d-flex align-items-center gap-3 px-3 py-2 border-bottom">
+        <div class="user-avatar">
+            <i class="bi bi-person-circle fs-4"></i>
+        </div>
+        <div class="user-info">
+            <div class="user-name fw-semibold"><?php echo $datos['nombres'] ?? 'Usuario'; ?></div>
+            <div class="user-role small text-muted"><?php echo $datos['rol'] ?? 'Sin rol'; ?></div>
+        </div>
     </div>
 
-    <div class="sidebar-footer">
-        <ul>
-            <li class="menu-item">
-                <a href="<?php echo BASE_URL; ?>/logout.php">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span class="ms-2 me-2 menu-text">Cerrar Sesión</span>
-                </a>
-            </li>
-        </ul>
+    <!-- Navegación principal -->
+    <nav class="nav nav-pills flex-column gap-1 px-2 py-3 flex-grow-1 overflow-auto" aria-label="Menú principal">
+        <!-- Dashboard -->
+        <a href="<?php echo BASE_URL; ?>/?page=home" 
+           class="nav-link <?php echo ($page == 'home') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+            <i class="bi bi-speedometer2 fs-5"></i>
+            <span class="flex-grow-1">Dashboard</span>
+            <?php if ($page == 'home'): ?>
+                <span class="visually-hidden">(actual)</span>
+            <?php endif; ?>
+        </a>
+
+        <!-- Pedidos / Mesas -->
+        <a href="<?php echo BASE_URL; ?>/?page=pedidos" 
+           class="nav-link <?php echo ($page == 'pedidos') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+            <i class="bi bi-egg-fried fs-5"></i>
+            <span class="flex-grow-1">Pedidos / Mesas</span>
+        </a>
+
+        <!-- Productos -->
+        <a href="<?php echo BASE_URL; ?>/?page=productos" 
+           class="nav-link <?php echo ($page == 'productos') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+            <i class="bi bi-box-seam fs-5"></i>
+            <span class="flex-grow-1">Productos</span>
+        </a>
+
+        <!-- Separador -->
+        <hr class="my-2 opacity-25">
+
+        <!-- Gestión de Equipos (colapsable) -->
+        <div class="nav-item w-100">
+            <a class="nav-link d-flex align-items-center gap-2 collapsed" 
+               data-bs-toggle="collapse" 
+               href="#equipos-submenu"
+               role="button"
+               aria-expanded="<?php echo in_array($page, ['bien', 'equipo', 'material']) ? 'true' : 'false'; ?>">
+                <i class="bi bi-pc-display fs-5"></i>
+                <span class="flex-grow-1">Gestión de Equipos</span>
+                <i class="bi bi-chevron-right transition-rotate"></i>
+            </a>
+            <div class="collapse <?php echo in_array($page, ['bien', 'equipo', 'material']) ? 'show' : ''; ?>" id="equipos-submenu">
+                <div class="d-flex flex-column gap-1 ps-4 mt-1">
+                    <a href="<?php echo BASE_URL; ?>/?page=bien" 
+                       class="nav-link <?php echo ($page == 'bien') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
+                        <i class="bi bi-box fs-6"></i>
+                        <span>Bienes</span>
+                    </a>
+                    <a href="<?php echo BASE_URL; ?>/?page=equipo" 
+                       class="nav-link <?php echo ($page == 'equipo') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
+                        <i class="bi bi-cpu fs-6"></i>
+                        <span>Equipos</span>
+                    </a>
+                    <a href="<?php echo BASE_URL; ?>/?page=material" 
+                       class="nav-link <?php echo ($page == 'material') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
+                        <i class="bi bi-tools fs-6"></i>
+                        <span>Materiales</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <a href="<?php echo BASE_URL; ?>/?page=estadistica" 
+           class="nav-link <?php echo ($page == 'estadistica') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+            <i class="bi bi-bar-chart-steps fs-5"></i>
+            <span class="flex-grow-1">Estadísticas</span>
+        </a>
+
+        <!-- Bitácora -->
+        <a href="<?php echo BASE_URL; ?>/?page=bitacora" 
+           class="nav-link <?php echo ($page == 'bitacora') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+            <i class="bi bi-journal-bookmark-fill fs-5"></i>
+            <span class="flex-grow-1">Bitácora</span>
+        </a>
+
+        <!-- Ayuda -->
+        <a href="<?php echo BASE_URL; ?>/?page=ayuda" 
+           class="nav-link <?php echo ($page == 'ayuda') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+            <i class="bi bi-question-circle fs-5"></i>
+            <span class="flex-grow-1">Ayuda</span>
+        </a>
+    </nav>
+
+    <!-- Cerrar sesión (siempre visible) -->
+    <div class="p-3 border-top">
+        <a href="<?php echo BASE_URL; ?>/logout.php" 
+           class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2">
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Cerrar Sesión</span>
+        </a>
     </div>
 </aside>
 
-<!-- Main Content -->
-<div class="main-content">
-    <!-- Header/Top Navigation -->
-    <header class="top-nav">
-        <div class="container-fluid">
-            <div class="row align-items-center">
-                <div class="col-auto d-lg-none">
-                    <button id="sidebar-toggle" class="sidebar-toggle">
-                        <i class="fas fa-bars" style="pointer-events: none;"></i>
+<!-- Contenido principal -->
+<main class="main-content flex-grow-1" id="main-content">
+    <!-- Barra superior -->
+    <header class="bg-body-tertiary border-bottom sticky-top" id="top-nav">
+        <div class="d-flex align-items-center justify-content-between px-3" style="height: 60px;">
+            <div class="d-flex align-items-center gap-3">
+                <!-- Botón para móvil (abrir sidebar) -->
+                <button class="btn btn-link d-lg-none p-0" id="sidebar-toggle" aria-label="Abrir menú">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0">
+                        <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>/?page=home" class="text-decoration-none">Inicio</a></li>
+                        <li class="breadcrumb-item active" aria-current="page"><?php echo ucfirst($page ?? 'Dashboard'); ?></li>
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+                <!-- Notificaciones -->
+                <div class="dropdown">
+                    <button class="btn btn-link text-decoration-none p-2 position-relative" 
+                            type="button" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false"
+                            id="notificationDropdown"
+                            aria-label="Notificaciones">
+                        <i class="bi bi-bell fs-5"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge" 
+                              id="notificationBadge" 
+                              style="font-size: 0.6rem; display: none;">0</span>
                     </button>
-                </div>
-
-                <div class="col d-none d-md-block">
-                    <!-- Breadcrumbs -->
-                </div>
-
-                <div class="col-auto ms-auto">
-                    <div class="top-nav-actions">
-                        <!-- Notificaciones -->
-                        <div class="action-item notification-dropdown">
-                            <button class="notification-btn">
-                                <i class="fas fa-bell"></i>
-                                <span id="badge-notificacion" class="badge badge-notificacion position-absolute top-0 start-100 translate-middle bg-danger"></span>
-                            </button>
-                            <div class="dropdown-menu notification-menu">
-                                <div class="dropdown-header d-flex align-items-center justify-content-between">
-                                    <div>
-                                        <h6 class="mb-0">Notificaciones</h6>
-                                    </div>
-                                    <div class="d-flex align-items-center">
-                                        <button class="close-dropdown">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="dropdown-body" id="notificaciones-container">
-                                    <div class="text-center py-3">
-                                        <div class="spinner-border text-primary" role="status">
-                                            <span class="visually-hidden">Cargando...</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="dropdown-footer">
-                                    <a href="<?php echo BASE_URL; ?>/?page=notificacion" class="btn btn-sm btn-primary w-100">Ver todas</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Theme Toggle -->
-                        <div class="action-item">
-                            <button id="theme-toggle" class="theme-toggle">
-                                <i class="fas fa-moon dark-icon"></i>
-                                <i class="fas fa-sun light-icon"></i>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                        <div class="dropdown-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Notificaciones</h6>
+                            <button class="btn btn-sm btn-link p-0" id="markAllRead" title="Marcar todas como leídas">
+                                <i class="bi bi-check2-all"></i>
                             </button>
                         </div>
-
-                        <!-- User Dropdown -->
-                        <div class="action-item user-dropdown">
-                            <button class="user-dropdown-toggle">
-                                <div class="avatar">
-                                    <img src="<?php echo $datos['foto']; ?>" alt="User Avatar" />
-                                </div>
-                            </button>
-                            <div class="dropdown-menu user-menu">
-                                <div class="dropdown-header">
-                                    <h6><?php echo $datos["nombres"] . " " . $datos["apellidos"]; ?></h6>
-                                    <span><?php echo $datos["cedula"] . " / " . $datos["rol"]; ?></span>
-                                </div>
-                                <div class="dropdown-body">
-                                    <ul>
-                                        <li class="menu-item <?php echo ($page == "users-profile") ? "active" : "" ?>">
-                                            <a href="<?php echo BASE_URL; ?>/?page=users-profile">
-                                                <i class="menu-text-p fas fa-user"></i>
-                                                <span class="menu-text-p">Perfil</span>
-                                            </a>
-                                        </li>
-                                        <li class="menu-item">
-                                            <a href="<?php echo BASE_URL; ?>/logout.php">
-                                                <i class="menu-text-p fas fa-sign-out-alt"></i>
-                                                <span class="menu-text-p">Cerrar Sesión</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
+                        <div class="notification-list" id="notificationList">
+                            <!-- Las notificaciones se cargarán aquí vía JavaScript -->
+                            <div class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                <span>Cargando notificaciones...</span>
                             </div>
+                        </div>
+                        <div class="dropdown-footer text-center">
+                            <a href="<?php echo BASE_URL; ?>/?page=notificaciones" class="btn btn-sm btn-primary w-100">
+                                Ver todas
+                            </a>
                         </div>
                     </div>
+                </div>
+
+                <!-- Toggle de tema -->
+                <button class="btn btn-link text-decoration-none p-2" id="theme-toggle" aria-label="Cambiar tema">
+                    <i class="bi bi-moon-stars fs-5" id="theme-icon"></i>
+                </button>
+
+                <!-- Perfil de usuario (menú) -->
+                <div class="dropdown">
+                    <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" 
+                            type="button" 
+                            data-bs-toggle="dropdown" 
+                            aria-expanded="false"
+                            id="userDropdown">
+                        <div class="user-avatar" style="width: 36px; height: 36px;">
+                            <i class="bi bi-person-circle fs-5"></i>
+                        </div>
+                        <span class="d-none d-lg-inline"><?php echo $datos['nombres'] ?? 'Usuario'; ?></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li>
+                            <div class="dropdown-header">
+                                <div class="fw-semibold"><?php echo $datos['nombres'] . ' ' . ($datos['apellidos'] ?? ''); ?></div>
+                                <div class="small text-muted"><?php echo $datos['cedula'] ?? ''; ?></div>
+                            </div>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2" href="<?php echo BASE_URL; ?>/?page=perfil">
+                                <i class="bi bi-person"></i> Mi Perfil
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2" href="<?php echo BASE_URL; ?>/?page=configuracion">
+                                <i class="bi bi-gear"></i> Configuración
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="<?php echo BASE_URL; ?>/logout.php">
+                                <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Page Content -->
-    <main class="page-content" style="flex: 1;">
+    <!-- Contenedor para el contenido dinámico -->
+    <div class="content-wrapper">
