@@ -10,7 +10,6 @@ class Usuario {
     private $db;
 
     public function __construct() {
-        // Obtenemos la conexión específica para seguridad
         $this->db = Database::getConnection('security');
     }
 
@@ -33,7 +32,6 @@ class Usuario {
         $stmt->execute(['cedula' => $this->cedula]);
         $user = $stmt->fetch();
 
-        // IMPORTANTE: En el futuro aquí usaremos password_verify
         return ($user && $this->clave === $user['clave']);
     }
 
