@@ -1,6 +1,6 @@
-<?php 
+<?php
 // resources/views/auth/login.php
-require_once __DIR__ . '/../layouts/head.php'; 
+require_once __DIR__ . '/../layout/head.php';
 ?>
 
 <body class="bg-light" style="position: relative;">
@@ -12,22 +12,23 @@ require_once __DIR__ . '/../layouts/head.php';
       left: 0;
       right: 0;
       bottom: 0;
-      /* Ruta absoluta desde la carpeta public */
-      background-image: url('/assets/img/gobernacion.jpg'); 
+      background-image: url('<?php echo BASE_URL; ?>/assets/img/gobernacion.jpg');
       background-size: cover;
       background-position: center;
       filter: blur(5px);
       z-index: -1;
     }
+
     .card {
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     }
+
     .card-header {
-        background: transparent;
-        border-bottom: 1px solid #eee;
-        padding: 20px;
+      background: transparent;
+      border-bottom: 1px solid #eee;
+      padding: 20px;
     }
   </style>
 
@@ -35,20 +36,20 @@ require_once __DIR__ . '/../layouts/head.php';
     <div class="card w-100">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h2 class="card-title mb-0" style="font-weight: 700; color: #333;">Iniciar Sesión</h2>
-        <img style="width: 25%;" class="img-logo" src="/assets/img/">
+        <img style="width: 25%;" class="img-logo" src="<?php echo BASE_URL; ?>/assets/img/logo.png" alt="Logo">
       </div>
       <div class="card-body p-4">
 
         <?php if (isset($_SESSION['error_login']) && $_SESSION['error_login']): ?>
           <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="fa-solid fa-circle-exclamation me-2"></i>
-            La cédula o la contraseña son incorrectas.
-            <?php unset($_SESSION['error_login']); // Limpiamos el error tras mostrarlo ?>
+            <?php echo $_SESSION['error_login']; ?>
+            <?php unset($_SESSION['error_login']); ?>
           </div>
         <?php endif; ?>
 
         <form action="?page=login" method="post" class="row g-3 needs-validation" id="login-form">
-          
+
           <div class="col-12">
             <label for="cedula" class="form-label">Cédula de Identidad</label>
             <div class="input-group">
@@ -73,7 +74,7 @@ require_once __DIR__ . '/../layouts/head.php';
           </div>
 
           <div class="col-12 d-flex justify-content-center my-3">
-            <div class="g-recaptcha" data-sitekey="TU_SITE_KEY_DINAMICA"></div>
+            <div class="g-recaptcha" data-sitekey="<?php echo $siteKey; ?>"></div>
           </div>
 
           <div class="col-12">
@@ -90,13 +91,14 @@ require_once __DIR__ . '/../layouts/head.php';
     </div>
   </div>
 
-  <script src="/assets/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="/assets/js/jquery.min.js"></script> <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <!-- Scripts usando BASE_URL -->
+  <script src="<?php echo BASE_URL; ?>/assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="<?php echo BASE_URL; ?>/assets/js/jquery.min.js"></script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="/assets/js/auth/login.js"></script>
+  <script src="<?php echo BASE_URL; ?>/assets/js/login.js"></script>
 
   <script>
-    // Script rápido para el toggle de password (puedes moverlo a login.js)
     $(document).ready(function() {
       $("#togglePassword").click(function() {
         const input = $("#password");
@@ -112,4 +114,5 @@ require_once __DIR__ . '/../layouts/head.php';
     });
   </script>
 </body>
+
 </html>

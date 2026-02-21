@@ -1,10 +1,7 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// Definir constante si no está definida
-if (!defined('BASE_URL')) {
-    define('BASE_URL', '/good-vibes');
-}
+define('BASE_URL', 'http://localhost/good-vibes/public');
 
 session_start();
 
