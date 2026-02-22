@@ -6,20 +6,40 @@ use App\Models\Security\Bitacora;
 
 class Helper
 {
+    /**
+     * Genera un ID
+     * Formato: PREFIJO + TIMESTAMP + RANDOM
+     * 
+     * @param string $prefijo Prefijo del ID (ej: 'BIT', 'PROD', 'PED')
+     * @return string ID generado
+     */
+    public static function generarId($prefijo)
+    {
+        $fecha = date('YmdHis');
+        $random = rand(1000, 9999);
+        return $prefijo . $fecha . $random;
+    }
 
+    /**
+     * Registra un movimiento en la bitácora
+     */
     public static function Bitacora($accion, $modulo, $detalles = null)
     {
         try {
             if (!isset($_SESSION['user'])) {
                 return false;
             }
+            
             $bitacora = new Bitacora();
+            $idBitacora = self::generarId('BIT');
+            $bitacora->setIdBitacora($idBitacora);
 
             $usuarioId = $_SESSION['user']['id_usuario'] ?? $_SESSION['user']['cedula'] ?? null;
 
             if (!$usuarioId) {
                 return false;
             }
+            
             $bitacora->set_usuario($usuarioId);
             $bitacora->set_modulo($modulo);
             $bitacora->set_accion($accion);

@@ -18,7 +18,7 @@ class Bitacora {
         $this->db = Database::getConnection('security');
     }
 
-    // Getters y Setters
+    public function setIdBitacora($id) { $this->id_bitacora = $id; }
     public function set_usuario($u) { $this->usuario = $u; }
     public function set_modulo($m) { $this->modulo = $m; }
     public function set_accion($a) { $this->accion = $a; }
@@ -66,9 +66,6 @@ class Bitacora {
 
     private function Registrar() {
         try {
-            $this->id_bitacora = $this->generarIdBitacora();
-            
-            // Obtener IP del cliente
             $this->ip_address = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
             
             $sql = "INSERT INTO bitacora (
@@ -91,7 +88,6 @@ class Bitacora {
 
             $stmt = $this->db->prepare($sql);
             
-            // Determinar si tenemos cédula o id_usuario
             $idUsuario = null;
             $cedula = null;
             
@@ -120,12 +116,5 @@ class Bitacora {
             error_log("Error en Bitacora::Registrar: " . $e->getMessage());
             return false;
         }
-    }
-
-    private function generarIdBitacora() {
-        $prefijo = 'BIT';
-        $fecha = date('YmdHis');
-        $random = rand(1000, 9999);
-        return $prefijo . $fecha . $random;
     }
 }

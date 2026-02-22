@@ -22,35 +22,39 @@
         </div>
     </footer>
 
-</main>
+</main> <!-- Cierra main-content -->
 
-<!-- volver arriba -->
+<!-- Botón volver arriba -->
 <button class="back-to-top" aria-label="Volver arriba">
     <i class="bi bi-arrow-up"></i>
 </button>
 
-<!-- Scripts base -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- ===== SCRIPTS - ORDEN CORRECTO ===== -->
+
+<!-- 1. jQuery SIEMPRE primero -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-<!-- DataTables -->
+<!-- 2. Bootstrap JS (depende de jQuery) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- 3. DataTables (depende de jQuery) -->
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
-<!-- Select2 -->
+<!-- 4. Select2 (depende de jQuery) -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-<!-- SweetAlert2 -->
+<!-- 5. SweetAlert2 (no depende de jQuery) -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- Chart.js (si se necesita) -->
+<!-- 6. Chart.js (no depende de jQuery) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Scripts personalizados -->
+<!-- 7. Scripts personalizados (dependen de jQuery) -->
 <script src="<?php echo BASE_URL; ?>/assets/js/main.js"></script>
 <script src="<?php echo BASE_URL; ?>/assets/js/utils.js"></script>
 
-<!-- Script de la página -->
+<!-- 8. Script específico de la página -->
 <?php if (isset($page) && file_exists(__DIR__ . "/../../public/assets/js/{$page}.js")): ?>
 <script src="<?php echo BASE_URL; ?>/assets/js/<?php echo $page; ?>.js"></script>
 <?php endif; ?>
