@@ -1,0 +1,39 @@
+#tablaBitacora td {
+    vertical-align: middle;
+    font-size: 0.9rem;
+}
+
+#tablaBitacora .id-column {
+    font-family: monospace;
+    font-size: 0.8rem;
+}
+
+.badge-accion {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+
+#detalleBody label {
+    color: #666;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+#detalleBody p {
+    font-size: 0.95rem;
+    word-break: break-word;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #tablaBitacora {
+        font-size: 0.8rem;
+    }
+    
+    .btn-group .btn {
+        padding: 0.2rem 0.4rem;
+    }
+}

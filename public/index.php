@@ -19,7 +19,8 @@ session_start();
 use App\Controllers\LoginController;
 use App\Controllers\DashboardController;
 use App\Controllers\ProductoController;
-use App\Controllers\CategoriaController; // Si existe
+use App\Controllers\BitacoraController;
+use App\Controllers\CategoriaController;
 
 $page = $_GET['page'] ?? 'login';
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
@@ -70,6 +71,23 @@ if ($page === 'categorias' && !empty($action)) {
     exit();
 }
 
+if ($page === 'bitacora' && !empty($action)) {
+    $controller = new BitacoraController();
+    switch ($action) {
+        case 'listarJson':
+            $controller->listarJson();
+            break;
+        case 'buscar':
+            $controller->buscar();
+            break;
+        default:
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Acción no válida']);
+            break;
+    }
+    exit();
+}
+
 // ===== RUTAS DE PÁGINAS =====
 switch ($page) {
     case 'login':
@@ -80,18 +98,23 @@ switch ($page) {
             $controller->index();
         }
         break;
-        
+
     case 'home':
     case 'dashboard':
         $controller = new DashboardController();
         $controller->index();
         break;
-        
+
     case 'productos':
         $controller = new ProductoController();
         $controller->index();
         break;
-        
+
+    case 'bitacora':
+        $controller = new BitacoraController();
+        $controller->index();
+        break;
+
     default:
         // Página 404
         echo "<!DOCTYPE html>";
