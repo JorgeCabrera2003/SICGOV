@@ -1,33 +1,49 @@
 <?php
+
 namespace App\Helpers;
 
 use App\Models\Security\Bitacora;
 
-class Helper {
+class Helper
+{
 
-    public static function Bitacora($accion, $modulo) {
-        $bitacora = new Bitacora();
-        
-        if (isset($_SESSION['user'])) {
-            $bitacora->set_usuario($_SESSION['user']['cedula'] ?? '');
+    public static function Bitacora($accion, $modulo, $detalles = null)
+    {
+        try {
+            if (!isset($_SESSION['user'])) {
+                return false;
+            }
+            $bitacora = new Bitacora();
+
+            $usuarioId = $_SESSION['user']['id_usuario'] ?? $_SESSION['user']['cedula'] ?? null;
+
+            if (!$usuarioId) {
+                return false;
+            }
+            $bitacora->set_usuario($usuarioId);
             $bitacora->set_modulo($modulo);
             $bitacora->set_accion($accion);
-            $bitacora->set_fecha(date('Y-m-d'));
-            $bitacora->set_hora(date('H:i:s'));
-            
+            $bitacora->set_detalles($detalles);
+            $bitacora->set_fecha(date('Y-m-d H:i:s'));
+
             return $bitacora->Transaccion(['peticion' => 'registrar']);
+        } catch (\Exception $e) {
+            error_log("Error en Helper::Bitacora: " . $e->getMessage());
+            return false;
         }
-        return false;
     }
 
-    public static function verificarSesion() {
+    public static function verificarSesion()
+    {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        
+
         if (!isset($_SESSION['user'])) {
-            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
-                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+            if (
+                isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'
+            ) {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Sesión no iniciada']);
                 exit();
@@ -36,15 +52,16 @@ class Helper {
                 exit();
             }
         }
-        
+
         return true;
     }
 
-    public static function getDatosUsuario() {
+    public static function getDatosUsuario()
+    {
         self::verificarSesion();
-        
+
         $user = $_SESSION['user'];
-        
+
         return [
             'nombres' => $user['nombres'] ?? $user['username'] ?? 'Usuario',
             'apellidos' => $user['apellidos'] ?? '',
@@ -55,9 +72,10 @@ class Helper {
         ];
     }
 
-    public static function getVarsVista($tituloPagina = 'Good Vibes') {
+    public static function getVarsVista($tituloPagina = 'Good Vibes')
+    {
         self::verificarSesion();
-        
+
         return [
             'titulo' => $tituloPagina,
             'page' => $_GET['page'] ?? 'home',
@@ -68,20 +86,21 @@ class Helper {
         ];
     }
 
-    public static function cargarVista($vistaPath, $titulo = 'Good Vibes', $vars = []) {
+    public static function cargarVista($vistaPath, $titulo = 'Good Vibes', $vars = [])
+    {
         self::verificarSesion();
-        
+
         $varsVista = self::getVarsVista($titulo);
         $vars = array_merge($varsVista, $vars);
         extract($vars);
-        
+
         $basePath = dirname(__DIR__, 2);
 
         $headFile = $basePath . '/resources/views/layout/head.php';
         $menuFile = $basePath . '/resources/views/layout/menu.php';
         $vistaFile = $basePath . '/resources/views/' . $vistaPath . '.php';
         $footerFile = $basePath . '/resources/views/layout/footer.php';
-        
+
         if (!file_exists($headFile)) {
             die("Error: No se encuentra el archivo head.php en: $headFile");
         }
@@ -94,7 +113,7 @@ class Helper {
         if (!file_exists($footerFile)) {
             die("Error: No se encuentra el archivo footer.php en: $footerFile");
         }
-        
+
         require_once $headFile;
         require_once $menuFile;
         require_once $vistaFile;
