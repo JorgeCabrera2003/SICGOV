@@ -3,20 +3,14 @@
     font-size: 0.9rem;
 }
 
-#tablaBitacora .id-column {
-    font-family: monospace;
-    font-size: 0.8rem;
-}
-
-.badge-accion {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.5rem;
+#tablaBitacora .font-monospace {
+    font-family: 'Courier New', monospace;
 }
 
 
 #detalleBody label {
-    color: #666;
-    font-size: 0.8rem;
+    color: #6c757d;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 0.25rem;
@@ -25,9 +19,33 @@
 #detalleBody p {
     font-size: 0.95rem;
     word-break: break-word;
+    margin-bottom: 0;
 }
 
-/* Responsive */
+#detalleBody .bg-light {
+    background-color: #f8f9fa !important;
+}
+
+
+.btn-outline-info.border-0:hover {
+    background-color: #0dcaf0;
+    color: white !important;
+}
+
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal.fade .modal-dialog {
+    animation: fadeIn 0.3s ease;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
 @media (max-width: 768px) {
     #tablaBitacora {
         font-size: 0.8rem;
@@ -35,5 +53,9 @@
     
     .btn-group .btn {
         padding: 0.2rem 0.4rem;
+    }
+    
+    #detalleBody .row {
+        margin-bottom: 0.5rem;
     }
 }

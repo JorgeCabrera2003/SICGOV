@@ -1,22 +1,24 @@
 <main class="container-fluid py-4">
-    <!-- Encabezado -->
-    <header class="d-flex justify-content-between align-items-center mb-4">
+    <header class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">
-            <i class="fas fa-history me-2 text-warning"></i>
+            <i class="fas fa-history me-2 text-warning" aria-hidden="true"></i>
             Bitácora del Sistema
         </h1>
-        <div>
-            <button class="btn btn-outline-secondary" id="btnRefrescar">
-                <i class="fas fa-sync-alt me-2"></i>Refrescar
+        
+        <div class="mt-2 mt-sm-0">
+            <button class="btn btn-outline-secondary" id="btnRefrescar" aria-label="Refrescar datos">
+                <i class="fas fa-sync-alt me-2" aria-hidden="true"></i>
+                Refrescar
             </button>
         </div>
     </header>
 
-    <!-- Tabla de bitácora -->
+    <!-- Tabla -->
     <section class="card shadow-sm border-0">
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover align-middle" id="tablaBitacora" style="width:100%">
+                    <caption class="visually-hidden">Listado de actividades del sistema</caption>
                     <thead class="table-light">
                         <tr>
                             <th scope="col">ID</th>
@@ -37,8 +39,9 @@
     </section>
 </main>
 
-<?php include 'partials/_modal_detalles.php'; ?>
+<?php include __DIR__ . '/partials/_modal_detalles.php'; ?>
 
-<!-- Recursos específicos de la página -->
+<!-- ===== RECURSOS DE LA PÁGINA ===== -->
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/bitacora.css">
-<script src="<?= BASE_URL ?>/assets/js/bitacora.js" defer></script>
+<!-- ✅ AGREGAR EL SCRIPT DE BITÁCORA -->
+<script src="<?= BASE_URL ?>/assets/js/bitacora.js"></script>
