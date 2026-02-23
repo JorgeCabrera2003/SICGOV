@@ -22,6 +22,7 @@ class BusinessSeeder
         $this->crearProductosFalsos(10);
         $this->crearPersonalsFalsos(5);
         $this->crearIngredientesFalsos(20);
+        $this->crearClientesFalsos(15);
     }
 
     private function crearMesas()
@@ -268,5 +269,29 @@ class BusinessSeeder
             ]);
         }
         echo "       $cantidad Ingredientes únicos generados correctamente con Faker.\n";
+    }
+
+    //	id_cliente	nombres	telefono	correo	fecha_registro
+
+    private function crearClientesFalsos($cantidad)
+    {
+        $sql = "INSERT INTO cliente 
+                (id_cliente, nombres, telefono, correo, fecha_registro) 
+                VALUES 
+                (:id, :nombres, :telefono, :correo, :fecha_registro)";
+
+        $stmt = $this->db->prepare($sql);
+
+        for ($i = 0; $i < $cantidad; $i++) {
+            $fechaRegistro = $this->faker->dateTimeBetween('-2 years', 'now')->format('Y-m-d');
+            $stmt->execute([
+                'id' => Helper::GenerarID('CLI'),
+                'nombres' => $this->faker->name(),
+                'telefono' => $this->faker->phoneNumber(),
+                'correo' => $this->faker->unique()->email(),
+                'fecha_registro' => $fechaRegistro
+            ]);
+        }
+        echo "       Clientes generados correctamente con Faker.\n";
     }
 }
