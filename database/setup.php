@@ -6,8 +6,8 @@ use App\Core\Database;
 use App\Database\Seeders\SecuritySeeder;
 use App\Database\Seeders\BusinessSeeder;
 
-$nombre = readline("Por favor, introduce tu nombre: ");
-echo "Hola, $nombre!";
+// $nombre = readline("Por favor, introduce tu nombre: ");
+// echo "Hola, $nombre!";
 
 echo "\n INICIANDO INSTALACIÓN LIMPIA DEL SISTEMA GOOD VIBES...\n";
 echo "-----------------------------------------------------------\n";
@@ -51,13 +51,18 @@ try {
     ejecutarSQL($dbBusiness, $rutaMigracionSistema);
     echo "       Estructura del Sistema cargada.\n";
 
-    echo "[2/4] Ejecutando SecuritySeeder...\n";
-    $securitySeeder = new SecuritySeeder($dbSecurity);
-    $securitySeeder->run();
-
-    echo "[3/4] Generando datos de prueba (Faker)...\n";
-    $businessSeeder = new BusinessSeeder($dbBusiness);
-    $businessSeeder->run();
+    $bool = readline("¿Deseas cargar datos en seguridad? (s/n): ");
+    if (strtolower($bool) == 's') {
+        echo "[2/4] Ejecutando SecuritySeeder...\n";
+        $securitySeeder = new SecuritySeeder($dbSecurity);
+        $securitySeeder->run();
+    }
+    $bool = readline("¿Confirma que desea cargar datos de negocio?. (s/n): ");
+    if (strtolower($bool) == 's') {
+        echo "[3/4] Generando datos de prueba (Faker)...\n";
+        $businessSeeder = new BusinessSeeder($dbBusiness);
+        $businessSeeder->run();
+    }
 
     echo "-----------------------------------------------------------\n";
     echo " INSTALACIÓN COMPLETADA CON ÉXITO.\n";
