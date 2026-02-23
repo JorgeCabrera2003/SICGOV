@@ -20,20 +20,16 @@ class LoginController
             exit();
         }
 
-        $loginSettings = new \App\Models\Security\LoginSettings();
+        $loginSettings = new LoginSettings();
         $siteKey = $loginSettings->get_recaptcha_sitekey();
 
         $titulo = "Login - Good Vibes";
         require_once BASE_PATH . '/resources/views/auth/login.php';
-    }
 
-    public function login()
-    {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
-        // Validar reCAPTCHA
         $recaptcha = $_POST['g-recaptcha-response'] ?? '';
         if (empty($recaptcha)) {
             $_SESSION['error_login'] = "Por favor, complete el reCAPTCHA";
@@ -41,7 +37,6 @@ class LoginController
             exit();
         }
 
-        // Validar campos
         if (empty($_POST['CI'] ?? '') || empty($_POST['password'] ?? '')) {
             $_SESSION['error_login'] = "Por favor, complete todos los campos";
             header("Location: " . BASE_URL . "/?page=login");
