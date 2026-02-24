@@ -28,7 +28,7 @@ class SecuritySeeder {
             $sqlAdmin = "INSERT INTO usuario
                         (id_usuario, cedula, id_rol, username, nombres, apellidos, correo, clave, estatus)
                         VALUES 
-                        ('SUPER00720251001', 'V00000000', 'ADMIN00120251001', 'admin_root', 'Admin', 'Principal', 'admin@goodvibes.com', '.$hash.', 1)";
+                        ('SUPER00720251001', 'V00000000', 'ADMIN00120251001', 'admin_root', 'Admin', 'Principal', 'admin@goodvibes.com', '".$hash."', 1)";
             try {
                 $this->db->exec($sqlAdmin);
                 echo "       Usuario Admin Root creado.\n";
