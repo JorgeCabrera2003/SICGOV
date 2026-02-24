@@ -19,21 +19,15 @@ class LoginController
             header("Location: " . BASE_URL . "/?page=home");
             exit();
         }
-
-        $loginSettings = new \App\Models\Security\LoginSettings();
+        $validacion = [];
+        $loginSettings = new LoginSettings();
         $siteKey = $loginSettings->get_recaptcha_sitekey();
+        
+        if(isset($_POST['peticion'])){
 
-        $titulo = "Login - Good Vibes";
-        require_once BASE_PATH . '/resources/views/auth/login.php';
-    }
-
-    public function login()
-    {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-
-        // Validar reCAPTCHA
+            if($_POST['peticion'] == "sesion"){
+                echo "sesion";
+                // Validar reCAPTCHA
         $recaptcha = $_POST['g-recaptcha-response'] ?? '';
         if (empty($recaptcha)) {
             $_SESSION['error_login'] = "Por favor, complete el reCAPTCHA";
@@ -52,26 +46,37 @@ class LoginController
         $ci = $_POST['CI'] ?? '';
         $cedula = $particle . $ci;
         $pass = $_POST['password'] ?? '';
+       
 
         $userModel = new Usuario();
         $userModel->set_cedula($cedula);
         $userModel->set_clave($pass);
+        $validacion = $userModel->Transaccion(['peticion' => 'sesion']);
 
-        if ($userModel->Transaccion(['peticion' => 'sesion'])) {
+        if (isset($validacion['response']['verificacion']) && $validacion['response']['verificacion']) {
             $datos = $userModel->Transaccion(['peticion' => 'perfil']);
 
-            if ($datos && isset($datos['datos'])) {
-                $_SESSION['user'] = $datos['datos'];
+            if ($datos && isset($datos['response']['datos'])) {
+                $_SESSION['user'] = $datos['response']['datos'];
                 unset($_SESSION['error_login']);
 
-                header("Location: " . BASE_URL . "/?page=home");
+               header("Location: " . BASE_URL . "/?page=home");
             } else {
                 $_SESSION['error_login'] = "Error al cargar datos del usuario";
-                header("Location: " . BASE_URL . "/?page=login");
             }
         } else {
             $_SESSION['error_login'] = "Cédula o contraseña incorrectos";
-            header("Location: " . BASE_URL . "/?page=login");
+        }
+            }
+        }
+        $titulo = "Login - Good Vibes";
+        require_once BASE_PATH . '/resources/views/auth/login.php';
+    }
+
+    public function login()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
         }
         exit();
     }

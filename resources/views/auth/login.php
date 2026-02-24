@@ -78,7 +78,7 @@ require_once __DIR__ . '/../layout/head.php';
           </div>
 
           <div class="col-12">
-            <button class="btn btn-primary w-100 py-2" type="submit" style="font-weight: 600;">
+            <button class="btn btn-primary w-100 py-2" type="submit" name="peticion" value="sesion" style="font-weight: 600;">
               Ingresar al Sistema <i class="fa-solid fa-right-to-bracket ms-2"></i>
             </button>
           </div>
