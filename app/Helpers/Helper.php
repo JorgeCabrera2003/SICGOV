@@ -53,6 +53,16 @@ class Helper
         }
     }
 
+    /**
+     * Guarda el Error en un Archivo .txt
+     */
+    public static function ErrorLog(string $mensaje){
+        error_log(
+                "\nError: " . $mensaje . "\n",
+                3,
+                "logs/logs.txt"
+            );
+    }
     public static function verificarSesion()
     {
         if (session_status() === PHP_SESSION_NONE) {
