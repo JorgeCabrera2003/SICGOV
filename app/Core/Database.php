@@ -16,7 +16,6 @@ class Database {
     $user = $_ENV['DB_USER'] ?? 'root';
     $pass = $_ENV['DB_PASS'] ?? '';
 
-    // Conexión sin dbname
     return new \PDO("mysql:host=$host;charset=utf8mb4", $user, $pass, [
         \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
     ]);
@@ -29,7 +28,6 @@ class Database {
                 $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
                 $dotenv->safeLoad();
 
-                // Determinamos qué BD conectar
                 $dbName = ($type === 'security') ? $_ENV['DB_NAME_USER'] : $_ENV['DB_NAME_SYSTEM'];
                 
                 $host = $_ENV['DB_HOST'] ?? 'localhost';
@@ -46,7 +44,7 @@ class Database {
 
                 self::$instances[$type] = new PDO($dsn, $user, $pass, $options);
             } catch (PDOException $e) {
-                die("❌ Error de Conexión ({$type}): " . $e->getMessage());
+                die(" Error de Conexión ({$type}): " . $e->getMessage());
             }
         }
         return self::$instances[$type];

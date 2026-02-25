@@ -1,19 +1,23 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// ===== FIJA PARA XAMPP =====
-// En XAMPP, la URL base es: http://localhost/good-vibes/public/
-define('BASE_URL', 'http://localhost/good-vibes/public');
-define('BASE_PATH', 'G:\\xampp\\htdocs\\good-vibes'); // Ruta absoluta en Windows
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
 
-// Activar errores
+$host = $_SERVER['HTTP_HOST'];
+
+$scriptName = $_SERVER['SCRIPT_NAME'];
+
+$basePath = rtrim(dirname($scriptName), '/\\');
+
+define('BASE_URL', $protocol . $host . $basePath);
+define('BASE_PATH', realpath(__DIR__ . '/..'));
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 session_start();
 
-// ===== ROUTER CON MATCH =====
 $page = $_GET['page'] ?? 'login';
 
 use App\Controllers\LoginController;
@@ -21,6 +25,7 @@ use App\Controllers\DashboardController;
 use App\Controllers\ProductoController;
 use App\Controllers\CategoriaController;
 use App\Controllers\BitacoraController;
+//use App\Controllers\IngredienteController;
 
 try {
     match ($page) {
@@ -29,6 +34,7 @@ try {
         'productos' => (new ProductoController())->index(),
         'categorias' => (new CategoriaController())->index(),
         'bitacora' => (new BitacoraController())->index(),
+        // 'ingredientes' => (new IngredienteController())->index(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };
 } catch (Exception $e) {
