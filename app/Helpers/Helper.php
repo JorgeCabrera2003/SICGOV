@@ -8,16 +8,33 @@ class Helper
 {
     /**
      * Genera un ID
-     * Formato: PREFIJO + TIMESTAMP + RANDOM
+     * Formato: PREFIJO + CLAVE FORÁRENA + FECHA + MILISEGUNDOS
      * 
-     * @param string $prefijo Prefijo del ID (ej: 'BIT', 'PROD', 'PED')
+     * @param string $prefijo Prefijo del ID (ej: 'BITA', 'PROD', 'PEDI')
      * @return string ID generado
      */
-    public static function generarId($prefijo)
+    public static function generarId($prefijo, $clave = NULL)
     {
-        $fecha = date('YmdHis');
-        $random = rand(1000, 9999);
-        return $prefijo . $fecha . $random;
+        // Formatear Parámetros
+        $id = NULL;
+        $prefijo = preg_replace('/[^A-Za-z0-9]/', '', $prefijo);
+        $prefijo = strtoupper(substr(trim($prefijo), 0, 4));
+        $milisegundo = number_format(microtime(true) * 1000, 0, '', '');
+        $milisegundo = substr($milisegundo, -3);
+        
+        if ($clave == NULL) {
+            $clave = substr($milisegundo, -3);
+        } else {
+            $clave = preg_replace('/[^A-Za-z0-9]/', '', $clave);
+            $clave = strtoupper(substr(trim($clave), 0, 3));
+        }
+
+        // Componer el ID
+        $fecha = date('YmdHms');
+        $id = $prefijo . $clave . $fecha . $milisegundo;
+        usleep(30000);
+
+        return $id;
     }
 
     /**
@@ -29,7 +46,7 @@ class Helper
             if (!isset($_SESSION['user'])) {
                 return false;
             }
-            
+
             $bitacora = new Bitacora();
             $idBitacora = self::generarId('BIT');
             $bitacora->setIdBitacora($idBitacora);
@@ -39,7 +56,7 @@ class Helper
             if (!$usuarioId) {
                 return false;
             }
-            
+
             $bitacora->set_usuario($usuarioId);
             $bitacora->set_modulo($modulo);
             $bitacora->set_accion($accion);
@@ -56,12 +73,13 @@ class Helper
     /**
      * Guarda el Error en un Archivo .txt
      */
-    public static function ErrorLog(string $mensaje){
+    public static function ErrorLog(string $mensaje)
+    {
         error_log(
-                "\nError: " . $mensaje . "\n",
-                3,
-                "logs/logs.txt"
-            );
+            "\nError: " . $mensaje . "\n",
+            3,
+            "logs/logs.txt"
+        );
     }
     public static function verificarSesion()
     {

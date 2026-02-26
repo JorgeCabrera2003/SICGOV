@@ -68,6 +68,13 @@
             <span class="flex-grow-1">Productos</span>
         </a>
 
+        <!-- Ingredientes -->
+        <a href="?page=ingredientes" 
+           class="nav-link <?php echo ($page == 'ingredientes') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+            <i class="fa-solid fa-jar"></i>
+            <span class="flex-grow-1">Ingredientes</span>
+        </a>
+
         <!-- Separador -->
         <hr class="my-2 opacity-25">
 
