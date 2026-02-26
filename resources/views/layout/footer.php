@@ -11,11 +11,11 @@
                 <div class="col-md-6 text-center text-md-end">
                     <span class="text-muted small">
                         Desarrollado por 
-                        <a href="#" class="text-decoration-none fw-semibold">J. Cabrera</a>, 
-                        <a href="#" class="text-decoration-none fw-semibold">L. Torrealba</a>, 
+                        <a href="https://github.com/JorgeCabrera2003" class="text-decoration-none fw-semibold">J. Cabrera</a>, 
+                        <a href="https://github.com/lz2712" class="text-decoration-none fw-semibold">L. Torrealba</a>, 
+                        <a href="https://github.com/AbrahanMulder" class="text-decoration-none fw-semibold">A. Rodriguez</a>
                         <a href="#" class="text-decoration-none fw-semibold">M. Bokor</a>,
                         <a href="#" class="text-decoration-none fw-semibold">S. Coello</a>,
-                        <a href="#" class="text-decoration-none fw-semibold">A. Rodriguez</a>
                     </span>
                 </div>
             </div>
