@@ -3,19 +3,47 @@
    ========================================== */
 
 :root {
-    --bs-primary: #FCA434;
-    --bs-primary-rgb: 252, 164, 52;
-    --bs-success: #3AAE49;
-    --bs-success-rgb: 58, 174, 73;
-    --bs-info: #58B2B3;
-    --bs-info-rgb: 88, 178, 179;
-    --bs-warning: #F36223;
-    --bs-warning-rgb: 243, 98, 35;
+    /* ===== COLORES PRINCIPALES (Manual Good Vibes) ===== */
+    --color-primary: #FAA432;
+    --color-primary-hover: #F26836;
+    --color-dark: #484943;
+    --color-white: #FFFFFF; 
+
+    /* ===== COLORES FUNCIONALES ===== */
+    --color-success: #46B054;
+    --color-info: #61B4B5;
+    --color-warning: #F26836;
+
+    --bs-primary: var(--color-primary);
+    --bs-success: var(--color-success);
+    --bs-info: var(--color-info);
+    --bs-warning: var(--color-warning);
+    --bs-dark: var(--color-dark);
 }
 
-/* ==========================================
-   COLOR DEL LOGO
-   ========================================== */
+#logo-text {
+    color: var(--color-primary) !important;
+}
+
+
+#logo-img {
+    width: 35px;
+    height: auto;
+    transition: all 0.3s ease;
+}
+
+.sidebar.collapsed #logo-text {
+    display: none;
+}
+
+.sidebar.collapsed #logo-img {
+    margin-left: 5px;
+}
+
+.sidebar.collapsed .d-flex.align-items-center.gap-2 {
+    justify-content: center;
+    width: 100%;
+}
 
 #logo-text {
     color: var(--color-primary) !important;
