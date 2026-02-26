@@ -23,6 +23,7 @@
                 <span class="h5 mb-0 fw-bold" id="logo-text">SICGOV</span>
             </a>
         </div>
+        <img src="<?php echo BASE_URL; ?>/assets/img/favicon.ico" alt="logo" class="logo" id="logo-img" style="width: 8rem;">
         <button class="btn btn-link d-lg-none p-0" id="sidebar-close" aria-label="Cerrar menú">
             <i class="bi bi-x-lg fs-5"></i>
         </button>
