@@ -20,11 +20,59 @@ class LoginController
             exit();
         }
 
-        $loginSettings = new \App\Models\Security\LoginSettings();
+        $validacion = [];
+        $loginSettings = new LoginSettings();
         $siteKey = $loginSettings->get_recaptcha_sitekey();
+        
+        if(isset($_POST['peticion'])){
 
+            if($_POST['peticion'] == "sesion"){
+                echo "sesion";
+                // Validar reCAPTCHA
+        $recaptcha = $_POST['g-recaptcha-response'] ?? '';
+        if (empty($recaptcha)) {
+            $_SESSION['error_login'] = "Por favor, complete el reCAPTCHA";
+            header("Location: " . BASE_URL . "/?page=login");
+            exit();
+        }
+
+        // Validar campos
+        if (empty($_POST['CI'] ?? '') || empty($_POST['password'] ?? '')) {
+            $_SESSION['error_login'] = "Por favor, complete todos los campos";
+            header("Location: " . BASE_URL . "/?page=login");
+            exit();
+        }
+
+        $particle = $_POST['particle'] ?? 'V-';
+        $ci = $_POST['CI'] ?? '';
+        $cedula = $particle . $ci;
+        $pass = $_POST['password'] ?? '';
+       
+
+        $userModel = new Usuario();
+        $userModel->set_cedula($cedula);
+        $userModel->set_clave($pass);
+        $validacion = $userModel->Transaccion(['peticion' => 'sesion']);
+
+        if (isset($validacion['response']['verificacion']) && $validacion['response']['verificacion']) {
+            $datos = $userModel->Transaccion(['peticion' => 'perfil']);
+
+            if ($datos && isset($datos['response']['datos'])) {
+                $_SESSION['user'] = $datos['response']['datos'];
+                unset($_SESSION['error_login']);
+
+               header("Location: " . BASE_URL . "/?page=home");
+            } else {
+                $_SESSION['error_login'] = "Error al cargar datos del usuario";
+            }
+        } else {
+            $_SESSION['error_login'] = "Cédula o contraseña incorrectos";
+        }
+            }
+        }
         $titulo = "Login - Good Vibes";
         require_once BASE_PATH . '/resources/views/auth/login.php';
+    
     }
 
     public function login()
