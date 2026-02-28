@@ -661,5 +661,3 @@ REUNIÓN PRESENCIAL
 > ¡Vamos con todo! 🚀" - Jorge (Líder Técnico)
 
 ---
-
-**¿Quieres que te ayude a crear la primera tarjeta JAD con toda esta estructura ya predefinida?** 🎯
