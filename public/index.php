@@ -25,16 +25,16 @@ use App\Controllers\DashboardController;
 use App\Controllers\ProductoController;
 use App\Controllers\CategoriaController;
 use App\Controllers\BitacoraController;
-//use App\Controllers\IngredienteController;
+use App\Controllers\IngredienteController;
 
 try {
     match ($page) {
         'login' => (new LoginController())->index(),
         'home', 'dashboard' => (new DashboardController())->index(),
         'productos' => (new ProductoController())->index(),
+        'ingredientes' => (new IngredienteController())->index(),
         'categorias' => (new CategoriaController())->index(),
         'bitacora' => (new BitacoraController())->index(),
-        // 'ingredientes' => (new IngredienteController())->index(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };
 } catch (Exception $e) {
