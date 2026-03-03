@@ -21,7 +21,7 @@ class Helper
         $prefijo = strtoupper(substr(trim($prefijo), 0, 4));
         $milisegundo = number_format(microtime(true) * 1000, 0, '', '');
         $milisegundo = substr($milisegundo, -3);
-        
+
         if ($clave == NULL) {
             $clave = substr($milisegundo, -3);
         } else {
@@ -75,10 +75,17 @@ class Helper
      */
     public static function ErrorLog(string $mensaje)
     {
+        $ruta_log = BASE_PATH . "\logs\logs.txt"; // Ruta del archivo
+        $directorio = dirname($ruta_log);
+
+        // Crear directorio si no existe
+        if (!is_dir($directorio)) {
+            mkdir($directorio, 0777, true); // true para crear subdirectorios recursivamente
+        }
         error_log(
             "\nError: " . $mensaje . "\n",
             3,
-            "logs/logs.txt"
+            $ruta_log
         );
     }
     public static function verificarSesion()
