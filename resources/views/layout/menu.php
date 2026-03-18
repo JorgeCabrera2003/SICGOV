@@ -54,6 +54,13 @@
             <?php endif; ?>
         </a>
 
+        <!-- Usuario -->
+        <a href="<?php echo BASE_URL; ?>/?page=usuario"
+            class="nav-link <?php echo ($page == 'usuario') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+            <i class="fa-solid fa-users"></i>
+            <span class="flex-grow-1">Usuarios</span>
+        </a>
+
         <!-- Pedidos / Mesas -->
         <a href="<?php echo BASE_URL; ?>/?page=pedidos"
             class="nav-link <?php echo ($page == 'pedidos') ? 'active' : ''; ?> d-flex align-items-center gap-2">
@@ -69,8 +76,8 @@
         </a>
 
         <!-- Ingredientes -->
-        <a href="?page=ingredientes" 
-           class="nav-link <?php echo ($page == 'ingredientes') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+        <a href="?page=ingredientes"
+            class="nav-link <?php echo ($page == 'ingredientes') ? 'active' : ''; ?> d-flex align-items-center gap-2">
             <i class="fa-solid fa-jar"></i>
             <span class="flex-grow-1">Ingredientes</span>
         </a>
@@ -80,16 +87,15 @@
 
         <!-- Gestión de Equipos (colapsable) -->
         <div class="nav-item w-100">
-            <a class="nav-link d-flex align-items-center gap-2 collapsed"
-                data-bs-toggle="collapse"
-                href="#equipos-submenu"
-                role="button"
+            <a class="nav-link d-flex align-items-center gap-2 collapsed" data-bs-toggle="collapse"
+                href="#equipos-submenu" role="button"
                 aria-expanded="<?php echo in_array($page, ['bien', 'equipo', 'material']) ? 'true' : 'false'; ?>">
                 <i class="bi bi-pc-display fs-5"></i>
                 <span class="flex-grow-1">Gestión de Equipos</span>
                 <i class="bi bi-chevron-right transition-rotate"></i>
             </a>
-            <div class="collapse <?php echo in_array($page, ['bien', 'equipo', 'material']) ? 'show' : ''; ?>" id="equipos-submenu">
+            <div class="collapse <?php echo in_array($page, ['bien', 'equipo', 'material']) ? 'show' : ''; ?>"
+                id="equipos-submenu">
                 <div class="d-flex flex-column gap-1 ps-4 mt-1">
                     <a href="<?php echo BASE_URL; ?>/?page=bien"
                         class="nav-link <?php echo ($page == 'bien') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
@@ -154,8 +160,10 @@
                 </button>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>/?page=home" class="text-decoration-none">Inicio</a></li>
-                        <li class="breadcrumb-item active" aria-current="page"><?php echo ucfirst($page ?? 'Dashboard'); ?></li>
+                        <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>/?page=home"
+                                class="text-decoration-none">Inicio</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <?php echo ucfirst($page ?? 'Dashboard'); ?></li>
                     </ol>
                 </nav>
             </div>
@@ -163,16 +171,13 @@
             <div class="d-flex align-items-center gap-2">
                 <!-- Notificaciones -->
                 <div class="dropdown">
-                    <button class="btn btn-link text-decoration-none p-2 position-relative"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                        id="notificationDropdown"
+                    <button class="btn btn-link text-decoration-none p-2 position-relative" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false" id="notificationDropdown"
                         aria-label="Notificaciones">
                         <i class="bi bi-bell fs-5"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge"
-                            id="notificationBadge"
-                            style="font-size: 0.6rem; display: none;">0</span>
+                        <span
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge"
+                            id="notificationBadge" style="font-size: 0.6rem; display: none;">0</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
                         <div class="dropdown-header d-flex justify-content-between align-items-center">
@@ -203,11 +208,8 @@
 
                 <!-- Perfil de usuario (menú) -->
                 <div class="dropdown">
-                    <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2"
-                        type="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                        id="userDropdown">
+                    <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                         <div class="user-avatar" style="width: 36px; height: 36px;">
                             <i class="bi bi-person-circle fs-5"></i>
                         </div>
@@ -216,7 +218,8 @@
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         <li>
                             <div class="dropdown-header">
-                                <div class="fw-semibold"><?php echo $datos['nombres'] . ' ' . ($datos['apellidos'] ?? ''); ?></div>
+                                <div class="fw-semibold">
+                                    <?php echo $datos['nombres'] . ' ' . ($datos['apellidos'] ?? ''); ?></div>
                                 <div class="small text-muted"><?php echo $datos['cedula'] ?? ''; ?></div>
                             </div>
                         </li>
@@ -224,12 +227,14 @@
                             <hr class="dropdown-divider">
                         </li>
                         <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2" href="<?php echo BASE_URL; ?>/?page=perfil">
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                href="<?php echo BASE_URL; ?>/?page=perfil">
                                 <i class="bi bi-person"></i> Mi Perfil
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2" href="<?php echo BASE_URL; ?>/?page=configuracion">
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                href="<?php echo BASE_URL; ?>/?page=configuracion">
                                 <i class="bi bi-gear"></i> Configuración
                             </a>
                         </li>
@@ -237,7 +242,8 @@
                             <hr class="dropdown-divider">
                         </li>
                         <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="<?php echo BASE_URL; ?>/logout.php">
+                            <a class="dropdown-item d-flex align-items-center gap-2 text-danger"
+                                href="<?php echo BASE_URL; ?>/logout.php">
                                 <i class="bi bi-box-arrow-right"></i> Cerrar sesión
                             </a>
                         </li>
