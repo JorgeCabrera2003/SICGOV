@@ -68,13 +68,18 @@ class UsuarioController
 							$msgN = "Se modificó un ingrediente con el id: " . $id;
 							$str_mensaje = "modificó";
 						}
-						$usuarioModel->setId($id);
-						$usuarioModel->setNombre($_POST["nombre"]);
-						$usuarioModel->setPrecioUnitario($_POST["costo_unitario"]);
-						$usuarioModel->setUnidadMedida($_POST["unidad_medida"]);
+						$usuarioModel->setIdRol($_POST["rol"]);
+						$usuarioModel->setNombres($_POST["nombre"]);
+						$usuarioModel->setUsername($_POST["username"]);
+						$usuarioModel->setApellidos($_POST["apellido"]);
+						$usuarioModel->setCedula($_POST["cedula"]);
+						$usuarioModel->setTelefono($_POST["telefono"]);
+						$usuarioModel->setCorreo($_POST["correo"]);
+						$usuarioModel->setClave($_POST["clave"]);
 						$json = $usuarioModel->Transaccion(['peticion' => $_POST["peticion"]]);
+						
 						if ($json['estado'] == 1) {
-							$msg = "(" . $_SESSION['user']['id_usuario'] . "), Se ".$str_mensaje." un nuevo ingrediente con ID:" . $usuarioModel->getId();
+							$msg = "(" . $_SESSION['user']['id_usuario'] . "), Se ".$str_mensaje." un nuevo Usuario con Cédula:" . $usuarioModel->getCedula();
 						} else {
 							$msg = "(" . $_SESSION['user']['id_usuario'] . "), error al ".$_POST["peticion"]." un ingrediente";
 						}
@@ -100,13 +105,13 @@ class UsuarioController
 					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 					$msg = "(" . $_SESSION['user']['id_usuario'] . "), envió solicitud no válida";
 					//Validar ID del formulario
-					if (!isset($_POST["id_ingrediente"]) || RegexHelper::ValidarFormatos($_POST["id_ingrediente"], 'ID') == 0) {
+					if (!isset($_POST["id_ingrediente"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'CEDULA') == 0) {
 						$json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Id no válido'];
 						$bool_formulario = false;
 					}
 					//Fin de la Validación
 					if ($bool_formulario) {
-						$usuarioModel->setId($_POST["id_ingrediente"]);
+						$usuarioModel->setCedula($_POST["cedula"]);
 						$json = $usuarioModel->Transaccion(['peticion' => $_POST["peticion"]]);
 
 						if ($json['estado'] == 1) {
