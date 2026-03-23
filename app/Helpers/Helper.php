@@ -65,7 +65,7 @@ class Helper
 
             return $bitacora->Transaccion(['peticion' => 'registrar']);
         } catch (\Exception $e) {
-            error_log("Error en Helper::Bitacora: " . $e->getMessage());
+            self::ErrorLog("Error en Helper::Bitacora: " . $e->getMessage());
             return false;
         }
     }
