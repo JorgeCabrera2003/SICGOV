@@ -10,8 +10,8 @@ class SecuritySeeder {
 
     public function run() {
         $count = $this->db->query("SELECT COUNT(*) FROM rol")->fetchColumn();
-        
         $hash = password_hash("1234", PASSWORD_DEFAULT);
+        
         if ($count == 0) {
             echo "       Roles no encontrados, insertando...\n";
             $sqlRoles = "INSERT INTO rol (id_rol, nombre_rol, descripcion, estatus) VALUES 
@@ -26,9 +26,9 @@ class SecuritySeeder {
 
         if (!$userExists) {
             $sqlAdmin = "INSERT INTO usuario
-                        (id_usuario, cedula, id_rol, username, nombres, apellidos, correo, clave, estatus)
+                        (cedula, id_rol, username, nombres, apellidos, sexo, fecha_nacimiento, correo, clave, estatus)
                         VALUES 
-                        ('SUPER00720251001', 'V00000000', 'ADMIN00120251001', 'admin_root', 'Admin', 'Principal', 'admin@goodvibes.com', '".$hash."', 1)";
+                        ('V00000000', 'ADMIN00120251001', 'admin_root', 'Admin', 'Principal', 'M', '2000-01-01', 'admin@goodvibes.com', '".$hash."', 1)";
             try {
                 $this->db->exec($sqlAdmin);
                 echo "       Usuario Admin Root creado.\n";
