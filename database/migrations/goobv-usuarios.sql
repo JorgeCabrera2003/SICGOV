@@ -53,12 +53,13 @@ INSERT INTO `rol` (`id_rol`, `nombre_rol`, `descripcion`, `estatus`) VALUES
 --
 
 CREATE TABLE `usuario` (
-  `id_usuario` varchar(24) NOT NULL,
   `cedula` varchar(12) NOT NULL,
   `id_rol` varchar(24) NOT NULL,
   `username` varchar(45) NOT NULL,
   `nombres` varchar(65) NOT NULL,
   `apellidos` varchar(65) NOT NULL,
+  `sexo` varchar(1) NOT NULL,
+  `fecha_nacimiento` date NOT NULL,
   `telefono` varchar(13) DEFAULT NULL,
   `correo` varchar(100) NOT NULL,
   `clave` varchar(255) NOT NULL,
@@ -122,7 +123,7 @@ CREATE TABLE `permiso` (
 
 CREATE TABLE `sesion` (
   `id_sesion` varchar(24) NOT NULL,
-  `id_usuario` varchar(24) NOT NULL,
+  `cedula_usuario` varchar(12) NOT NULL,
   `token` varchar(255) NOT NULL,
   `dispositivo` varchar(100) DEFAULT NULL,
   `ip_address` varchar(45) DEFAULT NULL,
@@ -139,7 +140,7 @@ CREATE TABLE `sesion` (
 
 CREATE TABLE `bitacora` (
   `id_bitacora` varchar(24) NOT NULL,
-  `id_usuario` varchar(24) DEFAULT NULL,
+  `cedula_usuario` varchar(12) NULL,
   `modulo` varchar(45) NOT NULL,
   `accion` varchar(100) NOT NULL,
   `detalles` text DEFAULT NULL,
@@ -155,7 +156,7 @@ CREATE TABLE `bitacora` (
 
 CREATE TABLE `notificacion` (
   `id_notificacion` varchar(24) NOT NULL,
-  `id_usuario` varchar(24) NOT NULL,
+  `cedula_usuario` varchar(12) NOT NULL,
   `titulo` varchar(100) NOT NULL,
   `mensaje` varchar(255) NOT NULL,
   `tipo` enum('INFO','ALERTA','EXITO','ERROR') NOT NULL DEFAULT 'INFO',
@@ -170,7 +171,7 @@ CREATE TABLE `notificacion` (
 -- Estructura Stand-in para la vista `vista_permisos_usuario`
 --
 CREATE TABLE `vista_permisos_usuario` (
-`id_usuario` varchar(24)
+`cedula_usuario` varchar(12)
 ,`username` varchar(45)
 ,`nombre_rol` varchar(45)
 ,`modulos_permitidos` text
@@ -182,7 +183,7 @@ CREATE TABLE `vista_permisos_usuario` (
 -- Estructura Stand-in para la vista `vista_actividad_usuarios`
 --
 CREATE TABLE `vista_actividad_usuarios` (
-`id_usuario` varchar(24)
+`cedula_usuario` varchar(12)
 ,`username` varchar(45)
 ,`nombres_completos` varchar(131)
 ,`nombre_rol` varchar(45)
@@ -198,7 +199,7 @@ CREATE TABLE `vista_actividad_usuarios` (
 --
 DROP TABLE IF EXISTS `vista_permisos_usuario`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_permisos_usuario`  AS SELECT `u`.`id_usuario` AS `id_usuario`, `u`.`username` AS `username`, `r`.`nombre_rol` AS `nombre_rol`, group_concat(distinct `m`.`nombre_modulo` order by `m`.`orden` separator ', ') AS `modulos_permitidos` FROM (((`usuario` `u` join `rol` `r` on(`u`.`id_rol` = `r`.`id_rol`)) join `permiso` `p` on(`r`.`id_rol` = `p`.`id_rol`)) join `modulo` `m` on(`p`.`id_modulo` = `m`.`id_modulo`)) WHERE `u`.`estatus` = 1 AND `r`.`estatus` = 1 AND `m`.`estatus` = 1 AND `p`.`estado` = 1 GROUP BY `u`.`id_usuario`, `u`.`username`, `r`.`nombre_rol` ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_permisos_usuario`  AS SELECT `u`.`cedula` AS `cedula_usuario`, `u`.`username` AS `username`, `r`.`nombre_rol` AS `nombre_rol`, group_concat(distinct `m`.`nombre_modulo` order by `m`.`orden` separator ', ') AS `modulos_permitidos` FROM (((`usuario` `u` join `rol` `r` on(`u`.`id_rol` = `r`.`id_rol`)) join `permiso` `p` on(`r`.`id_rol` = `p`.`id_rol`)) join `modulo` `m` on(`p`.`id_modulo` = `m`.`id_modulo`)) WHERE `u`.`estatus` = 1 AND `r`.`estatus` = 1 AND `m`.`estatus` = 1 AND `p`.`estado` = 1 GROUP BY `u`.`cedula`, `u`.`username`, `r`.`nombre_rol` ;
 
 -- --------------------------------------------------------
 
@@ -207,7 +208,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `vista_actividad_usuarios`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_actividad_usuarios`  AS SELECT `u`.`id_usuario` AS `id_usuario`, `u`.`username` AS `username`, concat(`u`.`nombres`,' ',`u`.`apellidos`) AS `nombres_completos`, `r`.`nombre_rol` AS `nombre_rol`, `u`.`ultimo_acceso` AS `ultimo_acceso`, count(`s`.`id_sesion`) AS `sesiones_activas`, (select count(0) from `bitacora` `b` where `b`.`id_usuario` = `u`.`id_usuario` and cast(`b`.`fecha` as date) = curdate()) AS `acciones_hoy` FROM ((`usuario` `u` join `rol` `r` on(`u`.`id_rol` = `r`.`id_rol`)) left join `sesion` `s` on(`u`.`id_usuario` = `s`.`id_usuario` and `s`.`activa` = 1)) WHERE `u`.`estatus` = 1 GROUP BY `u`.`id_usuario`, `u`.`username`, `u`.`nombres`, `u`.`apellidos`, `r`.`nombre_rol`, `u`.`ultimo_acceso` ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_actividad_usuarios`  AS SELECT `u`.`cedula` AS `cedula_usuario`, `u`.`username` AS `username`, concat(`u`.`nombres`,' ',`u`.`apellidos`) AS `nombres_completos`, `r`.`nombre_rol` AS `nombre_rol`, `u`.`ultimo_acceso` AS `ultimo_acceso`, count(`s`.`id_sesion`) AS `sesiones_activas`, (select count(0) from `bitacora` `b` where `b`.`cedula_usuario` = `u`.`cedula` and cast(`b`.`fecha` as date) = curdate()) AS `acciones_hoy` FROM ((`usuario` `u` join `rol` `r` on(`u`.`id_rol` = `r`.`id_rol`)) left join `sesion` `s` on(`u`.`cedula` = `s`.`cedula_usuario` and `s`.`activa` = 1)) WHERE `u`.`estatus` = 1 GROUP BY `u`.`cedula`, `u`.`username`, `u`.`nombres`, `u`.`apellidos`, `r`.`nombre_rol`, `u`.`ultimo_acceso` ;
 
 --
 -- Índices para tablas volcadas
@@ -224,9 +225,8 @@ ALTER TABLE `rol`
 -- Indices de la tabla `usuario`
 --
 ALTER TABLE `usuario`
-  ADD PRIMARY KEY (`id_usuario`),
+  ADD PRIMARY KEY (`cedula`),
   ADD UNIQUE KEY `username` (`username`),
-  ADD UNIQUE KEY `cedula` (`cedula`),
   ADD UNIQUE KEY `correo` (`correo`),
   ADD KEY `id_rol` (`id_rol`);
 
@@ -251,7 +251,7 @@ ALTER TABLE `permiso`
 ALTER TABLE `sesion`
   ADD PRIMARY KEY (`id_sesion`),
   ADD UNIQUE KEY `token` (`token`),
-  ADD KEY `id_usuario` (`id_usuario`),
+  ADD KEY `cedula_usuario` (`cedula_usuario`),
   ADD KEY `fecha_expiracion` (`fecha_expiracion`);
 
 --
@@ -259,7 +259,7 @@ ALTER TABLE `sesion`
 --
 ALTER TABLE `bitacora`
   ADD PRIMARY KEY (`id_bitacora`),
-  ADD KEY `id_usuario` (`id_usuario`),
+  ADD KEY `cedula_usuario` (`cedula_usuario`),
   ADD KEY `fecha` (`fecha`),
   ADD KEY `modulo` (`modulo`);
 
@@ -268,7 +268,7 @@ ALTER TABLE `bitacora`
 --
 ALTER TABLE `notificacion`
   ADD PRIMARY KEY (`id_notificacion`),
-  ADD KEY `id_usuario` (`id_usuario`),
+  ADD KEY `cedula_usuario` (`cedula_usuario`),
   ADD KEY `leida` (`leida`),
   ADD KEY `fecha` (`fecha`);
 
@@ -293,19 +293,19 @@ ALTER TABLE `permiso`
 -- Filtros para la tabla `sesion`
 --
 ALTER TABLE `sesion`
-  ADD CONSTRAINT `sesion_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `sesion_ibfk_1` FOREIGN KEY (`cedula_usuario`) REFERENCES `usuario` (`cedula`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `bitacora`
 --
 ALTER TABLE `bitacora`
-  ADD CONSTRAINT `bitacora_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `bitacora_ibfk_1` FOREIGN KEY (`cedula_usuario`) REFERENCES `usuario` (`cedula`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `notificacion`
 --
 ALTER TABLE `notificacion`
-  ADD CONSTRAINT `notificacion_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `notificacion_ibfk_1` FOREIGN KEY (`cedula_usuario`) REFERENCES `usuario` (`cedula`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

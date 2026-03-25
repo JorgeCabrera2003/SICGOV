@@ -26,11 +26,13 @@ use App\Controllers\ProductoController;
 use App\Controllers\CategoriaController;
 use App\Controllers\BitacoraController;
 use App\Controllers\IngredienteController;
+use App\Controllers\UsuarioController;
 
 try {
     match ($page) {
         'login' => (new LoginController())->index(),
         'home', 'dashboard' => (new DashboardController())->index(),
+        'usuario', 'user' => (new UsuarioController())->index(),
         'productos' => (new ProductoController())->index(),
         'ingredientes' => (new IngredienteController())->index(),
         'categorias' => (new CategoriaController())->index(),
