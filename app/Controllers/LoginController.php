@@ -50,8 +50,8 @@ class LoginController
        
 
         $userModel = new Usuario();
-        $userModel->set_cedula($cedula);
-        $userModel->set_clave($pass);
+        $userModel->setCedula($cedula);
+        $userModel->setClave($pass);
         $validacion = $userModel->Transaccion(['peticion' => 'sesion']);
 
         if (isset($validacion['response']['verificacion']) && $validacion['response']['verificacion']) {
@@ -102,8 +102,8 @@ class LoginController
         $pass = $_POST['password'] ?? '';
 
         $userModel = new Usuario();
-        $userModel->set_cedula($cedula);
-        $userModel->set_clave($pass);
+        $userModel->setCedula($cedula);
+        $userModel->setClave($pass);
 
         if ($userModel->Transaccion(['peticion' => 'sesion'])) {
             $datos = $userModel->Transaccion(['peticion' => 'perfil']);
