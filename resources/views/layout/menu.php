@@ -140,7 +140,7 @@
 
     <!-- Cerrar sesión (siempre visible) -->
     <div class="p-3 border-top">
-        <a href="<?php echo BASE_URL; ?>/logout.php"
+        <a href="<?php echo BASE_URL; ?>/?page=logout"
             class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2">
             <i class="bi bi-box-arrow-right"></i>
             <span>Cerrar Sesión</span>
@@ -243,7 +243,7 @@
                         </li>
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2 text-danger"
-                                href="<?php echo BASE_URL; ?>/logout.php">
+                                href="<?php echo BASE_URL; ?>/?page=logout">
                                 <i class="bi bi-box-arrow-right"></i> Cerrar sesión
                             </a>
                         </li>
