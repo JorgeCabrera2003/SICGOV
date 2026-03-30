@@ -22,9 +22,8 @@ use App\Helpers\Helper;
 use PDO;
 use DateTime;
 
-class Usuario
+class Usuario extends Database
 {
-    private $id_usuario;
     private $cedula;
     private $id_rol;
     private $username;
@@ -32,35 +31,32 @@ class Usuario
     private $apellidos;
     private $telefono;
     private $correo;
+    private $fecha_nacimiento;
+    private $sexo;
     private $clave;
     private $foto_perfil;
     private $tema_oscuro;
     private $ultimo_acceso;
     private $fecha_registro;
-    private $db;
 
     public function __construct()
     {
-        $this->db = NULL;
+        $this->cedula = "";
+        $this->id_rol = "";
+        $this->username = "";
+        $this->nombres = "";
+        $this->apellidos = "";
+        $this->telefono = "";
+        $this->correo = "";
+        $this->fecha_nacimiento = "";
+        $this->sexo = "";
+        $this->clave = "";
+        $this->foto_perfil = "";
+        $this->tema_oscuro = 0;
+        $this->ultimo_acceso = "";
+        $this->fecha_nacimiento = "";
     }
 
-    private function LlamarConexion(PDO &$db = NULL)
-    {
-        if ($db != NULL) {
-            $this->db = $db;
-        }
-
-        if ($this->db == NULL) {
-            $this->db = Database::getConnection('security');
-        }
-
-        return $this->db;
-    }
-
-    private function DestruirConexion()
-    {
-        $this->db = NULL;
-    }
     //SETTERS
     public function setCedula(string $cedula)
     {
@@ -95,6 +91,13 @@ class Usuario
     public function setCorreo(string $correo)
     {
         $this->correo = $correo;
+    }
+    
+    public function setFechaNacimiento(DateTime $fecha_nacimiento){
+        $this->fecha_nacimiento = $fecha_nacimiento;
+    }
+    public function setSexo(string $sexo){
+        $this->sexo = $sexo;
     }
     public function setClave(string $clave)
     {
@@ -157,6 +160,14 @@ class Usuario
     {
         return $this->correo;
     }
+
+    public function getFechaNacimiento(){
+        return $this->fecha_nacimiento;
+    }
+    public function getSexo(){
+        return $this->sexo;
+    }
+
     public function getClave()
     {
         return $this->clave;
@@ -216,7 +227,7 @@ class Usuario
         try {
             $sql = "SELECT * FROM usuario WHERE cedula = :cedula
             OR username = :username OR correo = :correo";
-            $this->LlamarConexion();
+            $this->LlamarConexion("security");
             $this->LlamarConexion()->beginTransaction();
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':correo', $this->correo);
@@ -270,7 +281,7 @@ class Usuario
 
         try {
             $sql = "SELECT * FROM usuario WHERE cedula = :cedula";
-            $this->LlamarConexion();
+            $this->LlamarConexion("security");
             $this->LlamarConexion()->beginTransaction();
 
             $stm = $this->LlamarConexion()->prepare($sql);
@@ -298,14 +309,13 @@ class Usuario
         $validacion = $this->ValidarUsuario();
         if ($validacion['bool'] == 0) {
             try {
-                $this->LlamarConexion();
+                $this->LlamarConexion("security");
                 $this->LlamarConexion()->beginTransaction();
 
-                $sql = "INSERT INTO usuario(id_usuario, cedula, id_rol, username, nombres, apellidos, telefono, correo, clave) 
-        VALUES (:id_usuario, :cedula, :id_rol, :username, :nombres, :apellidos, :telefono, :correo, :clave)";
+                $sql = "INSERT INTO usuario(cedula, id_rol, username, nombres, apellidos, fecha_nacimiento, sexo, telefono, correo, clave) 
+        VALUES (:id_usuario, :cedula, :id_rol, :username, :nombres, :apellidos, :fecha_nacimiento, :sexo, :telefono, :correo, :clave)";
 
                 $stm = $this->LlamarConexion()->prepare($sql);
-                $stm->bindParam(':id_usuario', $this->id_usuario);
                 $stm->bindParam(':cedula', $this->cedula);
                 $stm->bindParam(':id_rol', $this->id_rol);
                 $stm->bindParam(':username', $this->username);
@@ -341,7 +351,7 @@ class Usuario
         $arreglo = [];
 
         try {
-            $this->LlamarConexion();
+            $this->LlamarConexion("security");
             $this->LlamarConexion()->beginTransaction();
             $query = "SELECT * FROM usuario WHERE estatus = 1";
 

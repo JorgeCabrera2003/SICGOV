@@ -23,56 +23,56 @@ class LoginController
         $validacion = [];
         $loginSettings = new LoginSettings();
         $siteKey = $loginSettings->get_recaptcha_sitekey();
-        
-        if(isset($_POST['peticion'])){
 
-            if($_POST['peticion'] == "sesion"){
-                echo "sesion";
+        if (isset($_POST['peticion'])) {
+
+
+            if ($_POST['peticion'] == "sesion") {
                 // Validar reCAPTCHA
-        $recaptcha = $_POST['g-recaptcha-response'] ?? '';
-        if (empty($recaptcha)) {
-            $_SESSION['error_login'] = "Por favor, complete el reCAPTCHA";
-            header("Location: " . BASE_URL . "/?page=login");
-            exit();
-        }
+                $recaptcha = $_POST['g-recaptcha-response'] ?? '';
+                if (empty($recaptcha)) {
+                    $_SESSION['error_login'] = "Por favor, complete el reCAPTCHA";
+                    header("Location: " . BASE_URL . "/?page=login");
+                    exit();
+                }
 
-        // Validar campos
-        if (empty($_POST['CI'] ?? '') || empty($_POST['password'] ?? '')) {
-            $_SESSION['error_login'] = "Por favor, complete todos los campos";
-            header("Location: " . BASE_URL . "/?page=login");
-            exit();
-        }
+                // Validar campos
+                if (empty($_POST['CI'] ?? '') || empty($_POST['password'] ?? '')) {
+                    $_SESSION['error_login'] = "Por favor, complete todos los campos";
+                    header("Location: " . BASE_URL . "/?page=login");
+                    exit();
+                }
 
-        $particle = $_POST['particle'] ?? 'V-';
-        $ci = $_POST['CI'] ?? '';
-        $cedula = $particle . $ci;
-        $pass = $_POST['password'] ?? '';
-       
+                $particle = $_POST['particle'] ?? 'V-';
+                $ci = $_POST['CI'] ?? '';
+                $cedula = $particle . $ci;
+                $pass = $_POST['password'] ?? '';
 
-        $userModel = new Usuario();
-        $userModel->setCedula($cedula);
-        $userModel->setClave($pass);
-        $validacion = $userModel->Transaccion(['peticion' => 'sesion']);
 
-        if (isset($validacion['response']['verificacion']) && $validacion['response']['verificacion']) {
-            $datos = $userModel->Transaccion(['peticion' => 'perfil']);
+                $usuarioModel = new Usuario();
+                $usuarioModel->setCedula($cedula);
+                $usuarioModel->setClave($pass);
+                $validacion = $usuarioModel->Transaccion(['peticion' => 'sesion']);
 
-            if ($datos && isset($datos['response']['datos'])) {
-                $_SESSION['user'] = $datos['response']['datos'];
-                unset($_SESSION['error_login']);
+                if (isset($validacion['response']['verificacion']) && $validacion['response']['verificacion']) {
+                    $datos = $usuarioModel->Transaccion(['peticion' => 'perfil']);
 
-               header("Location: " . BASE_URL . "/?page=home");
-            } else {
-                $_SESSION['error_login'] = "Error al cargar datos del usuario";
-            }
-        } else {
-            $_SESSION['error_login'] = "Cédula o contraseña incorrectos";
-        }
+                    if ($datos && isset($datos['response']['datos'])) {
+                        $_SESSION['user'] = $datos['response']['datos'];
+                        unset($_SESSION['error_login']);
+
+                        header("Location: " . BASE_URL . "/?page=home");
+                    } else {
+                        $_SESSION['error_login'] = "Error al cargar datos del usuario";
+                    }
+                } else {
+                    $_SESSION['error_login'] = "Cédula o contraseña incorrectos";
+                }
             }
         }
         $titulo = "Login - Good Vibes";
         require_once BASE_PATH . '/resources/views/auth/login.php';
-    
+
     }
 
     public function login()
@@ -101,12 +101,12 @@ class LoginController
         $cedula = $particle . $ci;
         $pass = $_POST['password'] ?? '';
 
-        $userModel = new Usuario();
-        $userModel->setCedula($cedula);
-        $userModel->setClave($pass);
+        $usuarioModel = new Usuario();
+        $usuarioModel->setCedula($cedula);
+        $usuarioModel->setClave($pass);
 
-        if ($userModel->Transaccion(['peticion' => 'sesion'])) {
-            $datos = $userModel->Transaccion(['peticion' => 'perfil']);
+        if ($usuarioModel->Transaccion(['peticion' => 'sesion'])) {
+            $datos = $usuarioModel->Transaccion(['peticion' => 'perfil']);
 
             if ($datos && isset($datos['datos'])) {
                 $_SESSION['user'] = $datos['datos'];
