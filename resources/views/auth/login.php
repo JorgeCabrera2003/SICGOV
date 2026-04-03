@@ -1,5 +1,4 @@
 <?php
-// resources/views/auth/login.php
 require_once __DIR__ . '/../layout/head.php';
 ?>
 
@@ -81,6 +80,9 @@ require_once __DIR__ . '/../layout/head.php';
             <button class="btn btn-primary w-100 py-2" type="submit" name="peticion" value="sesion" style="font-weight: 600;">
               Ingresar al Sistema <i class="fa-solid fa-right-to-bracket ms-2"></i>
             </button>
+            <div class="col-12 text-center mt-3">
+              <a href="?page=crear-cuenta" class="btn btn-info w-100 py-2">Crear Cuenta <i class="fa-solid fa-user-plus ms-2"></i></a>
+            </div>
           </div>
 
           <div class="col-12 text-center mt-3">
@@ -91,7 +93,6 @@ require_once __DIR__ . '/../layout/head.php';
     </div>
   </div>
 
-  <!-- Scripts usando BASE_URL -->
   <script src="<?php echo BASE_URL; ?>/assets/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="<?php echo BASE_URL; ?>/assets/js/jquery.min.js"></script>
   <script src="https://www.google.com/recaptcha/api.js" async defer></script>
