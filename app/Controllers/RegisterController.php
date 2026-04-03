@@ -25,15 +25,12 @@ class RegisterController
         if (isset($_POST['peticion'])) {
 
             if ($_POST['peticion'] == "registrar") {
-                // Validar reCAPTCHA
                 $recaptcha = $_POST['g-recaptcha-response'] ?? '';
                 if (empty($recaptcha)) {
                     $_SESSION['error_register'] = "Por favor, complete el reCAPTCHA";
                     header("Location: " . BASE_URL . "/?page=crear-cuenta");
                     exit();
                 }
-
-                // Validar campos
                 if (empty($_POST['nombres']) || empty($_POST['apellidos']) || empty($_POST['CI']) || empty($_POST['username']) || empty($_POST['telefono']) || empty($_POST['correo']) || empty($_POST['password']) || empty($_POST['confirm_password'])) {
                     $_SESSION['error_register'] = "Por favor, complete todos los campos";
                     header("Location: " . BASE_URL . "/?page=crear-cuenta");
@@ -64,7 +61,6 @@ class RegisterController
                 $registro = $usuarioModel->Transaccion(['peticion' => 'registrar']);
 
                 if (isset($registro['estado']) && $registro['estado'] == 1) {
-                    // Registro exitoso, iniciar sesión automáticamente
                     $usuarioModel->setClave($pass); // Reset clave para login, ya que setClave hashea
                     $validacion = $usuarioModel->Transaccion(['peticion' => 'sesion']);
 
@@ -91,7 +87,6 @@ class RegisterController
             }
 
             if ($_POST['peticion'] == "sesion") {
-                // Validar reCAPTCHA
                 $recaptcha = $_POST['g-recaptcha-response'] ?? '';
                 if (empty($recaptcha)) {
                     $_SESSION['error_login'] = "Por favor, complete el reCAPTCHA";
@@ -99,7 +94,6 @@ class RegisterController
                     exit();
                 }
 
-                // Validar campos
                 if (empty($_POST['CI'] ?? '') || empty($_POST['password'] ?? '')) {
                     $_SESSION['error_login'] = "Por favor, complete todos los campos";
                     header("Location: " . BASE_URL . "/?page=login");
