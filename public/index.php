@@ -21,6 +21,7 @@ session_start();
 $page = $_GET['page'] ?? 'login';
 
 use App\Controllers\LoginController;
+use App\Controllers\LogOutController;
 use App\Controllers\DashboardController;
 use App\Controllers\ProductoController;
 use App\Controllers\CategoriaController;
@@ -31,6 +32,7 @@ use App\Controllers\UsuarioController;
 try {
     match ($page) {
         'login' => (new LoginController())->index(),
+        'logout' => (new LogOutController())->index(),
         'home', 'dashboard' => (new DashboardController())->index(),
         'usuario', 'user' => (new UsuarioController())->index(),
         'productos' => (new ProductoController())->index(),
