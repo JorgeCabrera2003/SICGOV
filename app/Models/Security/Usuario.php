@@ -312,8 +312,10 @@ class Usuario extends Database
                 $this->LlamarConexion("security");
                 $this->LlamarConexion()->beginTransaction();
 
-                $sql = "INSERT INTO usuario(cedula, id_rol, username, nombres, apellidos, fecha_nacimiento, sexo, telefono, correo, clave) 
-        VALUES (:id_usuario, :cedula, :id_rol, :username, :nombres, :apellidos, :fecha_nacimiento, :sexo, :telefono, :correo, :clave)";
+                $hashed_clave = password_hash($this->clave, PASSWORD_DEFAULT);
+
+                $sql = "INSERT INTO usuario(cedula, id_rol, username, nombres, apellidos, telefono, correo, clave) 
+        VALUES (:cedula, :id_rol, :username, :nombres, :apellidos, :telefono, :correo, :clave)";
 
                 $stm = $this->LlamarConexion()->prepare($sql);
                 $stm->bindParam(':cedula', $this->cedula);
@@ -323,7 +325,7 @@ class Usuario extends Database
                 $stm->bindParam(':apellidos', $this->apellidos);
                 $stm->bindParam(':telefono', $this->telefono);
                 $stm->bindParam(':correo', $this->correo);
-                $stm->bindParam(':clave', $this->clave);
+                $stm->bindParam(':clave', $hashed_clave);
                 $stm->execute();
                 $stm = NULL;
                 $this->LlamarConexion()->commit();
