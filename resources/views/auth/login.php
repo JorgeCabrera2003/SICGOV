@@ -9,11 +9,11 @@ $openRegisterSlide = $openRegisterSlide ?? false;
         <div class="row justify-content-center">
             <div class="col-xxl-8">
                 <div class="card border-0 shadow-lg auth-card overflow-hidden">
-                    <div id="authCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="7000">
-                        <div class="carousel-inner">
-                            <div class="carousel-item active" data-auth-slide="login">
-                                <div class="row g-0 align-items-center">
-                                    <div class="col-lg-6 p-4 p-lg-5">
+                    <div class="row g-0 justify-content-center">
+                        <div class="col-12 col-lg-8 col-xl-7 p-4 p-lg-5 auth-form-column">
+                            <div id="authCarousel" class="carousel slide" data-bs-interval="false">
+                                <div class="carousel-inner">
+                                    <div class="carousel-item active" data-auth-slide="login">
                                         <div class="text-center mb-4">
                                             <img src="<?php echo BASE_URL; ?>/assets/img/logo.png" alt="Good Vibes" class="auth-brand mb-3">
                                             <h1 class="h3 fw-bold mb-2">Iniciar sesión</h1>
@@ -58,7 +58,7 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                                                     Ingresar al Sistema <i class="fa-solid fa-right-to-bracket ms-2"></i>
                                                 </button>
                                                 <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-target="#authCarousel" data-bs-slide-to="1">
-                                                    Crear Cuenta <i class="fa-solid fa-user-plus ms-2"></i>
+                                                    Crear cuenta <i class="fa-solid fa-user-plus ms-2"></i>
                                                 </button>
                                             </div>
                                             <div class="col-12 text-center">
@@ -66,18 +66,8 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                                             </div>
                                         </form>
                                     </div>
-                                    <div class="col-lg-6 d-none d-lg-flex auth-carousel align-items-end" style="background-image: url('<?php echo BASE_URL; ?>/assets/img/gobernacion.jpg'); background-size: cover; background-position: center;">
-                                        <div class="carousel-caption text-start text-white p-4">
-                                            <h3 class="display-6 fw-bold">Buena vibra desde el inicio</h3>
-                                            <p class="lead">Un sistema pensado para tu negocio y tus clientes.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div class="carousel-item" data-auth-slide="register">
-                                <div class="row g-0 align-items-center">
-                                    <div class="col-lg-6 p-4 p-lg-5">
+                                    <div class="carousel-item" data-auth-slide="register">
                                         <div class="text-center mb-4">
                                             <h1 class="h3 fw-bold mb-2">Crear cuenta</h1>
                                             <p class="text-muted mb-0">Regístrate ahora y comienza a gestionar tu sistema.</p>
@@ -104,19 +94,13 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                                             </div>
                                         </form>
                                     </div>
-                                    <div class="col-lg-6 d-none d-lg-flex auth-carousel align-items-end" style="background-image: url('<?php echo BASE_URL; ?>/assets/img/logo.png'); background-size: cover; background-position: center;">
-                                        <div class="carousel-caption text-start text-white p-4">
-                                            <h3 class="display-6 fw-bold">Registro rápido y seguro</h3>
-                                            <p class="lead">La misma experiencia de usuario en login y registro.</p>
-                                        </div>
-                                    </div>
+                                </div>
+
+                                <div class="carousel-indicators mt-4 mb-3 justify-content-center">
+                                    <button type="button" data-bs-target="#authCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Iniciar sesión"></button>
+                                    <button type="button" data-bs-target="#authCarousel" data-bs-slide-to="1" aria-label="Crear cuenta"></button>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="carousel-indicators mt-4 mb-3">
-                            <button type="button" data-bs-target="#authCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Iniciar sesión"></button>
-                            <button type="button" data-bs-target="#authCarousel" data-bs-slide-to="1" aria-label="Crear cuenta"></button>
                         </div>
                     </div>
                 </div>
@@ -130,7 +114,7 @@ $openRegisterSlide = $openRegisterSlide ?? false;
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="<?php echo BASE_URL; ?>/assets/js/auth.js"></script>
 <script>
-    window.authCarouselSlide = <?php echo json_encode($openRegisterSlide); ?>;
+    window.authOpenRegisterSlide = <?php echo json_encode($openRegisterSlide); ?>;
 </script>
 
 </body>

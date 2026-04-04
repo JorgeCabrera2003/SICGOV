@@ -1,9 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const authCarouselElement = document.getElementById('authCarousel');
     const authCarousel = authCarouselElement ? new bootstrap.Carousel(authCarouselElement, {
-        interval: 7000,
-        ride: 'carousel',
-        pause: 'hover',
+        interval: false,
         touch: true,
         wrap: true
     }) : null;
