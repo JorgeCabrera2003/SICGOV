@@ -1,7 +1,13 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const registerModalElement = document.getElementById('registerModal');
-    const registerModal = registerModalElement ? new bootstrap.Modal(registerModalElement) : null;
-    const showRegisterModal = window.authOpenRegisterModal === true;
+    const authCarouselElement = document.getElementById('authCarousel');
+    const authCarousel = authCarouselElement ? new bootstrap.Carousel(authCarouselElement, {
+        interval: 7000,
+        ride: 'carousel',
+        pause: 'hover',
+        touch: true,
+        wrap: true
+    }) : null;
+    const openRegisterSlide = window.authOpenRegisterSlide === true;
 
     const passwordToggles = document.querySelectorAll('[data-password-toggle]');
     passwordToggles.forEach(function (button) {
@@ -27,8 +33,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    if (showRegisterModal && registerModal) {
-        registerModal.show();
+    if (openRegisterSlide && authCarousel) {
+        authCarousel.to(1);
     }
 
     const loginForm = document.getElementById('login-form');

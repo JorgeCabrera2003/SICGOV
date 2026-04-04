@@ -52,13 +52,23 @@ $showConfirmPassword = $showConfirmPassword ?? true;
 
     <div class="col-md-6">
         <label for="clave" class="form-label fw-semibold">Contraseña <span class="text-danger">*</span></label>
-        <input type="password" class="form-control" id="clave" name="clave" maxlength="100" required>
+        <div class="input-group shadow-sm rounded">
+            <input type="password" class="form-control" id="clave" name="clave" maxlength="100" required autocomplete="new-password">
+            <button type="button" class="btn btn-outline-secondary" data-password-toggle="#clave" aria-label="Mostrar contraseña">
+                <i class="fa fa-eye"></i>
+            </button>
+        </div>
     </div>
 
     <?php if ($showConfirmPassword): ?>
         <div class="col-md-6">
             <label for="rclave" class="form-label fw-semibold">Confirmar contraseña <span class="text-danger">*</span></label>
-            <input type="password" class="form-control" id="rclave" name="rclave" maxlength="100" required>
+            <div class="input-group shadow-sm rounded">
+                <input type="password" class="form-control" id="rclave" name="rclave" maxlength="100" required autocomplete="new-password">
+                <button type="button" class="btn btn-outline-secondary" data-password-toggle="#rclave" aria-label="Mostrar contraseña">
+                    <i class="fa fa-eye"></i>
+                </button>
+            </div>
         </div>
     <?php endif; ?>
 </div>

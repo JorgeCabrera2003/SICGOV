@@ -23,12 +23,12 @@ class LoginController
         $siteKey = $loginSettings->get_recaptcha_sitekey();
 
         $currentPage = $_GET['page'] ?? 'login';
-        $openRegisterModal = $currentPage === 'crear-cuenta';
+        $openRegisterSlide = $currentPage === 'crear-cuenta';
 
         if (isset($_POST['peticion'])) {
 
             if ($_POST['peticion'] == 'registrar') {
-                $openRegisterModal = true;
+                $openRegisterSlide = true;
                 $recaptcha = $_POST['g-recaptcha-response'] ?? '';
                 if (empty($recaptcha)) {
                     $_SESSION['error_register'] = 'Por favor, complete el reCAPTCHA';
