@@ -11,12 +11,14 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                 <div class="card border-0 shadow-lg auth-card overflow-hidden">
                     <div class="row g-0 justify-content-center">
                         <div class="col-12 col-lg-8 col-xl-7 p-4 p-lg-5 auth-form-column">
-                            <div id="authCarousel" class="carousel slide" data-bs-interval="false">
+                            <div id="authCarousel" class="carousel slide carousel-fade" data-bs-interval="false">
                                 <div class="carousel-inner">
                                     <div class="carousel-item active" data-auth-slide="login">
-                                        <div class="text-center mb-4">
-                                            <img src="<?php echo BASE_URL; ?>/assets/img/logo.png" alt="Good Vibes" class="auth-brand mb-3">
-                                            <h1 class="h3 fw-bold mb-2">Iniciar sesión</h1>
+                                        <div class="text-center mb-4 d-flex flex-column align-items-center gap-3">
+                                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                                <img src="<?php echo BASE_URL; ?>/assets/img/logo.png" alt="Good Vibes" class="auth-brand mb-0">
+                                                <h1 class="h3 fw-bold mb-0">Iniciar sesión</h1>
+                                            </div>
                                             <p class="text-muted mb-0">Ingresa con tu usuario y contraseña.</p>
                                         </div>
 
@@ -32,7 +34,7 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                                             <div class="col-12">
                                                 <label for="particle" class="form-label">Cédula de identidad</label>
                                                 <div class="input-group shadow-sm rounded">
-                                                    <select class="form-select" id="particle" name="particle" required>
+                                                    <select class="form-select form-select-sm auth-sm-select" id="particle" name="particle" required>
                                                         <option value="V">V</option>
                                                         <option value="E">E</option>
                                                         <option value="J">J</option>
@@ -50,7 +52,7 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div class="col-12">
+                                            <div class="col-12 d-flex justify-content-center">
                                                 <div class="g-recaptcha" data-sitekey="<?php echo $siteKey; ?>"></div>
                                             </div>
                                             <div class="col-12 d-grid gap-3">

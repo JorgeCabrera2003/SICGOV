@@ -14,7 +14,6 @@
     overflow: hidden;
     background: var(--auth-card);
     box-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
-    animation: float-card 8s ease-in-out infinite;
     width: 100%;
     max-width: 760px;
     margin: 0 auto;
@@ -37,6 +36,11 @@
     overflow: hidden;
 }
 
+.auth-sm-select {
+    flex: 0 0 86px;
+    max-width: 86px;
+}
+
 .auth-card .btn-lg {
     min-height: 52px;
 }
@@ -46,8 +50,17 @@
         transform: translateY(0);
     }
     50% {
-        transform: translateY(-10px);
+        transform: translateY(0);
     }
+}
+
+.carousel-fade .carousel-item {
+    opacity: 0;
+    transition: opacity 0.45s ease-in-out;
+}
+
+.carousel-fade .carousel-item.active {
+    opacity: 1;
 }
 
 @media (max-width: 991.98px) {

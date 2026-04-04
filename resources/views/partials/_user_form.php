@@ -10,13 +10,13 @@ $showConfirmPassword = $showConfirmPassword ?? true;
 ?>
 <div class="row g-3">
     <div class="col-md-6">
-        <label for="username" class="form-label fw-semibold">Nombre de Usuario <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" id="username" name="username" maxlength="100" required>
+        <label for="nombre" class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="nombre" name="nombre" maxlength="100" required>
     </div>
 
     <div class="col-md-6">
-        <label for="correo" class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label>
-        <input type="email" class="form-control" id="correo" name="correo" maxlength="100" required>
+        <label for="apellido" class="form-label fw-semibold">Apellido <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="apellido" name="apellido" maxlength="100" required>
     </div>
 
     <div class="col-md-4">
@@ -36,18 +36,18 @@ $showConfirmPassword = $showConfirmPassword ?? true;
     </div>
 
     <div class="col-md-6">
-        <label for="nombre" class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" id="nombre" name="nombre" maxlength="100" required>
-    </div>
-
-    <div class="col-md-6">
-        <label for="apellido" class="form-label fw-semibold">Apellido <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" id="apellido" name="apellido" maxlength="100" required>
+        <label for="correo" class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label>
+        <input type="email" class="form-control" id="correo" name="correo" maxlength="100" required>
     </div>
 
     <div class="col-md-6">
         <label for="telefono" class="form-label fw-semibold">Teléfono</label>
         <input type="text" class="form-control" id="telefono" name="telefono" maxlength="20" placeholder="Ej: 04121234567">
+    </div>
+
+    <div class="col-md-12">
+        <label for="username" class="form-label fw-semibold">Nombre de Usuario <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="username" name="username" maxlength="100" required>
     </div>
 
     <div class="col-md-6">
