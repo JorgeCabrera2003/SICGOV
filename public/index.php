@@ -28,13 +28,12 @@ use App\Controllers\CategoriaController;
 use App\Controllers\BitacoraController;
 use App\Controllers\IngredienteController;
 use App\Controllers\UsuarioController;
-use App\Controllers\RegisterController;
 
 try {
     match ($page) {
         'login' => (new LoginController())->index(),
         'logout' => (new LogOutController())->index(),
-        'crear-cuenta' => (new RegisterController())->index(),
+        'crear-cuenta' => (new LoginController())->index(),
         'home', 'dashboard' => (new DashboardController())->index(),
         'usuario', 'user' => (new UsuarioController())->index(),
         'productos' => (new ProductoController())->index(),

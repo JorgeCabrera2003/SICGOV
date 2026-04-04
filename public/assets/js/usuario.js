@@ -7,7 +7,7 @@ function etiquetasFormulario(etiquetas) {
   let referencia = null
 
   const inputUsuario = {
-    username: $('#usarname'),
+    username: $('#username'),
     nacionalidad: $('#nacionalidad'),
     cedula: $('#cedula'),
     nombre: $('#nombre'),
@@ -19,7 +19,7 @@ function etiquetasFormulario(etiquetas) {
   }
 
   const spanUsuario = {
-    username: $('#susarname'),
+    username: $('#susername'),
     nacionalidad: $('#snacionalidad'),
     cedula: $('#scedula'),
     nombre: $('#snombre'),
