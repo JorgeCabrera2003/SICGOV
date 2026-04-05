@@ -1,24 +1,54 @@
 document.addEventListener('DOMContentLoaded', function () {
     const authCarouselElement = document.getElementById('authCarousel');
-    const authCarousel = authCarouselElement ? new bootstrap.Carousel(authCarouselElement, {
-        interval: false,
-        touch: true,
-        wrap: true
-    }) : null;
+    let authCarousel = null;
+
+    if (authCarouselElement) {
+        authCarousel = new bootstrap.Carousel(authCarouselElement, {
+            interval: false,
+            touch: true,
+            wrap: true
+        });
+
+        authCarouselElement.addEventListener('slide.bs.carousel', function (e) {
+            const activeItem = document.querySelector('#authCarousel .carousel-item.active');
+            if (activeItem) {
+                activeItem.style.animation = '';
+            }
+        });
+
+        authCarouselElement.addEventListener('slid.bs.carousel', function (e) {
+            const activeItem = document.querySelector('#authCarousel .carousel-item.active');
+            if (activeItem) {
+                activeItem.style.animation = '';
+                setTimeout(() => {
+                    activeItem.style.filter = '';
+                    activeItem.style.boxShadow = '';
+                }, 100);
+            }
+        });
+    }
+
     const openRegisterSlide = window.authOpenRegisterSlide === true;
+    if (openRegisterSlide && authCarousel) {
+        setTimeout(() => {
+            authCarousel.to(1);
+        }, 200);
+    }
 
     const passwordToggles = document.querySelectorAll('[data-password-toggle]');
     passwordToggles.forEach(function (button) {
         const targetSelector = button.getAttribute('data-password-toggle');
         const target = document.querySelector(targetSelector);
-
-        if (!target) {
-            return;
-        }
+        if (!target) return;
 
         button.addEventListener('click', function () {
             const type = target.getAttribute('type');
             const icon = button.querySelector('i');
+            button.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                button.style.transform = '';
+            }, 150);
+
             if (type === 'password') {
                 target.setAttribute('type', 'text');
                 icon.classList.remove('fa-eye');
@@ -31,10 +61,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    if (openRegisterSlide && authCarousel) {
-        authCarousel.to(1);
-    }
-
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', function (event) {
@@ -42,6 +68,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const password = loginForm.querySelector('[name="password"]').value.trim();
             if (!ci || !password) {
                 event.preventDefault();
+                loginForm.style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => {
+                    loginForm.style.animation = '';
+                }, 500);
                 Swal.fire({
                     icon: 'warning',
                     title: 'Campos vacíos',
@@ -64,6 +94,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!nombre || !apellido || !cedula || !nacionalidad || !correo || !password || !confirmPassword) {
                 event.preventDefault();
+                registerForm.style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => {
+                    registerForm.style.animation = '';
+                }, 500);
                 Swal.fire({
                     icon: 'warning',
                     title: 'Formulario incompleto',
@@ -74,6 +108,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (password !== confirmPassword) {
                 event.preventDefault();
+                registerForm.style.animation = 'shake 0.5s ease-in-out';
+                setTimeout(() => {
+                    registerForm.style.animation = '';
+                }, 500);
                 Swal.fire({
                     icon: 'error',
                     title: 'Contraseñas diferentes',

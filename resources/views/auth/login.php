@@ -11,7 +11,7 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                 <div class="card border-0 shadow-lg auth-card overflow-hidden">
                     <div class="row g-0 justify-content-center">
                         <div class="col-12 col-lg-8 col-xl-7 p-4 p-lg-5 auth-form-column">
-                            <div id="authCarousel" class="carousel slide carousel-fade" data-bs-interval="false">
+                            <div id="authCarousel" class="carousel slide carousel-swap" data-bs-interval="false">
                                 <div class="carousel-inner">
                                     <div class="carousel-item active" data-auth-slide="login">
                                         <div class="text-center mb-4 d-flex flex-column align-items-center gap-3">
