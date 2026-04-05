@@ -47,6 +47,12 @@
         }
     </script>
     <?php endif; ?>
+
+    <?php if (!empty($extra_css) && is_array($extra_css)): ?>
+        <?php foreach ($extra_css as $cssPath): ?>
+            <link rel="stylesheet" href="<?php echo htmlspecialchars($cssPath, ENT_QUOTES, 'UTF-8'); ?>">
+        <?php endforeach; ?>
+    <?php endif; ?>
     
     <!-- Variables globales para JavaScript -->
     <script>
