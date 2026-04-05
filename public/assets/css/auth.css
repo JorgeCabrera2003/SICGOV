@@ -51,12 +51,149 @@
     position: relative;
 }
 
+.carousel-swap .carousel-inner {
+    position: relative;
+    min-height: 580px;
+}
+
 .carousel-swap .carousel-item {
     position: relative;
+    display: block;
+    width: 100%;
     transition: none;
-    opacity: 1;
+    opacity: 0;
+    visibility: hidden;
     transform: translateX(0);
     will-change: transform, opacity;
+}
+
+.carousel-swap .carousel-item.active,
+.carousel-swap .carousel-item-next,
+.carousel-swap .carousel-item-prev {
+    opacity: 1;
+    visibility: visible;
+}
+
+.carousel-swap .carousel-item.active {
+    z-index: 10;
+    transform: translateX(0);
+}
+
+.carousel-swap .carousel-item-next,
+.carousel-swap .carousel-item-prev {
+    z-index: 5;
+}
+
+.carousel-swap .carousel-item-next.carousel-item-start,
+.carousel-swap .carousel-item-prev.carousel-item-end {
+    z-index: 15;
+}
+
+/* ========== ESTILOS ESPECÍFICOS PARA FORMULARIO DE LOGIN ========== */
+.carousel-swap .carousel-item[data-auth-slide="login"] {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2rem 0;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="login"] > div:first-child {
+    margin-bottom: 2.5rem;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="login"] .alert {
+    margin-bottom: 2rem;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="login"] form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="login"] form .row.g-3 {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 0;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="login"] form .col-12 {
+    margin-bottom: 0;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="login"] form .form-label {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="login"] form .input-group {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.carousel-swap .carousel-item[data-auth-slide="login"] form .form-control,
+.carousel-swap .carousel-item[data-auth-slide="login"] form .form-select {
+    font-size: 1rem;
+    padding: 0.875rem 1rem;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.carousel-swap .carousel-item[data-auth-slide="login"] form .form-control:focus,
+.carousel-swap .carousel-item[data-auth-slide="login"] form .form-select:focus {
+    background: #fff;
+    box-shadow: none;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="login"] form .btn-outline-secondary {
+    border: 2px solid;
+    font-weight: 500;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="login"] form .d-grid.gap-3 {
+    margin-top: 2rem;
+    gap: 1rem !important;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="login"] form .text-center {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* ========== ESTILOS ESPECÍFICOS PARA FORMULARIO DE REGISTRO ========== */
+.carousel-swap .carousel-item[data-auth-slide="register"] {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 0;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="register"] > div:first-child {
+    margin-bottom: 2rem;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="register"] .alert {
+    margin-bottom: 2rem;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="register"] form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="register"] form .row.g-3 {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.carousel-swap .carousel-item[data-auth-slide="register"] form .d-grid {
+    margin-top: 2rem;
+    gap: 1rem !important;
 }
 
 
@@ -166,6 +303,42 @@
     }
     .auth-form-column {
         padding: 1.5rem 1.25rem;
+    }
+    .carousel-swap .carousel-item,
+    .carousel-swap .carousel-inner {
+        min-height: 520px;
+    }
+
+    .carousel-swap .carousel-item[data-auth-slide="login"] {
+        padding: 1rem 0;
+    }
+
+    .carousel-swap .carousel-item[data-auth-slide="login"] > div:first-child {
+        margin-bottom: 2rem;
+    }
+
+    .carousel-swap .carousel-item[data-auth-slide="login"] form {
+        gap: 1.5rem;
+    }
+
+    .carousel-swap .carousel-item[data-auth-slide="login"] form .row.g-3 {
+        gap: 1.25rem;
+    }
+
+    .carousel-swap .carousel-item[data-auth-slide="login"] form .d-grid.gap-3 {
+        margin-top: 1.5rem;
+    }
+
+    .carousel-swap .carousel-item[data-auth-slide="register"] {
+        padding: 1rem 0;
+    }
+
+    .carousel-swap .carousel-item[data-auth-slide="register"] > div:first-child {
+        margin-bottom: 1.5rem;
+    }
+
+    .carousel-swap .carousel-item[data-auth-slide="register"] form .d-grid {
+        margin-top: 1.5rem;
     }
 
     @keyframes cardSlideOutLeft {
