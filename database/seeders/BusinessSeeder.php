@@ -56,9 +56,9 @@ class BusinessSeeder
         }
 
         $sql = "INSERT INTO producto 
-                (id_producto, id_categoria, nombre_producto, descripcion, precio, stock, stock_minimo, costo_preparacion, tiempo_preparacion, imagen, es_personalizable, estatus) 
+                (id_producto, id_categoria, nombre_producto, descripcion, precio, stock, stock_minimo, costo_preparacion, tiempo_preparacion, imagen, es_personalizable, tipo_producto, estatus) 
                 VALUES 
-                (:id, :id_categoria, :nombre, :desc, :precio, :stock, :stock_minimo, :costo, :tiempo, :imagen, :personalizable, 1)";
+                (:id, :id_categoria, :nombre, :desc, :precio, :stock, :stock_minimo, :costo, :tiempo, :imagen, :personalizable, 'COCINA', 1)";
 
         $stmt = $this->db->prepare($sql);
 
@@ -251,10 +251,20 @@ class BusinessSeeder
 
         $cantidad = min($cantidad, count($ingredientes));
 
+        $categoriaStmt = $this->db->query("SELECT id_categoria FROM categoria_ingrediente LIMIT 1");
+        $categoria = $categoriaStmt->fetch();
+        if (!$categoria) {
+            echo "       No hay categorías de ingredientes. Creando una por defecto...\n";
+            $this->db->exec("INSERT INTO categoria_ingrediente (id_categoria, nombre, descripcion) VALUES ('CATINGR20251001', 'General', 'Categoría de ingredientes por defecto')");
+            $categoriaId = 'CATINGR20251001';
+        } else {
+            $categoriaId = $categoria['id_categoria'];
+        }
+
         $sql = "INSERT INTO ingrediente 
-            (id_ingrediente, nombre_ingrediente, unidad_medida, precio_unitario, estatus) 
+            (id_ingrediente, id_categoria, nombre_ingrediente, unidad_medida, precio_unitario, estatus) 
             VALUES 
-            (:id, :nombre, :unidad, :precio, 1)";
+            (:id, :id_categoria, :nombre, :unidad, :precio, 1)";
 
         $stmt = $this->db->prepare($sql);
 
@@ -262,10 +272,11 @@ class BusinessSeeder
 
         for ($i = 0; $i < $cantidad; $i++) {
             $stmt->execute([
-                'id'     => 'INGR-' . $this->faker->unique()->numberBetween(1000, 9999) . time(),
-                'nombre' => ucfirst($this->faker->unique()->randomElement($ingredientes)),
-                'unidad' => $this->faker->randomElement(['kg', 'g', 'litros', 'ml', 'unidades', 'paquete']),
-                'precio' => $this->faker->randomFloat(2, 1, 20)
+                'id'       => 'INGR-' . $this->faker->unique()->numberBetween(1000, 9999) . time(),
+                'id_categoria' => $categoriaId,
+                'nombre'   => ucfirst($this->faker->unique()->randomElement($ingredientes)),
+                'unidad'   => $this->faker->randomElement(['kg', 'g', 'litros', 'ml', 'unidades', 'paquete']),
+                'precio'   => $this->faker->randomFloat(2, 1, 20)
             ]);
         }
         echo "       $cantidad Ingredientes únicos generados correctamente con Faker.\n";
@@ -275,20 +286,34 @@ class BusinessSeeder
 
     private function crearClientesFalsos($cantidad)
     {
-        $sql = "INSERT INTO cliente 
-                (id_cliente, nombres, telefono, correo, fecha_registro) 
+        $sqlPersona = "INSERT INTO persona 
+                (cedula, nombre, apellido, fecha_nacimiento, telefono, correo, direccion, sexo) 
                 VALUES 
-                (:id, :nombres, :telefono, :correo, :fecha_registro)";
+                (:cedula, :nombre, :apellido, :fecha_nacimiento, :telefono, :correo, :direccion, :sexo)";
 
-        $stmt = $this->db->prepare($sql);
+        $sqlCliente = "INSERT INTO cliente 
+                (cedula, fecha_registro, ultima_visita) 
+                VALUES 
+                (:cedula, :fecha_registro, NULL)";
+
+        $stmtPersona = $this->db->prepare($sqlPersona);
+        $stmtCliente = $this->db->prepare($sqlCliente);
 
         for ($i = 0; $i < $cantidad; $i++) {
+            $cedula = (string) $this->faker->unique()->numberBetween(10000000, 99999999);
             $fechaRegistro = $this->faker->dateTimeBetween('-2 years', 'now')->format('Y-m-d');
-            $stmt->execute([
-                'id' => Helper::GenerarID('CLI'),
-                'nombres' => $this->faker->name(),
+            $stmtPersona->execute([
+                'cedula' => $cedula,
+                'nombre' => $this->faker->firstName(),
+                'apellido' => $this->faker->lastName(),
+                'fecha_nacimiento' => $this->faker->date('Y-m-d'),
                 'telefono' => $this->faker->phoneNumber(),
-                'correo' => $this->faker->unique()->email(),
+                'correo' => $this->faker->unique()->safeEmail(),
+                'direccion' => $this->faker->address(),
+                'sexo' => $this->faker->randomElement(['M', 'F'])
+            ]);
+            $stmtCliente->execute([
+                'cedula' => $cedula,
                 'fecha_registro' => $fechaRegistro
             ]);
         }
