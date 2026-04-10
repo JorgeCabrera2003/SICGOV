@@ -6,71 +6,187 @@ use App\Core\Database;
 use App\Database\Seeders\SecuritySeeder;
 use App\Database\Seeders\BusinessSeeder;
 
-// $nombre = readline("Por favor, introduce tu nombre: ");
-// echo "Hola, $nombre!";
+class GoodVibesInstallerService
+{
+    private $dbSecurity;
+    private $dbBusiness;
+    private $rawDb;
 
-echo "\n INICIANDO INSTALACIÓN LIMPIA DEL SISTEMA GOOD VIBES...\n";
-echo "-----------------------------------------------------------\n";
+    public function run()
+    {
+        $this->clearScreen();
+        $this->printHeader();
 
-try {
-    $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
-    $dotenv->safeLoad();
+        try {
+            // 1. Cargar Variables de Entorno
+            $this->info("Cargando variables de entorno...");
+            $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+            $dotenv->safeLoad();
+            $this->success("Variables cargadas correctamente.\n");
 
-    echo "[0/4] Reseteando bases de datos en el servidor...\n";
-    $raw = Database::getRawConnection();
-    
-    $dbUsers = $_ENV['DB_NAME_USER'] ?? 'goobv-usuarios';
-    $dbSystem = $_ENV['DB_NAME_SYSTEM'] ?? 'goobv-sistema';
+            // 2. Opciones Dinámicas
+            $resetDB   = $this->confirm("¿Deseas RESETEAR (Eliminar y Crear) las bases de datos?");
+            $runMig    = $this->confirm("¿Deseas ejecutar las MIGRACIONES (Estructura SQL)?");
+            $runSecSeed = $this->confirm("¿Deseas ejecutar el SEEDER DE SEGURIDAD (Roles y Admin)?");
+            $runBizSeed = $this->confirm("¿Deseas ejecutar el SEEDER DE NEGOCIO (Faker: Mesas, Productos, etc.)?");
 
-    $raw->exec("DROP DATABASE IF EXISTS `$dbUsers`;");
-    $raw->exec("DROP DATABASE IF EXISTS `$dbSystem`;");
-    $raw->exec("CREATE DATABASE `$dbUsers` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;");
-    $raw->exec("CREATE DATABASE `$dbSystem` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;");
-    
-    echo " Bases de datos creadas desde cero.\n";
+            echo "\n-----------------------------------------------------------\n";
 
-    echo "[1/4] Cargando tablas y datos base (SQL)...\n";
-    
-    $dbSecurity = Database::getConnection('security');
-    $dbBusiness = Database::getConnection('business');
+            // 3. Ejecución Condicional
+            if ($resetDB) {
+                $this->resetDatabases();
+            }
 
-    function ejecutarSQL($db, $archivo) {
+            // Inicializar conexiones después de asegurar que las DBs existen
+            $this->dbSecurity = Database::getConnection('security');
+            $this->dbBusiness = Database::getConnection('business');
+
+            if ($runMig) {
+                $this->runMigrations();
+            }
+
+            if ($runSecSeed) {
+                $this->runSecuritySeeder();
+            }
+
+            if ($runBizSeed) {
+                $this->runBusinessSeeder();
+            }
+
+            $this->printFooter();
+
+        } catch (Exception $e) {
+            $this->error("\n[X] ERROR CRÍTICO DURANTE LA INSTALACIÓN:");
+            echo "Mensaje: " . $e->getMessage() . "\n";
+            echo "Archivo: " . $e->getFile() . " (Línea " . $e->getLine() . ")\n";
+            exit(1);
+        }
+    }
+
+    // ==========================================
+    // LÓGICA CORE DEL SERVICIO
+    // ==========================================
+
+    private function resetDatabases()
+    {
+        $this->info("[1/4] Reseteando bases de datos en el servidor...");
+        $this->rawDb = Database::getRawConnection();
+        
+        $dbUsers = $_ENV['DB_NAME_USER'] ?? 'goobv-usuarios';
+        $dbSystem = $_ENV['DB_NAME_SYSTEM'] ?? 'goobv-sistema';
+
+        $this->rawDb->exec("DROP DATABASE IF EXISTS `$dbUsers`;");
+        $this->rawDb->exec("DROP DATABASE IF EXISTS `$dbSystem`;");
+        $this->rawDb->exec("CREATE DATABASE `$dbUsers` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;");
+        $this->rawDb->exec("CREATE DATABASE `$dbSystem` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;");
+        
+        $this->success("      ✓ Bases de datos creadas desde cero.");
+    }
+
+    private function runMigrations()
+    {
+        $this->info("\n[2/4] Ejecutando Migraciones (SQL)...");
+        
+        $rutaMigracionUsuarios = __DIR__ . '/migrations/goobv-usuarios.sql';
+        $rutaMigracionSistema = __DIR__ . '/migrations/goobv-sistema.sql';
+
+        $this->executeSQLFile($this->dbSecurity, $rutaMigracionUsuarios, "Usuarios");
+        $this->executeSQLFile($this->dbBusiness, $rutaMigracionSistema, "Sistema");
+    }
+
+    private function runSecuritySeeder()
+    {
+        $this->info("\n[3/4] Ejecutando Security Seeder...");
+        $securitySeeder = new SecuritySeeder($this->dbSecurity);
+        $securitySeeder->run();
+        $this->success("      ✓ Datos de seguridad inyectados.");
+    }
+
+    private function runBusinessSeeder()
+    {
+        $this->info("\n[4/4] Ejecutando Business Seeder (Faker)...");
+        $this->dbBusiness->beginTransaction(); // Optimización: Transacciones para inserciones masivas
+        try {
+            $businessSeeder = new BusinessSeeder($this->dbBusiness);
+            $businessSeeder->run();
+            $this->dbBusiness->commit();
+            $this->success("      ✓ Datos de negocio inyectados.");
+        } catch (Exception $e) {
+            $this->dbBusiness->rollBack();
+            throw $e;
+        }
+    }
+
+    private function executeSQLFile($db, $archivo, $nombreModulo)
+    {
         if (!file_exists($archivo)) {
-            throw new Exception(" Archivo no encontrado: $archivo");
+            throw new Exception("Archivo SQL no encontrado: $archivo");
         }
         $sql = file_get_contents($archivo);
         $db->exec($sql);
+        $this->success("      ✓ Estructura de $nombreModulo cargada.");
     }
 
-    $rutaMigracionUsuarios = __DIR__ . '/migrations/goobv-usuarios.sql';
-    $rutaMigracionSistema = __DIR__ . '/migrations/goobv-sistema.sql';
+    // ==========================================
+    // UTILIDADES DE CONSOLA (UI/UX)
+    // ==========================================
 
-    ejecutarSQL($dbSecurity, $rutaMigracionUsuarios);
-    echo "       Estructura de Usuarios cargada.\n";
+    private function confirm(string $question): bool
+    {
+        // Color amarillo para las preguntas
+        echo "\033[33m? \033[0m" . $question . " \033[90m(y/n) [y]\033[0m: ";
+        $handle = fopen("php://stdin", "r");
+        $line = trim(fgets($handle));
+        fclose($handle);
 
-    ejecutarSQL($dbBusiness, $rutaMigracionSistema);
-    echo "       Estructura del Sistema cargada.\n";
-
-    $bool = readline("¿Deseas cargar datos en seguridad? (s/n): ");
-    if (strtolower($bool) == 's') {
-        echo "[2/4] Ejecutando SecuritySeeder...\n";
-        $securitySeeder = new SecuritySeeder($dbSecurity);
-        $securitySeeder->run();
-    }
-    $bool = readline("¿Confirma que desea cargar datos de negocio?. (s/n): ");
-    if (strtolower($bool) == 's') {
-        echo "[3/4] Generando datos de prueba (Faker)...\n";
-        $businessSeeder = new BusinessSeeder($dbBusiness);
-        $businessSeeder->run();
+        $line = strtolower($line);
+        if ($line === 'n' || $line === 'no') {
+            return false;
+        }
+        return true; // Por defecto es sí
     }
 
-    echo "-----------------------------------------------------------\n";
-    echo " INSTALACIÓN COMPLETADA CON ÉXITO.\n";
-    echo " Usuario: v-00000000 | Clave: 1234\n";
+    private function info(string $text)
+    {
+        echo "\033[36mℹ " . $text . "\033[0m\n"; // Cyan
+    }
 
-} catch (Exception $e) {
-    echo "\n ERROR DURANTE LA INSTALACIÓN:\n";
-    echo "Mensaje: " . $e->getMessage() . "\n";
-    echo "Línea: " . $e->getLine() . " en " . $e->getFile() . "\n";
-    exit(1);
+    private function success(string $text)
+    {
+        echo "\033[32m" . $text . "\033[0m\n"; // Verde
+    }
+
+    private function error(string $text)
+    {
+        echo "\033[31m" . $text . "\033[0m\n"; // Rojo
+    }
+
+    private function clearScreen()
+    {
+        echo "\033[2J\033[;H"; // Limpia la terminal
+    }
+
+    private function printHeader()
+    {
+        echo "\033[1;32m";
+        echo "===========================================================\n";
+        echo "      GoodVibes Core-Deployer \n";
+        echo "===========================================================\n";
+        echo "\033[0m\n";
+    }
+
+    private function printFooter()
+    {
+        echo "\033[1;32m";
+        echo "\n===========================================================\n";
+        echo " ✨ INSTALACIÓN COMPLETADA CON ÉXITO ✨\n";
+        echo "===========================================================\n";
+        echo "\033[0m";
+        echo "\033[36m Usuario Admin:\033[0m V00000000\n";
+        echo "\033[36m Clave:\033[0m 1234\n\n";
+    }
 }
+
+// Ejecutar el servicio
+$installer = new GoodVibesInstallerService();
+$installer->run();
