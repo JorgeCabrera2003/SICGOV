@@ -56,9 +56,9 @@ class BusinessSeeder
         }
 
         $sql = "INSERT INTO producto 
-                (id_producto, id_categoria, nombre_producto, descripcion, precio, stock, stock_minimo, costo_preparacion, tiempo_preparacion, imagen, es_personalizable, estatus) 
+                (id_producto, id_categoria, nombre_producto, descripcion, precio, stock, stock_minimo, costo_preparacion, tiempo_preparacion, imagen, es_personalizable, tipo_producto, estatus) 
                 VALUES 
-                (:id, :id_categoria, :nombre, :desc, :precio, :stock, :stock_minimo, :costo, :tiempo, :imagen, :personalizable, 1)";
+                (:id, :id_categoria, :nombre, :desc, :precio, :stock, :stock_minimo, :costo, :tiempo, :imagen, :personalizable, 'COCINA', 1)";
 
         $stmt = $this->db->prepare($sql);
 
@@ -81,7 +81,6 @@ class BusinessSeeder
         echo "       $cantidad Productos generados correctamente con Faker.\n";
     }
 
-    //cedula_personal	nombres	apellidos	id_cargo	telefono	correo	fecha_ingreso	salario	estatus	
     private function crearPersonalsFalsos($cantidad)
     {
         $stmt = $this->db->query("SELECT id_cargo FROM cargo LIMIT 1");
@@ -120,141 +119,54 @@ class BusinessSeeder
         echo "       Empleados generados correctamente con Faker.\n";
     }
 
-    //id_ingrediente	nombre_ingrediente	unidad_medida	precio_unitario	estatus	
-
     private function crearIngredientesFalsos($cantidad)
     {
         $ingredientes = [
-            // Carnes
-            'carne de res',
-            'carne molida',
-            'pollo',
-            'pechuga de pollo',
-            'cerdo',
-            'tocino',
-            'jamón',
-            'salchicha',
-            'chorizo',
-            'costillas',
-            'pescado',
-            'atún',
-            'camarones',
-            'pulpo',
-            'calamares',
-            'langosta',
-
-            // Verduras y hortalizas
-            'lechuga',
-            'tomate',
-            'cebolla',
-            'cebolla morada',
-            'ajo',
-            'pimentón',
-            'ají dulce',
-            'zanahoria',
-            'pepino',
-            'aguacate',
-            'espinaca',
-            'repollo',
-            'brocoli',
-            'coliflor',
-            'calabacín',
-            'berenjena',
-            'champiñones',
-            'maíz',
-            'arvejas',
-            'remolacha',
-            'apio',
-            'perejil',
-            'cilantro',
-            'orégano',
-
-            // Lácteos y huevos
-            'queso mozzarella',
-            'queso cheddar',
-            'queso amarillo',
-            'queso blanco',
-            'queso parmesano',
-            'queso de cabra',
-            'queso crema',
-            'requesón',
-            'leche',
-            'crema de leche',
-            'mantequilla',
-            'yogur',
-            'huevos',
-
-            // Granos y harinas
-            'harina de trigo',
-            'harina de maíz',
-            'arroz',
-            'pasta',
-            'pan',
-            'pan rallado',
-            'avena',
-            'quinua',
-            'lentejas',
-            'caraotas',
-            'garbanzos',
-
-            // Frutas
-            'plátano',
-            'cambur',
-            'manzana',
-            'naranja',
-            'limón',
-            'fresa',
-            'piña',
-            'mango',
-            'papaya',
-            'melón',
-            'sandía',
-            'durazno',
-            'coco',
-
-            // Especias y condimentos
-            'sal',
-            'pimienta',
-            'comino',
-            'paprika',
-            'curry',
-            'nuez moscada',
-            'canela',
-            'clavo de olor',
-            'laurel',
-            'tomillo',
-            'romero',
-            'albahaca',
-            'salsa de tomate',
-            'mayonesa',
-            'mostaza',
-            'salsa inglesa',
-            'vinagre',
-            'aceite de oliva',
-            'aceite vegetal',
-            'miel',
-            'azúcar',
-            'salsa de soya',
-
-            // Otros
-            'papas',
-            'yuca',
-            'plátano verde',
-            'tostones',
-            'patacones',
-            'arepa',
-            'pan de hamburguesa',
-            'pan de perro caliente',
-            'tortilla',
-            'masa de pizza'
+            'carne de res', 'carne molida', 'pollo', 'pechuga de pollo', 'cerdo',
+            'tocino', 'jamón', 'salchicha', 'chorizo', 'costillas', 'pescado', 'atún',
+            'camarones', 'pulpo', 'calamares', 'langosta', 'lechuga', 'tomate',
+            'cebolla', 'cebolla morada', 'ajo', 'pimentón', 'ají dulce', 'zanahoria',
+            'pepino', 'aguacate', 'espinaca', 'repollo', 'brocoli', 'coliflor',
+            'calabacín', 'berenjena', 'champiñones', 'maíz', 'arvejas', 'remolacha',
+            'apio', 'perejil', 'cilantro', 'orégano', 'queso mozzarella',
+            'queso cheddar', 'queso amarillo', 'queso blanco', 'queso parmesano',
+            'queso de cabra', 'queso crema', 'requesón', 'leche', 'crema de leche',
+            'mantequilla', 'yogur', 'huevos', 'harina de trigo', 'harina de maíz',
+            'arroz', 'pasta', 'pan', 'pan rallado', 'avena', 'quinua', 'lentejas',
+            'caraotas', 'garbanzos', 'plátano', 'cambur', 'manzana', 'naranja',
+            'limón', 'fresa', 'piña', 'mango', 'papaya', 'melón', 'sandía', 'durazno',
+            'coco', 'sal', 'pimienta', 'comino', 'paprika', 'curry', 'nuez moscada',
+            'canela', 'clavo de olor', 'laurel', 'tomillo', 'romero', 'albahaca',
+            'salsa de tomate', 'mayonesa', 'mostaza', 'salsa inglesa', 'vinagre',
+            'aceite de oliva', 'aceite vegetal', 'miel', 'azúcar', 'salsa de soya',
+            'papas', 'yuca', 'plátano verde', 'tostones', 'patacones', 'arepa',
+            'pan de hamburguesa', 'pan de perro caliente', 'tortilla', 'masa de pizza'
         ];
 
         $cantidad = min($cantidad, count($ingredientes));
 
+        $categoriaStmt = $this->db->query("SELECT id_categoria FROM categoria_ingrediente LIMIT 1");
+        $categoria = $categoriaStmt->fetch();
+        if (!$categoria) {
+            echo "       No hay categorías de ingredientes. Creando una por defecto...\n";
+            $this->db->exec("INSERT INTO categoria_ingrediente (id_categoria, nombre, descripcion) VALUES ('CATINGR20251001', 'General', 'Categoría de ingredientes por defecto')");
+            $categoriaId = 'CATINGR20251001';
+        } else {
+            $categoriaId = $categoria['id_categoria'];
+        }
+
+        // Obtener unidades de medida disponibles
+        $unidadesStmt = $this->db->query("SELECT id_unidad FROM unidad_medida WHERE tipo IN ('PESO', 'VOLUMEN', 'UNIDAD')");
+        $unidades = $unidadesStmt->fetchAll(\PDO::FETCH_COLUMN);
+        
+        if (empty($unidades)) {
+            $unidades = ['KG', 'G', 'L', 'ML', 'UN'];
+        }
+
         $sql = "INSERT INTO ingrediente 
-            (id_ingrediente, nombre_ingrediente, unidad_medida, precio_unitario, estatus) 
+            (id_ingrediente, id_categoria, nombre_ingrediente, id_unidad_medida, precio_unitario, estatus) 
             VALUES 
-            (:id, :nombre, :unidad, :precio, 1)";
+            (:id, :id_categoria, :nombre, :id_unidad, :precio, 1)";
 
         $stmt = $this->db->prepare($sql);
 
@@ -262,33 +174,46 @@ class BusinessSeeder
 
         for ($i = 0; $i < $cantidad; $i++) {
             $stmt->execute([
-                'id'     => 'INGR-' . $this->faker->unique()->numberBetween(1000, 9999) . time(),
-                'nombre' => ucfirst($this->faker->unique()->randomElement($ingredientes)),
-                'unidad' => $this->faker->randomElement(['kg', 'g', 'litros', 'ml', 'unidades', 'paquete']),
-                'precio' => $this->faker->randomFloat(2, 1, 20)
+                'id'          => 'INGR-' . $this->faker->unique()->numberBetween(1000, 9999) . time(),
+                'id_categoria' => $categoriaId,
+                'nombre'      => ucfirst($this->faker->unique()->randomElement($ingredientes)),
+                'id_unidad'   => $this->faker->randomElement($unidades),
+                'precio'      => $this->faker->randomFloat(2, 1, 20)
             ]);
         }
         echo "       $cantidad Ingredientes únicos generados correctamente con Faker.\n";
     }
 
-    //	id_cliente	nombres	telefono	correo	fecha_registro
-
     private function crearClientesFalsos($cantidad)
     {
-        $sql = "INSERT INTO cliente 
-                (id_cliente, nombres, telefono, correo, fecha_registro) 
+        $sqlPersona = "INSERT INTO persona 
+                (cedula, nombre, apellido, fecha_nacimiento, telefono, correo, direccion, sexo) 
                 VALUES 
-                (:id, :nombres, :telefono, :correo, :fecha_registro)";
+                (:cedula, :nombre, :apellido, :fecha_nacimiento, :telefono, :correo, :direccion, :sexo)";
 
-        $stmt = $this->db->prepare($sql);
+        $sqlCliente = "INSERT INTO cliente 
+                (cedula, fecha_registro, ultima_visita) 
+                VALUES 
+                (:cedula, :fecha_registro, NULL)";
+
+        $stmtPersona = $this->db->prepare($sqlPersona);
+        $stmtCliente = $this->db->prepare($sqlCliente);
 
         for ($i = 0; $i < $cantidad; $i++) {
+            $cedula = (string) $this->faker->unique()->numberBetween(10000000, 99999999);
             $fechaRegistro = $this->faker->dateTimeBetween('-2 years', 'now')->format('Y-m-d');
-            $stmt->execute([
-                'id' => Helper::GenerarID('CLI'),
-                'nombres' => $this->faker->name(),
+            $stmtPersona->execute([
+                'cedula' => $cedula,
+                'nombre' => $this->faker->firstName(),
+                'apellido' => $this->faker->lastName(),
+                'fecha_nacimiento' => $this->faker->date('Y-m-d'),
                 'telefono' => $this->faker->phoneNumber(),
-                'correo' => $this->faker->unique()->email(),
+                'correo' => $this->faker->unique()->safeEmail(),
+                'direccion' => $this->faker->address(),
+                'sexo' => $this->faker->randomElement(['M', 'F'])
+            ]);
+            $stmtCliente->execute([
+                'cedula' => $cedula,
                 'fecha_registro' => $fechaRegistro
             ]);
         }

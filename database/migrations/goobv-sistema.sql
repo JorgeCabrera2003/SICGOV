@@ -1,656 +1,521 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Servidor: 127.0.0.1
--- Tiempo de generación: 26-01-2026 a las 00:17:20
--- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.2.12
+-- ==============================================================================
+-- BASE DE DATOS: goobv-sistema
+-- DESCRIPCIÓN: Lógica de Negocio, Inventario, Pedidos, RRHH y Mesas
+-- ==============================================================================
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
-SET time_zone = "+00:00";
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Base de datos: `goobv-sistema`
---
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `personal`
---
-
-CREATE TABLE `personal` (
-  `cedula_personal` varchar(12) NOT NULL,
-  `nombres` varchar(65) NOT NULL,
-  `apellidos` varchar(65) NOT NULL,
-  `id_cargo` varchar(24) DEFAULT NULL,
-  `telefono` varchar(15) DEFAULT NULL,
-  `correo` varchar(100) DEFAULT NULL,
-  `fecha_ingreso` date NOT NULL,
-  `salario` decimal(10,2) DEFAULT 0.00,
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+SET time_zone = "-04:00";
 
 -- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `asistencia`
---
-
-CREATE TABLE `asistencia` (
-  `id_asistencia` varchar(24) NOT NULL,
-  `cedula_personal` varchar(12) NOT NULL,
-  `tipo_marcacion` enum('ENTRADA','SALIDA','DESCANSO') NOT NULL,
-  `fecha` date NOT NULL,
-  `hora` time NOT NULL,
-  `observacion` varchar(100) DEFAULT NULL,
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
+-- 1. TABLAS DICCIONARIO / CATÁLOGOS BASE
 -- --------------------------------------------------------
 
---
--- Estructura de tabla para la tabla `cargo`
---
+CREATE TABLE `unidad_medida` (
+  `id_unidad` varchar(10) NOT NULL,
+  `nombre` varchar(30) NOT NULL COMMENT 'kg, g, litros, ml, unidades, etc.',
+  `abreviatura` varchar(10) NOT NULL,
+  `tipo` enum('PESO','VOLUMEN','UNIDAD','LONGITUD') NOT NULL DEFAULT 'UNIDAD',
+  `factor_conversion` decimal(10,6) DEFAULT 1.000000 COMMENT 'Factor para conversión a unidad base',
+  `unidad_base` varchar(10) DEFAULT NULL COMMENT 'ID de la unidad base para conversiones',
+  PRIMARY KEY (`id_unidad`),
+  UNIQUE KEY `idx_unidad_nombre` (`nombre`),
+  UNIQUE KEY `idx_unidad_abrev` (`abreviatura`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Catálogo de unidades de medida estandarizadas';
+
+-- Datos iniciales de unidades de medida
+INSERT INTO `unidad_medida` (`id_unidad`, `nombre`, `abreviatura`, `tipo`, `factor_conversion`, `unidad_base`) VALUES
+('KG', 'kilogramo', 'kg', 'PESO', 1.000000, NULL),
+('G', 'gramo', 'g', 'PESO', 0.001000, 'KG'),
+('LB', 'libra', 'lb', 'PESO', 0.453592, 'KG'),
+('OZ', 'onza', 'oz', 'PESO', 0.028350, 'KG'),
+('L', 'litro', 'L', 'VOLUMEN', 1.000000, NULL),
+('ML', 'mililitro', 'ml', 'VOLUMEN', 0.001000, 'L'),
+('GAL', 'galón', 'gal', 'VOLUMEN', 3.785410, 'L'),
+('UN', 'unidad', 'und', 'UNIDAD', 1.000000, NULL),
+('DOC', 'docena', 'doc', 'UNIDAD', 12.000000, 'UN'),
+('M', 'metro', 'm', 'LONGITUD', 1.000000, NULL),
+('CM', 'centímetro', 'cm', 'LONGITUD', 0.010000, 'M'),
+('PQT', 'paquete', 'pqt', 'UNIDAD', 1.000000, NULL),
+('CJA', 'caja', 'caja', 'UNIDAD', 1.000000, NULL);
 
 CREATE TABLE `cargo` (
-  `id_cargo` varchar(24) NOT NULL,
-  `nombre_cargo` varchar(45) NOT NULL,
+  `id_cargo` varchar(30) NOT NULL,
+  `nombre_cargo` varchar(60) NOT NULL,
   `descripcion` varchar(200) DEFAULT NULL,
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id_cargo`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Volcado de datos para la tabla `cargo`
---
-
-INSERT INTO `cargo` (`id_cargo`, `nombre_cargo`, `descripcion`, `estatus`) VALUES
-('COCIN0012025100112011321', 'Chef Principal', 'Encargado de la cocina y creación de platillos', 1),
-('GEREN0022025100112011321', 'Gerente', 'Administración del restaurante', 1),
-('MESER0032025100112011321', 'Mesero', 'Atención al cliente y servicio en mesa', 1);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `categoria_producto`
---
-
-CREATE TABLE `categoria_producto` (
-  `id_categoria` varchar(24) NOT NULL,
-  `nombre_categoria` varchar(45) NOT NULL,
-  `descripcion` varchar(200) DEFAULT NULL,
-  `icono` varchar(50) DEFAULT NULL,
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `categoria_producto`
---
-
-INSERT INTO `categoria_producto` (`id_categoria`, `nombre_categoria`, `descripcion`, `icono`, `estatus`) VALUES
-('BEBID0012025100923103488', 'Bebidas Retro', 'Bebidas icónicas de los 80s y 90s', 'drink.png', 1),
-('COMID0012025100923103181', 'Comida Rápida', 'Hamburguesas, papas fritas, hot dogs', 'fastfood.png', 1),
-('POSTR0012025100923103182', 'Postres', 'Helados, tortas, brownies', 'dessert.png', 1);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `producto`
---
-
-CREATE TABLE `producto` (
-  `id_producto` varchar(24) NOT NULL,
-  `id_categoria` varchar(24) NOT NULL,
-  `nombre_producto` varchar(100) NOT NULL,
-  `descripcion` text DEFAULT NULL,
-  `precio` decimal(10,2) NOT NULL,
-  `stock` int(11) NOT NULL DEFAULT 0,
-  `stock_minimo` int(11) NOT NULL DEFAULT 0,
-  `costo_preparacion` decimal(10,2) DEFAULT NULL,
-  `tiempo_preparacion` int(11) DEFAULT NULL COMMENT 'En minutos',
-  `imagen` varchar(100) DEFAULT NULL,
-  `es_personalizable` tinyint(1) DEFAULT 0,
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `ingrediente`
---
-
-CREATE TABLE `ingrediente` (
-  `id_ingrediente` varchar(24) NOT NULL,
-  `nombre_ingrediente` varchar(100) NOT NULL,
-  `unidad_medida` varchar(20) NOT NULL,
-  `precio_unitario` decimal(10,2) DEFAULT NULL,
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `receta`
---
-
-CREATE TABLE `receta` (
-  `id_receta` varchar(24) NOT NULL,
-  `id_producto` varchar(24) NOT NULL,
-  `id_ingrediente` varchar(24) NOT NULL,
-  `cantidad` decimal(10,3) NOT NULL,
-  `instrucciones` text DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `inventario`
---
-
-CREATE TABLE `inventario` (
-  `id_inventario` varchar(24) NOT NULL,
-  `id_ingrediente` varchar(24) NOT NULL,
-  `cantidad_actual` decimal(10,3) NOT NULL,
-  `stock_minimo` decimal(10,3) NOT NULL,
-  `stock_maximo` decimal(10,3) NOT NULL,
-  `ultima_actualizacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `movimiento_inventario`
---
-
-CREATE TABLE `movimiento_inventario` (
-  `id_movimiento` varchar(24) NOT NULL,
-  `id_ingrediente` varchar(24) NOT NULL,
-  `tipo_movimiento` enum('ENTRADA','SALIDA','AJUSTE') NOT NULL,
-  `cantidad` decimal(10,3) NOT NULL,
-  `motivo` varchar(200) DEFAULT NULL,
-  `referencia` varchar(50) DEFAULT NULL,
-  `fecha_movimiento` timestamp NOT NULL DEFAULT current_timestamp(),
-  `responsable` varchar(12) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `mesa`
---
-
-CREATE TABLE `mesa` (
-  `id_mesa` varchar(24) NOT NULL,
-  `numero_mesa` int(11) NOT NULL,
-  `capacidad` int(11) NOT NULL,
-  `qr_code` varchar(100) DEFAULT NULL,
-  `estado` enum('DISPONIBLE','OCUPADA','RESERVADA','MANTENIMIENTO') NOT NULL DEFAULT 'DISPONIBLE',
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `cliente`
---
-
-CREATE TABLE `cliente` (
-  `id_cliente` varchar(24) NOT NULL,
-  `nombres` varchar(65) NOT NULL,
-  `telefono` varchar(15) DEFAULT NULL,
-  `correo` varchar(100) DEFAULT NULL,
-  `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `pedido`
---
-
-CREATE TABLE `pedido` (
-  `id_pedido` varchar(24) NOT NULL,
-  `id_mesa` varchar(24) DEFAULT NULL,
-  `id_cliente` varchar(24) DEFAULT NULL,
-  `cedula_mesero` varchar(12) DEFAULT NULL,
-  `tipo_pedido` enum('MESA','DOMICILIO','RECOGIDA') NOT NULL,
-  `estado_pedido` enum('PENDIENTE','EN_PREPARACION','LISTO','ENTREGADO','CANCELADO') NOT NULL DEFAULT 'PENDIENTE',
-  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `observaciones` text DEFAULT NULL,
-  `fecha_pedido` timestamp NOT NULL DEFAULT current_timestamp(),
-  `fecha_entrega` timestamp NULL DEFAULT NULL,
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `detalle_pedido`
---
-
-CREATE TABLE `detalle_pedido` (
-  `id_detalle` varchar(24) NOT NULL,
-  `id_pedido` varchar(24) NOT NULL,
-  `id_producto` varchar(24) NOT NULL,
-  `cantidad` int(11) NOT NULL,
-  `precio_unitario` decimal(10,2) NOT NULL,
-  `subtotal` decimal(10,2) NOT NULL,
-  `personalizaciones` text DEFAULT NULL,
-  `instrucciones_especiales` varchar(200) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `pago`
---
-
-CREATE TABLE `pago` (
-  `id_pago` varchar(24) NOT NULL,
-  `id_pedido` varchar(24) NOT NULL,
-  `metodo_pago` enum('EFECTIVO','TARJETA','TRANSFERENCIA','PUNTO_VENTA') NOT NULL,
-  `monto` decimal(10,2) NOT NULL,
-  `vuelto` decimal(10,2) DEFAULT NULL,
-  `referencia` varchar(50) DEFAULT NULL,
-  `fecha_pago` timestamp NOT NULL DEFAULT current_timestamp(),
-  `responsable` varchar(12) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `transaccion_financiera`
---
-
-CREATE TABLE `transaccion_financiera` (
-  `id_transaccion` varchar(24) NOT NULL,
-  `tipo_transaccion` enum('INGRESO','EGRESO') NOT NULL,
-  `categoria` varchar(50) NOT NULL,
-  `descripcion` varchar(200) NOT NULL,
-  `monto` decimal(10,2) NOT NULL,
-  `referencia` varchar(50) DEFAULT NULL,
-  `fecha_transaccion` date NOT NULL,
-  `responsable` varchar(12) DEFAULT NULL,
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `configuracion_sistema`
---
-
-CREATE TABLE `configuracion_sistema` (
-  `id_config` varchar(24) NOT NULL,
-  `clave` varchar(50) NOT NULL,
-  `valor` text NOT NULL,
-  `descripcion` varchar(200) DEFAULT NULL,
-  `categoria` varchar(50) DEFAULT NULL,
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `configuracion_sistema`
---
-
-INSERT INTO `configuracion_sistema` (`id_config`, `clave`, `valor`, `descripcion`, `categoria`, `estatus`) VALUES
-('CONFIG00120251001', 'IVA_PORCENTAJE', '16', 'Porcentaje de IVA aplicable', 'FINANZAS', 1),
-('CONFIG00220251001', 'MODO_RETRO', '1', 'Activar diseño retro 80s/90s', 'APARIENCIA', 1),
-('CONFIG00320251001', 'ALERTA_STOCK_MINIMO', '1', 'Activar alertas de stock mínimo', 'INVENTARIO', 1);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `promocion`
---
-
-CREATE TABLE `promocion` (
-  `id_promocion` varchar(24) NOT NULL,
-  `nombre_promocion` varchar(100) NOT NULL,
-  `descripcion` text DEFAULT NULL,
-  `tipo_descuento` enum('PORCENTAJE','MONTO_FIJO') NOT NULL,
-  `valor_descuento` decimal(10,2) NOT NULL,
-  `fecha_inicio` date NOT NULL,
-  `fecha_fin` date DEFAULT NULL,
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `turno`
---
+CREATE TABLE `tipo_permiso` (
+  `id_tipo_permiso` varchar(30) NOT NULL,
+  `nombre` varchar(60) NOT NULL COMMENT 'Ej: Reposo médico, Vacaciones, Personal',
+  PRIMARY KEY (`id_tipo_permiso`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `turno` (
-  `id_turno` varchar(24) NOT NULL,
-  `nombre_turno` varchar(50) NOT NULL,
+  `id_turno` varchar(30) NOT NULL,
+  `nombre` varchar(50) NOT NULL,
   `hora_inicio` time NOT NULL,
   `hora_fin` time NOT NULL,
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `minuto_tolerancia` int(11) DEFAULT 15,
+  PRIMARY KEY (`id_turno`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Volcado de datos para la tabla `turno`
---
+CREATE TABLE `categoria_ingrediente` (
+  `id_categoria` varchar(30) NOT NULL,
+  `nombre` varchar(60) NOT NULL,
+  `descripcion` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`id_categoria`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO `turno` (`id_turno`, `nombre_turno`, `hora_inicio`, `hora_fin`, `estatus`) VALUES
-('TURNO00120251001', 'Mañana', '08:00:00', '16:00:00', 1),
-('TURNO00220251001', 'Tarde', '16:00:00', '00:00:00', 1);
+CREATE TABLE `categoria_producto` (
+  `id_categoria` varchar(30) NOT NULL,
+  `nombre_categoria` varchar(100) NOT NULL,
+  `descripcion` text DEFAULT NULL,
+  `icono` varchar(255) DEFAULT 'default.png',
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id_categoria`),
+  UNIQUE KEY `idx_categoria_producto_nombre` (`nombre_categoria`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- --------------------------------------------------------
+CREATE TABLE `area_mesa` (
+  `id_area` varchar(30) NOT NULL,
+  `nombre` varchar(60) NOT NULL COMMENT 'Ej: Terraza, VIP, Salón Principal',
+  `descripcion` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`id_area`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Estructura Stand-in para la vista `vista_inventario_alerta`
---
-CREATE TABLE `vista_inventario_alerta` (
-`id_ingrediente` varchar(24)
-,`nombre_ingrediente` varchar(100)
-,`cantidad_actual` decimal(10,3)
-,`stock_minimo` decimal(10,3)
-,`diferencia` decimal(10,3)
-,`necesita_reposicion` tinyint(1)
-);
-
--- --------------------------------------------------------
-
---
--- Estructura Stand-in para la vista `vista_ventas_diarias`
---
-CREATE TABLE `vista_ventas_diarias` (
-`fecha` date
-,`total_ventas` decimal(32,2)
-,`cantidad_pedidos` bigint(21)
-,`promedio_ticket` decimal(33,2)
-);
+CREATE TABLE `metodo_pago` (
+  `id_metodo_pago` varchar(30) NOT NULL,
+  `nombre` varchar(50) NOT NULL,
+  PRIMARY KEY (`id_metodo_pago`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
-
---
--- Estructura Stand-in para la vista `vista_productos_mas_vendidos`
---
-CREATE TABLE `vista_productos_mas_vendidos` (
-`id_producto` varchar(24)
-,`nombre_producto` varchar(100)
-,`categoria` varchar(45)
-,`cantidad_vendida` decimal(32,0)
-,`total_recaudado` decimal(32,2)
-);
-
+-- 2. PERSONAS Y ENTIDADES
 -- --------------------------------------------------------
 
---
--- Estructura Stand-in para la vista `vista_asistencia_personal`
---
-CREATE TABLE `vista_asistencia_personal` (
-`cedula_personal` varchar(12)
-,`nombres_completos` varchar(131)
-,`cargo` varchar(45)
-,`dias_trabajados` bigint(21)
-,`ultima_asistencia` date
-);
+CREATE TABLE `persona` (
+  `cedula` varchar(15) NOT NULL,
+  `documento` varchar(20) DEFAULT NULL,
+  `nombre` varchar(80) NOT NULL,
+  `apellido` varchar(80) NOT NULL,
+  `fecha_nacimiento` date DEFAULT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
+  `correo` varchar(100) DEFAULT NULL,
+  `direccion` varchar(255) DEFAULT NULL,
+  `sexo` char(1) DEFAULT NULL,
+  PRIMARY KEY (`cedula`),
+  UNIQUE KEY `idx_correo` (`correo`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `empleado` (
+  `cedula` varchar(15) NOT NULL,
+  `id_cargo` varchar(30) NOT NULL,
+  `fecha_ingreso` date NOT NULL,
+  PRIMARY KEY (`cedula`),
+  KEY `fk_emp_cargo` (`id_cargo`),
+  CONSTRAINT `fk_emp_persona` FOREIGN KEY (`cedula`) REFERENCES `persona` (`cedula`) ON DELETE CASCADE,
+  CONSTRAINT `fk_emp_cargo` FOREIGN KEY (`id_cargo`) REFERENCES `cargo` (`id_cargo`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `personal` (
+  `cedula_personal` varchar(15) NOT NULL,
+  `nombres` varchar(80) NOT NULL,
+  `apellidos` varchar(80) NOT NULL,
+  `id_cargo` varchar(30) NOT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
+  `correo` varchar(100) DEFAULT NULL,
+  `fecha_ingreso` date NOT NULL,
+  `salario` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`cedula_personal`),
+  KEY `fk_personal_cargo` (`id_cargo`),
+  CONSTRAINT `fk_personal_cargo` FOREIGN KEY (`id_cargo`) REFERENCES `cargo` (`id_cargo`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `cliente` (
+  `cedula` varchar(15) NOT NULL,
+  `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp(),
+  `ultima_visita` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`cedula`),
+  CONSTRAINT `fk_cli_persona` FOREIGN KEY (`cedula`) REFERENCES `persona` (`cedula`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `proveedor` (
+  `documento_legal` varchar(30) NOT NULL COMMENT 'RIF o Cédula',
+  `nombre` varchar(100) NOT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
+  `correo` varchar(100) DEFAULT NULL,
+  `direccion` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`documento_legal`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
-
---
--- Estructura para la vista `vista_inventario_alerta`
---
-DROP TABLE IF EXISTS `vista_inventario_alerta`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_inventario_alerta`  AS SELECT `i`.`id_ingrediente` AS `id_ingrediente`, `ing`.`nombre_ingrediente` AS `nombre_ingrediente`, `i`.`cantidad_actual` AS `cantidad_actual`, `i`.`stock_minimo` AS `stock_minimo`, (`i`.`cantidad_actual` - `i`.`stock_minimo`) AS `diferencia`, CASE WHEN `i`.`cantidad_actual` <= `i`.`stock_minimo` THEN 1 ELSE 0 END AS `necesita_reposicion` FROM (`inventario` `i` join `ingrediente` `ing` on(`i`.`id_ingrediente` = `ing`.`id_ingrediente`)) WHERE `i`.`estatus` = 1 AND `ing`.`estatus` = 1 ;
-
+-- 3. RECURSOS HUMANOS
 -- --------------------------------------------------------
 
---
--- Estructura para la vista `vista_ventas_diarias`
---
-DROP TABLE IF EXISTS `vista_ventas_diarias`;
+CREATE TABLE `planificador_turno` (
+  `id_planificador` varchar(30) NOT NULL,
+  `cedula_empleado` varchar(15) NOT NULL,
+  `id_turno` varchar(30) NOT NULL,
+  `fecha` date NOT NULL,
+  PRIMARY KEY (`id_planificador`),
+  KEY `fk_plan_emp` (`cedula_empleado`),
+  KEY `fk_plan_turno` (`id_turno`),
+  CONSTRAINT `fk_plan_emp` FOREIGN KEY (`cedula_empleado`) REFERENCES `empleado` (`cedula`) ON DELETE CASCADE,
+  CONSTRAINT `fk_plan_turno` FOREIGN KEY (`id_turno`) REFERENCES `turno` (`id_turno`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_ventas_diarias`  AS SELECT cast(`p`.`fecha_pedido` as date) AS `fecha`, sum(`p`.`total`) AS `total_ventas`, count(`p`.`id_pedido`) AS `cantidad_pedidos`, avg(`p`.`total`) AS `promedio_ticket` FROM `pedido` `p` WHERE `p`.`estatus` = 1 AND `p`.`estado_pedido` = 'ENTREGADO' GROUP BY cast(`p`.`fecha_pedido` as date) ORDER BY cast(`p`.`fecha_pedido` as date) DESC ;
+CREATE TABLE `asistencia` (
+  `id_asistencia` varchar(30) NOT NULL,
+  `cedula_empleado` varchar(15) NOT NULL,
+  `tipo_marcacion` enum('ENTRADA','SALIDA','DESCANSO_OUT','DESCANSO_IN') NOT NULL,
+  `fecha` date NOT NULL,
+  `hora` time NOT NULL,
+  `estado` enum('A_TIEMPO','TARDE','FALTA') DEFAULT 'A_TIEMPO',
+  `observacion` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id_asistencia`),
+  KEY `fk_asis_emp` (`cedula_empleado`),
+  CONSTRAINT `fk_asis_emp` FOREIGN KEY (`cedula_empleado`) REFERENCES `empleado` (`cedula`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `permiso_laboral` (
+  `id_permiso` varchar(30) NOT NULL,
+  `id_tipo_permiso` varchar(30) NOT NULL,
+  `cedula_empleado` varchar(15) NOT NULL,
+  `fecha_inicio` date NOT NULL,
+  `fecha_fin` date NOT NULL,
+  `fecha_solicitud` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_aprobacion` timestamp NULL DEFAULT NULL,
+  `estado` enum('PENDIENTE','APROBADO','RECHAZADO') DEFAULT 'PENDIENTE',
+  PRIMARY KEY (`id_permiso`),
+  KEY `fk_perm_tipo` (`id_tipo_permiso`),
+  KEY `fk_perm_emp` (`cedula_empleado`),
+  CONSTRAINT `fk_perm_tipo` FOREIGN KEY (`id_tipo_permiso`) REFERENCES `tipo_permiso` (`id_tipo_permiso`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_perm_emp` FOREIGN KEY (`cedula_empleado`) REFERENCES `empleado` (`cedula`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
-
---
--- Estructura para la vista `vista_productos_mas_vendidos`
---
-DROP TABLE IF EXISTS `vista_productos_mas_vendidos`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_productos_mas_vendidos`  AS SELECT `dp`.`id_producto` AS `id_producto`, `pr`.`nombre_producto` AS `nombre_producto`, `cp`.`nombre_categoria` AS `categoria`, sum(`dp`.`cantidad`) AS `cantidad_vendida`, sum(`dp`.`subtotal`) AS `total_recaudado` FROM ((`detalle_pedido` `dp` join `pedido` `p` on(`dp`.`id_pedido` = `p`.`id_pedido`)) join `producto` `pr` on(`dp`.`id_producto` = `pr`.`id_producto`)) join `categoria_producto` `cp` on(`pr`.`id_categoria` = `cp`.`id_categoria`) WHERE `p`.`estatus` = 1 AND `p`.`estado_pedido` = 'ENTREGADO' GROUP BY `dp`.`id_producto`, `pr`.`nombre_producto`, `cp`.`nombre_categoria` ORDER BY sum(`dp`.`cantidad`) DESC ;
-
+-- 4. INVENTARIO Y CATÁLOGO
 -- --------------------------------------------------------
 
---
--- Estructura para la vista `vista_asistencia_personal`
---
-DROP TABLE IF EXISTS `vista_asistencia_personal`;
+CREATE TABLE `ingrediente` (
+  `id_ingrediente` varchar(30) NOT NULL,
+  `id_categoria` varchar(30) NOT NULL,
+  `nombre_ingrediente` varchar(100) NOT NULL,
+  `id_unidad_medida` varchar(10) NOT NULL DEFAULT 'UN',
+  `precio_unitario` decimal(10,2) DEFAULT 0.00,
+  `stock_actual` decimal(10,3) NOT NULL DEFAULT 0.000,
+  `stock_minimo` decimal(10,3) NOT NULL DEFAULT 0.000,
+  `stock_maximo` decimal(10,3) DEFAULT NULL,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id_ingrediente`),
+  KEY `fk_ing_cat` (`id_categoria`),
+  KEY `fk_ing_unidad` (`id_unidad_medida`),
+  CONSTRAINT `fk_ing_cat` FOREIGN KEY (`id_categoria`) REFERENCES `categoria_ingrediente` (`id_categoria`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_ing_unidad` FOREIGN KEY (`id_unidad_medida`) REFERENCES `unidad_medida` (`id_unidad`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_asistencia_personal`  AS SELECT `p`.`cedula_personal` AS `cedula_personal`, concat(`p`.`nombres`,' ',`p`.`apellidos`) AS `nombres_completos`, `c`.`nombre_cargo` AS `cargo`, count(distinct `a`.`fecha`) AS `dias_trabajados`, max(`a`.`fecha`) AS `ultima_asistencia` FROM ((`personal` `p` left join `asistencia` `a` on(`p`.`cedula_personal` = `a`.`cedula_personal`)) left join `cargo` `c` on(`p`.`id_cargo` = `c`.`id_cargo`)) WHERE `p`.`estatus` = 1 AND (`a`.`estatus` = 1 OR `a`.`estatus` IS NULL) GROUP BY `p`.`cedula_personal`, `p`.`nombres`, `p`.`apellidos`, `c`.`nombre_cargo` ;
+CREATE TABLE `producto` (
+  `id_producto` varchar(30) NOT NULL,
+  `id_categoria` varchar(30) DEFAULT NULL,
+  `nombre_producto` varchar(100) NOT NULL,
+  `descripcion` text DEFAULT NULL,
+  `precio` decimal(10,2) NOT NULL CHECK (`precio` >= 0),
+  `costo_preparacion` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `stock` int(11) NOT NULL DEFAULT 0,
+  `stock_minimo` int(11) NOT NULL DEFAULT 1,
+  `tiempo_preparacion` int(11) DEFAULT NULL,
+  `imagen` varchar(255) DEFAULT 'default-product.png',
+  `es_personalizable` tinyint(1) NOT NULL DEFAULT 0,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  `tipo_producto` enum('COCINA','BARRA','POSTRE','RETAIL') NOT NULL DEFAULT 'COCINA',
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_producto`),
+  KEY `fk_prod_cat` (`id_categoria`),
+  CONSTRAINT `fk_prod_cat` FOREIGN KEY (`id_categoria`) REFERENCES `categoria_producto` (`id_categoria`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Índices para tablas volcadas
---
+CREATE TABLE `preparacion` (
+  `id_preparacion` varchar(30) NOT NULL,
+  `id_producto` varchar(30) NOT NULL,
+  `id_ingrediente` varchar(30) NOT NULL,
+  `prioridad_ingrediente` int(11) DEFAULT 1,
+  `cantidad` decimal(10,3) NOT NULL CHECK (`cantidad` > 0),
+  `id_unidad_medida` varchar(10) NOT NULL DEFAULT 'UN',
+  PRIMARY KEY (`id_preparacion`),
+  KEY `fk_prep_prod` (`id_producto`),
+  KEY `fk_prep_ing` (`id_ingrediente`),
+  KEY `fk_prep_unidad` (`id_unidad_medida`),
+  CONSTRAINT `fk_prep_prod` FOREIGN KEY (`id_producto`) REFERENCES `producto` (`id_producto`) ON DELETE CASCADE,
+  CONSTRAINT `fk_prep_ing` FOREIGN KEY (`id_ingrediente`) REFERENCES `ingrediente` (`id_ingrediente`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_prep_unidad` FOREIGN KEY (`id_unidad_medida`) REFERENCES `unidad_medida` (`id_unidad`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Recetas de productos';
 
---
--- Indices de la tabla `personal`
---
-ALTER TABLE `personal`
-  ADD PRIMARY KEY (`cedula_personal`),
-  ADD KEY `id_cargo` (`id_cargo`);
+CREATE TABLE `promocion` (
+  `id_promocion` varchar(30) NOT NULL,
+  `nombre` varchar(100) NOT NULL,
+  `tipo_descuento` enum('PORCENTAJE','MONTO_FIJO') NOT NULL,
+  `descripcion` text DEFAULT NULL,
+  `fecha_inicio` date NOT NULL,
+  `fecha_fin` date DEFAULT NULL,
+  `hora_inicio` time DEFAULT NULL,
+  `hora_fin` time DEFAULT NULL,
+  PRIMARY KEY (`id_promocion`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Indices de la tabla `asistencia`
---
-ALTER TABLE `asistencia`
-  ADD PRIMARY KEY (`id_asistencia`),
-  ADD KEY `cedula_personal` (`cedula_personal`),
-  ADD KEY `fecha` (`fecha`);
+CREATE TABLE `planificador_promocion` (
+  `id_planificador` varchar(30) NOT NULL,
+  `id_producto` varchar(30) NOT NULL,
+  `id_promocion` varchar(30) NOT NULL,
+  PRIMARY KEY (`id_planificador`),
+  KEY `fk_planp_prod` (`id_producto`),
+  KEY `fk_planp_prom` (`id_promocion`),
+  CONSTRAINT `fk_planp_prod` FOREIGN KEY (`id_producto`) REFERENCES `producto` (`id_producto`) ON DELETE CASCADE,
+  CONSTRAINT `fk_planp_prom` FOREIGN KEY (`id_promocion`) REFERENCES `promocion` (`id_promocion`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Indices de la tabla `cargo`
---
-ALTER TABLE `cargo`
-  ADD PRIMARY KEY (`id_cargo`),
-  ADD UNIQUE KEY `nombre_cargo` (`nombre_cargo`);
+-- --------------------------------------------------------
+-- 5. OPERACIONES (MESAS Y PEDIDOS)
+-- --------------------------------------------------------
 
---
--- Indices de la tabla `categoria_producto`
---
-ALTER TABLE `categoria_producto`
-  ADD PRIMARY KEY (`id_categoria`),
-  ADD UNIQUE KEY `nombre_categoria` (`nombre_categoria`);
+CREATE TABLE `mesa` (
+  `id_mesa` varchar(30) NOT NULL,
+  `id_area` varchar(30) DEFAULT NULL,
+  `numero_mesa` int(11) NOT NULL,
+  `capacidad` int(11) NOT NULL,
+  `estado` enum('DISPONIBLE','LIBRE','OCUPADA','MANTENIMIENTO') DEFAULT 'DISPONIBLE',
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id_mesa`),
+  UNIQUE KEY `idx_mesa_area_num` (`id_area`,`numero_mesa`),
+  CONSTRAINT `fk_mesa_area` FOREIGN KEY (`id_area`) REFERENCES `area_mesa` (`id_area`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Indices de la tabla `producto`
---
-ALTER TABLE `producto`
-  ADD PRIMARY KEY (`id_producto`),
-  ADD KEY `id_categoria` (`id_categoria`),
-  ADD KEY `nombre_producto` (`nombre_producto`);
+CREATE TABLE `reservacion` (
+  `id_reservacion` varchar(30) NOT NULL,
+  `cedula_cliente` varchar(15) NOT NULL,
+  `fecha` date NOT NULL,
+  `hora` time NOT NULL,
+  `estado` enum('PENDIENTE','CONFIRMADA','CANCELADA','COMPLETADA') DEFAULT 'PENDIENTE',
+  PRIMARY KEY (`id_reservacion`),
+  KEY `fk_res_cli` (`cedula_cliente`),
+  CONSTRAINT `fk_res_cli` FOREIGN KEY (`cedula_cliente`) REFERENCES `cliente` (`cedula`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Indices de la tabla `ingrediente`
---
-ALTER TABLE `ingrediente`
-  ADD PRIMARY KEY (`id_ingrediente`),
-  ADD UNIQUE KEY `nombre_ingrediente` (`nombre_ingrediente`);
+CREATE TABLE `asignacion_mesa` (
+  `id_asignacion` varchar(30) NOT NULL,
+  `id_reservacion` varchar(30) NOT NULL,
+  `id_mesa` varchar(30) NOT NULL,
+  PRIMARY KEY (`id_asignacion`),
+  KEY `fk_am_res` (`id_reservacion`),
+  KEY `fk_am_mesa` (`id_mesa`),
+  CONSTRAINT `fk_am_res` FOREIGN KEY (`id_reservacion`) REFERENCES `reservacion` (`id_reservacion`) ON DELETE CASCADE,
+  CONSTRAINT `fk_am_mesa` FOREIGN KEY (`id_mesa`) REFERENCES `mesa` (`id_mesa`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Indices de la tabla `receta`
---
-ALTER TABLE `receta`
-  ADD PRIMARY KEY (`id_receta`),
-  ADD KEY `id_producto` (`id_producto`),
-  ADD KEY `id_ingrediente` (`id_ingrediente`);
+CREATE TABLE `pedido` (
+  `id_pedido` varchar(30) NOT NULL,
+  `cedula_cliente` varchar(15) DEFAULT NULL,
+  `cedula_empleado` varchar(15) NOT NULL,
+  `id_mesa` varchar(30) DEFAULT NULL,
+  `tipo_pedido` enum('MESA','LLEVAR','DELIVERY') NOT NULL,
+  `fecha_pedido` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_entrega` timestamp NULL DEFAULT NULL,
+  `estado` enum('PENDIENTE','COCINANDO','LISTO','ENTREGADO','PAGADO','CANCELADO') DEFAULT 'PENDIENTE',
+  `observacion` varchar(255) DEFAULT NULL,
+  `impuesto` decimal(10,2) DEFAULT 0.00,
+  `total` decimal(10,2) NOT NULL DEFAULT 0.00,
+  PRIMARY KEY (`id_pedido`),
+  KEY `fk_ped_cli` (`cedula_cliente`),
+  KEY `fk_ped_emp` (`cedula_empleado`),
+  KEY `fk_ped_mesa` (`id_mesa`),
+  CONSTRAINT `fk_ped_cli` FOREIGN KEY (`cedula_cliente`) REFERENCES `cliente` (`cedula`) ON DELETE SET NULL,
+  CONSTRAINT `fk_ped_emp` FOREIGN KEY (`cedula_empleado`) REFERENCES `empleado` (`cedula`),
+  CONSTRAINT `fk_ped_mesa` FOREIGN KEY (`id_mesa`) REFERENCES `mesa` (`id_mesa`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Indices de la tabla `inventario`
---
-ALTER TABLE `inventario`
-  ADD PRIMARY KEY (`id_inventario`),
-  ADD UNIQUE KEY `id_ingrediente` (`id_ingrediente`),
-  ADD KEY `idx_stock_minimo` (`cantidad_actual`,`stock_minimo`);
+CREATE TABLE `detalle_pedido` (
+  `id_detalle` varchar(30) NOT NULL,
+  `id_pedido` varchar(30) NOT NULL,
+  `id_producto` varchar(30) NOT NULL,
+  `cantidad` int(11) NOT NULL CHECK (`cantidad` > 0),
+  `precio_unitario` decimal(10,2) NOT NULL,
+  `indicacion` varchar(255) DEFAULT NULL COMMENT 'Ej: Sin cebolla, bien cocido',
+  PRIMARY KEY (`id_detalle`),
+  KEY `fk_det_ped` (`id_pedido`),
+  KEY `fk_det_prod` (`id_producto`),
+  CONSTRAINT `fk_det_ped` FOREIGN KEY (`id_pedido`) REFERENCES `pedido` (`id_pedido`) ON DELETE CASCADE,
+  CONSTRAINT `fk_det_prod` FOREIGN KEY (`id_producto`) REFERENCES `producto` (`id_producto`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Indices de la tabla `movimiento_inventario`
---
-ALTER TABLE `movimiento_inventario`
-  ADD PRIMARY KEY (`id_movimiento`),
-  ADD KEY `id_ingrediente` (`id_ingrediente`),
-  ADD KEY `fecha_movimiento` (`fecha_movimiento`),
-  ADD KEY `responsable` (`responsable`);
+CREATE TABLE `pago` (
+  `id_pago` varchar(30) NOT NULL,
+  `id_pedido` varchar(30) NOT NULL,
+  `id_metodo_pago` varchar(30) NOT NULL,
+  `monto` decimal(10,2) NOT NULL CHECK (`monto` > 0),
+  `tasa_actual` decimal(10,2) DEFAULT 1.00,
+  `referencia` varchar(100) DEFAULT NULL,
+  `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_pago`),
+  KEY `fk_pago_ped` (`id_pedido`),
+  KEY `fk_pago_metodo` (`id_metodo_pago`),
+  CONSTRAINT `fk_pago_ped` FOREIGN KEY (`id_pedido`) REFERENCES `pedido` (`id_pedido`) ON DELETE CASCADE,
+  CONSTRAINT `fk_pago_metodo` FOREIGN KEY (`id_metodo_pago`) REFERENCES `metodo_pago` (`id_metodo_pago`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Indices de la tabla `mesa`
---
-ALTER TABLE `mesa`
-  ADD PRIMARY KEY (`id_mesa`),
-  ADD UNIQUE KEY `numero_mesa` (`numero_mesa`),
-  ADD UNIQUE KEY `qr_code` (`qr_code`);
+-- --------------------------------------------------------
+-- 6. MOVIMIENTOS DE INVENTARIO
+-- --------------------------------------------------------
 
---
--- Indices de la tabla `cliente`
---
-ALTER TABLE `cliente`
-  ADD PRIMARY KEY (`id_cliente`),
-  ADD UNIQUE KEY `correo` (`correo`),
-  ADD KEY `telefono` (`telefono`);
+CREATE TABLE `entrada_ingrediente` (
+  `id_entrada` varchar(30) NOT NULL,
+  `id_ingrediente` varchar(30) NOT NULL,
+  `documento_proveedor` varchar(30) NOT NULL,
+  `cantidad` decimal(10,3) NOT NULL,
+  `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_entrada`),
+  KEY `fk_ent_ing` (`id_ingrediente`),
+  KEY `fk_ent_prov` (`documento_proveedor`),
+  CONSTRAINT `fk_ent_ing` FOREIGN KEY (`id_ingrediente`) REFERENCES `ingrediente` (`id_ingrediente`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ent_prov` FOREIGN KEY (`documento_proveedor`) REFERENCES `proveedor` (`documento_legal`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Indices de la tabla `pedido`
---
-ALTER TABLE `pedido`
-  ADD PRIMARY KEY (`id_pedido`),
-  ADD KEY `id_mesa` (`id_mesa`),
-  ADD KEY `id_cliente` (`id_cliente`),
-  ADD KEY `cedula_mesero` (`cedula_mesero`),
-  ADD KEY `fecha_pedido` (`fecha_pedido`),
-  ADD KEY `estado_pedido` (`estado_pedido`);
+CREATE TABLE `movimiento_ingrediente` (
+  `id_movimiento` varchar(30) NOT NULL,
+  `id_ingrediente` varchar(30) NOT NULL,
+  `id_detalle` varchar(30) DEFAULT NULL COMMENT 'Vinculado a la venta si es una salida automática',
+  `cantidad` decimal(10,3) NOT NULL,
+  `id_unidad_medida` varchar(10) NOT NULL DEFAULT 'UN',
+  `tipo` enum('ENTRADA','SALIDA','AJUSTE','MERMA') NOT NULL,
+  `descripcion` varchar(255) DEFAULT NULL,
+  `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_movimiento`),
+  KEY `fk_mov_ing` (`id_ingrediente`),
+  KEY `fk_mov_det` (`id_detalle`),
+  KEY `fk_mov_unidad` (`id_unidad_medida`),
+  CONSTRAINT `fk_mov_ing` FOREIGN KEY (`id_ingrediente`) REFERENCES `ingrediente` (`id_ingrediente`) ON DELETE CASCADE,
+  CONSTRAINT `fk_mov_det` FOREIGN KEY (`id_detalle`) REFERENCES `detalle_pedido` (`id_detalle`) ON DELETE SET NULL,
+  CONSTRAINT `fk_mov_unidad` FOREIGN KEY (`id_unidad_medida`) REFERENCES `unidad_medida` (`id_unidad`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Indices de la tabla `detalle_pedido`
---
-ALTER TABLE `detalle_pedido`
-  ADD PRIMARY KEY (`id_detalle`),
-  ADD KEY `id_pedido` (`id_pedido`),
-  ADD KEY `id_producto` (`id_producto`);
+-- --------------------------------------------------------
+-- 7. VISTAS (VIEWS)
+-- --------------------------------------------------------
 
---
--- Indices de la tabla `pago`
---
-ALTER TABLE `pago`
-  ADD PRIMARY KEY (`id_pago`),
-  ADD UNIQUE KEY `id_pedido` (`id_pedido`),
-  ADD KEY `fecha_pago` (`fecha_pago`),
-  ADD KEY `responsable` (`responsable`);
+CREATE VIEW `vw_alertas_inventario` AS
+SELECT i.id_ingrediente, i.nombre_ingrediente AS nombre, c.nombre AS categoria, 
+       i.stock_actual, i.stock_minimo, um.nombre AS unidad_medida
+FROM ingrediente i
+JOIN categoria_ingrediente c ON i.id_categoria = c.id_categoria
+JOIN unidad_medida um ON i.id_unidad_medida = um.id_unidad
+WHERE i.stock_actual <= i.stock_minimo;
 
---
--- Indices de la tabla `transaccion_financiera`
---
-ALTER TABLE `transaccion_financiera`
-  ADD PRIMARY KEY (`id_transaccion`),
-  ADD KEY `fecha_transaccion` (`fecha_transaccion`),
-  ADD KEY `tipo_transaccion` (`tipo_transaccion`),
-  ADD KEY `responsable` (`responsable`);
+CREATE VIEW `vw_directorio_empleados` AS
+SELECT p.cedula, p.nombre, p.apellido, p.telefono, c.nombre_cargo AS cargo, e.fecha_ingreso 
+FROM empleado e
+JOIN persona p ON e.cedula = p.cedula
+JOIN cargo c ON e.id_cargo = c.id_cargo;
 
---
--- Indices de la tabla `configuracion_sistema`
---
-ALTER TABLE `configuracion_sistema`
-  ADD PRIMARY KEY (`id_config`),
-  ADD UNIQUE KEY `clave` (`clave`),
-  ADD KEY `categoria` (`categoria`);
+CREATE VIEW `vw_conversiones_unidades` AS
+SELECT u1.id_unidad, u1.nombre, u1.abreviatura, u1.tipo,
+       u1.factor_conversion, u2.nombre AS unidad_base_nombre
+FROM unidad_medida u1
+LEFT JOIN unidad_medida u2 ON u1.unidad_base = u2.id_unidad;
 
---
--- Indices de la tabla `promocion`
---
-ALTER TABLE `promocion`
-  ADD PRIMARY KEY (`id_promocion`),
-  ADD KEY `fecha_inicio` (`fecha_inicio`,`fecha_fin`);
+-- --------------------------------------------------------
+-- 8. DISPARADORES (TRIGGERS)
+-- --------------------------------------------------------
 
---
--- Indices de la tabla `turno`
---
-ALTER TABLE `turno`
-  ADD PRIMARY KEY (`id_turno`),
-  ADD UNIQUE KEY `nombre_turno` (`nombre_turno`);
+DELIMITER $$
 
---
--- Restricciones para tablas volcadas
---
+CREATE TRIGGER `trg_actualizar_stock_movimiento` AFTER INSERT ON `movimiento_ingrediente`
+FOR EACH ROW BEGIN
+    IF NEW.tipo = 'ENTRADA' OR NEW.tipo = 'AJUSTE' THEN
+        UPDATE ingrediente SET stock_actual = stock_actual + NEW.cantidad WHERE id_ingrediente = NEW.id_ingrediente;
+    ELSEIF NEW.tipo = 'SALIDA' OR NEW.tipo = 'MERMA' THEN
+        UPDATE ingrediente SET stock_actual = stock_actual - NEW.cantidad WHERE id_ingrediente = NEW.id_ingrediente;
+    END IF;
+END$$
 
---
--- Filtros para la tabla `personal`
---
-ALTER TABLE `personal`
-  ADD CONSTRAINT `personal_ibfk_1` FOREIGN KEY (`id_cargo`) REFERENCES `cargo` (`id_cargo`) ON DELETE SET NULL ON UPDATE CASCADE;
+CREATE TRIGGER `trg_actualizar_visita_cliente` AFTER INSERT ON `pedido`
+FOR EACH ROW BEGIN
+    IF NEW.cedula_cliente IS NOT NULL THEN
+        UPDATE cliente SET ultima_visita = NEW.fecha_pedido WHERE cedula = NEW.cedula_cliente;
+    END IF;
+END$$
 
---
--- Filtros para la tabla `asistencia`
---
-ALTER TABLE `asistencia`
-  ADD CONSTRAINT `asistencia_ibfk_1` FOREIGN KEY (`cedula_personal`) REFERENCES `personal` (`cedula_personal`) ON DELETE CASCADE ON UPDATE CASCADE;
+DELIMITER ;
 
---
--- Filtros para la tabla `producto`
---
-ALTER TABLE `producto`
-  ADD CONSTRAINT `producto_ibfk_1` FOREIGN KEY (`id_categoria`) REFERENCES `categoria_producto` (`id_categoria`) ON DELETE CASCADE ON UPDATE CASCADE;
+-- --------------------------------------------------------
+-- 9. PROCEDIMIENTOS (STORED PROCEDURES)
+-- --------------------------------------------------------
 
---
--- Filtros para la tabla `receta`
---
-ALTER TABLE `receta`
-  ADD CONSTRAINT `receta_ibfk_1` FOREIGN KEY (`id_producto`) REFERENCES `producto` (`id_producto`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `receta_ibfk_2` FOREIGN KEY (`id_ingrediente`) REFERENCES `ingrediente` (`id_ingrediente`) ON DELETE CASCADE ON UPDATE CASCADE;
+DELIMITER $$
 
---
--- Filtros para la tabla `inventario`
---
-ALTER TABLE `inventario`
-  ADD CONSTRAINT `inventario_ibfk_1` FOREIGN KEY (`id_ingrediente`) REFERENCES `ingrediente` (`id_ingrediente`) ON DELETE CASCADE ON UPDATE CASCADE;
+CREATE PROCEDURE `sp_descontar_receta_pedido`(IN `p_id_detalle` VARCHAR(30))
+BEGIN
+    DECLARE v_done INT DEFAULT FALSE;
+    DECLARE v_id_ingrediente VARCHAR(30);
+    DECLARE v_cantidad_receta DECIMAL(10,3);
+    DECLARE v_cantidad_pedida INT;
+    DECLARE v_id_unidad VARCHAR(10);
+    
+    DECLARE cur_receta CURSOR FOR 
+        SELECT pr.id_ingrediente, pr.cantidad, pr.id_unidad_medida, dp.cantidad
+        FROM preparacion pr
+        JOIN detalle_pedido dp ON pr.id_producto = dp.id_producto
+        WHERE dp.id_detalle = p_id_detalle;
+        
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = TRUE;
+    
+    OPEN cur_receta;
+    
+    read_loop: LOOP
+        FETCH cur_receta INTO v_id_ingrediente, v_cantidad_receta, v_id_unidad, v_cantidad_pedida;
+        IF v_done THEN
+            LEAVE read_loop;
+        END IF;
+        
+        INSERT INTO movimiento_ingrediente (id_movimiento, id_ingrediente, id_detalle, cantidad, id_unidad_medida, tipo, descripcion)
+        VALUES (CONCAT('MOV-', UNIX_TIMESTAMP(), '-', FLOOR(RAND()*1000)), v_id_ingrediente, p_id_detalle, (v_cantidad_receta * v_cantidad_pedida), v_id_unidad, 'SALIDA', 'Descuento automático por pedido');
+        
+    END LOOP;
+    
+    CLOSE cur_receta;
+END$$
 
---
--- Filtros para la tabla `movimiento_inventario`
---
-ALTER TABLE `movimiento_inventario`
-  ADD CONSTRAINT `movimiento_inventario_ibfk_1` FOREIGN KEY (`id_ingrediente`) REFERENCES `ingrediente` (`id_ingrediente`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `movimiento_inventario_ibfk_2` FOREIGN KEY (`responsable`) REFERENCES `personal` (`cedula_personal`) ON DELETE SET NULL ON UPDATE CASCADE;
+CREATE PROCEDURE `sp_convertir_unidad`(
+    IN `p_cantidad` DECIMAL(10,3),
+    IN `p_unidad_origen` VARCHAR(10),
+    IN `p_unidad_destino` VARCHAR(10),
+    OUT `p_resultado` DECIMAL(10,3)
+)
+BEGIN
+    DECLARE v_factor_origen DECIMAL(10,6);
+    DECLARE v_factor_destino DECIMAL(10,6);
+    DECLARE v_base_origen VARCHAR(10);
+    DECLARE v_base_destino VARCHAR(10);
+    DECLARE v_tipo_origen VARCHAR(20);
+    DECLARE v_tipo_destino VARCHAR(20);
+    
+    -- Obtener información de unidades
+    SELECT factor_conversion, unidad_base, tipo INTO v_factor_origen, v_base_origen, v_tipo_origen
+    FROM unidad_medida WHERE id_unidad = p_unidad_origen;
+    
+    SELECT factor_conversion, unidad_base, tipo INTO v_factor_destino, v_base_destino, v_tipo_destino
+    FROM unidad_medida WHERE id_unidad = p_unidad_destino;
+    
+    -- Verificar compatibilidad de tipos
+    IF v_tipo_origen != v_tipo_destino THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se pueden convertir unidades de diferentes tipos';
+    END IF;
+    
+    -- Convertir usando factores
+    SET p_resultado = p_cantidad * (v_factor_origen / v_factor_destino);
+END$$
 
---
--- Filtros para la tabla `pedido`
---
-ALTER TABLE `pedido`
-  ADD CONSTRAINT `pedido_ibfk_1` FOREIGN KEY (`id_mesa`) REFERENCES `mesa` (`id_mesa`) ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT `pedido_ibfk_2` FOREIGN KEY (`id_cliente`) REFERENCES `cliente` (`id_cliente`) ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT `pedido_ibfk_3` FOREIGN KEY (`cedula_mesero`) REFERENCES `personal` (`cedula_personal`) ON DELETE SET NULL ON UPDATE CASCADE;
+DELIMITER ;
 
---
--- Filtros para la tabla `detalle_pedido`
---
-ALTER TABLE `detalle_pedido`
-  ADD CONSTRAINT `detalle_pedido_ibfk_1` FOREIGN KEY (`id_pedido`) REFERENCES `pedido` (`id_pedido`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `detalle_pedido_ibfk_2` FOREIGN KEY (`id_producto`) REFERENCES `producto` (`id_producto`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `pago`
---
-ALTER TABLE `pago`
-  ADD CONSTRAINT `pago_ibfk_1` FOREIGN KEY (`id_pedido`) REFERENCES `pedido` (`id_pedido`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `pago_ibfk_2` FOREIGN KEY (`responsable`) REFERENCES `personal` (`cedula_personal`) ON DELETE SET NULL ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `transaccion_financiera`
---
-ALTER TABLE `transaccion_financiera`
-  ADD CONSTRAINT `transaccion_financiera_ibfk_1` FOREIGN KEY (`responsable`) REFERENCES `personal` (`cedula_personal`) ON DELETE SET NULL ON UPDATE CASCADE;
 COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
