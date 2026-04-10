@@ -6,12 +6,24 @@ use App\Core\Database;
 use App\Database\Seeders\SecuritySeeder;
 use App\Database\Seeders\BusinessSeeder;
 
+/**
+ * GoodVibes Core-Deployer 
+ *
+ * Este servicio orquesta la creación de las bases de datos, la ejecución
+ * de migraciones y la carga de datos iniciales para los módulos de seguridad
+ * y negocio.
+ */
 class GoodVibesInstallerService
 {
     private $dbSecurity;
     private $dbBusiness;
     private $rawDb;
 
+    /**
+     * Ejecuta el flujo completo de instalación.
+     *
+     * @return void
+     */
     public function run()
     {
         $this->clearScreen();
@@ -67,6 +79,11 @@ class GoodVibesInstallerService
     // LÓGICA CORE DEL SERVICIO
     // ==========================================
 
+    /**
+     * Elimina y crea las bases de datos configuradas en el servidor.
+     *
+     * @return void
+     */
     private function resetDatabases()
     {
         $this->info("[1/4] Reseteando bases de datos en el servidor...");
@@ -80,9 +97,14 @@ class GoodVibesInstallerService
         $this->rawDb->exec("CREATE DATABASE `$dbUsers` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;");
         $this->rawDb->exec("CREATE DATABASE `$dbSystem` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;");
         
-        $this->success("      ✓ Bases de datos creadas desde cero.");
+        $this->success("      Bases de datos creadas desde cero.");
     }
 
+    /**
+     * Ejecuta los scripts de migración SQL para ambas bases de datos.
+     *
+     * @return void
+     */
     private function runMigrations()
     {
         $this->info("\n[2/4] Ejecutando Migraciones (SQL)...");
@@ -94,14 +116,24 @@ class GoodVibesInstallerService
         $this->executeSQLFile($this->dbBusiness, $rutaMigracionSistema, "Sistema");
     }
 
+    /**
+     * Ejecuta el seeder de seguridad para roles y usuario administrador.
+     *
+     * @return void
+     */
     private function runSecuritySeeder()
     {
         $this->info("\n[3/4] Ejecutando Security Seeder...");
         $securitySeeder = new SecuritySeeder($this->dbSecurity);
         $securitySeeder->run();
-        $this->success("      ✓ Datos de seguridad inyectados.");
+        $this->success("      Datos de seguridad inyectados.");
     }
 
+    /**
+     * Ejecuta el seeder de negocio para datos iniciales de la base de datos.
+     *
+     * @return void
+     */
     private function runBusinessSeeder()
     {
         $this->info("\n[4/4] Ejecutando Business Seeder (Faker)...");
@@ -110,31 +142,103 @@ class GoodVibesInstallerService
             $businessSeeder = new BusinessSeeder($this->dbBusiness);
             $businessSeeder->run();
             $this->dbBusiness->commit();
-            $this->success("      ✓ Datos de negocio inyectados.");
+            $this->success("      Datos de negocio inyectados.");
         } catch (Exception $e) {
             $this->dbBusiness->rollBack();
             throw $e;
         }
     }
 
+    /**
+     * Ejecuta las sentencias SQL contenidas en un archivo de migración.
+     *
+     * @param \PDO $db Conexión de base de datos.
+     * @param string $archivo Ruta del archivo SQL.
+     * @param string $nombreModulo Nombre del módulo para mensajes.
+     *
+     * @return void
+     * @throws Exception Si no existe el archivo o falla la ejecución de una sentencia.
+     */
     private function executeSQLFile($db, $archivo, $nombreModulo)
     {
         if (!file_exists($archivo)) {
             throw new Exception("Archivo SQL no encontrado: $archivo");
         }
+
         $sql = file_get_contents($archivo);
-        $db->exec($sql);
-        $this->success("      ✓ Estructura de $nombreModulo cargada.");
+        $statements = $this->splitSQLStatements($sql);
+
+        foreach ($statements as $statement) {
+            $statement = trim($statement);
+            if ($statement === '') {
+                continue;
+            }
+
+            $result = $db->exec($statement);
+            if ($result === false) {
+                $errorInfo = $db->errorInfo();
+                throw new Exception("Error ejecutando migración ($nombreModulo): " . ($errorInfo[2] ?? 'Unknown error'));
+            }
+        }
+
+        $this->success("      Estructura de $nombreModulo cargada.");
+    }
+
+    /**
+     * Divide un archivo SQL en sentencias individuales respetando delimitadores.
+     *
+     * @param string $sql Contenido completo del archivo SQL.
+     * @return array Lista de sentencias SQL preparadas para ejecución.
+     */
+    private function splitSQLStatements(string $sql): array
+    {
+        $delimiter = ';';
+        $statements = [];
+        $current = '';
+
+        $lines = preg_split('/\r\n|\n|\r/', $sql);
+
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+
+            if ($trimmed === '' || str_starts_with($trimmed, '--') || str_starts_with($trimmed, '#')) {
+                $current .= $line . "\n";
+                continue;
+            }
+
+            if (stripos($trimmed, 'DELIMITER ') === 0) {
+                $delimiter = trim(substr($trimmed, strlen('DELIMITER ')));
+                continue;
+            }
+
+            $current .= $line . "\n";
+
+            if ($delimiter !== '' && str_ends_with(rtrim($current), $delimiter)) {
+                $statements[] = substr(trim($current), 0, -strlen($delimiter));
+                $current = '';
+            }
+        }
+
+        if (trim($current) !== '') {
+            $statements[] = trim($current);
+        }
+
+        return $statements;
     }
 
     // ==========================================
     // UTILIDADES DE CONSOLA (UI/UX)
     // ==========================================
 
+    /**
+     * Pregunta al usuario con un mensaje y devuelve un booleano.
+     *
+     * @param string $question Texto de la pregunta.
+     * @return bool Respuesta del usuario (por defecto true).
+     */
     private function confirm(string $question): bool
     {
-        // Color amarillo para las preguntas
-        echo "\033[33m? \033[0m" . $question . " \033[90m(y/n) [y]\033[0m: ";
+        echo "\033[33m" . $question . " \033[90m(y/n) [y]\033[0m: ";
         $handle = fopen("php://stdin", "r");
         $line = trim(fgets($handle));
         fclose($handle);
@@ -143,19 +247,38 @@ class GoodVibesInstallerService
         if ($line === 'n' || $line === 'no') {
             return false;
         }
-        return true; // Por defecto es sí
+
+        return true;
     }
 
+    /**
+     * Muestra un mensaje informativo en la consola.
+     *
+     * @param string $text Mensaje a imprimir.
+     * @return void
+     */
     private function info(string $text)
     {
-        echo "\033[36mℹ " . $text . "\033[0m\n"; // Cyan
+        echo "\033[36m" . $text . "\033[0m\n"; // Cyan
     }
 
+    /**
+     * Muestra un mensaje de éxito en la consola.
+     *
+     * @param string $text Mensaje a imprimir.
+     * @return void
+     */
     private function success(string $text)
     {
         echo "\033[32m" . $text . "\033[0m\n"; // Verde
     }
 
+    /**
+     * Muestra un mensaje de error en la consola.
+     *
+     * @param string $text Mensaje a imprimir.
+     * @return void
+     */
     private function error(string $text)
     {
         echo "\033[31m" . $text . "\033[0m\n"; // Rojo
@@ -179,7 +302,7 @@ class GoodVibesInstallerService
     {
         echo "\033[1;32m";
         echo "\n===========================================================\n";
-        echo " ✨ INSTALACIÓN COMPLETADA CON ÉXITO ✨\n";
+        echo " INSTALACIÓN COMPLETADA CON ÉXITO\n";
         echo "===========================================================\n";
         echo "\033[0m";
         echo "\033[36m Usuario Admin:\033[0m V00000000\n";
