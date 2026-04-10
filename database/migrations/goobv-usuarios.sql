@@ -1,313 +1,232 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Servidor: 127.0.0.1
--- Tiempo de generación: 26-01-2026 a las 00:17:20
--- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.2.12
+-- ==============================================================================
+-- BASE DE DATOS: goobv-usuarios
+-- DESCRIPCIÓN: Gestión de Seguridad, Accesos, Auditoría y Notificaciones
+-- ==============================================================================
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
-SET time_zone = "+00:00";
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Base de datos: `goobv-usuarios`
---
+SET time_zone = "-04:00"; -- Hora de Venezuela
 
 -- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `rol`
---
+-- 1. TABLAS DICCIONARIO Y MAESTRAS
+-- --------------------------------------------------------
 
 CREATE TABLE `rol` (
-  `id_rol` varchar(24) NOT NULL,
-  `nombre_rol` varchar(45) NOT NULL,
+  `id_rol` varchar(30) NOT NULL,
+  `nombre_rol` varchar(50) NOT NULL,
   `descripcion` varchar(200) DEFAULT NULL,
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `rol`
---
-
-INSERT INTO `rol` (`id_rol`, `nombre_rol`, `descripcion`, `estatus`) VALUES
-('ADMIN00120251001', 'ADMINISTRADOR', 'Acceso completo al sistema', 1),
-('CAJA00220251001', 'CAJERO', 'Manejo de pagos y caja', 1),
-('CHEF00320251001', 'CHEF', 'Gestión de cocina y recetas', 1),
-('CLIE00420251001', 'CLIENTE', 'Acceso a menú interactivo y pedidos', 1),
-('GEREN00520251001', 'GERENTE', 'Supervisión y reportes', 1),
-('MESER00620251001', 'MESERO', 'Toma de pedidos y atención', 1),
-('SUPER00720251001', 'SUPERUSUARIO', 'Desarrollo y configuración', 1);
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `usuario`
---
-
-CREATE TABLE `usuario` (
-  `cedula` varchar(12) NOT NULL,
-  `id_rol` varchar(24) NOT NULL,
-  `username` varchar(45) NOT NULL,
-  `nombres` varchar(65) NOT NULL,
-  `apellidos` varchar(65) NOT NULL,
-  `sexo` varchar(1) NOT NULL,
-  `fecha_nacimiento` date NOT NULL,
-  `telefono` varchar(13) DEFAULT NULL,
-  `correo` varchar(100) NOT NULL,
-  `clave` varchar(255) NOT NULL,
-  `foto_perfil` varchar(100) DEFAULT NULL,
-  `tema_oscuro` tinyint(1) DEFAULT 0,
-  `ultimo_acceso` timestamp NULL DEFAULT NULL,
-  `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp(),
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `modulo`
---
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id_rol`),
+  UNIQUE KEY `idx_rol_nombre` (`nombre_rol`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Roles del sistema';
 
 CREATE TABLE `modulo` (
-  `id_modulo` varchar(24) NOT NULL,
-  `nombre_modulo` varchar(45) NOT NULL,
-  `icono` varchar(50) DEFAULT NULL,
-  `ruta` varchar(100) DEFAULT NULL,
-  `orden` int(11) DEFAULT 0,
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `modulo`
---
-
-INSERT INTO `modulo` (`id_modulo`, `nombre_modulo`, `icono`, `ruta`, `orden`, `estatus`) VALUES
-('ASIST00120251001', 'Asistencia', 'clock', '/asistencia', 5, 1),
-('CLIEN00920251001', 'Clientes', 'users', '/clientes', 8, 1),
-('COCIN00620251001', 'Cocina', 'utensils', '/cocina', 6, 1),
-('FINAN00420251001', 'Finanzas', 'dollar-sign', '/finanzas', 4, 1),
-('INVEN00320251001', 'Inventario', 'package', '/inventario', 3, 1),
-('MENU00820251001', 'Menú', 'book-open', '/menu', 8, 1),
-('PERSO00220251001', 'Personal', 'user', '/personal', 2, 1),
-('PROMO01020251001', 'Promociones', 'tag', '/promociones', 10, 1),
-('REPOR00520251001', 'Reportes', 'bar-chart', '/reportes', 5, 1),
-('SUPER00720251001', 'Supervisión', 'eye', '/supervision', 7, 1);
+  `id_modulo` varchar(30) NOT NULL,
+  `nombre` varchar(50) NOT NULL,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id_modulo`),
+  UNIQUE KEY `idx_modulo_nombre` (`nombre`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Módulos del sistema para permisos';
 
 -- --------------------------------------------------------
+-- 2. TABLA DE IMÁGENES POLIMÓRFICA (Reutilizable)
+-- --------------------------------------------------------
 
---
--- Estructura de tabla para la tabla `permiso`
---
+CREATE TABLE `imagen` (
+  `id_imagen` varchar(30) NOT NULL,
+  `entidad_tipo` enum('USUARIO','NOTICIA','PRODUCTO','CATEGORIA','PROMOCION') NOT NULL COMMENT 'Tipo de entidad a la que pertenece la imagen',
+  `entidad_id` varchar(30) NOT NULL COMMENT 'ID de la entidad relacionada',
+  `direccion` varchar(255) NOT NULL COMMENT 'Ruta o URL de la imagen',
+  `orden` int(11) DEFAULT 1 COMMENT 'Orden de visualización',
+  `es_principal` tinyint(1) DEFAULT 0 COMMENT 'Indica si es la imagen principal',
+  `titulo` varchar(100) DEFAULT NULL,
+  `descripcion` varchar(255) DEFAULT NULL,
+  `fecha_subida` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_imagen`),
+  KEY `idx_imagen_entidad` (`entidad_tipo`, `entidad_id`),
+  KEY `idx_imagen_usuario` (`entidad_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Almacena imágenes para múltiples entidades del sistema';
+
+-- --------------------------------------------------------
+-- 3. TABLAS TRANSACCIONALES
+-- --------------------------------------------------------
+
+CREATE TABLE `usuario` (
+  `cedula` varchar(15) NOT NULL,
+  `id_rol` varchar(30) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `nombres` varchar(100) NOT NULL,
+  `apellidos` varchar(100) NOT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
+  `correo` varchar(100) NOT NULL,
+  `fecha_nacimiento` date DEFAULT NULL,
+  `sexo` char(1) DEFAULT NULL,
+  `clave` varchar(255) NOT NULL,
+  `foto_perfil` varchar(255) DEFAULT NULL COMMENT 'DEPRECATED: Usar tabla imagen con entidad_tipo="USUARIO" y es_principal=1',
+  `tema` varchar(20) DEFAULT 'light',
+  `ultimo_acceso` timestamp NULL DEFAULT NULL,
+  `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp(),
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`cedula`),
+  UNIQUE KEY `idx_usuario_username` (`username`),
+  UNIQUE KEY `idx_usuario_correo` (`correo`),
+  KEY `fk_usuario_rol` (`id_rol`),
+  CONSTRAINT `fk_usuario_rol` FOREIGN KEY (`id_rol`) REFERENCES `rol` (`id_rol`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `permiso` (
-  `id_permiso` varchar(24) NOT NULL,
-  `id_rol` varchar(24) NOT NULL,
-  `id_modulo` varchar(24) NOT NULL,
-  `accion` varchar(50) NOT NULL,
-  `estado` tinyint(1) NOT NULL DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `sesion`
---
+  `id_permiso` varchar(30) NOT NULL,
+  `id_rol` varchar(30) NOT NULL,
+  `id_modulo` varchar(30) NOT NULL,
+  `accion` varchar(50) NOT NULL COMMENT 'LEER, CREAR, EDITAR, ELIMINAR',
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id_permiso`),
+  UNIQUE KEY `idx_permiso_unico` (`id_rol`,`id_modulo`,`accion`),
+  KEY `fk_permiso_modulo` (`id_modulo`),
+  CONSTRAINT `fk_permiso_modulo` FOREIGN KEY (`id_modulo`) REFERENCES `modulo` (`id_modulo`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_permiso_rol` FOREIGN KEY (`id_rol`) REFERENCES `rol` (`id_rol`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `sesion` (
-  `id_sesion` varchar(24) NOT NULL,
-  `cedula_usuario` varchar(12) NOT NULL,
+  `id_sesion` varchar(50) NOT NULL,
+  `cedula` varchar(15) NOT NULL,
   `token` varchar(255) NOT NULL,
-  `dispositivo` varchar(100) DEFAULT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
+  `ip` varchar(45) DEFAULT NULL,
+  `dispositivo` varchar(255) DEFAULT NULL,
   `fecha_inicio` timestamp NOT NULL DEFAULT current_timestamp(),
   `fecha_expiracion` timestamp NOT NULL,
-  `activa` tinyint(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `bitacora`
---
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id_sesion`),
+  UNIQUE KEY `idx_token` (`token`),
+  KEY `fk_sesion_usuario` (`cedula`),
+  CONSTRAINT `fk_sesion_usuario` FOREIGN KEY (`cedula`) REFERENCES `usuario` (`cedula`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `bitacora` (
-  `id_bitacora` varchar(24) NOT NULL,
-  `cedula_usuario` varchar(12) NULL,
-  `modulo` varchar(45) NOT NULL,
-  `accion` varchar(100) NOT NULL,
-  `detalles` text DEFAULT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `fecha` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `notificacion`
---
+  `id_bitacora` varchar(30) NOT NULL,
+  `cedula` varchar(15) DEFAULT NULL,
+  `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
+  `modulo` varchar(50) NOT NULL,
+  `accion` varchar(50) NOT NULL,
+  `detalle` text NOT NULL,
+  `valores_anteriores` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`valores_anteriores`)),
+  `valores_nuevos` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`valores_nuevos`)),
+  PRIMARY KEY (`id_bitacora`),
+  KEY `idx_bitacora_fecha` (`fecha`),
+  KEY `fk_bitacora_usuario` (`cedula`),
+  CONSTRAINT `fk_bitacora_usuario` FOREIGN KEY (`cedula`) REFERENCES `usuario` (`cedula`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `notificacion` (
-  `id_notificacion` varchar(24) NOT NULL,
-  `cedula_usuario` varchar(12) NOT NULL,
+  `id_notificacion` varchar(30) NOT NULL,
+  `cedula` varchar(15) NOT NULL,
   `titulo` varchar(100) NOT NULL,
-  `mensaje` varchar(255) NOT NULL,
-  `tipo` enum('INFO','ALERTA','EXITO','ERROR') NOT NULL DEFAULT 'INFO',
-  `leida` tinyint(1) NOT NULL DEFAULT 0,
-  `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
-  `estatus` int(1) NOT NULL DEFAULT 1
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `mensaje` text NOT NULL,
+  `tipo` enum('INFO','ALERTA','EXITO','ERROR') DEFAULT 'INFO',
+  `fecha_envio` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_leido` timestamp NULL DEFAULT NULL,
+  `leido` tinyint(1) NOT NULL DEFAULT 0,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id_notificacion`),
+  KEY `fk_notificacion_usuario` (`cedula`),
+  CONSTRAINT `fk_notificacion_usuario` FOREIGN KEY (`cedula`) REFERENCES `usuario` (`cedula`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `noticia` (
+  `id_noticia` varchar(30) NOT NULL,
+  `cedula` varchar(15) NOT NULL,
+  `titulo` varchar(100) NOT NULL,
+  `subtitulo` varchar(150) DEFAULT NULL,
+  `contenido` text NOT NULL,
+  `tipo` enum('INFO','ALERTA','EXITO','ERROR') DEFAULT 'INFO',
+  `fecha_publicacion` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_expiracion` timestamp NULL DEFAULT NULL,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`id_noticia`),
+  KEY `fk_noticia_usuario` (`cedula`),
+  CONSTRAINT `fk_noticia_usuario` FOREIGN KEY (`cedula`) REFERENCES `usuario` (`cedula`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
-
---
--- Estructura Stand-in para la vista `vista_permisos_usuario`
---
-CREATE TABLE `vista_permisos_usuario` (
-`cedula_usuario` varchar(12)
-,`username` varchar(45)
-,`nombre_rol` varchar(45)
-,`modulos_permitidos` text
-);
-
+-- 4. VISTAS (VIEWS)
 -- --------------------------------------------------------
 
---
--- Estructura Stand-in para la vista `vista_actividad_usuarios`
---
-CREATE TABLE `vista_actividad_usuarios` (
-`cedula_usuario` varchar(12)
-,`username` varchar(45)
-,`nombres_completos` varchar(131)
-,`nombre_rol` varchar(45)
-,`ultimo_acceso` timestamp
-,`sesiones_activas` bigint(21)
-,`acciones_hoy` bigint(21)
-);
+CREATE VIEW `vw_accesos_usuarios` AS
+SELECT u.cedula, r.nombre_rol AS rol, m.nombre AS modulo, p.accion 
+FROM usuario u
+JOIN rol r ON u.id_rol = r.id_rol
+JOIN permiso p ON r.id_rol = p.id_rol
+JOIN modulo m ON p.id_modulo = m.id_modulo
+WHERE u.estatus = 1 AND p.estatus = 1;
+
+CREATE VIEW `vw_sesiones_activas` AS
+SELECT s.id_sesion, u.cedula, r.nombre_rol AS rol, s.ip, s.dispositivo, s.fecha_inicio 
+FROM sesion s
+JOIN usuario u ON s.cedula = u.cedula
+JOIN rol r ON u.id_rol = r.id_rol
+WHERE s.estatus = 1 AND s.fecha_expiracion > NOW();
+
+CREATE VIEW `vw_imagenes_usuario` AS
+SELECT u.cedula, u.username, u.nombres, u.apellidos, i.direccion, i.es_principal, i.orden
+FROM usuario u
+LEFT JOIN imagen i ON u.cedula = i.entidad_id AND i.entidad_tipo = 'USUARIO'
+WHERE i.es_principal = 1 OR i.es_principal IS NULL;
 
 -- --------------------------------------------------------
-
---
--- Estructura para la vista `vista_permisos_usuario`
---
-DROP TABLE IF EXISTS `vista_permisos_usuario`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_permisos_usuario`  AS SELECT `u`.`cedula` AS `cedula_usuario`, `u`.`username` AS `username`, `r`.`nombre_rol` AS `nombre_rol`, group_concat(distinct `m`.`nombre_modulo` order by `m`.`orden` separator ', ') AS `modulos_permitidos` FROM (((`usuario` `u` join `rol` `r` on(`u`.`id_rol` = `r`.`id_rol`)) join `permiso` `p` on(`r`.`id_rol` = `p`.`id_rol`)) join `modulo` `m` on(`p`.`id_modulo` = `m`.`id_modulo`)) WHERE `u`.`estatus` = 1 AND `r`.`estatus` = 1 AND `m`.`estatus` = 1 AND `p`.`estado` = 1 GROUP BY `u`.`cedula`, `u`.`username`, `r`.`nombre_rol` ;
-
+-- 5. PROCEDIMIENTOS (STORED PROCEDURES)
 -- --------------------------------------------------------
 
---
--- Estructura para la vista `vista_actividad_usuarios`
---
-DROP TABLE IF EXISTS `vista_actividad_usuarios`;
+DELIMITER $$
+CREATE PROCEDURE `sp_registrar_bitacora`(
+    IN `p_cedula` VARCHAR(15), 
+    IN `p_modulo` VARCHAR(50), 
+    IN `p_accion` VARCHAR(50), 
+    IN `p_detalle` TEXT,
+    IN `p_old` JSON,
+    IN `p_new` JSON
+)
+BEGIN
+    INSERT INTO bitacora (id_bitacora, cedula, modulo, accion, detalle, valores_anteriores, valores_nuevos)
+    VALUES (CONCAT('LOG-', UNIX_TIMESTAMP(), '-', SUBSTRING(MD5(RAND()), 1, 4)), p_cedula, p_modulo, p_accion, p_detalle, p_old, p_new);
+END$$
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_actividad_usuarios`  AS SELECT `u`.`cedula` AS `cedula_usuario`, `u`.`username` AS `username`, concat(`u`.`nombres`,' ',`u`.`apellidos`) AS `nombres_completos`, `r`.`nombre_rol` AS `nombre_rol`, `u`.`ultimo_acceso` AS `ultimo_acceso`, count(`s`.`id_sesion`) AS `sesiones_activas`, (select count(0) from `bitacora` `b` where `b`.`cedula_usuario` = `u`.`cedula` and cast(`b`.`fecha` as date) = curdate()) AS `acciones_hoy` FROM ((`usuario` `u` join `rol` `r` on(`u`.`id_rol` = `r`.`id_rol`)) left join `sesion` `s` on(`u`.`cedula` = `s`.`cedula_usuario` and `s`.`activa` = 1)) WHERE `u`.`estatus` = 1 GROUP BY `u`.`cedula`, `u`.`username`, `u`.`nombres`, `u`.`apellidos`, `r`.`nombre_rol`, `u`.`ultimo_acceso` ;
+-- Procedimiento para obtener imágenes por entidad
+CREATE PROCEDURE `sp_obtener_imagenes_entidad`(
+    IN `p_tipo` VARCHAR(20),
+    IN `p_id` VARCHAR(30)
+)
+BEGIN
+    SELECT id_imagen, direccion, orden, es_principal, titulo, descripcion, fecha_subida
+    FROM imagen 
+    WHERE entidad_tipo = p_tipo AND entidad_id = p_id
+    ORDER BY es_principal DESC, orden ASC;
+END$$
 
---
--- Índices para tablas volcadas
---
+DELIMITER ;
 
---
--- Indices de la tabla `rol`
---
-ALTER TABLE `rol`
-  ADD PRIMARY KEY (`id_rol`),
-  ADD UNIQUE KEY `nombre_rol` (`nombre_rol`);
+-- --------------------------------------------------------
+-- 6. DISPARADORES (TRIGGERS)
+-- --------------------------------------------------------
 
---
--- Indices de la tabla `usuario`
---
-ALTER TABLE `usuario`
-  ADD PRIMARY KEY (`cedula`),
-  ADD UNIQUE KEY `username` (`username`),
-  ADD UNIQUE KEY `correo` (`correo`),
-  ADD KEY `id_rol` (`id_rol`);
+DELIMITER $$
+CREATE TRIGGER `trg_audit_usuario_update` AFTER UPDATE ON `usuario`
+FOR EACH ROW BEGIN
+    IF OLD.estatus != NEW.estatus THEN
+        CALL sp_registrar_bitacora(NEW.cedula, 'SEGURIDAD', 'UPDATE_ESTATUS', CONCAT('Estatus cambiado de ', OLD.estatus, ' a ', NEW.estatus), NULL, NULL);
+    END IF;
+END$$
 
---
--- Indices de la tabla `modulo`
---
-ALTER TABLE `modulo`
-  ADD PRIMARY KEY (`id_modulo`),
-  ADD UNIQUE KEY `nombre_modulo` (`nombre_modulo`);
+-- Trigger para asegurar solo una imagen principal por entidad
+CREATE TRIGGER `trg_imagen_principal_unica` BEFORE INSERT ON `imagen`
+FOR EACH ROW BEGIN
+    IF NEW.es_principal = 1 THEN
+        UPDATE imagen SET es_principal = 0 
+        WHERE entidad_tipo = NEW.entidad_tipo 
+        AND entidad_id = NEW.entidad_id 
+        AND es_principal = 1;
+    END IF;
+END$$
 
---
--- Indices de la tabla `permiso`
---
-ALTER TABLE `permiso`
-  ADD PRIMARY KEY (`id_permiso`),
-  ADD UNIQUE KEY `unique_permiso` (`id_rol`,`id_modulo`,`accion`),
-  ADD KEY `id_modulo` (`id_modulo`);
+DELIMITER ;
 
---
--- Indices de la tabla `sesion`
---
-ALTER TABLE `sesion`
-  ADD PRIMARY KEY (`id_sesion`),
-  ADD UNIQUE KEY `token` (`token`),
-  ADD KEY `cedula_usuario` (`cedula_usuario`),
-  ADD KEY `fecha_expiracion` (`fecha_expiracion`);
-
---
--- Indices de la tabla `bitacora`
---
-ALTER TABLE `bitacora`
-  ADD PRIMARY KEY (`id_bitacora`),
-  ADD KEY `cedula_usuario` (`cedula_usuario`),
-  ADD KEY `fecha` (`fecha`),
-  ADD KEY `modulo` (`modulo`);
-
---
--- Indices de la tabla `notificacion`
---
-ALTER TABLE `notificacion`
-  ADD PRIMARY KEY (`id_notificacion`),
-  ADD KEY `cedula_usuario` (`cedula_usuario`),
-  ADD KEY `leida` (`leida`),
-  ADD KEY `fecha` (`fecha`);
-
---
--- Restricciones para tablas volcadas
---
-
---
--- Filtros para la tabla `usuario`
---
-ALTER TABLE `usuario`
-  ADD CONSTRAINT `usuario_ibfk_1` FOREIGN KEY (`id_rol`) REFERENCES `rol` (`id_rol`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `permiso`
---
-ALTER TABLE `permiso`
-  ADD CONSTRAINT `permiso_ibfk_1` FOREIGN KEY (`id_rol`) REFERENCES `rol` (`id_rol`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `permiso_ibfk_2` FOREIGN KEY (`id_modulo`) REFERENCES `modulo` (`id_modulo`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `sesion`
---
-ALTER TABLE `sesion`
-  ADD CONSTRAINT `sesion_ibfk_1` FOREIGN KEY (`cedula_usuario`) REFERENCES `usuario` (`cedula`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `bitacora`
---
-ALTER TABLE `bitacora`
-  ADD CONSTRAINT `bitacora_ibfk_1` FOREIGN KEY (`cedula_usuario`) REFERENCES `usuario` (`cedula`) ON DELETE SET NULL ON UPDATE CASCADE;
-
---
--- Filtros para la tabla `notificacion`
---
-ALTER TABLE `notificacion`
-  ADD CONSTRAINT `notificacion_ibfk_1` FOREIGN KEY (`cedula_usuario`) REFERENCES `usuario` (`cedula`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
