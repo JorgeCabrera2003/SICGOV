@@ -81,7 +81,6 @@ class BusinessSeeder
         echo "       $cantidad Productos generados correctamente con Faker.\n";
     }
 
-    //cedula_personal	nombres	apellidos	id_cargo	telefono	correo	fecha_ingreso	salario	estatus	
     private function crearPersonalsFalsos($cantidad)
     {
         $stmt = $this->db->query("SELECT id_cargo FROM cargo LIMIT 1");
@@ -120,133 +119,28 @@ class BusinessSeeder
         echo "       Empleados generados correctamente con Faker.\n";
     }
 
-    //id_ingrediente	nombre_ingrediente	unidad_medida	precio_unitario	estatus	
-
     private function crearIngredientesFalsos($cantidad)
     {
         $ingredientes = [
-            // Carnes
-            'carne de res',
-            'carne molida',
-            'pollo',
-            'pechuga de pollo',
-            'cerdo',
-            'tocino',
-            'jamón',
-            'salchicha',
-            'chorizo',
-            'costillas',
-            'pescado',
-            'atún',
-            'camarones',
-            'pulpo',
-            'calamares',
-            'langosta',
-
-            // Verduras y hortalizas
-            'lechuga',
-            'tomate',
-            'cebolla',
-            'cebolla morada',
-            'ajo',
-            'pimentón',
-            'ají dulce',
-            'zanahoria',
-            'pepino',
-            'aguacate',
-            'espinaca',
-            'repollo',
-            'brocoli',
-            'coliflor',
-            'calabacín',
-            'berenjena',
-            'champiñones',
-            'maíz',
-            'arvejas',
-            'remolacha',
-            'apio',
-            'perejil',
-            'cilantro',
-            'orégano',
-
-            // Lácteos y huevos
-            'queso mozzarella',
-            'queso cheddar',
-            'queso amarillo',
-            'queso blanco',
-            'queso parmesano',
-            'queso de cabra',
-            'queso crema',
-            'requesón',
-            'leche',
-            'crema de leche',
-            'mantequilla',
-            'yogur',
-            'huevos',
-
-            // Granos y harinas
-            'harina de trigo',
-            'harina de maíz',
-            'arroz',
-            'pasta',
-            'pan',
-            'pan rallado',
-            'avena',
-            'quinua',
-            'lentejas',
-            'caraotas',
-            'garbanzos',
-
-            // Frutas
-            'plátano',
-            'cambur',
-            'manzana',
-            'naranja',
-            'limón',
-            'fresa',
-            'piña',
-            'mango',
-            'papaya',
-            'melón',
-            'sandía',
-            'durazno',
-            'coco',
-
-            // Especias y condimentos
-            'sal',
-            'pimienta',
-            'comino',
-            'paprika',
-            'curry',
-            'nuez moscada',
-            'canela',
-            'clavo de olor',
-            'laurel',
-            'tomillo',
-            'romero',
-            'albahaca',
-            'salsa de tomate',
-            'mayonesa',
-            'mostaza',
-            'salsa inglesa',
-            'vinagre',
-            'aceite de oliva',
-            'aceite vegetal',
-            'miel',
-            'azúcar',
-            'salsa de soya',
-
-            // Otros
-            'papas',
-            'yuca',
-            'plátano verde',
-            'tostones',
-            'patacones',
-            'arepa',
-            'pan de hamburguesa',
-            'pan de perro caliente',
-            'tortilla',
-            'masa de pizza'
+            'carne de res', 'carne molida', 'pollo', 'pechuga de pollo', 'cerdo',
+            'tocino', 'jamón', 'salchicha', 'chorizo', 'costillas', 'pescado', 'atún',
+            'camarones', 'pulpo', 'calamares', 'langosta', 'lechuga', 'tomate',
+            'cebolla', 'cebolla morada', 'ajo', 'pimentón', 'ají dulce', 'zanahoria',
+            'pepino', 'aguacate', 'espinaca', 'repollo', 'brocoli', 'coliflor',
+            'calabacín', 'berenjena', 'champiñones', 'maíz', 'arvejas', 'remolacha',
+            'apio', 'perejil', 'cilantro', 'orégano', 'queso mozzarella',
+            'queso cheddar', 'queso amarillo', 'queso blanco', 'queso parmesano',
+            'queso de cabra', 'queso crema', 'requesón', 'leche', 'crema de leche',
+            'mantequilla', 'yogur', 'huevos', 'harina de trigo', 'harina de maíz',
+            'arroz', 'pasta', 'pan', 'pan rallado', 'avena', 'quinua', 'lentejas',
+            'caraotas', 'garbanzos', 'plátano', 'cambur', 'manzana', 'naranja',
+            'limón', 'fresa', 'piña', 'mango', 'papaya', 'melón', 'sandía', 'durazno',
+            'coco', 'sal', 'pimienta', 'comino', 'paprika', 'curry', 'nuez moscada',
+            'canela', 'clavo de olor', 'laurel', 'tomillo', 'romero', 'albahaca',
+            'salsa de tomate', 'mayonesa', 'mostaza', 'salsa inglesa', 'vinagre',
+            'aceite de oliva', 'aceite vegetal', 'miel', 'azúcar', 'salsa de soya',
+            'papas', 'yuca', 'plátano verde', 'tostones', 'patacones', 'arepa',
+            'pan de hamburguesa', 'pan de perro caliente', 'tortilla', 'masa de pizza'
         ];
 
         $cantidad = min($cantidad, count($ingredientes));
@@ -261,10 +155,18 @@ class BusinessSeeder
             $categoriaId = $categoria['id_categoria'];
         }
 
+        // Obtener unidades de medida disponibles
+        $unidadesStmt = $this->db->query("SELECT id_unidad FROM unidad_medida WHERE tipo IN ('PESO', 'VOLUMEN', 'UNIDAD')");
+        $unidades = $unidadesStmt->fetchAll(\PDO::FETCH_COLUMN);
+        
+        if (empty($unidades)) {
+            $unidades = ['KG', 'G', 'L', 'ML', 'UN'];
+        }
+
         $sql = "INSERT INTO ingrediente 
-            (id_ingrediente, id_categoria, nombre_ingrediente, unidad_medida, precio_unitario, estatus) 
+            (id_ingrediente, id_categoria, nombre_ingrediente, id_unidad_medida, precio_unitario, estatus) 
             VALUES 
-            (:id, :id_categoria, :nombre, :unidad, :precio, 1)";
+            (:id, :id_categoria, :nombre, :id_unidad, :precio, 1)";
 
         $stmt = $this->db->prepare($sql);
 
@@ -272,17 +174,15 @@ class BusinessSeeder
 
         for ($i = 0; $i < $cantidad; $i++) {
             $stmt->execute([
-                'id'       => 'INGR-' . $this->faker->unique()->numberBetween(1000, 9999) . time(),
+                'id'          => 'INGR-' . $this->faker->unique()->numberBetween(1000, 9999) . time(),
                 'id_categoria' => $categoriaId,
-                'nombre'   => ucfirst($this->faker->unique()->randomElement($ingredientes)),
-                'unidad'   => $this->faker->randomElement(['kg', 'g', 'litros', 'ml', 'unidades', 'paquete']),
-                'precio'   => $this->faker->randomFloat(2, 1, 20)
+                'nombre'      => ucfirst($this->faker->unique()->randomElement($ingredientes)),
+                'id_unidad'   => $this->faker->randomElement($unidades),
+                'precio'      => $this->faker->randomFloat(2, 1, 20)
             ]);
         }
         echo "       $cantidad Ingredientes únicos generados correctamente con Faker.\n";
     }
-
-    //	id_cliente	nombres	telefono	correo	fecha_registro
 
     private function crearClientesFalsos($cantidad)
     {

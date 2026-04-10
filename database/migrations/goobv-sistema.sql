@@ -11,6 +11,34 @@ SET time_zone = "-04:00";
 -- 1. TABLAS DICCIONARIO / CATÁLOGOS BASE
 -- --------------------------------------------------------
 
+CREATE TABLE `unidad_medida` (
+  `id_unidad` varchar(10) NOT NULL,
+  `nombre` varchar(30) NOT NULL COMMENT 'kg, g, litros, ml, unidades, etc.',
+  `abreviatura` varchar(10) NOT NULL,
+  `tipo` enum('PESO','VOLUMEN','UNIDAD','LONGITUD') NOT NULL DEFAULT 'UNIDAD',
+  `factor_conversion` decimal(10,6) DEFAULT 1.000000 COMMENT 'Factor para conversión a unidad base',
+  `unidad_base` varchar(10) DEFAULT NULL COMMENT 'ID de la unidad base para conversiones',
+  PRIMARY KEY (`id_unidad`),
+  UNIQUE KEY `idx_unidad_nombre` (`nombre`),
+  UNIQUE KEY `idx_unidad_abrev` (`abreviatura`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Catálogo de unidades de medida estandarizadas';
+
+-- Datos iniciales de unidades de medida
+INSERT INTO `unidad_medida` (`id_unidad`, `nombre`, `abreviatura`, `tipo`, `factor_conversion`, `unidad_base`) VALUES
+('KG', 'kilogramo', 'kg', 'PESO', 1.000000, NULL),
+('G', 'gramo', 'g', 'PESO', 0.001000, 'KG'),
+('LB', 'libra', 'lb', 'PESO', 0.453592, 'KG'),
+('OZ', 'onza', 'oz', 'PESO', 0.028350, 'KG'),
+('L', 'litro', 'L', 'VOLUMEN', 1.000000, NULL),
+('ML', 'mililitro', 'ml', 'VOLUMEN', 0.001000, 'L'),
+('GAL', 'galón', 'gal', 'VOLUMEN', 3.785410, 'L'),
+('UN', 'unidad', 'und', 'UNIDAD', 1.000000, NULL),
+('DOC', 'docena', 'doc', 'UNIDAD', 12.000000, 'UN'),
+('M', 'metro', 'm', 'LONGITUD', 1.000000, NULL),
+('CM', 'centímetro', 'cm', 'LONGITUD', 0.010000, 'M'),
+('PQT', 'paquete', 'pqt', 'UNIDAD', 1.000000, NULL),
+('CJA', 'caja', 'caja', 'UNIDAD', 1.000000, NULL);
+
 CREATE TABLE `cargo` (
   `id_cargo` varchar(30) NOT NULL,
   `nombre_cargo` varchar(60) NOT NULL,
@@ -177,7 +205,7 @@ CREATE TABLE `ingrediente` (
   `id_ingrediente` varchar(30) NOT NULL,
   `id_categoria` varchar(30) NOT NULL,
   `nombre_ingrediente` varchar(100) NOT NULL,
-  `unidad_medida` varchar(20) NOT NULL,
+  `id_unidad_medida` varchar(10) NOT NULL DEFAULT 'UN',
   `precio_unitario` decimal(10,2) DEFAULT 0.00,
   `stock_actual` decimal(10,3) NOT NULL DEFAULT 0.000,
   `stock_minimo` decimal(10,3) NOT NULL DEFAULT 0.000,
@@ -185,7 +213,9 @@ CREATE TABLE `ingrediente` (
   `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_ingrediente`),
   KEY `fk_ing_cat` (`id_categoria`),
-  CONSTRAINT `fk_ing_cat` FOREIGN KEY (`id_categoria`) REFERENCES `categoria_ingrediente` (`id_categoria`) ON UPDATE CASCADE
+  KEY `fk_ing_unidad` (`id_unidad_medida`),
+  CONSTRAINT `fk_ing_cat` FOREIGN KEY (`id_categoria`) REFERENCES `categoria_ingrediente` (`id_categoria`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_ing_unidad` FOREIGN KEY (`id_unidad_medida`) REFERENCES `unidad_medida` (`id_unidad`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `producto` (
@@ -214,12 +244,14 @@ CREATE TABLE `preparacion` (
   `id_ingrediente` varchar(30) NOT NULL,
   `prioridad_ingrediente` int(11) DEFAULT 1,
   `cantidad` decimal(10,3) NOT NULL CHECK (`cantidad` > 0),
-  `unidad_medida` varchar(20) NOT NULL,
+  `id_unidad_medida` varchar(10) NOT NULL DEFAULT 'UN',
   PRIMARY KEY (`id_preparacion`),
   KEY `fk_prep_prod` (`id_producto`),
   KEY `fk_prep_ing` (`id_ingrediente`),
+  KEY `fk_prep_unidad` (`id_unidad_medida`),
   CONSTRAINT `fk_prep_prod` FOREIGN KEY (`id_producto`) REFERENCES `producto` (`id_producto`) ON DELETE CASCADE,
-  CONSTRAINT `fk_prep_ing` FOREIGN KEY (`id_ingrediente`) REFERENCES `ingrediente` (`id_ingrediente`) ON UPDATE CASCADE
+  CONSTRAINT `fk_prep_ing` FOREIGN KEY (`id_ingrediente`) REFERENCES `ingrediente` (`id_ingrediente`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_prep_unidad` FOREIGN KEY (`id_unidad_medida`) REFERENCES `unidad_medida` (`id_unidad`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Recetas de productos';
 
 CREATE TABLE `promocion` (
@@ -355,34 +387,42 @@ CREATE TABLE `movimiento_ingrediente` (
   `id_ingrediente` varchar(30) NOT NULL,
   `id_detalle` varchar(30) DEFAULT NULL COMMENT 'Vinculado a la venta si es una salida automática',
   `cantidad` decimal(10,3) NOT NULL,
-  `unidad_medida` varchar(20) NOT NULL,
+  `id_unidad_medida` varchar(10) NOT NULL DEFAULT 'UN',
   `tipo` enum('ENTRADA','SALIDA','AJUSTE','MERMA') NOT NULL,
   `descripcion` varchar(255) DEFAULT NULL,
   `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_movimiento`),
   KEY `fk_mov_ing` (`id_ingrediente`),
   KEY `fk_mov_det` (`id_detalle`),
+  KEY `fk_mov_unidad` (`id_unidad_medida`),
   CONSTRAINT `fk_mov_ing` FOREIGN KEY (`id_ingrediente`) REFERENCES `ingrediente` (`id_ingrediente`) ON DELETE CASCADE,
-  CONSTRAINT `fk_mov_det` FOREIGN KEY (`id_detalle`) REFERENCES `detalle_pedido` (`id_detalle`) ON DELETE SET NULL
+  CONSTRAINT `fk_mov_det` FOREIGN KEY (`id_detalle`) REFERENCES `detalle_pedido` (`id_detalle`) ON DELETE SET NULL,
+  CONSTRAINT `fk_mov_unidad` FOREIGN KEY (`id_unidad_medida`) REFERENCES `unidad_medida` (`id_unidad`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 -- 7. VISTAS (VIEWS)
 -- --------------------------------------------------------
 
--- Vista 1: Ingredientes por debajo del stock mínimo
 CREATE VIEW `vw_alertas_inventario` AS
-SELECT i.id_ingrediente, i.nombre_ingrediente AS nombre, c.nombre AS categoria, i.stock_actual, i.stock_minimo, i.unidad_medida 
+SELECT i.id_ingrediente, i.nombre_ingrediente AS nombre, c.nombre AS categoria, 
+       i.stock_actual, i.stock_minimo, um.nombre AS unidad_medida
 FROM ingrediente i
 JOIN categoria_ingrediente c ON i.id_categoria = c.id_categoria
+JOIN unidad_medida um ON i.id_unidad_medida = um.id_unidad
 WHERE i.stock_actual <= i.stock_minimo;
 
--- Vista 2: Resumen de empleados con su cargo
 CREATE VIEW `vw_directorio_empleados` AS
 SELECT p.cedula, p.nombre, p.apellido, p.telefono, c.nombre_cargo AS cargo, e.fecha_ingreso 
 FROM empleado e
 JOIN persona p ON e.cedula = p.cedula
 JOIN cargo c ON e.id_cargo = c.id_cargo;
+
+CREATE VIEW `vw_conversiones_unidades` AS
+SELECT u1.id_unidad, u1.nombre, u1.abreviatura, u1.tipo,
+       u1.factor_conversion, u2.nombre AS unidad_base_nombre
+FROM unidad_medida u1
+LEFT JOIN unidad_medida u2 ON u1.unidad_base = u2.id_unidad;
 
 -- --------------------------------------------------------
 -- 8. DISPARADORES (TRIGGERS)
@@ -390,7 +430,6 @@ JOIN cargo c ON e.id_cargo = c.id_cargo;
 
 DELIMITER $$
 
--- Trigger: Actualizar el stock_actual del ingrediente cada vez que hay un movimiento
 CREATE TRIGGER `trg_actualizar_stock_movimiento` AFTER INSERT ON `movimiento_ingrediente`
 FOR EACH ROW BEGIN
     IF NEW.tipo = 'ENTRADA' OR NEW.tipo = 'AJUSTE' THEN
@@ -400,7 +439,6 @@ FOR EACH ROW BEGIN
     END IF;
 END$$
 
--- Trigger: Actualizar la última visita del cliente cuando hace un pedido
 CREATE TRIGGER `trg_actualizar_visita_cliente` AFTER INSERT ON `pedido`
 FOR EACH ROW BEGIN
     IF NEW.cedula_cliente IS NOT NULL THEN
@@ -416,19 +454,16 @@ DELIMITER ;
 
 DELIMITER $$
 
--- Procedimiento Profesional: Descontar inventario automáticamente al vender un Detalle de Pedido
--- Se ejecuta cuando el detalle pasa a cocina o se entrega.
 CREATE PROCEDURE `sp_descontar_receta_pedido`(IN `p_id_detalle` VARCHAR(30))
 BEGIN
     DECLARE v_done INT DEFAULT FALSE;
     DECLARE v_id_ingrediente VARCHAR(30);
     DECLARE v_cantidad_receta DECIMAL(10,3);
     DECLARE v_cantidad_pedida INT;
-    DECLARE v_unidad VARCHAR(20);
+    DECLARE v_id_unidad VARCHAR(10);
     
-    -- Cursor para recorrer los ingredientes de la receta del producto pedido
     DECLARE cur_receta CURSOR FOR 
-        SELECT pr.id_ingrediente, pr.cantidad, pr.unidad_medida, dp.cantidad
+        SELECT pr.id_ingrediente, pr.cantidad, pr.id_unidad_medida, dp.cantidad
         FROM preparacion pr
         JOIN detalle_pedido dp ON pr.id_producto = dp.id_producto
         WHERE dp.id_detalle = p_id_detalle;
@@ -438,18 +473,47 @@ BEGIN
     OPEN cur_receta;
     
     read_loop: LOOP
-        FETCH cur_receta INTO v_id_ingrediente, v_cantidad_receta, v_unidad, v_cantidad_pedida;
+        FETCH cur_receta INTO v_id_ingrediente, v_cantidad_receta, v_id_unidad, v_cantidad_pedida;
         IF v_done THEN
             LEAVE read_loop;
         END IF;
         
-        -- Insertamos el movimiento (el trigger de movimiento se encarga de restar el stock real)
-        INSERT INTO movimiento_ingrediente (id_movimiento, id_ingrediente, id_detalle, cantidad, unidad_medida, tipo, descripcion)
-        VALUES (CONCAT('MOV-', UNIX_TIMESTAMP(), '-', FLOOR(RAND()*1000)), v_id_ingrediente, p_id_detalle, (v_cantidad_receta * v_cantidad_pedida), v_unidad, 'SALIDA', 'Descuento automático por pedido');
+        INSERT INTO movimiento_ingrediente (id_movimiento, id_ingrediente, id_detalle, cantidad, id_unidad_medida, tipo, descripcion)
+        VALUES (CONCAT('MOV-', UNIX_TIMESTAMP(), '-', FLOOR(RAND()*1000)), v_id_ingrediente, p_id_detalle, (v_cantidad_receta * v_cantidad_pedida), v_id_unidad, 'SALIDA', 'Descuento automático por pedido');
         
     END LOOP;
     
     CLOSE cur_receta;
+END$$
+
+CREATE PROCEDURE `sp_convertir_unidad`(
+    IN `p_cantidad` DECIMAL(10,3),
+    IN `p_unidad_origen` VARCHAR(10),
+    IN `p_unidad_destino` VARCHAR(10),
+    OUT `p_resultado` DECIMAL(10,3)
+)
+BEGIN
+    DECLARE v_factor_origen DECIMAL(10,6);
+    DECLARE v_factor_destino DECIMAL(10,6);
+    DECLARE v_base_origen VARCHAR(10);
+    DECLARE v_base_destino VARCHAR(10);
+    DECLARE v_tipo_origen VARCHAR(20);
+    DECLARE v_tipo_destino VARCHAR(20);
+    
+    -- Obtener información de unidades
+    SELECT factor_conversion, unidad_base, tipo INTO v_factor_origen, v_base_origen, v_tipo_origen
+    FROM unidad_medida WHERE id_unidad = p_unidad_origen;
+    
+    SELECT factor_conversion, unidad_base, tipo INTO v_factor_destino, v_base_destino, v_tipo_destino
+    FROM unidad_medida WHERE id_unidad = p_unidad_destino;
+    
+    -- Verificar compatibilidad de tipos
+    IF v_tipo_origen != v_tipo_destino THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se pueden convertir unidades de diferentes tipos';
+    END IF;
+    
+    -- Convertir usando factores
+    SET p_resultado = p_cantidad * (v_factor_origen / v_factor_destino);
 END$$
 
 DELIMITER ;

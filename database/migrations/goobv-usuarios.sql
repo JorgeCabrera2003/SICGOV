@@ -29,7 +29,26 @@ CREATE TABLE `modulo` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Módulos del sistema para permisos';
 
 -- --------------------------------------------------------
--- 2. TABLAS TRANSACCIONALES
+-- 2. TABLA DE IMÁGENES POLIMÓRFICA (Reutilizable)
+-- --------------------------------------------------------
+
+CREATE TABLE `imagen` (
+  `id_imagen` varchar(30) NOT NULL,
+  `entidad_tipo` enum('USUARIO','NOTICIA','PRODUCTO','CATEGORIA','PROMOCION') NOT NULL COMMENT 'Tipo de entidad a la que pertenece la imagen',
+  `entidad_id` varchar(30) NOT NULL COMMENT 'ID de la entidad relacionada',
+  `direccion` varchar(255) NOT NULL COMMENT 'Ruta o URL de la imagen',
+  `orden` int(11) DEFAULT 1 COMMENT 'Orden de visualización',
+  `es_principal` tinyint(1) DEFAULT 0 COMMENT 'Indica si es la imagen principal',
+  `titulo` varchar(100) DEFAULT NULL,
+  `descripcion` varchar(255) DEFAULT NULL,
+  `fecha_subida` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_imagen`),
+  KEY `idx_imagen_entidad` (`entidad_tipo`, `entidad_id`),
+  KEY `idx_imagen_usuario` (`entidad_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Almacena imágenes para múltiples entidades del sistema';
+
+-- --------------------------------------------------------
+-- 3. TABLAS TRANSACCIONALES
 -- --------------------------------------------------------
 
 CREATE TABLE `usuario` (
@@ -43,7 +62,7 @@ CREATE TABLE `usuario` (
   `fecha_nacimiento` date DEFAULT NULL,
   `sexo` char(1) DEFAULT NULL,
   `clave` varchar(255) NOT NULL,
-  `foto_perfil` varchar(255) DEFAULT NULL,
+  `foto_perfil` varchar(255) DEFAULT NULL COMMENT 'DEPRECATED: Usar tabla imagen con entidad_tipo="USUARIO" y es_principal=1',
   `tema` varchar(20) DEFAULT 'light',
   `ultimo_acceso` timestamp NULL DEFAULT NULL,
   `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -128,17 +147,8 @@ CREATE TABLE `noticia` (
   CONSTRAINT `fk_noticia_usuario` FOREIGN KEY (`cedula`) REFERENCES `usuario` (`cedula`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `imagen_noticia` (
-  `id_imagen` varchar(30) NOT NULL,
-  `id_noticia` varchar(30) NOT NULL,
-  `direccion` varchar(255) NOT NULL,
-  PRIMARY KEY (`id_imagen`),
-  KEY `fk_img_noticia` (`id_noticia`),
-  CONSTRAINT `fk_img_noticia` FOREIGN KEY (`id_noticia`) REFERENCES `noticia` (`id_noticia`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- --------------------------------------------------------
--- 3. VISTAS (VIEWS)
+-- 4. VISTAS (VIEWS)
 -- --------------------------------------------------------
 
 CREATE VIEW `vw_accesos_usuarios` AS
@@ -156,8 +166,14 @@ JOIN usuario u ON s.cedula = u.cedula
 JOIN rol r ON u.id_rol = r.id_rol
 WHERE s.estatus = 1 AND s.fecha_expiracion > NOW();
 
+CREATE VIEW `vw_imagenes_usuario` AS
+SELECT u.cedula, u.username, u.nombres, u.apellidos, i.direccion, i.es_principal, i.orden
+FROM usuario u
+LEFT JOIN imagen i ON u.cedula = i.entidad_id AND i.entidad_tipo = 'USUARIO'
+WHERE i.es_principal = 1 OR i.es_principal IS NULL;
+
 -- --------------------------------------------------------
--- 4. PROCEDIMIENTOS (STORED PROCEDURES)
+-- 5. PROCEDIMIENTOS (STORED PROCEDURES)
 -- --------------------------------------------------------
 
 DELIMITER $$
@@ -173,10 +189,23 @@ BEGIN
     INSERT INTO bitacora (id_bitacora, cedula, modulo, accion, detalle, valores_anteriores, valores_nuevos)
     VALUES (CONCAT('LOG-', UNIX_TIMESTAMP(), '-', SUBSTRING(MD5(RAND()), 1, 4)), p_cedula, p_modulo, p_accion, p_detalle, p_old, p_new);
 END$$
+
+-- Procedimiento para obtener imágenes por entidad
+CREATE PROCEDURE `sp_obtener_imagenes_entidad`(
+    IN `p_tipo` VARCHAR(20),
+    IN `p_id` VARCHAR(30)
+)
+BEGIN
+    SELECT id_imagen, direccion, orden, es_principal, titulo, descripcion, fecha_subida
+    FROM imagen 
+    WHERE entidad_tipo = p_tipo AND entidad_id = p_id
+    ORDER BY es_principal DESC, orden ASC;
+END$$
+
 DELIMITER ;
 
 -- --------------------------------------------------------
--- 5. DISPARADORES (TRIGGERS)
+-- 6. DISPARADORES (TRIGGERS)
 -- --------------------------------------------------------
 
 DELIMITER $$
@@ -186,6 +215,18 @@ FOR EACH ROW BEGIN
         CALL sp_registrar_bitacora(NEW.cedula, 'SEGURIDAD', 'UPDATE_ESTATUS', CONCAT('Estatus cambiado de ', OLD.estatus, ' a ', NEW.estatus), NULL, NULL);
     END IF;
 END$$
+
+-- Trigger para asegurar solo una imagen principal por entidad
+CREATE TRIGGER `trg_imagen_principal_unica` BEFORE INSERT ON `imagen`
+FOR EACH ROW BEGIN
+    IF NEW.es_principal = 1 THEN
+        UPDATE imagen SET es_principal = 0 
+        WHERE entidad_tipo = NEW.entidad_tipo 
+        AND entidad_id = NEW.entidad_id 
+        AND es_principal = 1;
+    END IF;
+END$$
+
 DELIMITER ;
 
 COMMIT;
