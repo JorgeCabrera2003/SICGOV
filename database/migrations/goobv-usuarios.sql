@@ -44,7 +44,7 @@ CREATE TABLE `imagen` (
   `fecha_subida` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_imagen`),
   KEY `idx_imagen_entidad` (`entidad_tipo`, `entidad_id`),
-  KEY `idx_imagen_usuario` (`entidad_id`) USING BTREE
+  KEY `idx_imagen_entidad_id` (`entidad_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Almacena imágenes para múltiples entidades del sistema';
 
 -- --------------------------------------------------------
@@ -52,27 +52,19 @@ CREATE TABLE `imagen` (
 -- --------------------------------------------------------
 
 CREATE TABLE `usuario` (
-  `cedula` varchar(15) NOT NULL,
+  `cedula` varchar(15) NOT NULL COMMENT 'FK a persona.cedula en goobv-sistema',
   `id_rol` varchar(30) NOT NULL,
   `username` varchar(50) NOT NULL,
-  `nombres` varchar(100) NOT NULL,
-  `apellidos` varchar(100) NOT NULL,
-  `telefono` varchar(20) DEFAULT NULL,
-  `correo` varchar(100) NOT NULL,
-  `fecha_nacimiento` date DEFAULT NULL,
-  `sexo` char(1) DEFAULT NULL,
   `clave` varchar(255) NOT NULL,
-  `foto_perfil` varchar(255) DEFAULT NULL COMMENT 'DEPRECATED: Usar tabla imagen con entidad_tipo="USUARIO" y es_principal=1',
   `tema` varchar(20) DEFAULT 'light',
   `ultimo_acceso` timestamp NULL DEFAULT NULL,
   `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp(),
   `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`cedula`),
   UNIQUE KEY `idx_usuario_username` (`username`),
-  UNIQUE KEY `idx_usuario_correo` (`correo`),
   KEY `fk_usuario_rol` (`id_rol`),
   CONSTRAINT `fk_usuario_rol` FOREIGN KEY (`id_rol`) REFERENCES `rol` (`id_rol`) ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Usuarios del sistema - Datos de autenticación';
 
 CREATE TABLE `permiso` (
   `id_permiso` varchar(30) NOT NULL,
@@ -134,7 +126,7 @@ CREATE TABLE `notificacion` (
 
 CREATE TABLE `noticia` (
   `id_noticia` varchar(30) NOT NULL,
-  `cedula` varchar(15) NOT NULL,
+  `cedula` varchar(15) NOT NULL COMMENT 'Usuario que publica la noticia',
   `titulo` varchar(100) NOT NULL,
   `subtitulo` varchar(150) DEFAULT NULL,
   `contenido` text NOT NULL,
@@ -166,11 +158,9 @@ JOIN usuario u ON s.cedula = u.cedula
 JOIN rol r ON u.id_rol = r.id_rol
 WHERE s.estatus = 1 AND s.fecha_expiracion > NOW();
 
-CREATE VIEW `vw_imagenes_usuario` AS
-SELECT u.cedula, u.username, u.nombres, u.apellidos, i.direccion, i.es_principal, i.orden
-FROM usuario u
-LEFT JOIN imagen i ON u.cedula = i.entidad_id AND i.entidad_tipo = 'USUARIO'
-WHERE i.es_principal = 1 OR i.es_principal IS NULL;
+CREATE VIEW `vw_imagenes_entidad` AS
+SELECT i.id_imagen, i.entidad_tipo, i.entidad_id, i.direccion, i.es_principal, i.orden, i.titulo
+FROM imagen i;
 
 -- --------------------------------------------------------
 -- 5. PROCEDIMIENTOS (STORED PROCEDURES)
@@ -190,7 +180,6 @@ BEGIN
     VALUES (CONCAT('LOG-', UNIX_TIMESTAMP(), '-', SUBSTRING(MD5(RAND()), 1, 4)), p_cedula, p_modulo, p_accion, p_detalle, p_old, p_new);
 END$$
 
--- Procedimiento para obtener imágenes por entidad
 CREATE PROCEDURE `sp_obtener_imagenes_entidad`(
     IN `p_tipo` VARCHAR(20),
     IN `p_id` VARCHAR(30)
@@ -216,7 +205,6 @@ FOR EACH ROW BEGIN
     END IF;
 END$$
 
--- Trigger para asegurar solo una imagen principal por entidad
 CREATE TRIGGER `trg_imagen_principal_unica` BEFORE INSERT ON `imagen`
 FOR EACH ROW BEGIN
     IF NEW.es_principal = 1 THEN
