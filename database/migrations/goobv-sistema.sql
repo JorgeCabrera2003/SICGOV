@@ -23,7 +23,6 @@ CREATE TABLE `unidad_medida` (
   UNIQUE KEY `idx_unidad_abrev` (`abreviatura`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Catálogo de unidades de medida estandarizadas';
 
--- Datos iniciales de unidades de medida
 INSERT INTO `unidad_medida` (`id_unidad`, `nombre`, `abreviatura`, `tipo`, `factor_conversion`, `unidad_base`) VALUES
 ('KG', 'kilogramo', 'kg', 'PESO', 1.000000, NULL),
 ('G', 'gramo', 'g', 'PESO', 0.001000, 'KG'),
@@ -114,6 +113,7 @@ CREATE TABLE `empleado` (
   `cedula` varchar(15) NOT NULL,
   `id_cargo` varchar(30) NOT NULL,
   `fecha_ingreso` date NOT NULL,
+  `fecha_egreso` date DEFAULT NULL,
   PRIMARY KEY (`cedula`),
   KEY `fk_emp_cargo` (`id_cargo`),
   CONSTRAINT `fk_emp_persona` FOREIGN KEY (`cedula`) REFERENCES `persona` (`cedula`) ON DELETE CASCADE,
@@ -128,6 +128,7 @@ CREATE TABLE `personal` (
   `telefono` varchar(20) DEFAULT NULL,
   `correo` varchar(100) DEFAULT NULL,
   `fecha_ingreso` date NOT NULL,
+  `fecha_egreso` date DEFAULT NULL,
   `salario` decimal(12,2) NOT NULL DEFAULT 0.00,
   `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`cedula_personal`),
@@ -138,7 +139,6 @@ CREATE TABLE `personal` (
 CREATE TABLE `cliente` (
   `cedula` varchar(15) NOT NULL,
   `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp(),
-  `ultima_visita` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`cedula`),
   CONSTRAINT `fk_cli_persona` FOREIGN KEY (`cedula`) REFERENCES `persona` (`cedula`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -157,11 +157,11 @@ CREATE TABLE `proveedor` (
 -- --------------------------------------------------------
 
 CREATE TABLE `planificador_turno` (
-  `id_planificador` varchar(30) NOT NULL,
+  `id_planificador_turno` varchar(30) NOT NULL,
   `cedula_empleado` varchar(15) NOT NULL,
   `id_turno` varchar(30) NOT NULL,
   `fecha` date NOT NULL,
-  PRIMARY KEY (`id_planificador`),
+  PRIMARY KEY (`id_planificador_turno`),
   KEY `fk_plan_emp` (`cedula_empleado`),
   KEY `fk_plan_turno` (`id_turno`),
   CONSTRAINT `fk_plan_emp` FOREIGN KEY (`cedula_empleado`) REFERENCES `empleado` (`cedula`) ON DELETE CASCADE,
@@ -413,7 +413,7 @@ JOIN unidad_medida um ON i.id_unidad_medida = um.id_unidad
 WHERE i.stock_actual <= i.stock_minimo;
 
 CREATE VIEW `vw_directorio_empleados` AS
-SELECT p.cedula, p.nombre, p.apellido, p.telefono, c.nombre_cargo AS cargo, e.fecha_ingreso 
+SELECT p.cedula, p.nombre, p.apellido, p.telefono, c.nombre_cargo AS cargo, e.fecha_ingreso, e.fecha_egreso
 FROM empleado e
 JOIN persona p ON e.cedula = p.cedula
 JOIN cargo c ON e.id_cargo = c.id_cargo;
@@ -436,13 +436,6 @@ FOR EACH ROW BEGIN
         UPDATE ingrediente SET stock_actual = stock_actual + NEW.cantidad WHERE id_ingrediente = NEW.id_ingrediente;
     ELSEIF NEW.tipo = 'SALIDA' OR NEW.tipo = 'MERMA' THEN
         UPDATE ingrediente SET stock_actual = stock_actual - NEW.cantidad WHERE id_ingrediente = NEW.id_ingrediente;
-    END IF;
-END$$
-
-CREATE TRIGGER `trg_actualizar_visita_cliente` AFTER INSERT ON `pedido`
-FOR EACH ROW BEGIN
-    IF NEW.cedula_cliente IS NOT NULL THEN
-        UPDATE cliente SET ultima_visita = NEW.fecha_pedido WHERE cedula = NEW.cedula_cliente;
     END IF;
 END$$
 
@@ -495,24 +488,19 @@ CREATE PROCEDURE `sp_convertir_unidad`(
 BEGIN
     DECLARE v_factor_origen DECIMAL(10,6);
     DECLARE v_factor_destino DECIMAL(10,6);
-    DECLARE v_base_origen VARCHAR(10);
-    DECLARE v_base_destino VARCHAR(10);
     DECLARE v_tipo_origen VARCHAR(20);
     DECLARE v_tipo_destino VARCHAR(20);
     
-    -- Obtener información de unidades
-    SELECT factor_conversion, unidad_base, tipo INTO v_factor_origen, v_base_origen, v_tipo_origen
+    SELECT factor_conversion, tipo INTO v_factor_origen, v_tipo_origen
     FROM unidad_medida WHERE id_unidad = p_unidad_origen;
     
-    SELECT factor_conversion, unidad_base, tipo INTO v_factor_destino, v_base_destino, v_tipo_destino
+    SELECT factor_conversion, tipo INTO v_factor_destino, v_tipo_destino
     FROM unidad_medida WHERE id_unidad = p_unidad_destino;
     
-    -- Verificar compatibilidad de tipos
     IF v_tipo_origen != v_tipo_destino THEN
         SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se pueden convertir unidades de diferentes tipos';
     END IF;
     
-    -- Convertir usando factores
     SET p_resultado = p_cantidad * (v_factor_origen / v_factor_destino);
 END$$
 
