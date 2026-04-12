@@ -44,5 +44,4 @@
 <?php include 'partials/_modal_ingrediente.php'; ?>
 
 <!-- Recursos específicos de la página -->
-<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/productos.css">
 <script src="<?= BASE_URL ?>/assets/js/ingrediente.js" defer></script>

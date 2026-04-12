@@ -1,0 +1,97 @@
+/* ==========================================
+   CSS PUBLICO - NOTICIAS BLOG
+========================================== */
+
+.blog-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 15px;
+    overflow: hidden;
+    border: none;
+}
+
+.blog-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+}
+
+.blog-img-top {
+    height: 250px;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.blog-card:hover .blog-img-top {
+    transform: scale(1.05);
+}
+
+.blog-date-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(5px);
+    border-radius: 10px;
+    padding: 8px 12px;
+    text-align: center;
+    font-weight: 700;
+    color: var(--bs-primary);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 2;
+}
+
+.date-day {
+    display: block;
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.date-month {
+    display: block;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Tipografía y Lectura */
+.article-content {
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: #444;
+}
+
+.article-content p {
+    margin-bottom: 1.5rem;
+}
+
+.article-header {
+    background-color: var(--bs-primary);
+    color: white;
+    padding: 15px 0;
+    margin-bottom: 15px;
+    border-radius: 0 0 15px 15px;
+    position: relative;
+    overflow: hidden;
+}
+
+
+/* Eliminado el patrón para mayor limpieza */
+
+/* Carrusel de Detalles */
+.carousel-news .carousel-item {
+    height: 500px;
+}
+.carousel-news .carousel-item img {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+.carousel-indicators [data-bs-target] {
+    background-color: var(--bs-primary);
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
