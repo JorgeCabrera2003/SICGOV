@@ -28,6 +28,7 @@ use App\Controllers\CategoriaController;
 use App\Controllers\BitacoraController;
 use App\Controllers\IngredienteController;
 use App\Controllers\UsuarioController;
+use App\Controllers\ClienteController;
 
 try {
     match ($page) {
@@ -40,6 +41,7 @@ try {
         'ingredientes' => (new IngredienteController())->index(),
         'categorias' => (new CategoriaController())->index(),
         'bitacora' => (new BitacoraController())->index(),
+        'clientes' => (new ClienteController())->index(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };
 } catch (Exception $e) {
