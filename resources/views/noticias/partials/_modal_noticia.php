@@ -42,7 +42,15 @@
                         <div class="col-md-6">
                             <label for="fecha_publicacion" class="form-label fw-semibold">Fecha de Publicación <span class="text-secondary">(Dejar vacío para publicar ahora)</span></label>
                             <input type="datetime-local" class="form-control" id="fecha_publicacion" name="fecha_publicacion">
-                            <small class="text-muted">Si programas esto a futuro, no será visible hasta entonces.</small>
+                             <small class="text-muted">Si programas esto a futuro, no será visible hasta entonces.</small>
+                        </div>
+                        
+                        <!-- Galería de Imágenes Actuales (Solo en edición) -->
+                        <div class="col-12 mt-3" id="currentImagesSection" style="display: none;">
+                            <label class="form-label fw-bold"><i class="fas fa-images me-2"></i>Imágenes Actuales</label>
+                            <div id="currentImagesContainer" class="d-flex flex-wrap gap-2 p-3 bg-body border rounded shadow-sm">
+                                <!-- Se llena dinámicamente -->
+                            </div>
                         </div>
 
                         <!-- Subida de Múltiples Imágenes -->

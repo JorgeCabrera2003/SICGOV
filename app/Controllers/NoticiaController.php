@@ -83,7 +83,34 @@ class NoticiaController
                             $noticiaModel->setImagenes($archivos);
                         }
 
+						// --- AUDITORÍA: Capturar estado previo si es modificación ---
+						$datos_anteriores = null;
+						if ($_POST["peticion"] == "modificar") {
+							$noticiaModel->setId($id);
+							$res_prev = $noticiaModel->Transaccion(['peticion' => 'validar']);
+							$datos_anteriores = $res_prev['response']['registro'] ?? null;
+						}
+
 						$json = $noticiaModel->Transaccion(['peticion' => $_POST["peticion"]]);
+
+						// --- AUDITORÍA: Registrar en Bitácora si fue exitoso ---
+						if ($json['estado'] == 1) {
+							$accion_bitacora = ($_POST["peticion"] == "registrar") ? 'REGISTRAR' : 'MODIFICAR';
+							$detalle_bitacora = ($_POST["peticion"] == "registrar") 
+								? "Se creó la noticia: {$_POST['titulo']} (ID: {$id})"
+								: "Se modificó la noticia: {$_POST['titulo']} (ID: {$id})";
+							
+							$datos_nuevos = [
+								'id_noticia' => $id,
+								'titulo' => $_POST['titulo'],
+								'subtitulo' => $_POST['subtitulo'] ?? '',
+								'contenido' => $_POST['contenido'],
+								'tipo' => $_POST['tipo'] ?? 'INFO',
+								'fecha_publicacion' => $fecha
+							];
+
+							Helper::Bitacora($accion_bitacora, 'NOTICIAS', $detalle_bitacora, $datos_anteriores, $datos_nuevos);
+						}
 					}
 				} else {
 					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
@@ -114,6 +141,11 @@ class NoticiaController
 					if (isset($_POST["id_noticia"]) && RegexHelper::ValidarFormatos($_POST["id_noticia"], 'ID') != 0) {
 						$noticiaModel->setId($_POST["id_noticia"]);
 						$json = $noticiaModel->Transaccion(['peticion' => $_POST["peticion"]]);
+
+						// --- AUDITORÍA: Registrar eliminación ---
+						if ($json['estado'] == 1) {
+							Helper::Bitacora('ELIMINAR', 'NOTICIAS', "Se eliminó la noticia ID: {$_POST['id_noticia']}");
+						}
 					} else {
                         $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Id invalido'];
 					    $json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Id no válido'];
@@ -123,6 +155,26 @@ class NoticiaController
 					$json['response'] = ['resultado' => 403, 'mensaje' => 'Permiso denegado'];
 				}
 			}
+
+            // Gestionar Imágenes Individuales
+            if ($_POST["peticion"] == "eliminar_imagen" || $_POST["peticion"] == "marcar_principal") {
+                if (isset($_POST["id_imagen"])) {
+                    $json = $noticiaModel->Transaccion($_POST);
+
+					// --- AUDITORÍA: Gestión de imágenes ---
+					if ($json['resultado'] == 200) {
+						$accion_img = strtoupper($_POST["peticion"]);
+						$detalle_img = ($accion_img == 'ELIMINAR_IMAGEN') 
+							? "Se eliminó físicamente la imagen ID: {$_POST['id_imagen']}"
+							: "Se cambió la imagen de portada ID: {$_POST['id_imagen']}";
+						
+						Helper::Bitacora($accion_img, 'NOTICIAS', $detalle_img);
+					}
+                } else {
+                    $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'ID de imagen requerido'];
+                    $json['response'] = ['resultado' => 400, 'mensaje' => 'ID de imagen requerido'];
+                }
+            }
 
 			header("HTTP/1.1 " . implode(' ', $json['HTTP_STATUS']));
 			echo json_encode($json['response']);

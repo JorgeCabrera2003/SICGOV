@@ -71,18 +71,22 @@
 ## 📁 Estructura del Proyecto
 
 ```
-good-vibes/
 ├── app/
 │   ├── Controllers/          # Controladores MVC
 │   │   ├── LoginController.php
 │   │   ├── DashboardController.php
 │   │   ├── ProductoController.php
-│   │   └── CategoriaController.php
+│   │   ├── CategoriaController.php
+│   │   ├── NoticiaController.php     # [NUEVO] Gestión de portal y blog
+│   │   ├── IngredienteController.php # [NUEVO] Control de insumos
+│   │   ├── BitacoraController.php    # [NUEVO] Auditoría de sistema
+│   │   └── UsuarioController.php     # [NUEVO] CRUD de personal
 │   ├── Models/
 │   │   ├── Security/         # Modelos BD Seguridad
 │   │   │   ├── Usuario.php
 │   │   │   ├── Bitacora.php
-│   │   │   └── LoginSettings.php
+│   │   │   ├── LoginSettings.php
+│   │   │   └── Noticia.php           # [NUEVO] Lógica de publicaciones
 │   │   └── System/            # Modelos BD Sistema
 │   │       ├── Producto.php
 │   │       ├── CategoriaProducto.php
@@ -101,18 +105,18 @@ good-vibes/
 │   ├── seeders/               # Pobladores de datos
 │   │   ├── SecuritySeeder.php
 │   │   └── BusinessSeeder.php
-│   └── setup.php              # Instalador automático
+│   └── setup.php              # [ACTUALIZADO] Instalador interactivo
 ├── public/
 │   ├── index.php              # Punto de entrada único
 │   ├── logout.php             # Cierre de sesión
 │   ├── .htaccess              # Reescribir URLs
 │   └── assets/
 │       ├── css/
-│       │   ├── main.css
-│       │   ├── style.css
-│       │   └── temas/
+│       │   ├── main.css       # Estilos globales y modo oscuro
+│       │   └── noticias.css   # Estilos específicos del portal
 │       ├── js/
 │       │   ├── main.js
+│       │   ├── noticias.js    # [NUEVO] Lógica AJAX noticias
 │       │   └── utils.js
 │       ├── img/
 │       ├── bootstrap/
@@ -124,22 +128,15 @@ good-vibes/
 │       │   ├── head.php
 │       │   ├── menu.php
 │       │   └── footer.php
-│       ├── auth/
-│       │   └── login.php
+│       ├── noticias/          # [NUEVO] Vistas del portal
+│       │   ├── index.php      # Admin
+│       │   ├── public.php     # Portal con carrusel
+│       │   └── show.php       # Detalle de noticia
+│       ├── bitacora/          # [NUEVO] Vista de auditoría
+│       ├── usuario/           # [NUEVO] Gestión de usuarios
 │       ├── productos/
 │       │   ├── index.php
-│       │   ├── modales/
-│       │   │   ├── modal_producto.php
-│       │   │   └── modal_categorias.php
-│       │   ├── js/
-│       │   │   └── productos.js
-│       │   └── css/
-│       │       └── productos.css
-│       └── pedidos/           # (Estructura propuesta)
-│           ├── index.php
-│           ├── modales/
-│           ├── js/
-│           └── css/
+│       │   └── modales/
 ├── vendor/                     # Dependencias Composer
 ├── .env                        # Variables de entorno
 ├── .gitignore
@@ -196,10 +193,15 @@ DB_NAME_USER=goobv-usuarios
 ```
 
 ### 5. Configurar base de datos
-Ejecutar el instalador automático:
+El sistema cuenta con un **Instalador Interactivo** que orquesta todo el proceso. Ejecútalo en la terminal:
 ```bash
 php database/setup.php
 ```
+Durante la ejecución, el instalador te consultará:
+1.  **Resetear BD**: Elimina las bases de datos `goobv-sistema` y `goobv-usuarios` y las crea desde cero.
+2.  **Migraciones**: Carga la estructura de tablas desde los archivos SQL en `database/migrations/`.
+3.  **Security Seeder**: Crea los roles iniciales y el usuario `admin_root`.
+4.  **Business Seeder**: Genera datos de prueba (Faker) para productos, mesas e ingredientes.
 
 ### 6. Configurar Apache
 Asegurar que `mod_rewrite` está activado en XAMPP:
@@ -497,7 +499,14 @@ git push origin jorge-dev
 - Subida de imágenes
 - DataTables con búsqueda
 
-### 3. Gestión de Pedidos/Mesas (🔄 En desarrollo)
+### 3. Gestión de Noticias y Publicaciones (✅ Implementado)
+- Portal de noticias estilo periódico editorial.
+- Carrusel dinámico con las 5 noticias más recientes.
+- Filtros avanzados por Categoría, Autor, Mes y Año.
+- CRUD administrativo con subida y validación de imágenes.
+- Soporte completo para Modo Oscuro en visualización y detalle.
+
+### 4. Gestión de Pedidos/Mesas (🔄 En desarrollo)
 - Plano del salón interactivo
 - Estados de mesa (Libre, Ocupada, Reservada)
 - Toma de pedidos con modificadores
@@ -733,9 +742,9 @@ Closes #123, Relates to #45
 
 ## 📅 Versión
 
-**Versión Actual:** 1.0.0  
-**Fecha:** Febrero 2026  
-**Estado:** Desarrollo Activo
+**Versión Actual:** 1.2.0  
+**Fecha:** Abril 2026  
+**Estado:** Desarrollo Activo / Módulo de Noticias Completado
 
 ---
 

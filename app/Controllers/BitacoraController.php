@@ -27,7 +27,12 @@ class BitacoraController
             
             // Listar registros para DataTables
             if ($accion === 'listarJson') {
-                $registros = $bitacora->Transaccion(['peticion' => 'listar']) ?: [];
+                $filtros = [
+                    'modulo' => $_GET['modulo'] ?? '',
+                    'desde' => $_GET['desde'] ?? '',
+                    'hasta' => $_GET['hasta'] ?? '',
+                ];
+                $registros = $bitacora->Transaccion(['peticion' => 'listar', 'filtros' => $filtros]) ?: [];
                 
                 $data = [];
                 foreach ($registros as $reg) {
@@ -98,12 +103,13 @@ class BitacoraController
         
         return sprintf(
             '<div class="btn-group" role="group">
-                <button class="btn btn-sm btn-outline-info border-0 btn-ver-detalle" 
+                <button class="btn btn-sm btn-outline-primary btn-ver-detalle d-flex align-items-center gap-1" 
                         data-id="%s" 
-                        title="Ver detalles"
+                        title="Ver todo el registro"
                         data-bs-toggle="modal" 
                         data-bs-target="#modalDetalleBitacora">
-                    <i class="fas fa-eye"></i>
+                    <i class="fas fa-search-plus"></i>
+                    <span>Ver Detalles</span>
                 </button>
             </div>',
             $id
