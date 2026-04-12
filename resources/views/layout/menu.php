@@ -89,6 +89,13 @@
             <span class="flex-grow-1">Ingredientes</span>
         </a>
 
+        <!-- Noticias -->
+        <a href="?page=noticias-admin"
+            class="nav-link <?php echo ($page == 'noticias-admin' || $page == 'noticias' || $page == 'noticias-detalle') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+            <i class="fas fa-newspaper fs-5"></i>
+            <span class="flex-grow-1">Noticias</span>
+        </a>
+
         <!-- Separador -->
         <hr class="my-2 opacity-25">
 

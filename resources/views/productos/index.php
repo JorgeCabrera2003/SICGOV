@@ -52,5 +52,4 @@
 <?php include 'partials/_modal_categorias.php'; ?>
 
 <!-- Recursos específicos de la página -->
-<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/productos.css">
 <script src="<?= BASE_URL ?>/assets/js/productos.js" defer></script>
