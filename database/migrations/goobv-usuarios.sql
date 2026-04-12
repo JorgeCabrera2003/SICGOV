@@ -151,6 +151,35 @@ JOIN permiso p ON r.id_rol = p.id_rol
 JOIN modulo m ON p.id_modulo = m.id_modulo
 WHERE u.estatus = 1 AND p.estatus = 1;
 
+CREATE VIEW `vw_validar_usuario` AS
+SELECT `u`.`cedula` AS `cedula`, 
+`u`.`id_rol` AS `id_rol`, 
+`u`.`username` AS `username`, 
+`p`.`correo` AS `correo`, 
+`u`.`clave` AS `clave` 
+FROM `usuario` `u`
+JOIN `goobv-sistema`.`persona` `p` ON(`u`.`cedula` = `p`.`cedula`);
+
+CREATE VIEW vw_perfil_usuario AS
+SELECT `u.cedula`,
+`u.cedula`.`username`,
+`p`.`nombre`,
+`p`.`apellido`,
+`p`.`sexo`,
+`p`.`fecha_nacimiento`,
+`p`.`direccion`,
+`p`.`correo`,
+`p`.`telefono`,
+`p`.`documento`,
+`u`.`id_rol`,
+`r`.`nombre_rol` AS 'rol',
+`u`.`tema`,
+`u`.`ultimo_acceso`,
+`u`.`fecha_registro`
+FROM `goobv-usuarios`.`usuario` AS `u`
+JOIN `goobv-sistema`.`persona` AS `p` ON (`u`.`cedula` = `p`.`cedula`)
+JOIN `goobv-usuarios`.`rol` AS `r` ON (`u`.`id_rol` = `r`.`id_rol`);
+
 CREATE VIEW `vw_sesiones_activas` AS
 SELECT s.id_sesion, u.cedula, r.nombre_rol AS rol, s.ip, s.dispositivo, s.fecha_inicio 
 FROM sesion s
