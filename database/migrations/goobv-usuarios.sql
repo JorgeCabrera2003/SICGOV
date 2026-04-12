@@ -161,8 +161,8 @@ FROM `usuario` `u`
 JOIN `goobv-sistema`.`persona` `p` ON(`u`.`cedula` = `p`.`cedula`);
 
 CREATE VIEW vw_perfil_usuario AS
-SELECT `u.cedula`,
-`u.cedula`.`username`,
+SELECT `u`.`cedula`,
+`u`.`username`,
 `p`.`nombre`,
 `p`.`apellido`,
 `p`.`sexo`,
