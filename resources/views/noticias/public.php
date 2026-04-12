@@ -345,7 +345,7 @@ $badgeArray = [
                             <div>
                                 <h5 class="fw-bold mb-1">Reservaciones y Delivery</h5>
                                 <p class="text-muted mb-0">¡Escríbenos por WhatsApp!</p>
-                                <a href="https://wa.me/584120000000" target="_blank" class="btn btn-sm btn-outline-success mt-2 fw-bold rounded-pill px-3">
+                                <a href="https://wa.me/584126159308" target="_blank" class="btn btn-sm btn-outline-success mt-2 fw-bold rounded-pill px-3">
                                     Enviar Mensaje
                                 </a>
                             </div>
