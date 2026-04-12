@@ -124,6 +124,16 @@ class NoticiaController
 				}
 			}
 
+            // Gestionar Imágenes Individuales
+            if ($_POST["peticion"] == "eliminar_imagen" || $_POST["peticion"] == "marcar_principal") {
+                if (isset($_POST["id_imagen"])) {
+                    $json = $noticiaModel->Transaccion($_POST);
+                } else {
+                    $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'ID de imagen requerido'];
+                    $json['response'] = ['resultado' => 400, 'mensaje' => 'ID de imagen requerido'];
+                }
+            }
+
 			header("HTTP/1.1 " . implode(' ', $json['HTTP_STATUS']));
 			echo json_encode($json['response']);
 			exit;

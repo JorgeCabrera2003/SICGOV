@@ -869,4 +869,15 @@
 .dark .carousel-news img {
     border: 1px solid #343a40;
 }
+
+/* Galería de imágenes en administración */
+.dark #currentImagesContainer {
+    background-color: #262a2e !important;
+    border-color: #343a40 !important;
+}
+
+.dark #currentImagesContainer .bg-body-tertiary {
+    background-color: #2c3034 !important;
+    border-color: #495057 !important;
+}
 
