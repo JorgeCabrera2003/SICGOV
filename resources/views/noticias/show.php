@@ -4,12 +4,12 @@
     <header class="article-header text-center px-3">
         <div class="container position-relative z-1">
             <span class="badge bg-body-tertiary text-primary fs-6 mb-3 px-3 py-2 rounded-pill"><?= htmlspecialchars($noticia['tipo']) ?></span>
-            <h1 class="display-3 fw-bold mb-4 text-white"><?= htmlspecialchars($noticia['titulo']) ?></h1>
-            <p class="lead mb-4 mx-auto text-white" style="max-width: 800px;">
+            <h1 class="h1 fw-bold mb-3 text-white"><?= htmlspecialchars($noticia['titulo']) ?></h1>
+            <p class="lead mb-3 mx-auto text-white" style="max-width: 800px;">
                 <?= htmlspecialchars($noticia['subtitulo']) ?>
             </p>
             
-            <div class="d-flex justify-content-center align-items-center gap-4 text-white-50">
+            <div class="d-flex justify-content-center align-items-center gap-4 text-white-50 small">
                 <span>
                     <i class="fas fa-user-circle me-2 fs-5"></i>
                     Escrito por <strong><?= htmlspecialchars($noticia['autor']) ?></strong>
@@ -25,7 +25,7 @@
         </div>
     </header>
 
-    <div class="container mt-n5 position-relative z-2">
+    <div class="container mt-n2 position-relative z-2">
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <article class="card shadow-lg border-0 rounded-4 overflow-hidden">

@@ -64,22 +64,17 @@
 }
 
 .article-header {
-    background: linear-gradient(135deg, var(--bs-primary) 0%, #1a2a6c 100%);
+    background-color: var(--bs-primary);
     color: white;
-    padding: 60px 0;
-    margin-bottom: 40px;
-    border-radius: 0 0 30px 30px;
+    padding: 15px 0;
+    margin-bottom: 15px;
+    border-radius: 0 0 15px 15px;
     position: relative;
     overflow: hidden;
 }
 
-.article-header::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: url('../img/pattern.png') center/cover;
-    opacity: 0.1;
-}
+
+/* Eliminado el patrón para mayor limpieza */
 
 /* Carrusel de Detalles */
 .carousel-news .carousel-item {

@@ -134,7 +134,7 @@ class Noticia
         return $dato;
     }
 
-    private function ConsultarNoticiasPublicas()
+    public function ConsultarNoticiasPublicas($filtros = [])
     {
         $dato = [];
         $arreglo = [];
@@ -145,9 +145,33 @@ class Noticia
                     FROM noticia n
                     JOIN usuario u ON n.cedula = u.cedula
                     WHERE n.estatus = 1 
-                    AND n.fecha_publicacion <= CURRENT_TIMESTAMP()
-                    ORDER BY n.fecha_publicacion DESC";
+                    AND n.fecha_publicacion <= CURRENT_TIMESTAMP()";
+
+            // Aplicar Filtros Dinámicos
+            $params = [];
+            if (!empty($filtros['tipo'])) {
+                $sql .= " AND n.tipo = :tipo";
+                $params[':tipo'] = $filtros['tipo'];
+            }
+            if (!empty($filtros['autor'])) {
+                $sql .= " AND u.username = :autor";
+                $params[':autor'] = $filtros['autor'];
+            }
+            if (!empty($filtros['mes'])) {
+                $sql .= " AND MONTH(n.fecha_publicacion) = :mes";
+                $params[':mes'] = $filtros['mes'];
+            }
+            if (!empty($filtros['anio'])) {
+                $sql .= " AND YEAR(n.fecha_publicacion) = :anio";
+                $params[':anio'] = $filtros['anio'];
+            }
+
+            $sql .= " ORDER BY n.fecha_publicacion DESC";
+            
             $stm = $this->LlamarConexion()->prepare($sql);
+            foreach ($params as $key => $val) {
+                $stm->bindValue($key, $val);
+            }
             $stm->execute();
             if ($stm->rowCount() > 0) {
                 $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
@@ -402,5 +426,21 @@ class Noticia
         } else {
             Helper::ErrorLog("No se recibieron imagenes en Noticia.php (vacio)");
         }
+    }
+    public function ObtenerAutoresPublicos()
+    {
+        $autores = [];
+        try {
+            $sql = "SELECT DISTINCT u.username 
+                    FROM noticia n 
+                    JOIN usuario u ON n.cedula = u.cedula 
+                    WHERE n.estatus = 1 AND n.fecha_publicacion <= CURRENT_TIMESTAMP()";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->execute();
+            $autores = $stm->fetchAll(PDO::FETCH_COLUMN);
+        } catch (\PDOException $e) {
+            Helper::ErrorLog("Error obteniendo autores: " . $e->getMessage());
+        }
+        return $autores;
     }
 }

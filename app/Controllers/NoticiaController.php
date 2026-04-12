@@ -136,10 +136,19 @@ class NoticiaController
 	}
 
     public function indexPublico() {
-        // Vista pública estilo blog feed (Wordpress)
+        // Vista pública estilo portal de noticias
         $noticiaModel = new Noticia();
-        $res = $noticiaModel->Transaccion(['peticion' => 'consultar_publicas']);
+        
+        $filtros = [
+            'tipo'  => $_GET['tipo'] ?? null,
+            'autor' => $_GET['autor'] ?? null,
+            'mes'   => $_GET['mes'] ?? null,
+            'anio'  => $_GET['anio'] ?? null
+        ];
+
+        $res = $noticiaModel->ConsultarNoticiasPublicas($filtros);
         $noticias = $res['response']['datos'] ?? [];
+        $autores  = $noticiaModel->ObtenerAutoresPublicos();
 
         // No podemos usar cargarVista que quizás incluye el menu de admin.
         // O si el sistema lo maneja distinto, incluidmos layout/public si existe, 
