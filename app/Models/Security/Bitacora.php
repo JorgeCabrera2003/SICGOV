@@ -53,9 +53,11 @@ class Bitacora {
                         b.valores_anteriores,
                         b.valores_nuevos,
                         u.username,
-                        u.cedula
+                        u.cedula,
+                        r.nombre_rol as rol
                     FROM bitacora b
-                    LEFT JOIN usuario u ON b.cedula = u.cedula";
+                    LEFT JOIN usuario u ON b.cedula = u.cedula
+                    LEFT JOIN rol r ON u.id_rol = r.id_rol";
             
             $where = [];
             $params = [];

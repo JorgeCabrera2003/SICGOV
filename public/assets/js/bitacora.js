@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!data || typeof data !== 'object') return jsonString;
 
                 const labels = {
-                    'id_noticia': 'ID de Noticia',
+                    'id_noticia': 'Número de Noticia',
                     'titulo': 'Título',
                     'subtitulo': 'Subtítulo / Introducción',
                     'contenido': 'Contenido',
@@ -209,7 +209,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="d-flex align-items-center p-2 bg-body-tertiary border rounded">
                     <i class="fas fa-user-circle fa-2x me-2 text-secondary opacity-50"></i>
                     <div>
-                        <p class="mb-0 fw-semibold text-body">${data.nombres ? data.nombres + ' ' + (data.apellidos || '') : (data.username || 'Sistema')}</p>
+                        <p class="mb-0 fw-semibold text-body">
+                            ${data.nombres ? data.nombres + ' ' + (data.apellidos || '') : (data.username || 'Sistema')}
+                            <span class="text-muted small">(${data.rol || 'N/A'})</span>
+                        </p>
                         ${data.cedula ? `<small class="text-muted">Documento: ${data.cedula}</small>` : ''}
                     </div>
                 </div>
