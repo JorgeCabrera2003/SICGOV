@@ -109,11 +109,11 @@ class GoodVibesInstallerService
     {
         $this->info("\n[2/4] Ejecutando Migraciones (SQL)...");
         
-        $rutaMigracionSistema = __DIR__ . '/migrations/goobv-sistema.sql';
         $rutaMigracionUsuarios = __DIR__ . '/migrations/goobv-usuarios.sql';
+        $rutaMigracionSistema = __DIR__ . '/migrations/goobv-sistema.sql';
 
-        $this->executeSQLFile($this->dbBusiness, $rutaMigracionSistema, "Sistema");
         $this->executeSQLFile($this->dbSecurity, $rutaMigracionUsuarios, "Usuarios");
+        $this->executeSQLFile($this->dbBusiness, $rutaMigracionSistema, "Sistema");
     }
 
     /**
