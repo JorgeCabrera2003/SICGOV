@@ -727,15 +727,29 @@
     margin-bottom: 10px;
 }
 
-/* Barra de Filtros */
+/* Barra de Filtros (Adaptativa) */
 .news-filters-bar {
-    background: #212529;
+    background: #f8f9fa;
     padding: 20px;
     border-radius: 8px;
-    color: white;
+    color: #212529;
+    border: 1px solid #dee2e6;
 }
 
 .news-filters-bar .form-select, .news-filters-bar .form-control {
+    background: white;
+    border-color: #ced4da;
+    color: #212529;
+}
+
+/* Barra de Filtros en Modo Oscuro */
+.dark .news-filters-bar {
+    background: #212529;
+    color: white;
+    border-color: #343a40;
+}
+
+.dark .news-filters-bar .form-select, .dark .news-filters-bar .form-control {
     background: #2c3034;
     border-color: #495057;
     color: white;
