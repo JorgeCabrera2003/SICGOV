@@ -7,11 +7,13 @@ use PDO;
 class Bitacora {
     private $db;
     private $id_bitacora;
-    private $usuario;
+    private $cedula;
     private $modulo;
     private $accion;
-    private $detalles;
+    private $detalle;
     private $ip_address;
+    private $valores_anteriores;
+    private $valores_nuevos;
     private $fecha;
 
     public function __construct() {
@@ -19,17 +21,19 @@ class Bitacora {
     }
 
     public function setIdBitacora($id) { $this->id_bitacora = $id; }
-    public function set_usuario($u) { $this->usuario = $u; }
+    public function set_cedula($c) { $this->cedula = $c; }
     public function set_modulo($m) { $this->modulo = $m; }
     public function set_accion($a) { $this->accion = $a; }
-    public function set_detalles($d) { $this->detalles = $d; }
+    public function set_detalle($d) { $this->detalle = $d; }
     public function set_ip_address($ip) { $this->ip_address = $ip; }
+    public function set_anteriores($val) { $this->valores_anteriores = $val; }
+    public function set_nuevos($val) { $this->valores_nuevos = $val; }
     public function set_fecha($f) { $this->fecha = $f; }
 
     public function Transaccion($peticion) {
         switch ($peticion['peticion']) {
             case 'listar':
-                return $this->listarBitacora();
+                return $this->listarBitacora($peticion['filtros'] ?? []);
             case 'registrar':
                 return $this->Registrar();
             default:
@@ -37,25 +41,50 @@ class Bitacora {
         }
     }
 
-    private function listarBitacora() {
+    private function listarBitacora($filtros = []) {
         try {
             $sql = "SELECT 
                         b.id_bitacora,
                         b.modulo,
                         b.accion,
-                        b.detalles,
+                        b.detalle,
                         b.ip_address,
                         b.fecha,
+                        b.valores_anteriores,
+                        b.valores_nuevos,
                         u.username,
-                        u.nombres,
-                        u.apellidos,
-                        u.cedula
+                        u.cedula,
+                        r.nombre_rol as rol
                     FROM bitacora b
-                    LEFT JOIN usuario u ON b.id_usuario = u.id_usuario
-                    ORDER BY b.fecha DESC";
+                    LEFT JOIN usuario u ON b.cedula = u.cedula
+                    LEFT JOIN rol r ON u.id_rol = r.id_rol";
+            
+            $where = [];
+            $params = [];
+
+            if (!empty($filtros['modulo'])) {
+                $where[] = "b.modulo = :modulo";
+                $params['modulo'] = $filtros['modulo'];
+            }
+
+            if (!empty($filtros['desde'])) {
+                $where[] = "b.fecha >= :desde";
+                $params['desde'] = $filtros['desde'] . " 00:00:00";
+            }
+
+            if (!empty($filtros['hasta'])) {
+                $where[] = "b.fecha <= :hasta";
+                $params['hasta'] = $filtros['hasta'] . " 23:59:59";
+            }
+
+            if (count($where) > 0) {
+                $sql .= " WHERE " . implode(" AND ", $where);
+            }
+
+            $sql .= " ORDER BY b.fecha DESC";
             
             $stmt = $this->db->prepare($sql);
-            $stmt->execute();
+            $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
             
         } catch (\PDOException $e) {
@@ -66,47 +95,41 @@ class Bitacora {
 
     private function Registrar() {
         try {
-            $this->ip_address = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+            $this->ip_address = $this->ip_address ?: ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
             
             $sql = "INSERT INTO bitacora (
                         id_bitacora, 
-                        id_usuario, 
+                        cedula, 
                         modulo, 
                         accion, 
-                        detalles,
+                        detalle,
                         ip_address,
+                        valores_anteriores,
+                        valores_nuevos,
                         fecha
                     ) VALUES (
                         :id_bitacora,
-                        (SELECT id_usuario FROM usuario WHERE cedula = :cedula OR id_usuario = :id_usuario LIMIT 1), 
+                        :cedula, 
                         :modulo, 
                         :accion,
-                        :detalles,
+                        :detalle,
                         :ip_address,
+                        :old,
+                        :new,
                         :fecha
                     )";
 
             $stmt = $this->db->prepare($sql);
             
-            $idUsuario = null;
-            $cedula = null;
-            
-            if (isset($this->usuario)) {
-                if (strpos($this->usuario, 'V-') === 0 || strpos($this->usuario, 'E-') === 0) {
-                    $cedula = $this->usuario;
-                } else {
-                    $idUsuario = $this->usuario;
-                }
-            }
-            
             $result = $stmt->execute([
                 'id_bitacora' => $this->id_bitacora,
-                'cedula' => $cedula,
-                'id_usuario' => $idUsuario,
+                'cedula' => $this->cedula,
                 'modulo' => $this->modulo,
                 'accion' => $this->accion,
-                'detalles' => $this->detalles ?? null,
+                'detalle' => $this->detalle ?? null,
                 'ip_address' => $this->ip_address,
+                'old' => $this->valores_anteriores ?? null,
+                'new' => $this->valores_nuevos ?? null,
                 'fecha' => $this->fecha ?? date('Y-m-d H:i:s')
             ]);
             

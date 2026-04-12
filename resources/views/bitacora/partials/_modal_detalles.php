@@ -3,12 +3,12 @@
      tabindex="-1" 
      aria-labelledby="modalDetalleBitacoraLabel" 
      aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-warning-subtle">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header border-bottom border-warning border-3">
                 <h5 class="modal-title" id="modalDetalleBitacoraLabel">
-                    <i class="fas fa-info-circle text-warning me-2" aria-hidden="true"></i>
-                    Detalles del Registro
+                    <i class="fas fa-history text-warning me-2"></i>
+                    <span class="fw-bold">Detalles del Registro</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>

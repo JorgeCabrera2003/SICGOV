@@ -114,9 +114,9 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById('btnNuevaNoticia').addEventListener('click', function () {
             formNoticia.reset();
             document.getElementById('peticion').value = 'registrar';
-            document.getElementById('id_noticia').value = '';
             document.getElementById('modalNoticiaLabel').innerHTML = '<i class="fas fa-newspaper me-2"></i>Nueva Noticia';
             previewContainer.innerHTML = '';
+            document.getElementById('currentImagesSection').style.display = 'none';
             modalNoticia.show();
         });
     }
@@ -185,8 +185,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         document.getElementById('fecha_publicacion').value = d.fecha_publicacion.slice(0, 16);
                     }
                     
+                    
                     document.getElementById('modalNoticiaLabel').innerHTML = '<i class="fas fa-edit me-2"></i>Editar Noticia';
-                    previewContainer.innerHTML = '<span class="text-muted"><i class="fas fa-info-circle"></i> Al subir nuevas imágenes, se adjuntarán a las ya existentes.</span>';
+                    previewContainer.innerHTML = '';
+                    
+                    // Cargar Imágenes Actuales
+                    renderCurrentImages(d.imagenes);
                     
                     modalNoticia.show();
                 }
@@ -225,6 +229,106 @@ document.addEventListener("DOMContentLoaded", function () {
                     });
                 }
             });
+        });
+    }
+
+    function renderCurrentImages(imagenes) {
+        const container = document.getElementById('currentImagesContainer');
+        const section = document.getElementById('currentImagesSection');
+        container.innerHTML = '';
+
+        if (imagenes && imagenes.length > 0) {
+            section.style.display = 'block';
+            imagenes.forEach(img => {
+                const div = document.createElement('div');
+                div.className = 'position-relative rounded border p-1 shadow-sm bg-body-tertiary';
+                div.style.width = '120px';
+                
+                const isPrincipal = img.es_principal == 1;
+                const principalBadge = isPrincipal ? '<span class="badge bg-warning text-dark position-absolute top-0 start-0 m-1 shadow-sm"><i class="fas fa-star"></i> Portada</span>' : '';
+
+                div.innerHTML = `
+                    ${principalBadge}
+                    <img src="${BASE_URL}${img.direccion}" class="rounded w-100" style="height: 100px; object-fit: cover;">
+                    <div class="mt-1 d-flex justify-content-center gap-1">
+                        ${!isPrincipal ? `<button type="button" class="btn btn-xs btn-outline-warning btn-principal" data-id="${img.id_imagen}" title="Poner como portada"><i class="fas fa-star"></i></button>` : ''}
+                        <button type="button" class="btn btn-xs btn-outline-danger btn-borrar-img" data-id="${img.id_imagen}" title="Eliminar imagen"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            // Re-vincular eventos
+            container.querySelectorAll('.btn-borrar-img').forEach(btn => {
+                btn.onclick = () => eliminarImagen(btn.dataset.id);
+            });
+            container.querySelectorAll('.btn-principal').forEach(btn => {
+                btn.onclick = () => marcarPrincipal(btn.dataset.id);
+            });
+
+        } else {
+            section.style.display = 'none';
+        }
+    }
+
+    function eliminarImagen(id) {
+        Swal.fire({
+            title: '¿Eliminar esta imagen?',
+            text: "El archivo se borrará permanentemente",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, borrar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const fd = new FormData();
+                fd.append('peticion', 'eliminar_imagen');
+                fd.append('id_imagen', id);
+
+                fetch(BASE_URL + '?page=noticias-admin', {
+                    method: 'POST',
+                    body: fd
+                }).then(r => r.json()).then(res => {
+                    if (res.resultado === 200) {
+                        // Recargar modal
+                        const id_noticia = document.getElementById('id_noticia').value;
+                        reloadImages(id_noticia);
+                        tablaNoticias.ajax.reload(null, false);
+                    }
+                });
+            }
+        });
+    }
+
+    function marcarPrincipal(id) {
+        const fd = new FormData();
+        fd.append('peticion', 'marcar_principal');
+        fd.append('id_imagen', id);
+
+        fetch(BASE_URL + '?page=noticias-admin', {
+            method: 'POST',
+            body: fd
+        }).then(r => r.json()).then(res => {
+            if (res.resultado === 200) {
+                const id_noticia = document.getElementById('id_noticia').value;
+                reloadImages(id_noticia);
+                tablaNoticias.ajax.reload(null, false);
+            }
+        });
+    }
+
+    function reloadImages(id) {
+        const fd = new FormData();
+        fd.append('peticion', 'validar');
+        fd.append('id_noticia', id);
+
+        fetch(BASE_URL + '?page=noticias-admin', {
+            method: 'POST',
+            body: fd
+        }).then(r => r.json()).then(res => {
+            if (res.resultado === 200) {
+                renderCurrentImages(res.registro.imagenes);
+            }
         });
     }
 });
