@@ -210,8 +210,14 @@ class NoticiaController
         $titulo = 'Noticias - Good Vibes';
         
         require_once BASE_PATH . '/resources/views/layout/head.php';
-        // Asumiendo que también hay un layout menu público, si no, reutilizamos
-        require_once BASE_PATH . '/resources/views/layout/menu.php'; 
+        
+        if (isset($_SESSION['user'])) {
+            require_once BASE_PATH . '/resources/views/layout/menu.php'; 
+        } else {
+            // Estructura simplificada para visitantes (sin barra lateral)
+            echo '<main class="w-100 min-vh-100" id="main-content"><div class="content-wrapper">';
+        }
+
         require_once BASE_PATH . '/resources/views/noticias/public.php';
         require_once BASE_PATH . '/resources/views/layout/footer.php';
     }
