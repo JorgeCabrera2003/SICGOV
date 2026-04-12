@@ -165,10 +165,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     'estatus': 'Estado en Sistema'
                 };
 
-                let html = `<div class="p-3 bg-dark bg-opacity-10 border-start border-4 border-${colorClass} rounded shadow-sm">`;
+                let html = `<div class="p-3 bg-body-tertiary border-start border-4 border-${colorClass} rounded shadow-sm">`;
                 
                 for (const key in data) {
-                    const label = labels[key] || key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ');
+                    let label = labels[key] || key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ');
+                    
+                    // Asegurar que "ID" se vea como "Número" en cualquier etiqueta no mapeada
+                    label = label.replace(/ID/g, 'Número').replace(/id/g, 'Número');
+                    
                     let value = data[key];
 
                     // Formatear fechas dentro de los valores

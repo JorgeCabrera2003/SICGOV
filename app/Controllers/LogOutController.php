@@ -13,7 +13,7 @@ class LogOutController
         }
 
         if (isset($_SESSION['user'])) {
-            Helper::Bitacora("Cerró sesión", "Seguridad");
+            Helper::Bitacora("Cerró sesión", "Seguridad", "El usuario cerró su sesión de forma manual.");
         }
 
         session_unset();

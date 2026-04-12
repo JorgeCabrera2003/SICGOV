@@ -727,15 +727,29 @@
     margin-bottom: 10px;
 }
 
-/* Barra de Filtros */
+/* Barra de Filtros (Adaptativa) */
 .news-filters-bar {
-    background: #212529;
+    background: #f8f9fa;
     padding: 20px;
     border-radius: 8px;
-    color: white;
+    color: #212529;
+    border: 1px solid #dee2e6;
 }
 
 .news-filters-bar .form-select, .news-filters-bar .form-control {
+    background: white;
+    border-color: #ced4da;
+    color: #212529;
+}
+
+/* Barra de Filtros en Modo Oscuro */
+.dark .news-filters-bar {
+    background: #212529;
+    color: white;
+    border-color: #343a40;
+}
+
+.dark .news-filters-bar .form-select, .dark .news-filters-bar .form-control {
     background: #2c3034;
     border-color: #495057;
     color: white;
@@ -879,5 +893,118 @@
 .dark #currentImagesContainer .bg-body-tertiary {
     background-color: #2c3034 !important;
     border-color: #495057 !important;
+}
+
+/* ==========================================
+   LANDING PAGE (TABS & CONTENT)
+   ========================================== */
+#landingNav .nav-pills .nav-link {
+    color: #495057;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+#landingNav .nav-pills .nav-link.active {
+    background-color: var(--bs-primary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(250, 164, 50, 0.3);
+}
+
+#landingNav .nav-pills .nav-link:hover:not(.active) {
+    background-color: rgba(250, 164, 50, 0.1);
+    color: var(--bs-primary);
+}
+
+.landing-logo {
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+}
+
+.icon-circle {
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 1.2rem;
+}
+
+.dashed-border {
+    border-style: dashed !important;
+    border-width: 2px !important;
+    border-color: #dee2e6 !important;
+}
+
+.map-container iframe {
+    filter: grayscale(0.2) contrast(1.1);
+}
+
+/* Animaciones suaves */
+.tab-pane.fade {
+    transition: opacity 0.2s linear;
+}
+
+.dark .bg-white, 
+.dark .card.bg-white,
+.dark .bg-body {
+    background-color: #1a1d20 !important;
+    color: #e9ecef !important;
+}
+
+.dark .card {
+    background-color: #212529 !important;
+    border-color: #343a40 !important;
+}
+
+.dark .bg-body-tertiary {
+    background-color: #212529 !important;
+}
+
+.dark .text-dark,
+.dark .card h3, 
+.dark .card h4, 
+.dark .card h5,
+.dark .display-5 {
+    color: #ffffff !important;
+}
+
+.dark .text-muted {
+    color: #adb5bd !important;
+}
+
+.dark .editorial-card {
+    background-color: #2c3034 !important;
+    border-color: #3d4246 !important;
+}
+
+.dark .dashed-border {
+    border-color: #495057 !important;
+}
+
+.dark .icon-box,
+.dark .icon-circle {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: var(--bs-primary) !important;
+}
+
+.dark .lead.text-body,
+.dark .text-body {
+    color: #e9ecef !important;
+}
+
+/* Fix para el nav de la landing */
+.dark #landingNav {
+    background-color: #1a1d20 !important;
+    border-bottom: 1px solid #343a40 !important;
+}
+
+.dark #landingNav .nav-pills .nav-link {
+    color: #ced4da;
+}
+
+.dark .news-top-bar {
+    background-color: #1a1d20 !important;
+    border-bottom: 1px solid #343a40 !important;
 }
 
