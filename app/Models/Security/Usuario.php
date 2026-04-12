@@ -92,11 +92,13 @@ class Usuario extends Database
     {
         $this->correo = $correo;
     }
-    
-    public function setFechaNacimiento(DateTime $fecha_nacimiento){
+
+    public function setFechaNacimiento(DateTime $fecha_nacimiento)
+    {
         $this->fecha_nacimiento = $fecha_nacimiento;
     }
-    public function setSexo(string $sexo){
+    public function setSexo(string $sexo)
+    {
         $this->sexo = $sexo;
     }
     public function setClave(string $clave)
@@ -161,10 +163,12 @@ class Usuario extends Database
         return $this->correo;
     }
 
-    public function getFechaNacimiento(){
+    public function getFechaNacimiento()
+    {
         return $this->fecha_nacimiento;
     }
-    public function getSexo(){
+    public function getSexo()
+    {
         return $this->sexo;
     }
 
@@ -225,7 +229,7 @@ class Usuario extends Database
         $arreglo = [];
 
         try {
-            $sql = "SELECT * FROM usuario WHERE cedula = :cedula
+            $sql = "SELECT * FROM vw_validar_usuario WHERE cedula = :cedula
             OR username = :username OR correo = :correo";
             $this->LlamarConexion("security");
             $this->LlamarConexion()->beginTransaction();
@@ -280,12 +284,15 @@ class Usuario extends Database
         $registro = [];
 
         try {
-            $sql = "SELECT * FROM usuario WHERE cedula = :cedula";
+            $sql = "SELECT * FROM vw_perfil_usuario WHERE cedula = :cedula
+            OR username = :username OR correo = :correo";
             $this->LlamarConexion("security");
             $this->LlamarConexion()->beginTransaction();
 
             $stm = $this->LlamarConexion()->prepare($sql);
-            $stm->bindParam('cedula', $this->cedula);
+            $stm->bindParam(':correo', $this->correo);
+            $stm->bindParam(":cedula", $this->cedula);
+            $stm->bindParam(':username', $this->username);
             $stm->execute();
             $registro = $stm->fetch();
             $this->LlamarConexion()->commit();
