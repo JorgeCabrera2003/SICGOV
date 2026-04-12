@@ -21,16 +21,21 @@ session_start();
 $page = $_GET['page'] ?? 'login';
 
 use App\Controllers\LoginController;
+use App\Controllers\LogOutController;
 use App\Controllers\DashboardController;
 use App\Controllers\ProductoController;
 use App\Controllers\CategoriaController;
 use App\Controllers\BitacoraController;
 use App\Controllers\IngredienteController;
+use App\Controllers\UsuarioController;
 
 try {
     match ($page) {
         'login' => (new LoginController())->index(),
+        'logout' => (new LogOutController())->index(),
+        'crear-cuenta' => (new LoginController())->index(),
         'home', 'dashboard' => (new DashboardController())->index(),
+        'usuario', 'user' => (new UsuarioController())->index(),
         'productos' => (new ProductoController())->index(),
         'ingredientes' => (new IngredienteController())->index(),
         'categorias' => (new CategoriaController())->index(),

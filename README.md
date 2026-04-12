@@ -166,7 +166,7 @@ good-vibes/
 ### 1. Clonar el repositorio
 ```bash
 cd C:\xampp\htdocs
-git clone https://github.com/tu-repo/sicgov.git
+https://github.com/JorgeCabrera2003/SICGOV.git
 cd sicgov
 ```
 

@@ -1,0 +1,163 @@
+# ===========================================
+# SICGOV - .gitignore
+# ===========================================
+
+# ---------------------------
+# Entorno de desarrollo
+# ---------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---------------------------
+# Dependencias y paquetes
+# ---------------------------
+vendor/
+node_modules/
+composer.lock
+package-lock.json
+yarn.lock
+
+# ---------------------------
+# Archivos de configuración local
+# ---------------------------
+.env
+.env.local
+.env.*.local
+config/local.php
+config/database.local.php
+.htaccess.local
+
+# ---------------------------
+# Logs y archivos temporales
+# ---------------------------
+logs/
+*.log
+*.tmp
+*.temp
+cache/
+*.cache
+error_log
+access_log
+
+# ---------------------------
+# Base de datos
+# ---------------------------
+*.sql
+*.sql.gz
+*.db
+*.sqlite
+database/*.sql
+!database/migrations/*.sql
+!database/seeders/*.sql
+
+# ---------------------------
+# Archivos subidos por usuarios
+# ---------------------------
+public/assets/img/productos/*
+public/assets/img/empleados/*
+public/assets/img/uploads/*
+!public/assets/img/productos/.gitkeep
+!public/assets/img/empleados/.gitkeep
+!public/assets/img/uploads/.gitkeep
+public/assets/img/temp/
+
+# ---------------------------
+# Reportes y documentos generados
+# ---------------------------
+public/reports/
+*.pdf
+*.csv
+*.xlsx
+reportes/
+
+# ---------------------------
+# Backups
+# ---------------------------
+*.zip
+*.rar
+*.7z
+*.tar.gz
+backup/
+backups/
+*.bak
+*.old
+
+# ---------------------------
+# IDE y editores
+# ---------------------------
+.vscode/
+.idea/
+*.sublime-*
+.project
+.classpath
+.settings/
+
+# ---------------------------
+# Sistema operativo
+# ---------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ---------------------------
+# Composer específico
+# ---------------------------
+composer.phar
+composer.lock
+.phplint.yml
+.phpunit.result.cache
+
+# ---------------------------
+# PHP específico
+# ---------------------------
+*.php~ 
+*.php.save
+php_error.log
+php_errors.log
+php-cs-fixer.cache
+
+# ---------------------------
+# Archivos de prueba
+# ---------------------------
+tests/_output/
+tests/_support/_generated/
+.phpunit.result.cache
+coverage/
+*.coverage
+*.test
+
+# ---------------------------
+# Certificados SSL (locales)
+# ---------------------------
+*.crt
+*.key
+*.pem
+*.csr
+
+
+# ---------------------------
+# CI/CD
+# ---------------------------
+.github/workflows/*.local.yml
+.gitlab-ci.local.yml
+
+# ---------------------------
+# Archivos de configuración de git hooks
+# ---------------------------
+.git/hooks/*
+!.git/hooks/README.md
+
+# ---------------------------
+# NOTA: Mantener los .gitkeep
+# ---------------------------
+!.gitkeep

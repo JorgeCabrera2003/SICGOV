@@ -3,7 +3,6 @@
 namespace App\Database\Seeders;
 
 use Faker\Factory;
-use App\Helpers\Helper;
 
 class BusinessSeeder
 {
@@ -18,280 +17,332 @@ class BusinessSeeder
 
     public function run()
     {
+        $this->crearCargosBase();
+        $this->crearCategoriasBase();
+        $this->crearAreasMesa();
+        $this->crearMetodosPago();
         $this->crearMesas();
+        $this->crearPersonasYUsuarios();
         $this->crearProductosFalsos(10);
-        $this->crearPersonalsFalsos(5);
         $this->crearIngredientesFalsos(20);
         $this->crearClientesFalsos(15);
+        $this->crearProveedoresFalsos(5);
+    }
+
+    private function crearCargosBase()
+    {
+        $count = $this->db->query("SELECT COUNT(*) FROM cargo")->fetchColumn();
+        if ($count == 0) {
+            $sql = "INSERT INTO cargo (id_cargo, nombre_cargo, descripcion, estatus) VALUES 
+                ('CARGO001', 'Mesero', 'Atención al cliente en mesas', 1),
+                ('CARGO002', 'Cocinero', 'Preparación de alimentos', 1),
+                ('CARGO003', 'Cajero', 'Manejo de caja y cobros', 1),
+                ('CARGO004', 'Bartender', 'Preparación de bebidas', 1),
+                ('CARGO005', 'Gerente', 'Administración del local', 1),
+                ('CARGO006', 'Supervisor', 'Supervisión de operaciones', 1)";
+            $this->db->exec($sql);
+            echo "       Cargos base creados.\n";
+        }
+    }
+
+    private function crearCategoriasBase()
+    {
+        // Categorías de productos
+        $count = $this->db->query("SELECT COUNT(*) FROM categoria_producto")->fetchColumn();
+        if ($count == 0) {
+            $sql = "INSERT INTO categoria_producto (id_categoria, nombre_categoria, descripcion, estatus) VALUES 
+                ('CATPROD001', 'Platos Principales', 'Platos fuertes del menú', 1),
+                ('CATPROD002', 'Entradas', 'Aperitivos y entradas', 1),
+                ('CATPROD003', 'Bebidas', 'Bebidas alcohólicas y no alcohólicas', 1),
+                ('CATPROD004', 'Postres', 'Postres y dulces', 1),
+                ('CATPROD005', 'Ensaladas', 'Ensaladas frescas', 1)";
+            $this->db->exec($sql);
+            echo "       Categorías de productos creadas.\n";
+        }
+
+        // Categorías de ingredientes
+        $countIng = $this->db->query("SELECT COUNT(*) FROM categoria_ingrediente")->fetchColumn();
+        if ($countIng == 0) {
+            $sql = "INSERT INTO categoria_ingrediente (id_categoria, nombre, descripcion) VALUES 
+                ('CATING001', 'Carnes', 'Carnes rojas y blancas'),
+                ('CATING002', 'Verduras', 'Vegetales y hortalizas'),
+                ('CATING003', 'Lácteos', 'Productos lácteos y huevos'),
+                ('CATING004', 'Granos', 'Granos, harinas y cereales'),
+                ('CATING005', 'Condimentos', 'Especias, salsas y condimentos'),
+                ('CATING006', 'Bebidas', 'Ingredientes para bebidas'),
+                ('CATING007', 'Frutas', 'Frutas frescas')";
+            $this->db->exec($sql);
+            echo "       Categorías de ingredientes creadas.\n";
+        }
+    }
+
+    private function crearAreasMesa()
+    {
+        $count = $this->db->query("SELECT COUNT(*) FROM area_mesa")->fetchColumn();
+        if ($count == 0) {
+            $sql = "INSERT INTO area_mesa (id_area, nombre, descripcion) VALUES 
+                ('AREA001', 'Salón Principal', 'Área principal del restaurante'),
+                ('AREA002', 'Terraza', 'Área al aire libre'),
+                ('AREA003', 'VIP', 'Área exclusiva para reservaciones especiales'),
+                ('AREA004', 'Barra', 'Área de barra')";
+            $this->db->exec($sql);
+            echo "       Áreas de mesa creadas.\n";
+        }
+    }
+
+    private function crearMetodosPago()
+    {
+        $count = $this->db->query("SELECT COUNT(*) FROM metodo_pago")->fetchColumn();
+        if ($count == 0) {
+            $sql = "INSERT INTO metodo_pago (id_metodo_pago, nombre) VALUES 
+                ('MET001', 'Efectivo'),
+                ('MET002', 'Tarjeta de Crédito'),
+                ('MET003', 'Tarjeta de Débito'),
+                ('MET004', 'Pago Móvil'),
+                ('MET005', 'Transferencia')";
+            $this->db->exec($sql);
+            echo "       Métodos de pago creados.\n";
+        }
     }
 
     private function crearMesas()
     {
         $this->db->exec("DELETE FROM mesa");
 
-        $sql = "INSERT INTO mesa (id_mesa, numero_mesa, capacidad, estado, estatus) VALUES 
-                ('MESA00120251001', 1, 4, 'DISPONIBLE', 1),
-                ('MESA00220251001', 2, 2, 'DISPONIBLE', 1),
-                ('MESA00320251001', 3, 6, 'DISPONIBLE', 1)";
-        try {
-            $this->db->exec($sql);
-            echo "       Mesas creadas correctamente.\n";
-        } catch (\Exception $e) {
-            echo "       Aviso en mesas: " . $e->getMessage() . "\n";
+        // Obtener áreas
+        $areas = $this->db->query("SELECT id_area FROM area_mesa")->fetchAll(\PDO::FETCH_COLUMN);
+        if (empty($areas)) {
+            $areas = ['AREA001'];
         }
+
+        $sql = "INSERT INTO mesa (id_mesa, id_area, numero_mesa, capacidad, estado, estatus) VALUES 
+                (:id, :area, :num, :cap, 'DISPONIBLE', 1)";
+        $stmt = $this->db->prepare($sql);
+
+        $mesaNum = 1;
+        foreach ($areas as $area) {
+            for ($i = 0; $i < 4; $i++) {
+                $stmt->execute([
+                    'id' => 'MESA' . str_pad($mesaNum, 3, '0', STR_PAD_LEFT) . date('Ymd'),
+                    'area' => $area,
+                    'num' => $mesaNum,
+                    'cap' => $this->faker->randomElement([2, 4, 6, 8])
+                ]);
+                $mesaNum++;
+            }
+        }
+        echo "       " . ($mesaNum - 1) . " mesas creadas.\n";
+    }
+
+    private function crearPersonasYUsuarios()
+    {
+        // Crear persona para admin root
+        $sqlCheckPersona = "SELECT COUNT(*) FROM persona WHERE cedula = 'V00000000'";
+        $personaExists = $this->db->query($sqlCheckPersona)->fetchColumn();
+        
+        if (!$personaExists) {
+            $sqlPersona = "INSERT INTO persona (cedula, nombre, apellido, telefono, correo, sexo) 
+                          VALUES ('V00000000', 'Admin', 'Principal', '04120000000', 'admin@goodvibes.com', 'M')";
+            $this->db->exec($sqlPersona);
+            echo "       Persona para Admin Root creada.\n";
+        }
+
+        // Crear persona para gerente
+        $sqlCheckGerente = "SELECT COUNT(*) FROM persona WHERE cedula = 'V12345678'";
+        $gerenteExists = $this->db->query($sqlCheckGerente)->fetchColumn();
+        
+        if (!$gerenteExists) {
+            $sqlPersona = "INSERT INTO persona (cedula, nombre, apellido, telefono, correo, sexo) 
+                          VALUES ('V12345678', 'Gerente', 'General', '04120000001', 'gerente@goodvibes.com', 'M')";
+            $this->db->exec($sqlPersona);
+            echo "       Persona para Gerente creada.\n";
+        }
+
+        // Crear empleados con personas
+        $this->crearEmpleadosFalsos(5);
+    }
+
+    private function crearEmpleadosFalsos($cantidad)
+    {
+        $cargos = $this->db->query("SELECT id_cargo FROM cargo")->fetchAll(\PDO::FETCH_COLUMN);
+        if (empty($cargos)) {
+            $cargos = ['CARGO001'];
+        }
+
+        $sqlPersona = "INSERT INTO persona (cedula, nombre, apellido, fecha_nacimiento, telefono, correo, direccion, sexo) 
+                      VALUES (:cedula, :nombre, :apellido, :fecha_nac, :tel, :correo, :dir, :sexo)";
+        $sqlEmpleado = "INSERT INTO empleado (cedula, id_cargo, fecha_ingreso) VALUES (:cedula, :cargo, :fecha_ingreso)";
+
+        $stmtPersona = $this->db->prepare($sqlPersona);
+        $stmtEmpleado = $this->db->prepare($sqlEmpleado);
+
+        for ($i = 0; $i < $cantidad; $i++) {
+            $cedula = 'V' . $this->faker->unique()->numberBetween(10000000, 99999999);
+            $fechaIngreso = $this->faker->dateTimeBetween('-2 years', 'now')->format('Y-m-d');
+            
+            try {
+                $stmtPersona->execute([
+                    'cedula' => $cedula,
+                    'nombre' => $this->faker->firstName(),
+                    'apellido' => $this->faker->lastName(),
+                    'fecha_nac' => $this->faker->date('Y-m-d', '-25 years'),
+                    'tel' => $this->faker->phoneNumber(),
+                    'correo' => $this->faker->unique()->safeEmail(),
+                    'dir' => $this->faker->address(),
+                    'sexo' => $this->faker->randomElement(['M', 'F'])
+                ]);
+                
+                $stmtEmpleado->execute([
+                    'cedula' => $cedula,
+                    'cargo' => $this->faker->randomElement($cargos),
+                    'fecha_ingreso' => $fechaIngreso
+                ]);
+            } catch (\Exception $e) {
+                // Ignorar duplicados
+            }
+        }
+        echo "       $cantidad empleados creados.\n";
     }
 
     private function crearProductosFalsos($cantidad)
     {
-        $stmt = $this->db->query("SELECT id_categoria FROM categoria_producto LIMIT 1");
-        $categoria = $stmt->fetch();
-
-        if (!$categoria) {
-            echo "       No hay categorías. Creando una por defecto...\n";
-            $this->db->exec("INSERT INTO categoria_producto (id_categoria, nombre_categoria, descripcion, icono, estatus) VALUES 
-                            ('CATEGEN20251001', 'General', 'Categoría por defecto', 'default.png', 1)");
-            $id_categoria = 'CATEGEN20251001';
-        } else {
-            $id_categoria = $categoria['id_categoria'];
+        $categorias = $this->db->query("SELECT id_categoria FROM categoria_producto")->fetchAll(\PDO::FETCH_COLUMN);
+        if (empty($categorias)) {
+            $categorias = ['CATPROD001'];
         }
 
         $sql = "INSERT INTO producto 
-                (id_producto, id_categoria, nombre_producto, descripcion, precio, stock, stock_minimo, costo_preparacion, tiempo_preparacion, imagen, es_personalizable, estatus) 
+                (id_producto, id_categoria, nombre_producto, descripcion, precio, stock, stock_minimo, costo_preparacion, tiempo_preparacion, es_personalizable, tipo_producto, estatus) 
                 VALUES 
-                (:id, :id_categoria, :nombre, :desc, :precio, :stock, :stock_minimo, :costo, :tiempo, :imagen, :personalizable, 1)";
+                (:id, :id_categoria, :nombre, :desc, :precio, :stock, :stock_minimo, :costo, :tiempo, :personalizable, :tipo, 1)";
 
         $stmt = $this->db->prepare($sql);
+        $tipos = ['COCINA', 'BARRA', 'POSTRE', 'RETAIL'];
 
         for ($i = 0; $i < $cantidad; $i++) {
             $precio = $this->faker->randomFloat(2, 5, 100);
             $stmt->execute([
-                'id'             => 'PROD-' . $this->faker->unique()->numberBetween(1000, 9999) . time(),
-                'id_categoria'   => $id_categoria,
-                'nombre'         => ucfirst($this->faker->words(2, true)),
-                'desc'           => $this->faker->sentence(6),
-                'precio'         => $precio,
-                'costo'          => $this->faker->randomFloat(2, 1, $precio * 0.7),
-                'stock'          => $this->faker->numberBetween(10, 100),
-                'stock_minimo'   => $this->faker->numberBetween(1, 10),
-                'tiempo'         => $this->faker->numberBetween(5, 30),
-                'imagen'         => null,
-                'personalizable' => $this->faker->boolean(30)
+                'id' => 'PROD-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT) . date('Ymd'),
+                'id_categoria' => $this->faker->randomElement($categorias),
+                'nombre' => ucfirst($this->faker->words(2, true)),
+                'desc' => $this->faker->sentence(6),
+                'precio' => $precio,
+                'costo' => $this->faker->randomFloat(2, 1, $precio * 0.6),
+                'stock' => $this->faker->numberBetween(10, 100),
+                'stock_minimo' => $this->faker->numberBetween(1, 10),
+                'tiempo' => $this->faker->numberBetween(5, 30),
+                'personalizable' => $this->faker->boolean(30) ? 1 : 0,
+                'tipo' => $this->faker->randomElement($tipos)
             ]);
         }
-        echo "       $cantidad Productos generados correctamente con Faker.\n";
+        echo "       $cantidad productos generados.\n";
     }
-
-    //cedula_personal	nombres	apellidos	id_cargo	telefono	correo	fecha_ingreso	salario	estatus	
-    private function crearPersonalsFalsos($cantidad)
-    {
-        $stmt = $this->db->query("SELECT id_cargo FROM cargo LIMIT 1");
-        $cargo = $stmt->fetch();
-
-        if (!$cargo) {
-            echo "       No hay cargos. Creando uno por defecto...\n";
-            $this->db->exec("INSERT INTO cargo (id_cargo, nombre_cargo, descripcion, estatus) VALUES 
-                            ('CARGO20251001', 'Personal', 'Cargo por defecto', 1)");
-            $id_cargo = 'CARGO20251001';
-        } else {
-            $id_cargo = $cargo['id_cargo'];
-        }
-
-        $sql = "INSERT INTO personal 
-                (cedula_personal, nombres, apellidos, id_cargo, telefono, correo, fecha_ingreso, salario, estatus) 
-                VALUES 
-                (:cedula, :nombres, :apellidos, :id_cargo, :telefono, :correo, :fecha_ingreso, :salario, 1)";
-
-        $stmt = $this->db->prepare($sql);
-
-        for ($i = 0; $i < $cantidad; $i++) {
-            $fechaIngreso = $this->faker->dateTimeBetween('-2 years', 'now')->format('Y-m-d');
-            $salario = $this->faker->randomFloat(2, 30000, 100000);
-            $stmt->execute([
-                'cedula'      => $this->faker->unique()->numberBetween(10000000, 99999999),
-                'nombres'     => $this->faker->firstName(),
-                'apellidos'   => $this->faker->lastName(),
-                'id_cargo'    => $id_cargo,
-                'telefono'    => $this->faker->phoneNumber(),
-                'correo'      => $this->faker->unique()->email(),
-                'fecha_ingreso' => $fechaIngreso,
-                'salario'     => $salario
-            ]);
-        }
-        echo "       Empleados generados correctamente con Faker.\n";
-    }
-
-    //id_ingrediente	nombre_ingrediente	unidad_medida	precio_unitario	estatus	
 
     private function crearIngredientesFalsos($cantidad)
     {
         $ingredientes = [
-            // Carnes
-            'carne de res',
-            'carne molida',
-            'pollo',
-            'pechuga de pollo',
-            'cerdo',
-            'tocino',
-            'jamón',
-            'salchicha',
-            'chorizo',
-            'costillas',
-            'pescado',
-            'atún',
-            'camarones',
-            'pulpo',
-            'calamares',
-            'langosta',
-
-            // Verduras y hortalizas
-            'lechuga',
-            'tomate',
-            'cebolla',
-            'cebolla morada',
-            'ajo',
-            'pimentón',
-            'ají dulce',
-            'zanahoria',
-            'pepino',
-            'aguacate',
-            'espinaca',
-            'repollo',
-            'brocoli',
-            'coliflor',
-            'calabacín',
-            'berenjena',
-            'champiñones',
-            'maíz',
-            'arvejas',
-            'remolacha',
-            'apio',
-            'perejil',
-            'cilantro',
-            'orégano',
-
-            // Lácteos y huevos
-            'queso mozzarella',
-            'queso cheddar',
-            'queso amarillo',
-            'queso blanco',
-            'queso parmesano',
-            'queso de cabra',
-            'queso crema',
-            'requesón',
-            'leche',
-            'crema de leche',
-            'mantequilla',
-            'yogur',
-            'huevos',
-
-            // Granos y harinas
-            'harina de trigo',
-            'harina de maíz',
-            'arroz',
-            'pasta',
-            'pan',
-            'pan rallado',
-            'avena',
-            'quinua',
-            'lentejas',
-            'caraotas',
-            'garbanzos',
-
-            // Frutas
-            'plátano',
-            'cambur',
-            'manzana',
-            'naranja',
-            'limón',
-            'fresa',
-            'piña',
-            'mango',
-            'papaya',
-            'melón',
-            'sandía',
-            'durazno',
-            'coco',
-
-            // Especias y condimentos
-            'sal',
-            'pimienta',
-            'comino',
-            'paprika',
-            'curry',
-            'nuez moscada',
-            'canela',
-            'clavo de olor',
-            'laurel',
-            'tomillo',
-            'romero',
-            'albahaca',
-            'salsa de tomate',
-            'mayonesa',
-            'mostaza',
-            'salsa inglesa',
-            'vinagre',
-            'aceite de oliva',
-            'aceite vegetal',
-            'miel',
-            'azúcar',
-            'salsa de soya',
-
-            // Otros
-            'papas',
-            'yuca',
-            'plátano verde',
-            'tostones',
-            'patacones',
-            'arepa',
-            'pan de hamburguesa',
-            'pan de perro caliente',
-            'tortilla',
-            'masa de pizza'
+            'Carne de res', 'Pollo', 'Cerdo', 'Pescado', 'Camarones',
+            'Tomate', 'Cebolla', 'Ajo', 'Pimentón', 'Zanahoria',
+            'Lechuga', 'Pepino', 'Aguacate', 'Papa', 'Yuca',
+            'Queso mozzarella', 'Queso parmesano', 'Leche', 'Mantequilla', 'Huevos',
+            'Harina de trigo', 'Arroz', 'Pasta', 'Pan', 'Aceite de oliva',
+            'Sal', 'Pimienta', 'Orégano', 'Salsa de tomate', 'Mayonesa'
         ];
 
         $cantidad = min($cantidad, count($ingredientes));
 
+        $categorias = $this->db->query("SELECT id_categoria FROM categoria_ingrediente")->fetchAll(\PDO::FETCH_COLUMN);
+        if (empty($categorias)) {
+            $categorias = ['CATING001'];
+        }
+
+        $unidades = $this->db->query("SELECT id_unidad FROM unidad_medida WHERE tipo IN ('PESO', 'VOLUMEN', 'UNIDAD')")->fetchAll(\PDO::FETCH_COLUMN);
+        if (empty($unidades)) {
+            $unidades = ['KG', 'G', 'L', 'ML', 'UN'];
+        }
+
         $sql = "INSERT INTO ingrediente 
-            (id_ingrediente, nombre_ingrediente, unidad_medida, precio_unitario, estatus) 
+            (id_ingrediente, id_categoria, nombre_ingrediente, id_unidad_medida, precio_unitario, stock_actual, stock_minimo, estatus) 
             VALUES 
-            (:id, :nombre, :unidad, :precio, 1)";
+            (:id, :cat, :nombre, :unidad, :precio, :stock, :stock_min, 1)";
 
         $stmt = $this->db->prepare($sql);
 
-        $this->faker->unique(true);
-
         for ($i = 0; $i < $cantidad; $i++) {
             $stmt->execute([
-                'id'     => 'INGR-' . $this->faker->unique()->numberBetween(1000, 9999) . time(),
-                'nombre' => ucfirst($this->faker->unique()->randomElement($ingredientes)),
-                'unidad' => $this->faker->randomElement(['kg', 'g', 'litros', 'ml', 'unidades', 'paquete']),
-                'precio' => $this->faker->randomFloat(2, 1, 20)
+                'id' => 'INGR-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT) . date('Ymd'),
+                'cat' => $this->faker->randomElement($categorias),
+                'nombre' => $ingredientes[$i],
+                'unidad' => $this->faker->randomElement($unidades),
+                'precio' => $this->faker->randomFloat(2, 1, 30),
+                'stock' => $this->faker->randomFloat(3, 1, 50),
+                'stock_min' => $this->faker->randomFloat(3, 0.5, 5)
             ]);
         }
-        echo "       $cantidad Ingredientes únicos generados correctamente con Faker.\n";
+        echo "       $cantidad ingredientes generados.\n";
     }
-
-    //	id_cliente	nombres	telefono	correo	fecha_registro
 
     private function crearClientesFalsos($cantidad)
     {
-        $sql = "INSERT INTO cliente 
-                (id_cliente, nombres, telefono, correo, fecha_registro) 
+        $sqlPersona = "INSERT INTO persona 
+                (cedula, nombre, apellido, fecha_nacimiento, telefono, correo, direccion, sexo) 
                 VALUES 
-                (:id, :nombres, :telefono, :correo, :fecha_registro)";
+                (:cedula, :nombre, :apellido, :fecha_nac, :tel, :correo, :dir, :sexo)";
 
-        $stmt = $this->db->prepare($sql);
+        $sqlCliente = "INSERT INTO cliente (cedula, fecha_registro) VALUES (:cedula, :fecha_reg)";
+
+        $stmtPersona = $this->db->prepare($sqlPersona);
+        $stmtCliente = $this->db->prepare($sqlCliente);
 
         for ($i = 0; $i < $cantidad; $i++) {
-            $fechaRegistro = $this->faker->dateTimeBetween('-2 years', 'now')->format('Y-m-d');
+            $cedula = 'V' . $this->faker->unique()->numberBetween(10000000, 99999999);
+            
+            try {
+                $stmtPersona->execute([
+                    'cedula' => $cedula,
+                    'nombre' => $this->faker->firstName(),
+                    'apellido' => $this->faker->lastName(),
+                    'fecha_nac' => $this->faker->date('Y-m-d', '-30 years'),
+                    'tel' => $this->faker->phoneNumber(),
+                    'correo' => $this->faker->unique()->safeEmail(),
+                    'dir' => $this->faker->address(),
+                    'sexo' => $this->faker->randomElement(['M', 'F'])
+                ]);
+                
+                $stmtCliente->execute([
+                    'cedula' => $cedula,
+                    'fecha_reg' => $this->faker->dateTimeBetween('-2 years', 'now')->format('Y-m-d H:i:s')
+                ]);
+            } catch (\Exception $e) {
+                // Ignorar duplicados
+            }
+        }
+        echo "       $cantidad clientes generados.\n";
+    }
+
+    private function crearProveedoresFalsos($cantidad)
+    {
+        $count = $this->db->query("SELECT COUNT(*) FROM proveedor")->fetchColumn();
+        if ($count > 0) {
+            return;
+        }
+
+        $sql = "INSERT INTO proveedor (documento_legal, nombre, telefono, correo, direccion) 
+                VALUES (:doc, :nombre, :tel, :correo, :dir)";
+        $stmt = $this->db->prepare($sql);
+
+        $empresas = ['Distribuidora', 'Importadora', 'Comercial', 'Mayorista', 'Alimentos'];
+        $nombres = ['El Buen Sabor', 'La Granja', 'Del Campo', 'Premium', 'Selecta'];
+
+        for ($i = 0; $i < $cantidad; $i++) {
             $stmt->execute([
-                'id' => Helper::GenerarID('CLI'),
-                'nombres' => $this->faker->name(),
-                'telefono' => $this->faker->phoneNumber(),
-                'correo' => $this->faker->unique()->email(),
-                'fecha_registro' => $fechaRegistro
+                'doc' => 'J-' . $this->faker->unique()->numberBetween(10000000, 99999999),
+                'nombre' => $this->faker->randomElement($empresas) . ' ' . $this->faker->randomElement($nombres),
+                'tel' => $this->faker->phoneNumber(),
+                'correo' => $this->faker->unique()->companyEmail(),
+                'dir' => $this->faker->address()
             ]);
         }
-        echo "       Clientes generados correctamente con Faker.\n";
+        echo "       $cantidad proveedores generados.\n";
     }
 }
