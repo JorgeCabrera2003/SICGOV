@@ -1,46 +1,382 @@
 <?php
+
+/*
+MODELO DE USUARIOS
+
+OPERACIONES A BASE DE DATOS:
+    REGISTRAR
+    CONSULTAR
+    MODIFICAR
+    ELIMINAR (LÓGICO)
+    VALIDAR
+    INICIAR SESIÓN
+    TRAER PERFIL DE USUARIO
+    EDITAR PERFIL DE USUARIO
+*/
+
+
 namespace App\Models\Security;
 
 use App\Core\Database;
+use App\Helpers\Helper;
 use PDO;
+use DateTime;
 
-class Usuario {
+class Usuario extends Database
+{
     private $cedula;
+    private $id_rol;
+    private $username;
+    private $nombres;
+    private $apellidos;
+    private $telefono;
+    private $correo;
+    private $fecha_nacimiento;
+    private $sexo;
     private $clave;
-    private $db;
+    private $foto_perfil;
+    private $tema_oscuro;
+    private $ultimo_acceso;
+    private $fecha_registro;
 
-    public function __construct() {
-        // Obtenemos la conexión específica para seguridad
-        $this->db = Database::getConnection('security');
+    public function __construct()
+    {
+        $this->cedula = "";
+        $this->id_rol = "";
+        $this->username = "";
+        $this->nombres = "";
+        $this->apellidos = "";
+        $this->telefono = "";
+        $this->correo = "";
+        $this->fecha_nacimiento = "";
+        $this->sexo = "";
+        $this->clave = "";
+        $this->foto_perfil = "";
+        $this->tema_oscuro = 0;
+        $this->ultimo_acceso = "";
+        $this->fecha_nacimiento = "";
     }
 
-    public function set_cedula($c) { $this->cedula = $c; }
-    public function set_clave($k) { $this->clave = $k; }
+    //SETTERS
+    public function setCedula(string $cedula)
+    {
+        $this->cedula = $cedula;
+    }
 
-    public function Transaccion($peticion) {
-        switch ($peticion['peticion']) {
-            case 'sesion':
-                return $this->IniciarSesion();
-            case 'perfil':
-                return $this->PerfilUsuario();
+    public function setIdRol(string $id_rol)
+    {
+        $this->id_rol = $id_rol;
+    }
+
+    public function setUsername(string $username)
+    {
+        $this->username = $username;
+    }
+
+    public function setNombres(string $nombres)
+    {
+        $this->nombres = $nombres;
+    }
+
+    public function setApellidos(string $apellidos)
+    {
+        $this->apellidos = $apellidos;
+    }
+
+    public function setTelefono(string $telefono)
+    {
+        $this->telefono = $telefono;
+    }
+
+    public function setCorreo(string $correo)
+    {
+        $this->correo = $correo;
+    }
+    
+    public function setFechaNacimiento(DateTime $fecha_nacimiento){
+        $this->fecha_nacimiento = $fecha_nacimiento;
+    }
+    public function setSexo(string $sexo){
+        $this->sexo = $sexo;
+    }
+    public function setClave(string $clave)
+    {
+        $this->clave = $clave;
+    }
+
+    public function setFotoPerfil(string $foto_perfil)
+    {
+        $this->foto_perfil = $foto_perfil;
+    }
+
+    public function setTema(string $tema)
+    {
+        $this->tema_oscuro = $tema;
+    }
+
+    public function setUltimoAcceso(DateTime $ultimo_acceso)
+    {
+        $this->ultimo_acceso = $ultimo_acceso;
+    }
+
+    public function setFechaRegistro(DateTime $fecha_registro)
+    {
+        $this->fecha_registro = $fecha_registro;
+    }
+    //FIN DE SETTERS
+
+    //GETTERS
+    public function getCedula()
+    {
+        return $this->cedula;
+    }
+
+    public function getIdRol()
+    {
+        return $this->id_rol;
+    }
+
+    public function getUsername()
+    {
+        return $this->username;
+    }
+
+    public function getNombres()
+    {
+        return $this->nombres;
+    }
+
+    public function getApellidos()
+    {
+        return $this->apellidos;
+    }
+
+    public function getTelefono()
+    {
+        return $this->telefono;
+    }
+
+    public function getCorreo()
+    {
+        return $this->correo;
+    }
+
+    public function getFechaNacimiento(){
+        return $this->fecha_nacimiento;
+    }
+    public function getSexo(){
+        return $this->sexo;
+    }
+
+    public function getClave()
+    {
+        return $this->clave;
+    }
+
+    public function getFotoPerfil()
+    {
+        return $this->foto_perfil;
+    }
+
+    public function getTema()
+    {
+        return $this->tema_oscuro;
+    }
+
+    public function getUltimoAcceso()
+    {
+        return $this->ultimo_acceso;
+    }
+
+    public function getFechaRegistro()
+    {
+        return $this->fecha_registro;
+    }
+    //FIN DE GETTERS
+
+    //MANEJADOR DE OPERACIONES
+    public function Transaccion($peticion)
+    {
+        $response = [];
+        $response['response'] = ['resultado' => 400, 'icon' => 'danger', 'mensaje' => "Envió solicitud no válida"];
+        $response['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => "Solicitud no válida"];
+        if (isset($peticion['peticion'])) {
+
+            $response = match ($peticion['peticion']) {
+                'registrar' => $this->RegistrarUsuario(),
+                'consultar' => $this->ConsultarUsuario(),
+                'validar' => $this->ValidarUsuario(),
+                'sesion' => $this->IniciarSesion(),
+                'perfil' => $this->TraerPerfilUsuario(),
+                default => [
+                    'response' => ['resultado' => 400, 'icon' => 'danger', 'mensaje' => "Envió solicitud no válida"],
+                    'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
+                ]
+            };
         }
-        return false;
+        return $response;
+    }
+    //FIN DE MANEJADOR DE OPERACIONES
+
+    //OPERACIONES A BASE DE DATOS
+    private function ValidarUsuario()
+    {
+        $dato = [];
+        $arreglo = [];
+
+        try {
+            $sql = "SELECT * FROM usuario WHERE cedula = :cedula
+            OR username = :username OR correo = :correo";
+            $this->LlamarConexion("security");
+            $this->LlamarConexion()->beginTransaction();
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->bindParam(':correo', $this->correo);
+            $stm->bindParam(":cedula", $this->cedula);
+            $stm->bindParam(':username', $this->username);
+            $stm->execute();
+
+            if ($stm->rowCount() > 0) {
+                $arreglo = $stm->fetch(PDO::FETCH_ASSOC);
+                $dato['bool'] = 1;
+
+            } else {
+                $dato['bool'] = 0;
+            }
+            $this->LlamarConexion()->commit();
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'registro' => $arreglo];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            $dato['estado'] = -1;
+            $dato['bool'] = -1;
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor", 'registro' => []];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+
+        $this->DestruirConexion();
+        return $dato;
+    }
+    private function IniciarSesion()
+    {
+        $dato = [];
+        $validacion = $this->ValidarUsuario();
+        $dato['response'] = ['resultado' => 401, 'mensaje' => "Credenciales Inválidas", 'verificacion' => false];
+        $dato['HTTP_STATUS'] = ['codigo' => 401, 'mensaje' => "Credenciales Inválidas"];
+
+        if ($validacion['bool'] == 1) {
+            if (password_verify($this->clave, $validacion['response']['registro']['clave'])) {
+                $dato['response'] = ['resultado' => 200, 'mensaje' => "OK", 'verificacion' => true];
+                $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+            }
+        }
+        return $dato;
     }
 
-    private function IniciarSesion() {
-        $sql = "SELECT clave FROM usuario WHERE cedula = :cedula AND estatus = 1";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['cedula' => $this->cedula]);
-        $user = $stmt->fetch();
+    private function TraerPerfilUsuario()
+    {
+        $dato = [];
+        $registro = [];
 
-        // IMPORTANTE: En el futuro aquí usaremos password_verify
-        return ($user && $this->clave === $user['clave']);
+        try {
+            $sql = "SELECT * FROM usuario WHERE cedula = :cedula";
+            $this->LlamarConexion("security");
+            $this->LlamarConexion()->beginTransaction();
+
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->bindParam('cedula', $this->cedula);
+            $stm->execute();
+            $registro = $stm->fetch();
+            $this->LlamarConexion()->commit();
+            $dato['response'] = ['resultado' => 200, 'datos' => $registro];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "Error interno del servidor"];
+            $stm = NULL;
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor", 'registro' => []];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
     }
 
-    private function PerfilUsuario() {
-        $sql = "SELECT * FROM usuario WHERE cedula = :cedula";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute(['cedula' => $this->cedula]);
-        return ['datos' => $stmt->fetch()];
+    private function RegistrarUsuario()
+    {
+        $dato = [];
+        $validacion = [];
+        $validacion = $this->ValidarUsuario();
+        if ($validacion['bool'] == 0) {
+            try {
+                $this->LlamarConexion("security");
+                $this->LlamarConexion()->beginTransaction();
+
+                $hashed_clave = password_hash($this->clave, PASSWORD_DEFAULT);
+
+                $sql = "INSERT INTO usuario(cedula, id_rol, username, nombres, apellidos, telefono, correo, clave) 
+        VALUES (:cedula, :id_rol, :username, :nombres, :apellidos, :telefono, :correo, :clave)";
+
+                $stm = $this->LlamarConexion()->prepare($sql);
+                $stm->bindParam(':cedula', $this->cedula);
+                $stm->bindParam(':id_rol', $this->id_rol);
+                $stm->bindParam(':username', $this->username);
+                $stm->bindParam(':nombres', $this->nombres);
+                $stm->bindParam(':apellidos', $this->apellidos);
+                $stm->bindParam(':telefono', $this->telefono);
+                $stm->bindParam(':correo', $this->correo);
+                $stm->bindParam(':clave', $hashed_clave);
+                $stm->execute();
+                $stm = NULL;
+                $this->LlamarConexion()->commit();
+                $dato['estado'] = 1;
+                $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Usuario registrado exitosamente"];
+                $dato['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => "Se registró exitosamente"];
+            } catch (\PDOException $e) {
+                $this->LlamarConexion()->rollBack();
+                $dato['estado'] = -1;
+                Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+                $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor", 'registro' => []];
+                $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+            }
+        } else {
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 409, 'icon' => 'danger', 'mensaje' => "Registro duplicado"];
+            $dato['HTTP_STATUS'] = ['codigo' => 409, 'mensaje' => "Conflicto: Registro duplicado"];
+        }
+        return $dato;
     }
+
+    private function ConsultarUsuario()
+    {
+        $dato = [];
+        $arreglo = [];
+
+        try {
+            $this->LlamarConexion("security");
+            $this->LlamarConexion()->beginTransaction();
+            $query = "SELECT * FROM usuario WHERE estatus = 1";
+
+            $stm = $this->LlamarConexion()->prepare($query);
+            $stm->execute();
+            if ($stm->rowCount() > 0) {
+                $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
+            }
+            $this->LlamarConexion()->commit();
+            $stm = NULL;
+
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'mensaje' => "OK", 'datos' => $arreglo];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            $dato['estado'] = -1;
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor", 'registro' => []];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+    //FIN DE OPERACIONES A BASE DE DATOS
 }

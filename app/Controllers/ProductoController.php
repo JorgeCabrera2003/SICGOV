@@ -15,27 +15,20 @@ class ProductoController
         $productos = $productoModel->Transaccion(['peticion' => 'listar']);
         $categorias = $productoModel->Transaccion(['peticion' => 'categorias']);
 
-        $vars = [
-            'productos' => $productos,
-            'categorias' => $categorias
-        ];
-
-        Helper::cargarVista('productos/index', 'Productos - Good Vibes', $vars);
+        Helper::cargarVista(
+            'productos/index',
+            'Productos - Good Vibes',
+            compact('productos', 'categorias')
+        );
     }
 
     public function guardar()
     {
-        header('Content-Type: application/json');
-
-        try {
-            if (!Helper::verificarSesion()) {
-                echo json_encode(['success' => false, 'message' => 'Sesión no iniciada']);
-                exit();
-            }
+        $this->responderJson(function() {
+            Helper::verificarSesion();
 
             if (empty($_POST['nombre'])) {
-                echo json_encode(['success' => false, 'message' => 'El nombre es requerido']);
-                exit();
+                return ['success' => false, 'message' => 'El nombre es requerido'];
             }
 
             $producto = new Producto();
@@ -50,163 +43,156 @@ class ProductoController
 
             if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
                 $imagen = $producto->subirImagen($_FILES['imagen']);
-                if ($imagen) {
-                    $producto->setImagen($imagen);
-                }
+                if ($imagen) $producto->setImagen($imagen);
             }
 
-            if (!empty($_POST['id_producto'])) {
+            $esNuevo = empty($_POST['id_producto']);
+            
+            if (!$esNuevo) {
                 $producto->setIdProducto($_POST['id_producto']);
-                $result = $producto->Transaccion(['peticion' => 'actualizar']);
-                $accion = "actualizó";
-            } else {
-                $result = $producto->Transaccion(['peticion' => 'guardar']);
-                $accion = "guardó";
             }
 
-            if (isset($result['success']) && $result['success']) {
+            $result = $producto->Transaccion([
+                'peticion' => $esNuevo ? 'guardar' : 'actualizar'
+            ]);
+
+            if ($result['success']) {
+                $accion = $esNuevo ? 'guardó' : 'actualizó';
                 Helper::Bitacora("$accion producto: " . $_POST['nombre'], "Productos");
             }
 
-            echo json_encode($result);
-        } catch (\Exception $e) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ]);
-        }
-        exit();
+            return $result;
+        });
     }
 
     public function buscar()
     {
-        header('Content-Type: application/json');
-
-        try {
-            if (!Helper::verificarSesion()) {
-                echo json_encode(['success' => false, 'message' => 'Sesión no iniciada']);
-                exit();
-            }
+        $this->responderJson(function() {
+            Helper::verificarSesion();
 
             if (empty($_GET['id'])) {
-                echo json_encode(['success' => false, 'message' => 'ID no proporcionado']);
-                exit();
+                return ['success' => false, 'message' => 'ID no proporcionado'];
             }
 
             $producto = new Producto();
             $producto->setIdProducto($_GET['id']);
             $data = $producto->Transaccion(['peticion' => 'buscar']);
 
-            if ($data) {
-                echo json_encode(['success' => true, 'data' => $data]);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Producto no encontrado']);
-            }
-        } catch (\Exception $e) {
-            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
-        }
-        exit();
+            return $data 
+                ? ['success' => true, 'data' => $data]
+                : ['success' => false, 'message' => 'Producto no encontrado'];
+        });
     }
 
     public function eliminar()
     {
-        header('Content-Type: application/json');
-
-        try {
-            if (!Helper::verificarSesion()) {
-                echo json_encode(['success' => false, 'message' => 'Sesión no iniciada']);
-                exit();
-            }
+        $this->responderJson(function() {
+            Helper::verificarSesion();
 
             if (empty($_POST['id'])) {
-                echo json_encode(['success' => false, 'message' => 'ID no proporcionado']);
-                exit();
+                return ['success' => false, 'message' => 'ID no proporcionado'];
             }
 
             $producto = new Producto();
             $producto->setIdProducto($_POST['id']);
             $result = $producto->Transaccion(['peticion' => 'eliminar']);
 
-            if (isset($result['success']) && $result['success']) {
+            if ($result['success']) {
                 Helper::Bitacora("Eliminó producto ID: " . $_POST['id'], "Productos");
             }
 
-            echo json_encode($result);
-        } catch (\Exception $e) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ]);
-        }
-        exit();
+            return $result;
+        });
     }
 
     public function listarJson()
     {
-        header('Content-Type: application/json');
-
-        try {
-            if (!Helper::verificarSesion()) {
-                echo json_encode(['data' => []]);
-                exit();
-            }
+        $this->responderJson(function() {
+            Helper::verificarSesion();
 
             $producto = new Producto();
-            $productos = $producto->Transaccion(['peticion' => 'listar']);
+            $productos = $producto->Transaccion(['peticion' => 'listar']) ?: [];
 
-            if (!is_array($productos)) {
-                $productos = [];
-            }
+            return [
+                'data' => array_map([$this, 'formatearProducto'], $productos)
+            ];
+        });
+    }
 
-            $data = [];
-            foreach ($productos as $p) {
-                $data[] = [
-                    'id' => $p['id_producto'] ?? '',
-                    'imagen' => $this->generarImagenHtml($p),
-                    'nombre' => $p['nombre_producto'] ?? '',
-                    'categoria' => $p['categoria_nombre'] ?? 'Sin categoría',
-                    'precio' => '$ ' . number_format($p['precio'] ?? 0, 2),
-                    'stock' => $p['stock'] ?? 0,
-                    'stock_minimo' => $p['stock_minimo'] ?? 5,
-                    'estatus' => $this->generarEstatusHtml($p),
-                    'acciones' => $this->generarAccionesHtml($p)
-                ];
-            }
-
-            echo json_encode(['data' => $data]);
-        } catch (\Exception $e) {
-            echo json_encode([
-                'error' => $e->getMessage(),
-                'data' => []
-            ]);
-        }
-        exit();
+    /**
+     * Formatea un producto para la respuesta JSON
+     */
+    private function formatearProducto($p)
+    {
+        return [
+            'id' => $p['id_producto'] ?? '',
+            'imagen' => $this->generarImagenHtml($p),
+            'nombre' => $p['nombre_producto'] ?? '',
+            'categoria' => $p['categoria_nombre'] ?? 'Sin categoría',
+            'precio' => '$ ' . number_format($p['precio'] ?? 0, 2),
+            'stock' => $p['stock'] ?? 0,
+            'stock_minimo' => $p['stock_minimo'] ?? 5,
+            'estatus' => $this->generarEstatusHtml($p),
+            'acciones' => $this->generarAccionesHtml($p)
+        ];
     }
 
     private function generarImagenHtml($p)
     {
         if (!empty($p['imagen']) && $p['imagen'] != 'default-product.png') {
-            return '<img src="' . BASE_URL . '/assets/img/productos/' . $p['imagen'] .
-                '" width="40" height="40" style="object-fit: cover; border-radius: 4px;">';
+            return sprintf(
+                '<img src="%s/assets/img/productos/%s" width="40" height="40" class="rounded object-fit-cover">',
+                BASE_URL,
+                $p['imagen']
+            );
         }
-        return '<div class="bg-secondary text-white d-flex align-items-center justify-content-center" ' .
-            'style="width:40px;height:40px;border-radius:4px;"><i class="fas fa-box"></i></div>';
+        
+        return '<div class="bg-secondary bg-opacity-25 text-dark d-flex align-items-center justify-content-center rounded" style="width:40px;height:40px;"><i class="fas fa-box"></i></div>';
     }
 
     private function generarEstatusHtml($p)
     {
-        return ($p['estatus'] ?? 0) == 1 ?
-            '<span class="badge bg-success">Activo</span>' :
-            '<span class="badge bg-danger">Inactivo</span>';
+        $activo = ($p['estatus'] ?? 0) == 1;
+        $badge = $activo ? 'bg-success' : 'bg-danger';
+        $texto = $activo ? 'Activo' : 'Inactivo';
+        
+        return sprintf('<span class="badge %s">%s</span>', $badge, $texto);
     }
 
     private function generarAccionesHtml($p)
     {
-        return '<div class="btn-group" role="group">' .
-            '<button class="btn btn-sm btn-primary btn-editar" data-id="' . $p['id_producto'] . '" title="Editar">' .
-            '<i class="fas fa-edit"></i></button>' .
-            '<button class="btn btn-sm btn-danger btn-eliminar" data-id="' . $p['id_producto'] . '" title="Eliminar">' .
-            '<i class="fas fa-trash"></i></button>' .
-            '</div>';
+        $id = $p['id_producto'] ?? '';
+        
+        return sprintf(
+            '<div class="btn-group" role="group">
+                <button class="btn btn-sm btn-outline-warning border-0 btn-editar" data-id="%s" title="Editar">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger border-0 btn-eliminar" data-id="%s" title="Eliminar">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>',
+            $id,
+            $id
+        );
+    }
+
+    /**
+     * Helper para respuestas JSON uniformes
+     */
+    private function responderJson(callable $callback)
+    {
+        header('Content-Type: application/json');
+
+        try {
+            $resultado = $callback();
+            echo json_encode($resultado);
+        } catch (\Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error interno: ' . $e->getMessage()
+            ]);
+        }
+        exit();
     }
 }

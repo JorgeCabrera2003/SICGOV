@@ -1,33 +1,104 @@
 <?php
+
 namespace App\Helpers;
 
 use App\Models\Security\Bitacora;
 
-class Helper {
+class Helper
+{
+    /**
+     * Genera un ID
+     * Formato: PREFIJO + CLAVE FORÁRENA + FECHA + MILISEGUNDOS
+     * 
+     * @param string $prefijo Prefijo del ID (ej: 'BITA', 'PROD', 'PEDI')
+     * @return string ID generado
+     */
+    public static function generarId($prefijo, $clave = NULL)
+    {
+        // Formatear Parámetros
+        $id = NULL;
+        $prefijo = preg_replace('/[^A-Za-z0-9]/', '', $prefijo);
+        $prefijo = strtoupper(substr(trim($prefijo), 0, 4));
+        $milisegundo = number_format(microtime(true) * 1000, 0, '', '');
+        $milisegundo = substr($milisegundo, -3);
 
-    public static function Bitacora($accion, $modulo) {
-        $bitacora = new Bitacora();
-        
-        if (isset($_SESSION['user'])) {
-            $bitacora->set_usuario($_SESSION['user']['cedula'] ?? '');
-            $bitacora->set_modulo($modulo);
-            $bitacora->set_accion($accion);
-            $bitacora->set_fecha(date('Y-m-d'));
-            $bitacora->set_hora(date('H:i:s'));
-            
-            return $bitacora->Transaccion(['peticion' => 'registrar']);
+        if ($clave == NULL) {
+            $clave = substr($milisegundo, -3);
+        } else {
+            $clave = preg_replace('/[^A-Za-z0-9]/', '', $clave);
+            $clave = strtoupper(substr(trim($clave), 0, 3));
         }
-        return false;
+
+        // Componer el ID
+        $fecha = date('YmdHms');
+        $id = $prefijo . $clave . $fecha . $milisegundo;
+        usleep(30000);
+
+        return $id;
     }
 
-    public static function verificarSesion() {
+    /**
+     * Registra un movimiento en la bitácora
+     */
+    public static function Bitacora($accion, $modulo, $detalles = null)
+    {
+        try {
+            if (!isset($_SESSION['user'])) {
+                return false;
+            }
+
+            $bitacora = new Bitacora();
+            $idBitacora = self::generarId('BIT');
+            $bitacora->setIdBitacora($idBitacora);
+
+            $usuarioId = $_SESSION['user']['id_usuario'] ?? $_SESSION['user']['cedula'] ?? null;
+
+            if (!$usuarioId) {
+                return false;
+            }
+
+            $bitacora->set_usuario($usuarioId);
+            $bitacora->set_modulo($modulo);
+            $bitacora->set_accion($accion);
+            $bitacora->set_detalles($detalles);
+            $bitacora->set_fecha(date('Y-m-d H:i:s'));
+
+            return $bitacora->Transaccion(['peticion' => 'registrar']);
+        } catch (\Exception $e) {
+            self::ErrorLog("Error en Helper::Bitacora: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Guarda el Error en un Archivo .txt
+     */
+    public static function ErrorLog(string $mensaje)
+    {
+        $ruta_log = BASE_PATH . "\logs\logs.txt"; // Ruta del archivo
+        $directorio = dirname($ruta_log);
+
+        // Crear directorio si no existe
+        if (!is_dir($directorio)) {
+            mkdir($directorio, 0777, true); // true para crear subdirectorios recursivamente
+        }
+        error_log(
+            "\nError: " . $mensaje . "\n",
+            3,
+            $ruta_log
+        );
+    }
+    public static function verificarSesion()
+    {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        
+
         if (!isset($_SESSION['user'])) {
-            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
-                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+            if (
+                isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'
+            ) {
                 header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Sesión no iniciada']);
                 exit();
@@ -36,15 +107,16 @@ class Helper {
                 exit();
             }
         }
-        
+
         return true;
     }
 
-    public static function getDatosUsuario() {
+    public static function getDatosUsuario()
+    {
         self::verificarSesion();
-        
+
         $user = $_SESSION['user'];
-        
+
         return [
             'nombres' => $user['nombres'] ?? $user['username'] ?? 'Usuario',
             'apellidos' => $user['apellidos'] ?? '',
@@ -55,9 +127,10 @@ class Helper {
         ];
     }
 
-    public static function getVarsVista($tituloPagina = 'Good Vibes') {
+    public static function getVarsVista($tituloPagina = 'Good Vibes')
+    {
         self::verificarSesion();
-        
+
         return [
             'titulo' => $tituloPagina,
             'page' => $_GET['page'] ?? 'home',
@@ -68,20 +141,21 @@ class Helper {
         ];
     }
 
-    public static function cargarVista($vistaPath, $titulo = 'Good Vibes', $vars = []) {
+    public static function cargarVista($vistaPath, $titulo = 'Good Vibes', $vars = [])
+    {
         self::verificarSesion();
-        
+
         $varsVista = self::getVarsVista($titulo);
         $vars = array_merge($varsVista, $vars);
         extract($vars);
-        
+
         $basePath = dirname(__DIR__, 2);
 
         $headFile = $basePath . '/resources/views/layout/head.php';
         $menuFile = $basePath . '/resources/views/layout/menu.php';
         $vistaFile = $basePath . '/resources/views/' . $vistaPath . '.php';
         $footerFile = $basePath . '/resources/views/layout/footer.php';
-        
+
         if (!file_exists($headFile)) {
             die("Error: No se encuentra el archivo head.php en: $headFile");
         }
@@ -94,7 +168,7 @@ class Helper {
         if (!file_exists($footerFile)) {
             die("Error: No se encuentra el archivo footer.php en: $footerFile");
         }
-        
+
         require_once $headFile;
         require_once $menuFile;
         require_once $vistaFile;

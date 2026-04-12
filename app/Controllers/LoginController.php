@@ -1,114 +1,111 @@
 <?php
+
 namespace App\Controllers;
 
-use App\Helpers\Helper;
 use App\Models\Security\Usuario;
-use App\Models\Security\Bitacora;
 use App\Models\Security\LoginSettings;
-use App\Core\Database;
 
-class LoginController {
-
-    public function index() {
+class LoginController
+{
+    public function index()
+    {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
-        
+
         if (isset($_SESSION['user'])) {
-            header("Location: ?page=home");
+            header("Location: " . BASE_URL . "/?page=home");
             exit();
         }
-        
-        $titulo = "Login - Good Vibes";
-        require_once __DIR__ . '/../resources/views/auth/login.php';
-    }
 
-    public function login() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        
-        $userModel = new Usuario();
+        $validacion = [];
         $loginSettings = new LoginSettings();
+        $siteKey = $loginSettings->get_recaptcha_sitekey();
 
-        $recaptcha = $_POST['g-recaptcha-response'] ?? '';
-        if (empty($recaptcha)) {
-            $_SESSION['error_login'] = "Por favor, complete el reCAPTCHA";
-            header("Location: ?page=login");
-            exit();
-        }
-        
-        $secret = $loginSettings->get_recaptcha_secret();
-        $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$secret&response=$recaptcha");
-        $arr = json_decode($response, true);
+        $currentPage = $_GET['page'] ?? 'login';
+        $openRegisterSlide = $currentPage === 'crear-cuenta';
 
-        if (!$arr['success']) {
-            $_SESSION['error_login'] = "Error en verificación reCAPTCHA";
-            header("Location: ?page=login");
-            exit();
-        }
+        if (isset($_POST['peticion'])) {
 
-        if (empty($_POST['CI'] ?? '') || empty($_POST['password'] ?? '')) {
-            $_SESSION['error_login'] = "Por favor, complete todos los campos";
-            header("Location: ?page=login");
-            exit();
-        }
+            if ($_POST['peticion'] == 'registrar') {
+                $openRegisterSlide = true;
+                $recaptcha = $_POST['g-recaptcha-response'] ?? '';
+                if (empty($recaptcha)) {
+                    $_SESSION['error_register'] = 'Por favor, complete el reCAPTCHA';
+                } elseif (empty($_POST['nacionalidad'] ?? '') || empty($_POST['cedula'] ?? '') || empty($_POST['username'] ?? '') || empty($_POST['nombre'] ?? '') || empty($_POST['apellido'] ?? '') || empty($_POST['correo'] ?? '') || empty($_POST['clave'] ?? '') || empty($_POST['rclave'] ?? '')) {
+                    $_SESSION['error_register'] = 'Por favor, complete todos los campos';
+                } elseif ($_POST['clave'] !== $_POST['rclave']) {
+                    $_SESSION['error_register'] = 'Las contraseñas no coinciden';
+                } else {
+                    $cedula = ($_POST['nacionalidad'] ?? '') . ($_POST['cedula'] ?? '');
+                    $usuarioModel = new Usuario();
+                    $usuarioModel->setCedula($cedula);
+                    $usuarioModel->setIdRol('CLIE00420251001');
+                    $usuarioModel->setUsername($_POST['username']);
+                    $usuarioModel->setNombres($_POST['nombre']);
+                    $usuarioModel->setApellidos($_POST['apellido']);
+                    $usuarioModel->setTelefono($_POST['telefono'] ?? '');
+                    $usuarioModel->setCorreo($_POST['correo']);
+                    $usuarioModel->setClave($_POST['clave']);
 
-        $particle = $_POST['particle'] ?? 'V-';
-        $ci = $_POST['CI'] ?? '';
-        $cedula = $particle . $ci;
-        $pass = $_POST['password'] ?? '';
-        
-        $userModel->set_cedula($cedula);
-        $userModel->set_clave($pass);
-
-        if ($userModel->Transaccion(['peticion' => 'sesion'])) {
-            $datos = $userModel->Transaccion(['peticion' => 'perfil']);
-            
-            if ($datos && isset($datos['datos'])) {
-                $_SESSION['user'] = $datos['datos'];
-                
-                $this->registrarBitacora($cedula, "Inicio de sesión exitoso");
-                unset($_SESSION['error_login']);
-                
-                header("Location: ?page=home");
-            } else {
-                $_SESSION['error_login'] = "Error al cargar datos del usuario";
-                header("Location: ?page=login");
+                    $registro = $usuarioModel->Transaccion(['peticion' => 'registrar']);
+                    if (isset($registro['estado']) && $registro['estado'] == 1) {
+                        $validacion = $usuarioModel->Transaccion(['peticion' => 'sesion']);
+                        if (isset($validacion['response']['verificacion']) && $validacion['response']['verificacion']) {
+                            $datos = $usuarioModel->Transaccion(['peticion' => 'perfil']);
+                            if ($datos && isset($datos['response']['datos'])) {
+                                $_SESSION['user'] = $datos['response']['datos'];
+                                unset($_SESSION['error_register']);
+                                header('Location: ' . BASE_URL . '/?page=home');
+                                exit();
+                            }
+                        }
+                        $_SESSION['error_register'] = 'Usuario registrado pero no se pudo iniciar sesión automáticamente';
+                    } else {
+                        $_SESSION['error_register'] = $registro['response']['mensaje'] ?? 'Error al registrar usuario';
+                    }
+                }
             }
-        } else {
-            $this->registrarBitacora($cedula, "Intento fallido: Credenciales incorrectas");
-            $_SESSION['error_login'] = "Cédula o contraseña incorrectos";
-            header("Location: ?page=login");
-        }
-        exit();
-    }
 
-    private function registrarBitacora($cedula, $accion) {
-        try {
-            $bitacora = new Bitacora();
-            $bitacora->set_usuario($cedula);
-            $bitacora->set_modulo("Seguridad/Login");
-            $bitacora->set_accion($accion);
-            $bitacora->set_fecha(date('Y-m-d'));
-            $bitacora->set_hora(date('H:i:s'));
-            $bitacora->Transaccion(['peticion' => 'registrar']);
-        } catch (\Exception $e) {
-            error_log("Error al registrar en bitácora: " . $e->getMessage());
-        }
-    }
+            if ($_POST['peticion'] == 'sesion') {
+                $recaptcha = $_POST['g-recaptcha-response'] ?? '';
+                if (empty($recaptcha)) {
+                    $_SESSION['error_login'] = 'Por favor, complete el reCAPTCHA';
+                    header('Location: ' . BASE_URL . '/?page=login');
+                    exit();
+                }
 
-    public function logout() {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+                if (empty($_POST['CI'] ?? '') || empty($_POST['password'] ?? '')) {
+                    $_SESSION['error_login'] = 'Por favor, complete todos los campos';
+                    header('Location: ' . BASE_URL . '/?page=login');
+                    exit();
+                }
+
+                $particle = $_POST['particle'] ?? 'V-';
+                $ci = $_POST['CI'] ?? '';
+                $cedula = $particle . $ci;
+                $pass = $_POST['password'] ?? '';
+
+                $usuarioModel = new Usuario();
+                $usuarioModel->setCedula($cedula);
+                $usuarioModel->setClave($pass);
+                $validacion = $usuarioModel->Transaccion(['peticion' => 'sesion']);
+
+                if (isset($validacion['response']['verificacion']) && $validacion['response']['verificacion']) {
+                    $datos = $usuarioModel->Transaccion(['peticion' => 'perfil']);
+                    if ($datos && isset($datos['response']['datos'])) {
+                        $_SESSION['user'] = $datos['response']['datos'];
+                        unset($_SESSION['error_login']);
+                        header('Location: ' . BASE_URL . '/?page=home');
+                    } else {
+                        $_SESSION['error_login'] = 'Error al cargar datos del usuario';
+                    }
+                } else {
+                    $_SESSION['error_login'] = 'Cédula o contraseña incorrectos';
+                }
+            }
         }
-        
-        \App\Helpers\Helper::Bitacora("Cerró sesión", "Seguridad");
-        
-        session_unset();
-        session_destroy();
-        
-        header("Location: ?page=login");
-        exit();
+        $titulo = 'Login - Good Vibes';
+        require_once BASE_PATH . '/resources/views/auth/login.php';
     }
 }

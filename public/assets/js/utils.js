@@ -17,35 +17,35 @@ const patrones = {
   direccion: /^[0-9 a-zA-ZÀ-ÿ\s-./#]{10,100}$/,
   nombreEnte: /^[0-9 a-zA-ZáéíóúüñÑçÇ -.]{4,90}$/,
   responsable: /^[a-zA-ZÀ-ÿ\s-.]{4,65}$/,
-  
+
   // Patrones para Bienes/Equipos
   codigoBien: /^[0-9a-zA-Z\-]{3,20}$/,
   descripcion: /^[0-9 a-zA-ZáéíóúüñÑçÇ -.,]{3,100}$/,
   serial: /^[0-9a-zA-ZáéíóúüñÑçÇ.-]{3,45}$/,
   tipoEquipo: /^[0-9 a-zA-ZáéíóúüñÑçÇ -.]{3,45}$/,
-  
+
   // PATRONES PARA MATERIAL
   id_material: /^[A-Z0-9\-_]{1,50}$/,
-  nombre_material: /^[0-9a-zA-ZáéíóúüñÑçÇ\s\-.,()]{3,100}$/, 
+  nombre_material: /^[0-9a-zA-ZáéíóúüñÑçÇ\s\-.,()]{3,100}$/,
   id_oficina: /^[A-Z0-9]{1,30}$/,
   stock_material: /^[0-9]{1,6}$/,
-  
+
   // Patrones para IDs generados
   id_generado: /^[A-Z0-9]{1,30}$/,
-  
+
   // Patrones para nombres
   nombre_natural_largo: /^[0-9a-zA-ZáéíóúüñÑçÇ\s\-.,()]{1,100}$/,
   nombre_natural: /^[a-zA-ZáéíóúüñÑçÇ\s\-.]{1,65}$/,
-  
+
   // Patrones para textos largos
   texto_largo: /^[0-9a-zA-ZáéíóúüñÑçÇ\s\-.,()!?]{1,200}$/,
-  
+
   // Patrones para cédulas
   cedula: /^[VEJPGvejpg]\-\d{4,10}$/,
-  
+
   // Patrones para estados
   estado_simple: /^[A-Za-z\s]{1,20}$/,
-  
+
   // Patrones para fechas
   fecha: /^\d{4}-\d{2}-\d{2}$/,
   fecha_hora: /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
@@ -62,7 +62,7 @@ const SistemaValidacion = {
 
     $.each(elements, function (key, element) {
       if (element && element.length) {
-        element.on('focus', function() {
+        element.on('focus', function () {
           $(this).data('touched', true);
         });
 
@@ -390,6 +390,71 @@ const SistemaValidacion = {
   }
 };
 
+
+/**
+ * Envía Petición HTTP del Cliente
+ * @param {FormData} datos Objeto FormData que contiene que se va a enviar como Petición HTTP
+ * @param {string} controlador Ruta a la que se desea enviar la Petición, de estar vacía, se enviará a la misma URL por defecto
+ * @return En caso de éxito, devolverá los datos recibidor por el servidor, en caso contrario, un código de error
+ */
+async function enviaAjax(datos, controlador = "") {
+  let response = null;
+  await $.ajax({
+    async: true,
+    url: controlador,
+    type: "POST",
+    contentType: false,
+    data: datos,
+    processData: false,
+    cache: false,
+    timeout: 10000,
+    success: function (respuesta) {
+      console.log(respuesta);
+
+      if (respuesta == undefined || respuesta == '' || respuesta == null) {
+        response = {
+          resultado: 204,
+          mensaje: ''
+        }
+      } else {
+        response = JSON.parse(respuesta);
+      }
+      
+    },
+    error: function (request, status, err) {
+      response = {
+        resultado: request.status
+      }
+
+      if (status == "timeout") {
+        console.log("error", null, "Servidor ocupado", "Intente de nuevo");
+      } else {
+        console.log("error", null, "Ocurrió un error", err);
+      }
+      mensajes("error", 10000, mensajeHTTP(response.resultado), null);
+    },
+  });
+
+  return response;
+}
+
+/**Devuelve un Mensaje dependiendo del Código HTTP ingresado */
+function mensajeHTTP(codigo = null) {
+
+  let mensaje = "";
+  const CODIGOS = {
+    '400': 'Datos del Formulario no Válidos',
+    '403': 'No tienes permiso para realizar esta acción',
+    '409': 'Registro duplicado',
+    '500': 'Ups, intente de nuevo más tarde'
+  }
+  const DEFAULT = "Algo no a salido bien..."
+
+  mensaje = CODIGOS[codigo] || DEFAULT
+
+  return mensaje;
+}
+
 // FUNCIONES DE UTILIDAD
 function limpiarValidacionVisualGlobal() {
   $('.is-valid, .is-invalid').removeClass('is-valid is-invalid');
@@ -430,27 +495,15 @@ function estadoSelect(input, span, mensaje, estado) {
 }
 
 function mensajes(icono, tiempo, titulo, mensaje) {
-  if (icono === "error") {
-    Swal.fire({
-      icon: icono,
-      timer: tiempo,
-      title: titulo,
-      text: mensaje,
-      showConfirmButton: true,
-      confirmButtonText: 'Aceptar',
-    }).then(() => {
-      $('#enviar').prop('disabled', false);
-    });
-  } else {
-    Swal.fire({
-      icon: icono,
-      timer: tiempo,
-      title: titulo,
-      text: mensaje,
-      showConfirmButton: true,
-      confirmButtonText: 'Aceptar',
-    });
-  }
+  Swal.fire({
+    icon: icono,
+    timer: tiempo,
+    title: titulo,
+    text: mensaje,
+    showConfirmButton: true,
+    confirmButtonText: 'Aceptar',
+  });
+
 }
 
 async function confirmarAccion(titulo, mensaje, icono) {
@@ -478,39 +531,27 @@ async function confirmarAccion(titulo, mensaje, icono) {
   return resultado;
 }
 
-function consultar() {
-  $("#divtabla1").addClass("d-none");
-  $("#spinnertabla1").removeClass("d-none");
-  var peticion = new FormData();
-  peticion.append('consultar', 'consultar');
-  enviaAjax(peticion);
-}
 
 function registrarEntrada() {
   var peticion = new FormData();
-  peticion.append('entrada', 'entrada');
+  peticion.append('peticion', 'entrada');
   enviaAjax(peticion);
 }
 
-async function ConsultarPermisos() {
-  var peticion = new FormData();
-  peticion.append('permisos', 'permisos');
-  return enviaAjax(peticion);
-}
 
-async function buscarSelect(id_select, valor, opcion) {
-  if (!$(id_select).length) {
-    console.error("El selector " + id_select + " no existe");
+async function buscarSelect(etiqueta, valor, opcion) {
+  if (!etiqueta || !etiqueta.length) {
+    console.error("El selector " + etiqueta + " no existe");
     return false;
   }
 
   if (opcion === 'text') {
     let bool = false;
 
-    $(`${id_select} option`).each(function () {
+    etiqueta.each(function () {
       if ($(this).text().trim() === valor.trim()) {
         $(this).prop('selected', true);
-        $(id_select).trigger('change');
+        etiqueta.trigger('change');
         bool = true;
         return false;
       }
@@ -523,8 +564,8 @@ async function buscarSelect(id_select, valor, opcion) {
     }
 
   } else if (opcion === 'value') {
-    if ($(`${id_select} option[value="${valor}"]`).length > 0) {
-      $(`${id_select}`).val(`${valor}`).trigger('change');
+    if ((`${etiqueta} option[value="${valor}"]`).length > 0) {
+      etiqueta.val(`${valor}`).trigger('change');
       return true;
     } else {
       console.error("El valor " + valor + " no se encuentra en el campo select.");
@@ -538,7 +579,7 @@ async function buscarSelect(id_select, valor, opcion) {
 
 function selectEdificio(arreglo) {
   if (!$("#id_edificio").length) return;
-  
+
   $("#id_edificio").empty();
   $("#id_edificio").append(new Option('Seleccione un Edificio', 'default'));
 
@@ -551,7 +592,7 @@ function selectEdificio(arreglo) {
 
 function formatearTelefono($input) {
   if (!$input.length) return;
-  
+
   let numeros = $input.val().replace(/\D/g, '');
   numeros = numeros.substring(0, 10);
 
@@ -566,7 +607,7 @@ function formatearTelefono($input) {
 
 function formatearTelefonoSimple($input) {
   if (!$input.length) return;
-  
+
   let numeros = $input.val().replace(/\D/g, '');
 
   if (numeros.length > 4) {
@@ -615,7 +656,7 @@ function mostrarLoading(mostrar = true) {
 
 function formatearFecha(fecha, formato = 'dd/mm/yyyy') {
   if (!fecha) return '';
-  
+
   const date = new Date(fecha);
   if (isNaN(date.getTime())) return fecha;
 
@@ -702,7 +743,7 @@ function debounce(func, wait, immediate) {
 
 function throttle(func, limit) {
   let inThrottle;
-  return function(...args) {
+  return function (...args) {
     if (!inThrottle) {
       func.apply(this, args);
       inThrottle = true;
@@ -718,7 +759,7 @@ function validarMaterialCompleto() {
     stock: $('#stock'),
     id_material: $('#id_material')
   };
-  
+
   return SistemaValidacion.validarFormularioSilencioso(elementos);
 }
 
@@ -729,31 +770,31 @@ function limpiarValidacionMaterial() {
     stock: $('#stock'),
     id_material: $('#id_material')
   };
-  
+
   SistemaValidacion.limpiarValidacion(elementos);
 }
 
 // INICIALIZAR COMPONENTES
-$(document).ready(function() {
+$(document).ready(function () {
   inicializarTooltips();
-  
-  $('form').on('submit', function() {
+
+  $('form').on('submit', function () {
     const $submitBtn = $(this).find('button[type="submit"], input[type="submit"]');
     $submitBtn.prop('disabled', true);
-    
+
     setTimeout(() => {
       $submitBtn.prop('disabled', false);
     }, 5000);
   });
-  
-  $('input[type="text"]').on('blur', function() {
+
+  $('input[type="text"]').on('blur', function () {
     const $this = $(this);
     if ($this.val()) {
       $this.val(capitalizarTexto($this.val()));
     }
   });
 
-  $('body').on('input', '#nombre, #nombre_material', function() {
+  $('body').on('input', '#nombre, #nombre_material', function () {
     const $this = $(this);
     const valor = $this.val();
     if (valor && patrones.nombre_material.test(valor)) {
@@ -763,7 +804,7 @@ $(document).ready(function() {
     }
   });
 
-  $('body').on('input', '#stock', function() {
+  $('body').on('input', '#stock', function () {
     const $this = $(this);
     const valor = $this.val();
     if (valor && patrones.stock_material.test(valor)) {
@@ -773,7 +814,7 @@ $(document).ready(function() {
     }
   });
 
-  $('body').on('input', '#id_material', function() {
+  $('body').on('input', '#id_material', function () {
     const $this = $(this);
     const valor = $this.val();
     if (valor && patrones.id_material.test(valor)) {

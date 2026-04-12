@@ -11,11 +11,10 @@ class LoginSettings {
     }
 
     public function get_recaptcha_sitekey() {
-        // Asumiendo que tienes una tabla de 'configuracion' en la BD de seguridad
-        return "TU_SITE_KEY_AQUI"; 
+        return "6LcPpHMsAAAAABkC9hEJsvWq_gBvRhH2kYpJwDub"; 
     }
 
     public function get_recaptcha_secret() {
-        return "TU_SECRET_KEY_AQUI";
+        return "6LcPpHMsAAAAAO9TCacGt9083opA4L5oscbaL5mk";
     }
 }
