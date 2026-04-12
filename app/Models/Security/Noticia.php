@@ -504,6 +504,7 @@ class Noticia
                 $this->LlamarConexion()->prepare($sqlSet)->execute(['id' => $id_imagen]);
 
                 $this->LlamarConexion()->commit();
+
                 $dato['resultado'] = 200;
                 $dato['mensaje'] = "Imagen principal actualizada";
             } else {
