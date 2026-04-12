@@ -538,4 +538,63 @@
 .modal-dialog {
     margin: 1.75rem auto;
     max-height: calc(100% - 3.5rem);
+}
+
+/* Fix Dropdowns y Botones de Acción en Dark Mode */
+.dark .btn-light {
+    background-color: #2c3034 !important;
+    border-color: #495057 !important;
+    color: #e9ecef !important;
+}
+.dark .btn-light:hover {
+    background-color: #343a40 !important;
+}
+
+.dark .dropdown-menu {
+    background-color: #212529 !important;
+    border-color: #495057 !important;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5) !important;
+}
+
+.dark .dropdown-item {
+    color: #e9ecef !important;
+}
+
+.dark .dropdown-item:hover {
+    background-color: #343a40 !important;
+    color: #ffffff !important;
+}
+
+.dark .dropdown-divider {
+    border-top-color: #495057 !important;
+}
+
+/* Fix Paginación DataTables en Dark Mode */
+.dark .dataTables_wrapper .dataTables_paginate .paginate_button {
+    background: #2c3034 !important;
+    color: #e9ecef !important;
+    border: 1px solid #495057 !important;
+    box-shadow: none !important;
+}
+
+.dark .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #343a40 !important;
+    color: #ffffff !important;
+    border-color: #ff9800 !important;
+}
+
+.dark .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dark .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: #ff9800 !important;
+    color: #000000 !important;
+    border-color: #ff9800 !important;
+}
+
+.dark .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+.dark .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover,
+.dark .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:active {
+    background: #1a1d20 !important;
+    color: #6c757d !important;
+    border-color: #2c3034 !important;
+    cursor: default;
 }
