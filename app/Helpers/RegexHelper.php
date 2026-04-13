@@ -9,8 +9,6 @@ class RegexHelper{
      * Devuelve 1 o 0 dependiendo si el valor ingresado cumple 
      * o no la Expresión Regular (Regex)
      * 
-     * 
-     * 
      * @param string $valor Valor a comparar
      * @param string $config Indica que Expresión Regular se usara para la comparación \
      * \
@@ -46,10 +44,4 @@ public static function ValidarFormatos(string $valor, string $config) {
 }
 
 }
-
-
-
-
-
-
 ?>
