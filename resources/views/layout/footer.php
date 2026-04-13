@@ -54,7 +54,14 @@
 <script src="<?php echo BASE_URL; ?>/assets/js/main.js"></script>
 <script src="<?php echo BASE_URL; ?>/assets/js/utils.js"></script>
 
-<!-- 8. Script específico de la página -->
+<!-- 8. Scripts dinámicos pasados desde el controlador -->
+<?php if (isset($extra_js) && is_array($extra_js)): ?>
+    <?php foreach ($extra_js as $scriptPath): ?>
+        <script src="<?php echo htmlspecialchars($scriptPath, ENT_QUOTES, 'UTF-8'); ?>"></script>
+    <?php endforeach; ?>
+<?php endif; ?>
+
+<!-- 9. Script específico de la página (convención por nombre de página) -->
 <?php if (isset($page) && file_exists(__DIR__ . "/../../public/assets/js/{$page}.js")): ?>
 <script src="<?php echo BASE_URL; ?>/assets/js/<?php echo $page; ?>.js"></script>
 <?php endif; ?>

@@ -51,7 +51,7 @@ class CategoriaController
             $result = $categoria->Transaccion(['peticion' => 'guardar']);
 
             if ($result['success']) {
-                Helper::Bitacora("Guardó categoría: " . $_POST['nombre'], "Categorías");
+                Helper::Bitacora("REGISTRAR", "CATEGORIAS", "Se registró la categoría de productos: " . $_POST['nombre']);
             }
 
             echo json_encode($result);
@@ -85,7 +85,7 @@ class CategoriaController
             $result = $categoria->Transaccion(['peticion' => 'eliminar']);
 
             if ($result['success']) {
-                Helper::Bitacora("Eliminó categoría ID: " . $_POST['id'], "Categorías");
+                Helper::Bitacora("ELIMINAR", "CATEGORIAS", "Se eliminó la categoría con ID: " . $_POST['id']);
             }
 
             echo json_encode($result);

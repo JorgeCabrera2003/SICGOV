@@ -1,4 +1,4 @@
-<!-- ==========================================
+﻿<!-- ==========================================
     MÓDULO DE PRODUCTOS - GOOD VIBES
     HTML Semántico + Bootstrap 5.3
 ========================================== -->
@@ -50,6 +50,8 @@
 <!-- Modales (incluidos como partials) -->
 <?php include 'partials/_modal_producto.php'; ?>
 <?php include 'partials/_modal_categorias.php'; ?>
+<?php include __DIR__ . '/../partials/_media_picker.php'; ?>
 
 <!-- Recursos específicos de la página -->
+<script src="<?= BASE_URL ?>/assets/js/media-picker.js" defer></script>
 <script src="<?= BASE_URL ?>/assets/js/productos.js" defer></script>

@@ -63,8 +63,12 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                                                     Crear cuenta <i class="fa-solid fa-user-plus ms-2"></i>
                                                 </button>
                                             </div>
-                                            <div class="col-12 text-center">
+                                            <div class="col-12 text-center d-flex flex-column gap-2">
                                                 <a href="?page=recuperar" class="text-decoration-none small text-muted">¿Olvidaste tu contraseña?</a>
+                                                <hr class="my-2 opacity-10">
+                                                <a href="<?= BASE_URL ?>" class="text-decoration-none small fw-bold text-primary">
+                                                    <i class="fas fa-arrow-left me-1"></i> Regresar al Inicio
+                                                </a>
                                             </div>
                                         </form>
                                     </div>

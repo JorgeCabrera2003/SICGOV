@@ -452,6 +452,24 @@
     background-color: #212529 !important;
     border-top-color: #343a40 !important;
 }
+/* Botón X (close) visible en dark mode */
+.dark .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+/* bg-body-tertiary dentro de modales oscuros */
+.dark .modal-content .bg-body-tertiary {
+    background-color: #2c3034 !important;
+    border-color: #495057 !important;
+}
+/* Bordes sutiles adaptativos */
+.dark .border-secondary-subtle {
+    border-color: #495057 !important;
+}
+/* Clase bg-body adaptativa en dark mode (para selects e inputs del picker) */
+.dark .bg-body {
+    background-color: #2c3034 !important;
+    color: #e9ecef !important;
+}
 .dark .form-control, .dark .form-select {
     background-color: #2c3034 !important;
     color: #e9ecef !important;
@@ -474,6 +492,35 @@
 .dark ::placeholder {
     color: #abb0b5 !important;
     opacity: 1;
+}
+
+/* Fix Lupa / Input Group en Dark Mode */
+.dark .input-group-text {
+    background-color: #2c3034 !important;
+    border-color: #495057 !important;
+    color: #abb0b5 !important;
+}
+
+.dark .input-group .form-control {
+    background-color: #2c3034 !important;
+    border-color: #495057 !important;
+    color: #e9ecef !important;
+}
+
+.dark .input-group .form-control::placeholder {
+    color: #abb0b5 !important;
+}
+
+/* Fix contenedor de vista previa multimedia en Dark Mode */
+.dark .media-preview-container {
+    background-color: #2c3034 !important;
+}
+
+/* Fix Input Group dentro de filtros con border-0 (sin borde visible) */
+.dark .input-group .form-control.border-0,
+.dark .input-group-text.border-0 {
+    background-color: #2c3034 !important;
+    color: #e9ecef !important;
 }
 
 /* Fix Tablas y DataTables en Dark Mode */
@@ -1006,5 +1053,24 @@
 .dark .news-top-bar {
     background-color: #1a1d20 !important;
     border-bottom: 1px solid #343a40 !important;
+}
+
+/* ==========================================
+   BADGES PERSONALIZADOS (Multimedia)
+   ========================================== */
+.directory-badge {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+}
+
+.dark .directory-badge {
+    background-color: #2c3034 !important;
+    color: #abb0b5 !important;
+    border-color: #495057 !important;
+}
+
+.media-badge {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 

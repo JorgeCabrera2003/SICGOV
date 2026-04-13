@@ -41,7 +41,13 @@ class ProductoController
             $producto->setIdCategoria($_POST['id_categoria'] ?? null);
             $producto->setEstatus(isset($_POST['estatus']) ? 1 : 0);
 
-            if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
+            // Prioridad 1: Imagen seleccionada de la galería
+            if (!empty($_POST['imagen_galeria'])) {
+                $filename = basename($_POST['imagen_galeria']);
+                $producto->setImagen($filename);
+            } 
+            // Prioridad 2: Nueva subida de archivo
+            elseif (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
                 $imagen = $producto->subirImagen($_FILES['imagen']);
                 if ($imagen) $producto->setImagen($imagen);
             }
@@ -57,8 +63,8 @@ class ProductoController
             ]);
 
             if ($result['success']) {
-                $accion = $esNuevo ? 'guardó' : 'actualizó';
-                Helper::Bitacora("$accion producto: " . $_POST['nombre'], "Productos");
+                $detalle = "$accion el producto '{$_POST['nombre']}'";
+                Helper::Bitacora(strtoupper($accion), "PRODUCTOS", $detalle);
             }
 
             return $result;
@@ -98,7 +104,7 @@ class ProductoController
             $result = $producto->Transaccion(['peticion' => 'eliminar']);
 
             if ($result['success']) {
-                Helper::Bitacora("Eliminó producto ID: " . $_POST['id'], "Productos");
+                Helper::Bitacora("ELIMINAR", "PRODUCTOS", "Se eliminó el producto con ID: " . $_POST['id']);
             }
 
             return $result;

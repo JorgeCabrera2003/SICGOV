@@ -65,7 +65,15 @@ class NoticiaController
 						$fecha = (!empty($_POST["fecha_publicacion"])) ? $_POST["fecha_publicacion"] : date('Y-m-d H:i:s');
 						$noticiaModel->setFechaPublicacion($fecha);
 
-                        // Manejo de variables superglobales de archivos
+                        // Manejo de imágenes seleccionadas de la galería (JSON)
+                        if (!empty($_POST['imagenes_galeria'])) {
+                            $rutas_galeria = json_decode($_POST['imagenes_galeria'], true);
+                            if (is_array($rutas_galeria)) {
+                                $noticiaModel->setImagenesGaleria($rutas_galeria);
+                            }
+                        }
+
+                        // Manejo de variables superglobales de archivos (Subidas nuevas)
                         if (isset($_FILES['imagenes'])) {
                             $archivos = [];
                             $count = count($_FILES['imagenes']['name']);

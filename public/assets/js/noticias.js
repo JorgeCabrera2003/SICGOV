@@ -82,25 +82,22 @@ document.addEventListener("DOMContentLoaded", function () {
     // Manejo de previsualización de imágenes seleccionadas
     if (inputImagenes) {
         inputImagenes.addEventListener('change', function(e) {
-            previewContainer.innerHTML = ''; // Limpiar viejas imágenes
+            // No borramos todo el previewContainer, solo las imágenes que NO son de galería
+            const galeriaItems = previewContainer.querySelectorAll('.border-warning');
+            previewContainer.innerHTML = '';
+            galeriaItems.forEach(item => previewContainer.appendChild(item));
+
             const files = e.target.files;
-            
             if (files.length > 0) {
                 Array.from(files).forEach((file, index) => {
                     if (file.type.startsWith('image/')) {
                         const reader = new FileReader();
                         reader.onload = function(e) {
-                            const badge = index === 0 ? '<span class="badge bg-primary position-absolute top-0 start-0 m-1">Portada</span>' : '';
+                            const badge = index === 0 && galeriaItems.length === 0 ? '<span class="badge bg-primary position-absolute top-0 start-0 m-1">Portada</span>' : '';
                             const col = document.createElement('div');
                             col.className = 'position-relative m-1 rounded border shadow-sm';
-                            col.style.width = '100px';
-                            col.style.height = '100px';
-                            col.style.overflow = 'hidden';
-                            
-                            col.innerHTML = `
-                                ${badge}
-                                <img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">
-                            `;
+                            col.style.width = '100px'; col.style.height = '100px'; col.style.overflow = 'hidden';
+                            col.innerHTML = `${badge}<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
                             previewContainer.appendChild(col);
                         }
                         reader.readAsDataURL(file);
@@ -109,6 +106,54 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+
+    // Lógica para elegir de galería
+    const btnAbrirGaleria = document.getElementById('btnAbrirGaleria');
+    if (btnAbrirGaleria) {
+        btnAbrirGaleria.addEventListener('click', function() {
+            MediaPicker.open({
+                onSelect: function(ruta) {
+                    agregarImagenGaleria(ruta);
+                }
+            });
+        });
+    }
+
+    function agregarImagenGaleria(ruta) {
+        const inputGaleria = document.getElementById('imagenes_galeria');
+        let seleccionadas = inputGaleria.value ? JSON.parse(inputGaleria.value) : [];
+        
+        if (seleccionadas.includes(ruta)) {
+            Swal.fire('Información', 'Esta imagen ya ha sido seleccionada', 'info');
+            return;
+        }
+
+        seleccionadas.push(ruta);
+        inputGaleria.value = JSON.stringify(seleccionadas);
+        renderPreviewGaleria(ruta);
+    }
+
+    function renderPreviewGaleria(ruta) {
+        const col = document.createElement('div');
+        col.className = 'position-relative m-1 rounded border shadow-sm border-warning';
+        col.style.width = '100px';
+        col.style.height = '100px';
+        col.style.overflow = 'hidden';
+        
+        col.innerHTML = `
+            <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-1" style="font-size: 0.6rem;">Galería</span>
+            <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-1 bg-danger p-1" style="font-size: 0.5rem;" onclick="this.parentElement.remove(); removerDeGaleria('${ruta}')"></button>
+            <img src="${BASE_URL}${ruta}" style="width: 100%; height: 100%; object-fit: cover;">
+        `;
+        previewContainer.appendChild(col);
+    }
+
+    window.removerDeGaleria = function(ruta) {
+        const inputGaleria = document.getElementById('imagenes_galeria');
+        let seleccionadas = JSON.parse(inputGaleria.value);
+        seleccionadas = seleccionadas.filter(r => r !== ruta);
+        inputGaleria.value = JSON.stringify(seleccionadas);
+    };
 
     if (document.getElementById('btnNuevaNoticia')) {
         document.getElementById('btnNuevaNoticia').addEventListener('click', function () {

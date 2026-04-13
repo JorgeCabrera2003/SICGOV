@@ -61,7 +61,13 @@
                                     <h5>Sube imágenes para tu galería</h5>
                                     <p class="text-muted mb-3">La primera imagen será usada como Portada. Selecciona varias imágenes a la vez.</p>
                                     <input class="form-control d-none" type="file" id="imagenes" name="imagenes[]" accept="image/*" multiple>
-                                    <label for="imagenes" class="btn btn-outline-primary shadow-sm"><i class="fas fa-image me-2"></i>Seleccionar Imágenes</label>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <label for="imagenes" class="btn btn-outline-primary shadow-sm"><i class="fas fa-image me-2"></i>Subir Imágenes</label>
+                                        <button type="button" class="btn btn-outline-warning text-dark shadow-sm" id="btnAbrirGaleria">
+                                            <i class="fas fa-th me-2"></i>Elegir de Galería
+                                        </button>
+                                    </div>
+                                    <input type="hidden" id="imagenes_galeria" name="imagenes_galeria">
                                     
                                     <div id="previewContainer" class="d-flex flex-wrap gap-2 mt-3 justify-content-center">
                                         <!-- Vistas previas de imagenes aqui -->

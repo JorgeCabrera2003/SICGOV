@@ -29,6 +29,7 @@ class Noticia
     private $fecha_publicacion;
     private $estatus;
     private $imagenes; // Array of dynamically uploaded files
+    private $imagenes_galeria; // Array of paths from media manager
     private $db;
 
     public function __construct()
@@ -73,6 +74,7 @@ class Noticia
     public function setFechaPublicacion(string $fecha) { $this->fecha_publicacion = $fecha; }
     public function setEstatus(int $estatus) { $this->estatus = $estatus; }
     public function setImagenes(array $imagenes) { $this->imagenes = $imagenes; }
+    public function setImagenesGaleria(array $rutas) { $this->imagenes_galeria = $rutas; }
 
     // GETTERS
     public function getId() { return $this->id_noticia; }
@@ -352,7 +354,7 @@ class Noticia
     }
 
     private function GuardarImagenesContexto() {
-        if (!empty($this->imagenes)) {
+        if (!empty($this->imagenes) || !empty($this->imagenes_galeria)) {
             $target_dir = BASE_PATH . '/public/assets/img/noticias/';
             if (!file_exists($target_dir)) {
                 mkdir($target_dir, 0777, true);
@@ -373,60 +375,60 @@ class Noticia
                           VALUES (:id_imagen, 'NOTICIA', :entidad_id, :direccion, :orden, :es_principal)";
             $stm = $this->LlamarConexion()->prepare($sqlInsert);
 
-            $orden = 1; /* Determinar el maximo orden actual si es modificado omitido por simplicidad */
-            foreach ($this->imagenes as $i => $imagen) {
-                if ($imagen['error'] === 0) {
-                    $extension = strtolower(pathinfo($imagen["name"], PATHINFO_EXTENSION));
-                    $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'jfif'];
-                    
-                    // VALIDACIÓN ROBUSTA:
-                    // 1. Extensión
-                    if (!in_array($extension, $allowed)) {
-                        Helper::ErrorLog("Extension de archivo no valida: " . $extension);
-                        continue;
+            $orden = 1;
+
+            // 1. Procesar imágenes de galería (Seleccionadas previamente)
+            if (!empty($this->imagenes_galeria)) {
+                foreach ($this->imagenes_galeria as $ruta) {
+                    try {
+                        $id_imagen = "IMG-G" . date('YmdHis') . rand(100,999);
+                        $es_principal = ($orden == 1) ? 1 : 0;
+                        $stm->bindParam(':id_imagen', $id_imagen);
+                        $stm->bindParam(':entidad_id', $this->id_noticia);
+                        $stm->bindParam(':direccion', $ruta);
+                        $stm->bindParam(':orden', $orden);
+                        $stm->bindParam(':es_principal', $es_principal);
+                        $stm->execute();
+                        $orden++;
+                    } catch (\PDOException $ex) {
+                        Helper::ErrorLog("Error vinculando img galeria NOTICIA: " . $ex->getMessage());
                     }
-
-                    // 2. Tamaño (Máximo 5MB)
-                    if ($imagen['size'] > 5 * 1024 * 1024) {
-                        Helper::ErrorLog("Archivo demasiado pesado: " . ($imagen['size'] / 1024 / 1024) . "MB");
-                        continue;
-                    }
-
-                    // 3. Verificar si es imagen real
-                    $check = getimagesize($imagen["tmp_name"]);
-                    if ($check === false) {
-                        Helper::ErrorLog("El archivo no es una imagen real: " . $imagen["name"]);
-                        continue;
-                    }
-
-                    $nombre_archivo = uniqid('not_') . '.' . $extension;
-                    $target_file = $target_dir . $nombre_archivo;
-
-                    if (move_uploaded_file($imagen["tmp_name"], $target_file)) {
-                        try {
-                            $id_imagen = "IMG-" . date('YmdHis') . rand(100,999);
-                            $direccion = '/assets/img/noticias/' . $nombre_archivo;
-                            $es_principal = ($orden == 1) ? 1 : 0;
-
-                            $stm->bindParam(':id_imagen', $id_imagen);
-                            $stm->bindParam(':entidad_id', $this->id_noticia);
-                            $stm->bindParam(':direccion', $direccion);
-                            $stm->bindParam(':orden', $orden);
-                            $stm->bindParam(':es_principal', $es_principal);
-                            $stm->execute();
-                            $orden++;
-                        } catch (\PDOException $ex) {
-                            Helper::ErrorLog("Error DB insertando img Noticia: " . $ex->getMessage());
-                        }
-                    } else {
-                        Helper::ErrorLog("Error moviendo archivo subido a: " . $target_file);
-                    }
-                } else {
-                    Helper::ErrorLog("Error en archivo desde el cliente: " . $imagen['error']);
                 }
             }
-        } else {
-            Helper::ErrorLog("No se recibieron imagenes en Noticia.php (vacio)");
+
+            // 2. Procesar nuevas subidas (Archivos físicos)
+            if (!empty($this->imagenes)) {
+                foreach ($this->imagenes as $i => $imagen) {
+                    if ($imagen['error'] === 0) {
+                        $extension = strtolower(pathinfo($imagen["name"], PATHINFO_EXTENSION));
+                        $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'jfif'];
+                        
+                        if (!in_array($extension, $allowed)) continue;
+                        if ($imagen['size'] > 5 * 1024 * 1024) continue;
+
+                        $nombre_archivo = uniqid('not_') . '.' . $extension;
+                        $target_file = $target_dir . $nombre_archivo;
+
+                        if (move_uploaded_file($imagen["tmp_name"], $target_file)) {
+                            try {
+                                $id_imagen = "IMG-" . date('YmdHis') . rand(100,999);
+                                $direccion = '/assets/img/noticias/' . $nombre_archivo;
+                                $es_principal = ($orden == 1) ? 1 : 0;
+
+                                $stm->bindParam(':id_imagen', $id_imagen);
+                                $stm->bindParam(':entidad_id', $this->id_noticia);
+                                $stm->bindParam(':direccion', $direccion);
+                                $stm->bindParam(':orden', $orden);
+                                $stm->bindParam(':es_principal', $es_principal);
+                                $stm->execute();
+                                $orden++;
+                            } catch (\PDOException $ex) {
+                                Helper::ErrorLog("Error DB insertando img Noticia: " . $ex->getMessage());
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     public function ObtenerAutoresPublicos()
