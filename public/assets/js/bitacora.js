@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 ajax: {
                     url: `${BASE_URL}/?page=bitacora&action=listarJson`,
                     type: 'GET',
+                    data: function (d) {
+                        d.modulo = $('#filtro_modulo').val();
+                        d.desde = $('#fecha_desde').val();
+                        d.hasta = $('#fecha_hasta').val();
+                    },
                     dataSrc: function (json) {
                         return json.data || [];
                     }
@@ -44,7 +49,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     },
                     {
                         data: 'fecha',
-                        width: '15%'
+                        width: '20%',
+                        render: function (data) {
+                            return formatearFechaSistema(data);
+                        }
                     },
                     {
                         data: 'acciones',
@@ -66,8 +74,19 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         function bindEvents() {
-            $('#btnRefrescar').on('click', function (e) {
+            $('#btnActualizar').on('click', function (e) {
                 e.preventDefault();
+                dataTable.ajax.reload();
+            });
+
+            $('#formFiltros').on('submit', function (e) {
+                e.preventDefault();
+                dataTable.ajax.reload();
+            });
+
+            $('#btnLimpiar').on('click', function (e) {
+                e.preventDefault();
+                $('#formFiltros')[0].reset();
                 dataTable.ajax.reload();
             });
 
@@ -116,52 +135,128 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         /**
+         * Formatea una fecha al estándar del sistema (DD/MM/YYYY, HH:MM:SS AM/PM)
+         */
+        function formatearFechaSistema(fechaRaw) {
+            if (!fechaRaw) return "N/A";
+            const date = new Date(fechaRaw);
+            if (isNaN(date.getTime())) return fechaRaw; // Fallback si no es fecha
+            
+            return date.toLocaleDateString('es-VE') + ', ' + 
+                   date.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        }
+
+        /**
+         * Transforma un objeto JSON en una estructura visual amigable (Lista de campos)
+         */
+        function renderAuditTable(jsonString, colorClass) {
+            try {
+                const data = JSON.parse(jsonString);
+                if (!data || typeof data !== 'object') return jsonString;
+
+                const labels = {
+                    'id_noticia': 'Número de Noticia',
+                    'titulo': 'Título',
+                    'subtitulo': 'Subtítulo / Introducción',
+                    'contenido': 'Contenido',
+                    'tipo': 'Categoría',
+                    'fecha_publicacion': 'Fecha de Publicación',
+                    'cedula': 'Cédula del Autor',
+                    'estatus': 'Estado en Sistema'
+                };
+
+                let html = `<div class="p-3 bg-body-tertiary border-start border-4 border-${colorClass} rounded shadow-sm">`;
+                
+                for (const key in data) {
+                    let label = labels[key] || key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ');
+                    
+                    // Asegurar que "ID" se vea como "Número" en cualquier etiqueta no mapeada
+                    label = label.replace(/ID/g, 'Número').replace(/id/g, 'Número');
+                    
+                    let value = data[key];
+
+                    // Formatear fechas dentro de los valores
+                    if (key.includes('fecha') || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value))) {
+                        value = formatearFechaSistema(value);
+                    }
+
+                    if (value === null) value = '<span class="text-muted italic">Vacio</span>';
+
+                    html += `
+                        <div class="mb-2 border-bottom border-secondary border-opacity-10 pb-1">
+                            <label class="d-block fw-bold small text-uppercase text-secondary">${label}</label>
+                            <div class="text-body">${value}</div>
+                        </div>
+                    `;
+                }
+
+                html += `</div>`;
+                return html;
+            } catch (e) {
+                return `<pre class="bg-dark text-warning p-2 small">${jsonString}</pre>`;
+            }
+        }
+
+        /**
          * Renderiza los detalles en el modal
          */
         function mostrarDetalles(data) {
-            const fecha = new Date(data.fecha).toLocaleString('es-VE', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
+            const fecha = formatearFechaSistema(data.fecha);
 
             const html = `
             <div class="mb-3">
-                <label class="fw-bold small text-uppercase text-muted">ID:</label>
-                <p class="mb-2 p-2 bg-light rounded">${data.id_bitacora || ''}</p>
+                <label class="fw-bold small text-uppercase text-muted">Número de Registro:</label>
+                <p class="mb-2 p-2 bg-body-tertiary border rounded small font-monospace text-body">${data.id_bitacora || ''}</p>
             </div>
             <div class="mb-3">
-                <label class="fw-bold small text-uppercase text-muted">Usuario:</label>
-                <p class="mb-2 p-2 bg-light rounded">${data.nombres ? data.nombres + ' ' + (data.apellidos || '') : (data.username || 'Sistema')}</p>
-                ${data.cedula ? `<small class="text-muted d-block">Cédula: ${data.cedula}</small>` : ''}
+                <label class="fw-bold small text-uppercase text-muted">Realizado por:</label>
+                <div class="d-flex align-items-center p-2 bg-body-tertiary border rounded">
+                    <i class="fas fa-user-circle fa-2x me-2 text-secondary opacity-50"></i>
+                    <div>
+                        <p class="mb-0 fw-semibold text-body">
+                            ${data.nombres ? data.nombres + ' ' + (data.apellidos || '') : (data.username || 'Sistema')}
+                            <span class="text-muted small">(${data.rol || 'N/A'})</span>
+                        </p>
+                        ${data.cedula ? `<small class="text-muted">Documento: ${data.cedula}</small>` : ''}
+                    </div>
+                </div>
             </div>
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label class="fw-bold small text-uppercase text-muted">Módulo:</label>
-                    <p class="mb-2 p-2 bg-light rounded">${data.modulo || ''}</p>
+                    <label class="fw-bold small text-uppercase text-muted">Área del Sistema:</label>
+                    <p class="mb-2 p-2 bg-body-tertiary border rounded text-body">${data.modulo || ''}</p>
                 </div>
                 <div class="col-md-6">
-                    <label class="fw-bold small text-uppercase text-muted">Acción:</label>
-                    <p class="mb-2 p-2 bg-light rounded">${data.accion || ''}</p>
+                    <label class="fw-bold small text-uppercase text-muted">Actividad Realizada:</label>
+                    <p class="mb-2 p-2 bg-body-tertiary border rounded text-body">${data.accion || ''}</p>
                 </div>
             </div>
             <div class="mb-3">
-                <label class="fw-bold small text-uppercase text-muted">Detalles:</label>
-                <p class="mb-2 p-3 bg-light rounded">${data.detalles || 'Sin detalles adicionales'}</p>
+                <label class="fw-bold small text-uppercase text-muted">Descripción de la Acción:</label>
+                <div class="mb-2 p-3 bg-body-tertiary border rounded text-body shadow-sm">${(data.detalle || 'Sin detalles adicionales').replace('(ID:', '(Número:')}</div>
             </div>
-            <div class="row">
+            <div class="row mb-3">
                 <div class="col-md-6">
-                    <label class="fw-bold small text-uppercase text-muted">IP:</label>
-                    <p class="mb-2 p-2 bg-light rounded font-monospace">${data.ip_address || '0.0.0.0'}</p>
+                    <label class="fw-bold small text-uppercase text-muted">Dirección IP:</label>
+                    <p class="mb-2 p-2 bg-body-tertiary border rounded font-monospace text-body">${data.ip_address || '0.0.0.0'}</p>
                 </div>
                 <div class="col-md-6">
-                    <label class="fw-bold small text-uppercase text-muted">Fecha:</label>
-                    <p class="mb-2 p-2 bg-light rounded">${fecha}</p>
+                    <label class="fw-bold small text-uppercase text-muted">Fecha y Hora:</label>
+                    <p class="mb-2 p-2 bg-body-tertiary border rounded text-body">${fecha}</p>
                 </div>
             </div>
+            
+            ${data.valores_anteriores ? `
+            <div class="mb-4">
+                <label class="fw-bold small text-uppercase text-danger mb-2"><i class="fas fa-history me-1"></i> Estado Anterior (Antes del cambio):</label>
+                ${renderAuditTable(data.valores_anteriores, 'danger')}
+            </div>` : ''}
+            
+            ${data.valores_nuevos ? `
+            <div class="mb-4">
+                <label class="fw-bold small text-uppercase text-success mb-2"><i class="fas fa-check-circle me-1"></i> Estado Nuevo (Después del cambio):</label>
+                ${renderAuditTable(data.valores_nuevos, 'success')}
+            </div>` : ''}
         `;
 
             $('#detalleBody').html(html);

@@ -18,7 +18,7 @@ error_reporting(E_ALL);
 
 session_start();
 
-$page = $_GET['page'] ?? 'login';
+$page = $_GET['page'] ?? 'noticias';
 
 use App\Controllers\LoginController;
 use App\Controllers\LogOutController;

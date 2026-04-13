@@ -38,11 +38,14 @@ class Helper
     }
 
     /**
-     * Registra un movimiento en la bitácora
+     * Registra un movimiento en la bitácora de forma segura
      */
-    public static function Bitacora($accion, $modulo, $detalles = null)
+    public static function Bitacora($accion, $modulo, $detalle, $prev_data = null, $new_data = null)
     {
         try {
+            // Verificar si hay sesión activa
+            if (session_status() === PHP_SESSION_NONE) { session_start(); }
+            
             if (!isset($_SESSION['user'])) {
                 return false;
             }
@@ -51,21 +54,34 @@ class Helper
             $idBitacora = self::generarId('BIT');
             $bitacora->setIdBitacora($idBitacora);
 
-            $usuarioId = $_SESSION['user']['id_usuario'] ?? $_SESSION['user']['cedula'] ?? null;
+            // Intentar obtener la identidad más precisa (Cédula es la PK en usuario)
+            $user = $_SESSION['user'];
+            $cedula = $user['cedula'] ?? null;
 
-            if (!$usuarioId) {
+            if (!$cedula) {
                 return false;
             }
 
-            $bitacora->set_usuario($usuarioId);
+            $bitacora->set_cedula($cedula);
             $bitacora->set_modulo($modulo);
             $bitacora->set_accion($accion);
-            $bitacora->set_detalles($detalles);
+            $bitacora->set_detalle($detalle);
+            $bitacora->set_ip_address($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
+            
+            // Si vienen arrays u objetos, convertirlos a JSON
+            if ($prev_data !== null) {
+                $bitacora->set_anteriores(is_string($prev_data) ? $prev_data : json_encode($prev_data, JSON_UNESCAPED_UNICODE));
+            }
+            if ($new_data !== null) {
+                $bitacora->set_nuevos(is_string($new_data) ? $new_data : json_encode($new_data, JSON_UNESCAPED_UNICODE));
+            }
+
             $bitacora->set_fecha(date('Y-m-d H:i:s'));
 
             return $bitacora->Transaccion(['peticion' => 'registrar']);
         } catch (\Exception $e) {
-            self::ErrorLog("Error en Helper::Bitacora: " . $e->getMessage());
+            // No bloqueamos la ejecución principal si falla el log, solo lo registramos como error de sistema
+            self::ErrorLog("Error crítico en Helper::Bitacora: " . $e->getMessage());
             return false;
         }
     }
