@@ -64,7 +64,7 @@
         <!-- Clientes -->
         <a href="<?php echo BASE_URL; ?>/?page=clientes"
             class="nav-link <?php echo ($page == 'clientes') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-            <i class="fas fa-users text-primary"></i>
+            <i class="fas fa-users"></i>
             <span class="flex-grow-1">Clientes</span>
         </a>
 
