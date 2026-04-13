@@ -424,6 +424,22 @@ SELECT u1.id_unidad, u1.nombre, u1.abreviatura, u1.tipo,
 FROM unidad_medida u1
 LEFT JOIN unidad_medida u2 ON u1.unidad_base = u2.id_unidad;
 
+CREATE VIEW vw_ingrediente AS
+SELECT i.id_ingrediente,
+i.nombre_ingrediente,
+i.id_categoria,
+ci.nombre AS nombre_categoria,
+i.id_unidad_medida,
+u.nombre AS unidad_medida,
+u.abreviatura,
+i.precio_unitario,
+i.stock_actual,
+i.stock_minimo,
+i.stock_maximo,
+i.estatus FROM ingrediente AS i
+INNER JOIN unidad_medida AS u ON i.id_unidad_medida = u.id_unidad
+INNER JOIN categoria_ingrediente AS ci ON i.id_categoria = ci.id_categoria;
+
 -- --------------------------------------------------------
 -- 8. DISPARADORES (TRIGGERS)
 -- --------------------------------------------------------
