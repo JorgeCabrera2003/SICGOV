@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
             },
             ajax: {
-                url: BASE_URL + '?page=noticias-admin',
+                url: '',
                 type: 'POST',
                 data: function (d) {
                     d.peticion = 'consultar';
