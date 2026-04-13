@@ -45,7 +45,11 @@
 </main>
 
 <!-- Modales (incluidos como partials) -->
-<?php include 'partials/_modal_noticia.php'; ?>
+<?php 
+    include 'partials/_modal_noticia.php'; 
+    include __DIR__ . '/../partials/_media_picker.php'; 
+?>
 
 <!-- Recursos específicos de la página -->
+<script src="<?= BASE_URL ?>/assets/js/media-picker.js" defer></script>
 <script src="<?= BASE_URL ?>/assets/js/noticias.js" defer></script>

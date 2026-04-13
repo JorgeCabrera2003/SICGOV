@@ -29,6 +29,7 @@ use App\Controllers\BitacoraController;
 use App\Controllers\IngredienteController;
 use App\Controllers\UsuarioController;
 use App\Controllers\NoticiaController;
+use App\Controllers\MediaController;
 
 try {
     match ($page) {
@@ -44,6 +45,7 @@ try {
         'noticias-admin' => (new NoticiaController())->indexAdmin(),
         'noticias' => (new NoticiaController())->indexPublico(),
         'noticias-detalle' => (new NoticiaController())->detallePublico(),
+        'multimedia' => (new MediaController())->index(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };
 } catch (Exception $e) {

@@ -89,6 +89,13 @@
             <span class="flex-grow-1">Noticias</span>
         </a>
 
+        <!-- Multimedia -->
+        <a href="?page=multimedia"
+            class="nav-link <?php echo ($page == 'multimedia') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+            <i class="fas fa-images fs-5"></i>
+            <span class="flex-grow-1">Multimedia</span>
+        </a>
+
         <!-- Separador -->
         <hr class="my-2 opacity-25">
 
