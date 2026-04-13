@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (document.getElementById('tablaNoticias')) {
         tablaNoticias = $('#tablaNoticias').DataTable({
             responsive: true,
+            order: [[3, 'desc']],   // Ordenar por fecha de publicación descendente
             language: {
                 url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
             },
@@ -233,6 +234,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     
                     document.getElementById('modalNoticiaLabel').innerHTML = '<i class="fas fa-edit me-2"></i>Editar Noticia';
                     previewContainer.innerHTML = '';
+                    // Limpiar selecciones de galería y archivo previas para evitar duplicación
+                    document.getElementById('imagenes_galeria').value = '';
+                    document.getElementById('imagenes').value = '';
                     
                     // Cargar Imágenes Actuales
                     renderCurrentImages(d.imagenes);
@@ -318,11 +322,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function eliminarImagen(id) {
         Swal.fire({
-            title: '¿Eliminar esta imagen?',
-            text: "El archivo se borrará permanentemente",
+            title: '¿Quitar imagen de la noticia?',
+            text: "La imagen se desvinculará de esta publicación. El archivo original permanece disponible en el Gestor Multimedia.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Sí, borrar',
+            confirmButtonText: 'Sí, quitar',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {

@@ -94,7 +94,7 @@ class Noticia
                 'actualizar', 'modificar' => $this->ModificarNoticia(),
                 'eliminar' => $this->EliminarNoticia(),
                 'validar', 'detalle' => $this->ValidarNoticia(true),
-                'eliminar_imagen' => $this->EliminarImagenFisica($peticion['id_imagen'] ?? ''),
+                'eliminar_imagen' => $this->DesvincularImagenNoticia($peticion['id_imagen'] ?? ''),
                 'marcar_principal' => $this->SetImagenPrincipal($peticion['id_imagen'] ?? ''),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
@@ -448,35 +448,31 @@ class Noticia
         return $autores;
     }
 
-    private function EliminarImagenFisica($id_imagen)
+    private function DesvincularImagenNoticia($id_imagen)
     {
         $dato = [];
         try {
             $this->LlamarConexion();
-            // 1. Obtener ruta del archivo
-            $sql = "SELECT direccion FROM imagen WHERE id_imagen = :id AND entidad_tipo = 'NOTICIA'";
+            // Verificar que exista y pertenezca a una NOTICIA
+            $sql = "SELECT id_imagen FROM imagen WHERE id_imagen = :id AND entidad_tipo = 'NOTICIA'";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute(['id' => $id_imagen]);
             $img = $stm->fetch(PDO::FETCH_ASSOC);
 
             if ($img) {
-                $ruta_fisica = BASE_PATH . '/public' . $img['direccion'];
-                // 2. Borrar archivo si existe
-                if (file_exists($ruta_fisica)) {
-                    unlink($ruta_fisica);
-                }
-                // 3. Borrar de BD
+                // Solo desvincular de la noticia (NO borra el archivo físico).
+                // El Gestor Multimedia es el responsable de la eliminación permanente.
                 $sqlDel = "DELETE FROM imagen WHERE id_imagen = :id";
                 $this->LlamarConexion()->prepare($sqlDel)->execute(['id' => $id_imagen]);
 
                 $dato['resultado'] = 200;
-                $dato['mensaje'] = "Imagen eliminada correctamente";
+                $dato['mensaje'] = "Imagen desvinculada de la noticia correctamente";
             } else {
                 $dato['resultado'] = 404;
                 $dato['mensaje'] = "Imagen no encontrada";
             }
         } catch (\PDOException $e) {
-            Helper::ErrorLog("Error eliminando imagen: " . $e->getMessage());
+            Helper::ErrorLog("Error desvinculando imagen: " . $e->getMessage());
             $dato['resultado'] = 500;
             $dato['mensaje'] = "Error interno";
         }
