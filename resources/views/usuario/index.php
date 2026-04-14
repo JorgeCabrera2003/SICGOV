@@ -24,7 +24,6 @@
                 <table class="table table-hover align-middle" id="tabla-usuario" style="width:100%">
                     <thead class="table-light">
                         <tr>
-                            <th scope="col">ID</th>
                             <th scope="col">Nombre de Usuario</th>
                             <th scope="col">Rol</th>
                             <th scope="col">Cédula</th>
