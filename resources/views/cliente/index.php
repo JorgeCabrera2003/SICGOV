@@ -28,7 +28,7 @@
                             <th scope="col">Nombre</th>
                             <th scope="col">Apellido</th>
                             <th scope="col">Teléfono</th>
-                            <th scope="col">Fecha Registro</th>
+                            <th scope="col">Edad</th>
                             <th scope="col">Acciones</th>
                         </tr>
                     </thead>
@@ -43,6 +43,7 @@
 
 <!-- Modales (incluidos como partials) -->
 <?php include 'partials/_modal_cliente.php'; ?>
+<?php include 'partials/_modal_consultar_cliente.php'; ?>
 
 <!-- Recursos específicos de la página -->
 <script src="<?= BASE_URL ?>/assets/js/cliente.js" defer></script>

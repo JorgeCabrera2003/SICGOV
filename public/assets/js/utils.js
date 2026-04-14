@@ -10,7 +10,7 @@ const patrones = {
   numeros: /^\d{1,20}$/,
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   telefono: /^\(\d{3}\)\s\d{3}-\d{4}$/,
-  telefonoSimple: /^\d{4}-\d{7,8}$/,
+  telefonoSimple: /^\d{7}$/,
   username: /^[a-zA-Z0-9_]{4,20}$/,
   password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
   postalCode: /^\d{5}$/,
@@ -132,6 +132,8 @@ const SistemaValidacion = {
         break;
 
       case 'id_categoria':
+      case 'tipo_doc':
+      case 'prefijo_telefono':
       case 'id_marca':
       case 'id_oficina':
       case 'ubicacion':
@@ -157,8 +159,11 @@ const SistemaValidacion = {
 
       case 'telefono_empleado':
       case 'telefono':
-        esValido = patrones.telefonoSimple.test(valor);
-        mensajeError = 'El teléfono debe tener formato 0412-1234567';
+        if (valor === '') {
+           esValido = true; // Telefono might be optional. Wait, the original regex allowed it? "El teléfono debe tener formato...". Let's just keep strict regex but note it might be blank. Actually, earlier it was: if (isset POST telefono && !== '') validation. So here we might want to check length. Let's look at how it works.
+        }
+        esValido = valor === '' || patrones.telefonoSimple.test(valor);
+        mensajeError = 'El teléfono debe tener 7 dígitos (ej: 5539261)';
         break;
 
       default:
@@ -215,6 +220,8 @@ const SistemaValidacion = {
             campoValido = patrones.id_material.test(valor);
             break;
           case 'id_categoria':
+          case 'tipo_doc':
+          case 'prefijo_telefono':
           case 'id_marca':
           case 'id_oficina':
           case 'ubicacion':
@@ -353,6 +360,7 @@ const SistemaValidacion = {
             campoValido = patrones.id_material.test(valor);
             break;
           case 'id_categoria':
+          case 'tipo_doc':
           case 'id_marca':
           case 'id_oficina':
           case 'ubicacion':
