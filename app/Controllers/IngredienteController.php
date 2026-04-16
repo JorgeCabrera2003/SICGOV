@@ -255,10 +255,7 @@ class IngredienteController
 			echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
 			exit;
 		} //Fin de Operaciones
-		Helper::cargarVista(
-			'ingrediente/index',
-			'Ingredientes - Good Vibes'
-		);
+		header("Location: ?page=home");
 	}
 	
 }

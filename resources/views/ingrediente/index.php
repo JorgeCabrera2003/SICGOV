@@ -28,6 +28,7 @@
                     <thead class="table-light">
                         <tr>
                             <th scope="col">Nombre</th>
+                            <th scope="col">Categoria</th>
                             <th scope="col">Precio Unitario</th>
                             <th scope="col">Stock Actual</th>
                             <th scope="col">Stock Mínimo / Stock Máximo</th>

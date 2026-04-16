@@ -20,12 +20,32 @@ function etiquetasFormulario(etiquetas) {
     id_ingrediente: $('#sid_ingrediente')
   }
 
-  if (etiquetas === "input") {
+  const inputCategoria = {
+    nombre: $('#categoria-nombre'),
+    descripcion: $('#categoria-descripcion'),
+    id_categoria: $('#id_categoria')
+  }
+
+  const spanCategoria = {
+    nombre: $('#scategoria-nombre'),
+    descripcion: $('#scategoria-descripcion'),
+    id_categoria: $('#sid_categoria')
+  }
+
+  if (etiquetas === "input-Ingrediente") {
     referencia = inputIngrediente
   }
 
-  if (etiquetas === "span") {
+  if (etiquetas === "span-Ingrediente") {
     referencia = spanIngrediente
+  }
+
+  if (etiquetas === "span-Categoria") {
+    referencia = inputCategoria;
+  }
+
+  if (etiquetas === "span-Categoria") {
+    referencia = spanCategoria
   }
 
   return referencia
@@ -36,73 +56,68 @@ function etiquetasFormulario(etiquetas) {
 function etiquetasModal(etiqueta) {
   let referencia = null
 
-  const modalPrincipal = {
+  const modalIngrediente = {
     modal: $('#modalIngrediente'),
     titulo: $('#modalTitleTextIngrediente'),
     boton: $('#btnIngredienteForm')
   }
 
-  const modalCategoria = {
+  const modalCategoriaTabla = {
     modal: $('#modalCategoria'),
     titulo: $('#modalTitleText-Categoia'),
     boton: $('#btn-CategoriaPCancel')
   }
 
-  const modalFormCategoria = {
+  const modalCategoria = {
     modal: $('#modal-formcategoria'),
     titulo: $('#modalTitleText-Form-Categoia'),
     boton: $('#btn-CategoriaForm')
   }
 
-  if (etiqueta === "principal") {
-    referencia = modalPrincipal
+  if (etiqueta === "Ingrediente") {
+    referencia = modalIngrediente;
   }
 
-  if (etiqueta === "categoria") {
-    referencia = modalCategoria
+  if (etiqueta === "TablaCategoria") {
+    referencia = modalCategoriaTabla;
   }
 
-  if (etiqueta === "categoria-formulario") {
-    referencia = modalFormCategoria
+  if (etiqueta === "Categoria") {
+    referencia = modalCategoria;
   }
 
-  return referencia
+  return referencia;
 }
 //Fin de Interfaz de Acceso
 
 //Función para editar textos visuales del modal
-function editarModal(operacion) {
-  let titulo
-  let boton
-  let etiqueta_modal = null
+function editarModal(operacion, modal = "Ingrediente") {
+  let titulo;
+  let boton;
+  let etiqueta_modal = etiquetasModal(modal);
+  let vocal = "o";
+  let sustantivo = "Ingrediente";
+
+  if (modal == "Categoria") {
+    vocal = "a"
+    sustantivo = "Categoría";
+  }
 
   if (operacion == 'registrar') {
-    titulo = "Nuevo Ingrediente"
-    boton = "Nuevo"
-    etiqueta_modal = etiquetasModal("principal");
+    titulo = "Nuev" + vocal + " " + sustantivo;
+    boton = "Nuevo";
   }
 
   if (operacion == 'modificar') {
-    titulo = "Actualizar Ingrediente"
-    boton = "Actualizar"
-    etiqueta_modal = etiquetasModal("principal");
+    titulo = "Actualizar " + sustantivo;
+    boton = "Actualizar";
   }
 
   if (operacion == 'eliminar') {
-    titulo = "Borrar Ingrediente"
-    boton = "Borrar"
-    etiqueta_modal = etiquetasModal("principal");
+    titulo = "Borrar " + sustantivo;
+    boton = "Borrar";
   }
 
-  if (operacion == 'consultar-categoria') {
-    titulo = "Borrar Ingrediente"
-    boton = "Borrar"
-    etiqueta_modal = etiquetasModal("categoria");
-  }
-
-  if (operacion == 'formulario-categoria') {
-    etiqueta_modal = etiquetasModal("principal");
-  }
   etiqueta_modal.titulo.text(titulo)
   etiqueta_modal.boton.text(boton)
   etiqueta_modal.modal.modal("show")
@@ -141,145 +156,119 @@ $(document).ready(function () {
   manejarCambioEstado(false);
 });
 
-async function enviarDatosIngrediente(operacion) {
+async function enviarDatos(operacion, modulo = "Ingrediente") {
 
-  let input = etiquetasFormulario('input');
-  let span = etiquetasFormulario('span');
-  let modal = etiquetasModal("principal");
-
-  let confirmacion = false;
-  let str_acccion = "";
-  let accion = "";
-  let btn_formulario = false;
-  let estado_peticion = null;
-  let peticion = new FormData();
-  //Registrar y Modificar
-  if (operacion == "registrar" || operacion == "modificar") {
-
-    if (operacion == "registrar") {
-      str_acccion = "registrará";
-      accion = "registrar"
-    }
-
-    if (operacion == "modificar") {
-      str_acccion = "actualizará";
-      accion = "modificar";
-      peticion.append('id_ingrediente', input.id_ingrediente.val());
-    }
-
-    if (validarenvio()) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} un Ingrediente`, "¿Está seguro de realizar la acción?", "question");
-
-      if (confirmacion) {
-        peticion.append('peticion', accion);
-        peticion.append('nombre', input.nombre.val());
-        peticion.append('unidad_medida', input.unidad_medida.val());
-        peticion.append('costo_unitario', input.costo_unitario.val());
-        btn_formulario = true;
-      }
-    } else {
-      btn_formulario = false;
-      mensajes("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.");
-    }
-  } //Fin del Registrar y Modificar
-  //Eliminar
-  if (operacion == "eliminar") {
-
-    if (validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_ingrediente, span.id_ingrediente, '')) {
-      confirmacion = await confirmarAccion("Se eliminará un Ingrediente", "¿Está seguro de realizar la acción?", "warning");
-
-      if (confirmacion) {
-        peticion.append('peticion', 'eliminar');
-        peticion.append('id_ingrediente', input.id_ingrediente.val());
-        btn_formulario = true;
-      }
-    } else {
-      btn_formulario = false;
-      mensajes("error", 10000, "Error de Validación", "El ID del ente no es válido.");
-    }
-  }//Fin del Eliminar
-
-  if (btn_formulario) {
-    modal.boton.prop('disabled', true);
-    json = await enviaAjax(peticion);
-
-    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-      modal.modal.modal("hide");
-      crearDataTable();
-      mensajes(json.icon, 10000, json.mensaje, null);
-    }
-    modal.boton.prop('disabled', false);
-  }
-
-  if (!confirmacion) {
-    modal.boton.prop('disabled', false);
-  }
-
-  input = null;
-  modal = null;
-}
-
-async function enviarDatosCategoria(operacion) {
-
-  let input = etiquetasFormulario('input');
-  let span = etiquetasFormulario('span');
-  let modal = etiquetasModal("categoria-formulario");
+  let input = etiquetasFormulario('input-' + modulo);
+  let span = etiquetasFormulario('span-' + modulo);
+  let modal = etiquetasModal(modulo);
 
   let confirmacion = false;
   let str_acccion = "";
   let accion = "";
   let btn_formulario = false;
   let estado_peticion = null;
+  let mensajeConfirmacion = "¿Está seguro de realizar esta acción?";
+  let endpoint = "";
   let peticion = new FormData();
-  //Registrar y Modificar
-  if (operacion == "registrar" || operacion == "modificar") {
 
-    if (operacion == "registrar") {
-      str_acccion = "registrará";
-      accion = "registrar"
-    }
+  if (modulo == "Ingrediente") {
+    //Registrar y Modificar
+    if (operacion == "registrar" || operacion == "modificar") {
 
-    if (operacion == "modificar") {
-      str_acccion = "actualizará";
-      accion = "modificar";
-      peticion.append('id_ingrediente', input.id_ingrediente.val());
-    }
-
-    if (validarenvio()) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} un Ingrediente`, "¿Está seguro de realizar la acción?", "question");
-
-      if (confirmacion) {
-        peticion.append('peticion', accion);
-        peticion.append('nombre', input.nombre.val());
-        peticion.append('unidad_medida', input.unidad_medida.val());
-        peticion.append('costo_unitario', input.costo_unitario.val());
-        btn_formulario = true;
+      if (operacion == "registrar") {
+        str_acccion = "registrará";
+        accion = "registrar"
       }
-    } else {
-      btn_formulario = false;
-      mensajes("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.");
-    }
-  } //Fin del Registrar y Modificar
-  //Eliminar
-  if (operacion == "eliminar") {
 
-    if (validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_ingrediente, span.id_ingrediente, '')) {
-      confirmacion = await confirmarAccion("Se eliminará un Ingrediente", "¿Está seguro de realizar la acción?", "warning");
-
-      if (confirmacion) {
-        peticion.append('peticion', 'eliminar');
+      if (operacion == "modificar") {
+        str_acccion = "actualizará";
+        accion = "modificar";
         peticion.append('id_ingrediente', input.id_ingrediente.val());
-        btn_formulario = true;
       }
-    } else {
-      btn_formulario = false;
-      mensajes("error", 10000, "Error de Validación", "El ID del ente no es válido.");
-    }
-  }//Fin del Eliminar
+
+      if (validarenvio()) {
+        confirmacion = await confirmarAccion(`Se ${str_acccion} un Ingrediente`, mensajeConfirmacion, "question");
+
+        if (confirmacion) {
+          peticion.append('peticion', accion);
+          peticion.append('nombre', input.nombre.val());
+          peticion.append('unidad_medida', input.unidad_medida.val());
+          peticion.append('costo_unitario', input.costo_unitario.val());
+          btn_formulario = true;
+        }
+      } else {
+        btn_formulario = false;
+        mensajes("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.");
+      }
+    } //Fin del Registrar y Modificar
+    //Eliminar
+    if (operacion == "eliminar") {
+
+      if (validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_ingrediente, span.id_ingrediente, '')) {
+        confirmacion = await confirmarAccion("Se eliminará un Ingrediente", mensajeConfirmacion, "warning");
+
+        if (confirmacion) {
+          peticion.append('peticion', 'eliminar');
+          peticion.append('id_ingrediente', input.id_ingrediente.val());
+          btn_formulario = true;
+        }
+      } else {
+        btn_formulario = false;
+        mensajes("error", 10000, "Error de Validación", "El ID del Ingrediente no es válido.");
+      }
+    }//Fin del Eliminar
+  }
+  if (modulo == "Categoria") {
+    endpoint = "?page=categoria-ingrediente";
+    //Registrar y Modificar
+    if (operacion == "registrar" || operacion == "modificar") {
+
+      if (operacion == "registrar") {
+        str_acccion = "registrará";
+        accion = "registrar"
+      }
+
+      if (operacion == "modificar") {
+        str_acccion = "actualizará";
+        accion = "modificar";
+        peticion.append('id_categoria', input.id_categoria.val());
+      }
+
+      if (validarenvio()) {
+        confirmacion = await confirmarAccion(`Se ${str_acccion} una Categoría`, mensajeConfirmacion, "question");
+
+        if (confirmacion) {
+          peticion.append('peticion', accion);
+          peticion.append('nombre', input.nombre.val());
+          peticion.append('descripcion', input.descripcion.val());
+          btn_formulario = true;
+        }
+      } else {
+        btn_formulario = false;
+        mensajes("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.");
+      }
+    } //Fin del Registrar y Modificar
+    //Eliminar
+    if (operacion == "eliminar") {
+
+      if (validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_categoria, span.id_categoria, '')) {
+        confirmacion = await confirmarAccion("Se eliminará una Categoría", mensajeConfirmacion, "warning");
+
+        if (confirmacion) {
+          peticion.append('peticion', 'eliminar');
+          peticion.append('id_categoria', input.id_categoria.val());
+          btn_formulario = true;
+        }
+      } else {
+        btn_formulario = false;
+        mensajes("error", 10000, "Error de Validación", "El ID de la Categoría no es válido.");
+      }
+    }//Fin del Eliminar
+  }
 
   if (btn_formulario) {
     modal.boton.prop('disabled', true);
-    json = await enviaAjax(peticion);
+    json = await enviaAjax(peticion, endpoint);
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       modal.modal.modal("hide");
@@ -310,41 +299,42 @@ $("#btnIngredienteForm").on("click", async function () {
   accion = MANEJADOR[$(this).text()] || DEFAULT
 
   if (accion != null) {
-    enviarDatosIngrediente(accion)
+    enviarDatos(accion)
   } else {
     console.log("Error, acción no válida")
   }
 });
 
 $("#btnNuevoIngrediente").on("click", function () {
-  limpia();
+  limpiarFormulario("Ingrediente");
   editarModal("registrar")
   // El botón se habilita automáticamente mediante el callback cuando los campos sean válidos
 });
 
 //Iniciar Tabla de Categoría de Ingrediente
 $("#btn-ModalCategorias").on("click", async function () {
-  let etiqueta_modal = etiquetasModal("categoria");
-  if (await DataTableCategoria())
-    etiqueta_modal.modal.modal("show");
-
+  let etiqueta_modal = etiquetasModal("TablaCategoria");
+  
+  await crearDataTable("categoria-ingrediente")
+  etiqueta_modal.modal.modal("show");
+  
   etiqueta_modal = null;
 })
 
 //Iniciar Modal Formulario de Categoría de Ingrediente
 $("#btnNuevaCategoria").on("click", function () {
-  let etiqueta_modal = etiquetasModal("categoria");
-  let modal_form = etiquetasModal("categoria-formulario");
+  let etiqueta_modal = etiquetasModal("TablaCategoria");
+  let modal_form = etiquetasModal("Categoria");
   etiqueta_modal.modal.modal("hide");
-  modal_form.modal.modal("show");
+  editarModal("registrar", "Categoria");
 
   etiqueta_modal = null;
   modal_form = null;
 })
 
 $("#btn-CategoriaCancel").on("click", function () {
-  let etiqueta_modal = etiquetasModal("categoria");
-  let modal_form = etiquetasModal("categoria-formulario");
+  let etiqueta_modal = etiquetasModal("Categoria");
+  let modal_form = etiquetasModal("TablaCategoria");
   etiqueta_modal.modal.modal("show");
   modal_form.modal.modal("hide");
 
@@ -365,7 +355,8 @@ $('#modalIngrediente').on('shown.bs.modal', function () {
   }, 100);
 });
 
-async function vistaPermiso() {
+async function vistaPermiso(modulo = "Ingrediente") {
+
   const dropdown = $('<div>').addClass('dropdown');
   const boton = $('<button>').addClass('btn btn-sm btn-light border dropdown-toggle')
     .attr('type', 'button')
@@ -379,7 +370,7 @@ async function vistaPermiso() {
   const linkEditar = $('<a>')
     .addClass('dropdown-item btn-editar text-primary')
     .attr('href', '#')
-    .attr('onclick', `rellenar(this, 0)`)
+    .attr('onclick', `rellenar(this, 0, "` + modulo + `")`)
     .html('<i class="fas fa-edit me-2"></i>Editar');
   itemEditar.append(linkEditar);
 
@@ -387,41 +378,9 @@ async function vistaPermiso() {
   const linkEliminar = $('<a>')
     .addClass('dropdown-item btn-eliminar text-danger')
     .attr('href', '#')
-    .attr('onclick', `rellenar(this, 1)`)
+    .attr('onclick', `rellenar(this, 1, "` + modulo + `")`)
     .html('<i class="fas fa-trash me-2" me-2"></i>Eliminar');
   itemEliminar.append(linkEliminar);
-
-  let permisos = [];
-  /* 
-    try {
-      peticion = new FormData();
-      peticion.append('permisos', 'permisos');
-      json = await enviaAjax(peticion);
-      json = JSON.parse(json);
-      permisos = json.permisos;
-    } catch (error) {
-      botones = "";
-      console.log(error);
-      return botones;
-    }
-  
-    if (Array.isArray(permisos) || Object.keys(permisos).length == 0 || permisos == null) {
-      btn_modificar = "";
-      btn_eliminar = "";
-    } else {
-      if (permisos['ente']['modificar']['estado'] == '1') {
-        btn_modificar = `<button onclick="rellenar(this, 0)" class="btn btn-update modificar">
-                          <i class="fa-solid fa-pen-to-square"></i>
-                        </button>`;
-      }
-  
-      if (permisos['ente']['eliminar']['estado'] == '1') {
-        btn_eliminar = `<button onclick="rellenar(this, 1)" class="btn btn-danger eliminar">
-                          <i class="fa-solid fa-trash"></i>
-                        </button>`;
-      }
-    }*/
-
 
   menu.append(itemEditar, separador, itemEliminar);
   dropdown.append(boton, menu);
@@ -430,65 +389,36 @@ async function vistaPermiso() {
   return dropdown.prop('outerHTML');
 }
 
-/* 
-async function botonReactivar() {
-  let botones = "";
-  let permisos = [];
-
-  try {
-    peticion = new FormData();
-    peticion.append('permisos', 'permisos');
-    json = await enviaAjax(peticion);
-    json = JSON.parse(json);
-    permisos = json.permisos;
-  } catch (error) {
-    botones = "";
-    console.log(error);
-    return botones;
-  }
-
-  if (Array.isArray(permisos) || Object.keys(permisos).length == 0 || permisos == null) {
-    btn_reactivar = "";
-  } else {
-    if (permisos['ente']['reactivar']['estado'] == '1') {
-      btn_reactivar = `<button onclick="reactivarEnte(this)" class="btn btn-success reactivar">
-                  <i class="fa-solid fa-recycle"></i>
-                  </button>`;
-    }
-  }
-  console.log(btn_reactivar)
-  return btn_reactivar;
-}
-*/
 function ColorearStock(stockActual, stockMinimo, stockMaximo = null, abreviatura) {
-  const html = $('<span>').addClass('badge');
-  const h5 = $('<h5>');
+  const texto = $('<span>');
+  const div = $('<div>').addClass('d-flex align-items-center gap-1');
   let color = "";
   const umbralMinimo = stockMinimo * 0.3;
   const umbralRecomendado = stockMinimo * 0.6;
 
   if (stockActual <= stockMinimo) {
-    color = "text-bg-danger";
+    color = "text-danger";
   }
 
   if (stockActual <= umbralMinimo) {
-    color = "text-bg-warning";
+    color = "text-warning";
     console.log(umbralMinimo);
   }
 
   if (stockActual >= umbralRecomendado) {
-    color = "text-bg-success";
+    color = "text-success";
   }
 
   if (stockMaximo != null && !isNaN(parseFloat(valor)) && isFinite(valor)) {
-    if (stockActual == stockMaximo)
-      color = "text-bg-success";
+    if (stockActual == stockMaximo) {
+      color = "text-success";
+    }
   }
-  html.addClass(color).text(stockActual + " " + abreviatura)
-  h5.append(html);
+  texto.addClass(color).text(stockActual + " " + abreviatura);
+  div.append(texto);
   // Validación con formato en tiempo real
 
-  return h5.prop('outerHTML');
+  return div.prop('outerHTML');
 }
 
 function capaValidar() {
@@ -512,24 +442,43 @@ function capaValidar() {
   });
 }
 
-function validarenvio() {
-  return SistemaValidacion.validarFormulario(etiquetasFormulario('input'));
+function validarenvio(modulo = "Ingrediente") {
+  return SistemaValidacion.validarFormulario(etiquetasFormulario('input-' + modulo));
 }
 
-async function crearDataTable() {
-  let peticion = new FormData();
+async function crearDataTable(controlador = "ingredientes") {
+  const peticion = new FormData();
   let json = null;
   let arreglo = [];
-  let botones = '';
-  botones = await vistaPermiso();
+  let endpoint = "?page=" + controlador;
+
+
+  peticion.append("peticion", "consultar");
 
   try {
-    peticion.append('peticion', 'consultar');
-    json = await enviaAjax(peticion);
+    json = await enviaAjax(peticion, endpoint);
     arreglo = json.datos;
   } catch (error) {
     arreglo = [];
   }
+
+  if (Array.isArray(arreglo)) {
+    console.log("arreglo");
+    if (controlador === "ingredientes") {
+      DataTablePrincipal(arreglo);
+    }
+
+    if (controlador === "categoria-ingrediente") {
+      DataTableCategoria(arreglo);
+    }
+  } else {
+    console.log("falso");
+  }
+}
+
+async function DataTablePrincipal(arreglo) {
+  let botones = '';
+  botones = await vistaPermiso("Ingrediente");
 
   if ($.fn.DataTable.isDataTable('#tablaIngrediente')) {
     $('#tablaIngrediente').DataTable().destroy();
@@ -540,6 +489,7 @@ async function crearDataTable() {
     data: arreglo,
     columns: [
       { data: 'nombre_ingrediente' },
+      { data: 'nombre_categoria' },
       {
         data: null,
         render: function (row) {
@@ -556,23 +506,23 @@ async function crearDataTable() {
       {
         data: null,
         render: function (row) {
-          const h5 = $('<h5>');
-          const badgeMin = $('<span>').addClass('badge text-bg-danger').text(row.stock_minimo);
-          const badgeMax = $('<span>').addClass('badge text-bg-success');
+          const textMin = $('<span>').addClass('text-danger me-1').text(row.stock_minimo + " " + row.abreviatura);
+          const textMax = $('<span>').addClass('me-1');
           const strong = $('<strong>')
-          const text = $('<text>').addClass(" ms-1 me-1").text("/");
+          const text = $('<text>').addClass("ms-1 me-1 text-black").text("/");
           const div = $('<div>');
+          let abreviaturaMax = null;
 
           if (row.stock_maximo != null && !isNaN(parseFloat(valor)) && isFinite(valor)) {
-            badgeMax.text(row.stock_maximo)
+            textMax.text(row.stock_maximo + " " + row.abreviatura).addClass('text-success me-1');
+            abreviaturaMax = row.abreviatura;
           } else {
-            badgeMax.text("Ninguno")
+            textMax.text("Ninguno").addClass('text-black me-1');
           }
 
           strong.append(text);
-          div.append(badgeMin, strong, badgeMax);
-          h5.append(div);
-          return h5.prop('outerHTML');
+          div.append(textMin, strong, textMax);
+          return div.prop('outerHTML');
         }
       },
       {
@@ -587,20 +537,9 @@ async function crearDataTable() {
   });
 }
 
-async function DataTableCategoria() {
-  let peticion = new FormData();
-  let json = null;
-  let arreglo = [];
-  //let botones = '';
-  //botones = await vistaPermiso();
-
-  try {
-    peticion.append('peticion', 'consultar');
-    json = await enviaAjax(peticion, '?page=categoria-ingrediente');
-    arreglo = json.datos;
-  } catch (error) {
-    arreglo = [];
-  }
+async function DataTableCategoria(arreglo) {
+  let botones = '';
+  botones = await vistaPermiso("Categoria");
 
   if ($.fn.DataTable.isDataTable('#tablaCategoria')) {
     $('#tablaCategoria').DataTable().destroy();
@@ -610,12 +549,14 @@ async function DataTableCategoria() {
     processing: true,
     data: arreglo,
     columns: [
-      {
-        data: 'id_categoria',
-        visible: false
-      },
       { data: 'nombre' },
       { data: 'descripcion' },
+      {
+        data: null,
+        render: function () {
+          return botones;
+        }
+      }
     ],
     order: [[1, 'asc']],
     language: { url: idiomaTabla }
@@ -671,27 +612,37 @@ async function iniciarTablaEliminadas() {
   });
 }
 
-function limpia() {
-  SistemaValidacion.limpiarValidacion(etiquetasFormulario('input'));
+function limpia(formulario) {
+  SistemaValidacion.limpiarValidacion(etiquetasFormulario('input-' + formulario));
 
-  let input = etiquetasFormulario('input')
-  let span = etiquetasFormulario('span')
+  let input = etiquetasFormulario('input-' + formulario);
+  let span = etiquetasFormulario('span-' + formulario);
+  let modal = null;
 
-  input.id_ingrediente.val("").prop("readOnly", true)
-  input.nombre.val("").prop("readOnly", false)
-  input.costo_unitario.val("").prop("readOnly", false)
-  input.unidad_medida.val("default").prop("disabled", false)
+
+  if (formulario == "Ingrediente") {
+    modal = etiquetasModal("ingrediente");
+    input.id_ingrediente.val("").prop("readOnly", true)
+    input.nombre.val("").prop("readOnly", false)
+    input.costo_unitario.val("").prop("readOnly", false)
+    input.unidad_medida.val("default").prop("disabled", false)
+  }
+
+  if (formulario == "Categoria") {
+
+  }
+
 
   // Deshabilitar el botón al limpiar (se habilitará automáticamente cuando los campos sean válidos)
   $('#enviar').prop('disabled', true);
   input = null;
 }
 
-function rellenar(pos, accion) {
+function rellenar(pos, accion, modulo = "Ingrediente") {
   limpia();
-  let input = etiquetasFormulario('input')
+  let input = etiquetasFormulario('input-'+modulo)
   const linea = $(pos).closest('tr');
-  const tabla = $('#tablaIngrediente').DataTable();
+  const tabla = $('#tabla'+modulo).DataTable();
   const datosFila = tabla.row(linea).data();
 
   // Usar los datos directamente de DataTable (más confiable)
@@ -712,38 +663,4 @@ function rellenar(pos, accion) {
 
   // Habilitar el botón inmediatamente para Modificar/Eliminar ya que los datos vienen pre-validados
   $('#btnIngredienteForm').prop('disabled', false);
-}
-//Fin Manejo de Envío de Datos
-
-async function reactivarEnte(boton) {
-  const linea = $(boton).closest('tr');
-  const tabla = $('#tablaEliminadas').DataTable();
-  const datosFila = tabla.row(linea).data();
-  const id = datosFila.id;
-  const regex = new RegExp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/)
-  let peticion = new FormData();
-  let json = null;
-
-
-  confirmacion = await confirmarAccion(`Se reactivará un Ente`, "¿Está seguro de realizar la acción?", "question");
-
-  if (confirmacion) {
-
-    if (!regex.test(id)) {
-      console.log('Error');
-      return;
-    }
-    peticion.append('peticion', 'reactivar');
-    peticion.append('id_ente', id);
-    json = await enviaAjax(peticion);
-    json = JSON.parse(json)
-  }
-
-  if (json != null) {
-    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-      mensajes(json.icon, 10000, json.mensaje, null);
-      crearDataTable();
-      iniciarTablaEliminadas();
-    }
-  }
 }

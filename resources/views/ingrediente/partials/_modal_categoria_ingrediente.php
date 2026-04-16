@@ -27,9 +27,9 @@
                             <table class="table table-hover align-middle" id="tablaCategoria" style="width:100%">
                                 <thead class="table-light">
                                     <tr>
-                                        <th scope="col">ID</th>
                                         <th scope="col">Nombre</th>
                                         <th scope="col">Descripción</th>
+                                        <th scope="col"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
