@@ -1,158 +1,142 @@
 /**
  * Dependencias: jQuery, DataTables, SweetAlert2
- * @version 2.1.0
+ * @version 2.2.0 - Estandarizado con enviaAjax y DOM jQuery puros
  */
 document.addEventListener('DOMContentLoaded', function () {
     const BitacoraModule = (function () {
         'use strict';
 
         let dataTable;
-        function initDataTable() {
+
+        async function initDataTable() {
+            await reloadData();
+        }
+
+        async function reloadData() {
+            const peticion = new FormData();
+            peticion.append('action', 'listarJson');
+            peticion.append('modulo', $('#filtro_modulo').val());
+            peticion.append('desde', $('#fecha_desde').val());
+            peticion.append('hasta', $('#fecha_hasta').val());
+
+            try {
+                const json = await enviaAjax(peticion, BASE_URL + '/?page=bitacora');
+                let arreglo = [];
+                if (json && json.data) {
+                    arreglo = json.data;
+                }
+                renderTable(arreglo);
+            } catch (e) {
+                console.error("Error al cargar bitacora", e);
+                renderTable([]);
+            }
+        }
+
+        function renderTable(datos) {
+            if ($.fn.DataTable.isDataTable('#tablaBitacora')) {
+                $('#tablaBitacora').DataTable().destroy();
+            }
+
             dataTable = $('#tablaBitacora').DataTable({
-                processing: true,
-                serverSide: false,
-                ajax: {
-                    url: `${BASE_URL}/?page=bitacora&action=listarJson`,
-                    type: 'GET',
-                    data: function (d) {
-                        d.modulo = $('#filtro_modulo').val();
-                        d.desde = $('#fecha_desde').val();
-                        d.hasta = $('#fecha_hasta').val();
-                    },
-                    dataSrc: function (json) {
-                        return json.data || [];
-                    }
-                },
+                data: datos,
                 columns: [
-                    {
-                        data: 'id',
-                        width: '5%',
-                        className: 'text-muted font-monospace small',
-                        visible: false
-                    },
-                    {
-                        data: 'usuario',
-                        width: '15%'
-                    },
-                    {
-                        data: 'modulo',
-                        width: '10%'
-                    },
-                    {
-                        data: 'accion',
-                        width: '20%'
-                    },
-                    {
-                        data: 'ip',
-                        width: '8%',
-                        className: 'font-monospace small'
-                    },
-                    {
-                        data: 'fecha',
-                        width: '20%',
+                    { data: 'id', width: '5%', className: 'text-muted font-monospace small', visible: false },
+                    { data: 'usuario', width: '15%' },
+                    { data: 'modulo', width: '10%' },
+                    { data: 'accion', width: '20%' },
+                    { data: 'ip', width: '8%', className: 'font-monospace small' },
+                    { 
+                        data: 'fecha', width: '20%',
                         render: function (data) {
                             return formatearFechaSistema(data);
                         }
                     },
-                    {
-                        data: 'acciones',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center',
-                        width: '8%'
-                    }
+                    { data: 'acciones', orderable: false, searchable: false, className: 'text-center', width: '8%' }
                 ],
-                language: {
-                    url: `${BASE_URL}/assets/DataTables/espanol.json`
-                },
+                language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' },
                 order: [[5, 'desc']],
                 pageLength: 25,
                 responsive: true,
-                autoWidth: false,
-                deferRender: true
+                autoWidth: false
             });
         }
 
         function bindEvents() {
             $('#btnActualizar').on('click', function (e) {
                 e.preventDefault();
-                dataTable.ajax.reload();
+                reloadData();
             });
 
             $('#formFiltros').on('submit', function (e) {
                 e.preventDefault();
-                dataTable.ajax.reload();
+                reloadData();
             });
 
             $('#btnLimpiar').on('click', function (e) {
                 e.preventDefault();
                 $('#formFiltros')[0].reset();
-                dataTable.ajax.reload();
+                reloadData();
             });
 
             $('#tablaBitacora').on('click', '.btn-ver-detalle', handleVerDetalle);
         }
-        function handleVerDetalle(e) {
+
+        async function handleVerDetalle(e) {
             e.preventDefault();
 
             const id = $(this).data('id');
             const $modalBody = $('#detalleBody');
 
-            $modalBody.html(`
-            <div class="text-center py-4">
-                <div class="spinner-border text-warning" role="status">
-                    <span class="visually-hidden">Cargando...</span>
-                </div>
-            </div>
-        `);
+            $modalBody.empty().append(
+                $('<div>', { class: 'text-center py-4' }).append(
+                    $('<div>', { class: 'spinner-border text-warning', role: 'status' }).append(
+                        $('<span>', { class: 'visually-hidden', text: 'Cargando...' })
+                    )
+                )
+            );
 
-            $.ajax({
-                url: `${BASE_URL}/?page=bitacora&action=buscar`,
-                type: 'GET',
-                data: {id},
-                dataType: 'json'
-            })
-                .done(function (response) {
-                    if (response.success && response.data) {
-                        mostrarDetalles(response.data);
-                    } else {
-                        $modalBody.html(`
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        No se pudieron cargar los detalles
-                    </div>
-                `);
-                    }
-                })
-                .fail(function () {
-                    $modalBody.html(`
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    Error de conexión
-                </div>
-            `);
-                });
+            const fd = new FormData();
+            fd.append('action', 'buscar');
+            fd.append('id', id);
+
+            try {
+                const response = await enviaAjax(fd, BASE_URL + '/?page=bitacora');
+                if (response && response.success && response.data) {
+                    mostrarDetalles(response.data);
+                } else {
+                    mostrarErrorDetalle($modalBody, 'No se pudieron cargar los detalles');
+                }
+            } catch (error) {
+                mostrarErrorDetalle($modalBody, 'Error de conexión');
+            }
         }
 
-        /**
-         * Formatea una fecha al estándar del sistema (DD/MM/YYYY, HH:MM:SS AM/PM)
-         */
+        function mostrarErrorDetalle($modalBody, mensaje) {
+            $modalBody.empty().append(
+                $('<div>', { class: 'alert alert-danger' })
+                    .append($('<i>', { class: 'fas fa-exclamation-triangle me-2' }))
+                    .append(document.createTextNode(mensaje))
+            );
+        }
+
         function formatearFechaSistema(fechaRaw) {
             if (!fechaRaw) return "N/A";
+            
+            if (fechaRaw.includes('/')) {
+                return fechaRaw; 
+            }
+            
             const date = new Date(fechaRaw);
-            if (isNaN(date.getTime())) return fechaRaw; // Fallback si no es fecha
+            if (isNaN(date.getTime())) return fechaRaw;
             
             return date.toLocaleDateString('es-VE') + ', ' + 
                    date.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
         }
 
-        /**
-         * Transforma un objeto JSON en una estructura visual amigable (Lista de campos)
-         */
         function renderAuditTable(jsonString, colorClass) {
             try {
                 const data = JSON.parse(jsonString);
-                if (!data || typeof data !== 'object') return jsonString;
+                if (!data || typeof data !== 'object') return document.createTextNode(jsonString);
 
                 const labels = {
                     'id_noticia': 'Número de Noticia',
@@ -165,123 +149,124 @@ document.addEventListener('DOMContentLoaded', function () {
                     'estatus': 'Estado en Sistema'
                 };
 
-                let html = `<div class="p-3 bg-body-tertiary border-start border-4 border-${colorClass} rounded shadow-sm">`;
+                const $container = $('<div>', { class: `p-3 bg-body-tertiary border-start border-4 border-${colorClass} rounded shadow-sm` });
                 
                 for (const key in data) {
                     let label = labels[key] || key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' ');
-                    
-                    // Asegurar que "ID" se vea como "Número" en cualquier etiqueta no mapeada
                     label = label.replace(/ID/g, 'Número').replace(/id/g, 'Número');
                     
                     let value = data[key];
 
-                    // Formatear fechas dentro de los valores
-                    if (key.includes('fecha') || (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value))) {
+                    if (key.includes('fecha') || (typeof value === 'string' && /^\\d{4}-\\d{2}-\\d{2}/.test(value))) {
                         value = formatearFechaSistema(value);
                     }
 
-                    if (value === null) value = '<span class="text-muted italic">Vacio</span>';
-
-                    html += `
-                        <div class="mb-2 border-bottom border-secondary border-opacity-10 pb-1">
-                            <label class="d-block fw-bold small text-uppercase text-secondary">${label}</label>
-                            <div class="text-body">${value}</div>
-                        </div>
-                    `;
+                    const $item = $('<div>', { class: 'mb-2 border-bottom border-secondary border-opacity-10 pb-1' });
+                    $item.append($('<label>', { class: 'd-block fw-bold small text-uppercase text-secondary', text: label }));
+                    
+                    if (value === null) {
+                        $item.append($('<div>', { class: 'text-body' }).append($('<span>', { class: 'text-muted fst-italic', text: 'Vacio' })));
+                    } else {
+                        $item.append($('<div>', { class: 'text-body', text: value }));
+                    }
+                    
+                    $container.append($item);
                 }
 
-                html += `</div>`;
-                return html;
+                return $container;
             } catch (e) {
-                return `<pre class="bg-dark text-warning p-2 small">${jsonString}</pre>`;
+                return $('<pre>', { class: 'bg-dark text-warning p-2 small', text: jsonString });
             }
         }
 
-        /**
-         * Renderiza los detalles en el modal
-         */
         function mostrarDetalles(data) {
             const fecha = formatearFechaSistema(data.fecha);
+            const $body = $('#detalleBody');
+            $body.empty();
 
-            const html = `
-            <div class="mb-3">
-                <label class="fw-bold small text-uppercase text-muted">Número de Registro:</label>
-                <p class="mb-2 p-2 bg-body-tertiary border rounded small font-monospace text-body">${data.id_bitacora || ''}</p>
-            </div>
-            <div class="mb-3">
-                <label class="fw-bold small text-uppercase text-muted">Realizado por:</label>
-                <div class="d-flex align-items-center p-2 bg-body-tertiary border rounded">
-                    <i class="fas fa-user-circle fa-2x me-2 text-secondary opacity-50"></i>
-                    <div>
-                        <p class="mb-0 fw-semibold text-body">
-                            ${data.nombres ? data.nombres + ' ' + (data.apellidos || '') : (data.username || 'Sistema')}
-                            <span class="text-muted small">(${data.rol || 'N/A'})</span>
-                        </p>
-                        ${data.cedula ? `<small class="text-muted">Documento: ${data.cedula}</small>` : ''}
-                    </div>
-                </div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="fw-bold small text-uppercase text-muted">Área del Sistema:</label>
-                    <p class="mb-2 p-2 bg-body-tertiary border rounded text-body">${data.modulo || ''}</p>
-                </div>
-                <div class="col-md-6">
-                    <label class="fw-bold small text-uppercase text-muted">Actividad Realizada:</label>
-                    <p class="mb-2 p-2 bg-body-tertiary border rounded text-body">${data.accion || ''}</p>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label class="fw-bold small text-uppercase text-muted">Descripción de la Acción:</label>
-                <div class="mb-2 p-3 bg-body-tertiary border rounded text-body shadow-sm">${(data.detalle || 'Sin detalles adicionales').replace('(ID:', '(Número:')}</div>
-            </div>
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label class="fw-bold small text-uppercase text-muted">Dirección IP:</label>
-                    <p class="mb-2 p-2 bg-body-tertiary border rounded font-monospace text-body">${data.ip_address || '0.0.0.0'}</p>
-                </div>
-                <div class="col-md-6">
-                    <label class="fw-bold small text-uppercase text-muted">Fecha y Hora:</label>
-                    <p class="mb-2 p-2 bg-body-tertiary border rounded text-body">${fecha}</p>
-                </div>
-            </div>
-            
-            ${data.valores_anteriores ? `
-            <div class="mb-4">
-                <label class="fw-bold small text-uppercase text-danger mb-2"><i class="fas fa-history me-1"></i> Estado Anterior (Antes del cambio):</label>
-                ${renderAuditTable(data.valores_anteriores, 'danger')}
-            </div>` : ''}
-            
-            ${data.valores_nuevos ? `
-            <div class="mb-4">
-                <label class="fw-bold small text-uppercase text-success mb-2"><i class="fas fa-check-circle me-1"></i> Estado Nuevo (Después del cambio):</label>
-                ${renderAuditTable(data.valores_nuevos, 'success')}
-            </div>` : ''}
-        `;
+            $body.append(
+                $('<div>', { class: 'mb-3' })
+                    .append($('<label>', { class: 'fw-bold small text-uppercase text-muted', text: 'Número de Registro:' }))
+                    .append($('<p>', { class: 'mb-2 p-2 bg-body-tertiary border rounded small font-monospace text-body', text: data.id_bitacora || '' }))
+            );
 
-            $('#detalleBody').html(html);
+            const $usuarioDiv = $('<div>', { class: 'd-flex align-items-center p-2 bg-body-tertiary border rounded' });
+            $usuarioDiv.append($('<i>', { class: 'fas fa-user-circle fa-2x me-2 text-secondary opacity-50' }));
+            const $usuarioInfo = $('<div>');
+            
+            const nombreMostrar = data.nombres ? data.nombres + ' ' + (data.apellidos || '') : (data.username || 'Sistema');
+            $usuarioInfo.append(
+                $('<p>', { class: 'mb-0 fw-semibold text-body' })
+                    .append(document.createTextNode(nombreMostrar + " "))
+                    .append($('<span>', { class: 'text-muted small', text: `(${data.rol || 'N/A'})` }))
+            );
+            if (data.cedula) {
+                $usuarioInfo.append($('<small>', { class: 'text-muted', text: `Documento: ${data.cedula}` }));
+            }
+            $usuarioDiv.append($usuarioInfo);
+            $body.append($('<div>', { class: 'mb-3' }).append($('<label>', { class: 'fw-bold small text-uppercase text-muted', text: 'Realizado por:' })).append($usuarioDiv));
+
+            const $row1 = $('<div>', { class: 'row mb-3' });
+            $row1.append($('<div>', { class: 'col-md-6' })
+                .append($('<label>', { class: 'fw-bold small text-uppercase text-muted', text: 'Área del Sistema:' }))
+                .append($('<p>', { class: 'mb-2 p-2 bg-body-tertiary border rounded text-body', text: data.modulo || '' }))
+            );
+            $row1.append($('<div>', { class: 'col-md-6' })
+                .append($('<label>', { class: 'fw-bold small text-uppercase text-muted', text: 'Actividad Realizada:' }))
+                .append($('<p>', { class: 'mb-2 p-2 bg-body-tertiary border rounded text-body', text: data.accion || '' }))
+            );
+            $body.append($row1);
+
+            $body.append(
+                $('<div>', { class: 'mb-3' })
+                    .append($('<label>', { class: 'fw-bold small text-uppercase text-muted', text: 'Descripción de la Acción:' }))
+                    .append($('<div>', { class: 'mb-2 p-3 bg-body-tertiary border rounded text-body shadow-sm', text: (data.detalle || 'Sin detalles adicionales').replace('(ID:', '(Número:') }))
+            );
+
+            const $row2 = $('<div>', { class: 'row mb-3' });
+            $row2.append($('<div>', { class: 'col-md-6' })
+                .append($('<label>', { class: 'fw-bold small text-uppercase text-muted', text: 'Dirección IP:' }))
+                .append($('<p>', { class: 'mb-2 p-2 bg-body-tertiary border rounded font-monospace text-body', text: data.ip_address || '0.0.0.0' }))
+            );
+            $row2.append($('<div>', { class: 'col-md-6' })
+                .append($('<label>', { class: 'fw-bold small text-uppercase text-muted', text: 'Fecha y Hora:' }))
+                .append($('<p>', { class: 'mb-2 p-2 bg-body-tertiary border rounded text-body', text: fecha }))
+            );
+            $body.append($row2);
+
+            if (data.valores_anteriores) {
+                const $sectionAnt = $('<div>', { class: 'mb-4' });
+                $sectionAnt.append(
+                    $('<label>', { class: 'fw-bold small text-uppercase text-danger mb-2' })
+                        .append($('<i>', { class: 'fas fa-history me-1' })).append(' Estado Anterior (Antes del cambio):')
+                ).append(renderAuditTable(data.valores_anteriores, 'danger'));
+                $body.append($sectionAnt);
+            }
+
+            if (data.valores_nuevos) {
+                const $sectionNue = $('<div>', { class: 'mb-4' });
+                $sectionNue.append(
+                    $('<label>', { class: 'fw-bold small text-uppercase text-success mb-2' })
+                        .append($('<i>', { class: 'fas fa-check-circle me-1' })).append(' Estado Nuevo (Después del cambio):')
+                ).append(renderAuditTable(data.valores_nuevos, 'success'));
+                $body.append($sectionNue);
+            }
         }
 
         return {
             init: function () {
-                console.log('Inicializando módulo de bitácora');
-
                 if (typeof BASE_URL === 'undefined') {
                     console.error('BASE_URL no está definida');
                     return;
                 }
-
                 initDataTable();
                 bindEvents();
             },
-
             recargar: function () {
-                if (dataTable) dataTable.ajax.reload();
+                reloadData();
             }
         };
     })();
 
-    // Inicialización automática
     $(document).ready(() => BitacoraModule.init());
-
 });
