@@ -43,7 +43,7 @@ class ClienteController
 						$bool_formulario = false;
 					}
 					if (isset($_POST["telefono"]) && $_POST["telefono"] !== '') {
-						if (!preg_match('/^[0-9]{4}[-]?\d{7}$|^[0-9]{4}[-][0-9]{3}[-][0-9]{4}$/', $_POST["telefono"])) {
+						if (!preg_match('/^[0-9]{11}$/', $_POST["telefono"])) {
 							$json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Teléfono no válido'];
 							$bool_formulario = false;
 						}

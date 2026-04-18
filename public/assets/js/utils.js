@@ -10,7 +10,7 @@ const patrones = {
   numeros: /^\d{1,20}$/,
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   telefono: /^\(\d{3}\)\s\d{3}-\d{4}$/,
-  telefonoSimple: /^\d{4}-\d{7,8}$/,
+  telefonoSimple: /^\d{7}$/,
   username: /^[a-zA-Z0-9_]{4,20}$/,
   password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
   postalCode: /^\d{5}$/,
