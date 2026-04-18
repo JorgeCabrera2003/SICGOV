@@ -68,7 +68,8 @@ class NoticiaController
                         // Manejo de imágenes seleccionadas de la galería (JSON)
                         if (!empty($_POST['imagenes_galeria'])) {
                             $rutas_galeria = json_decode($_POST['imagenes_galeria'], true);
-                            if (is_array($rutas_galeria)) {
+                            // Solo procesar si tiene elementos reales (evita duplicar en edición sin nuevas imágenes)
+                            if (is_array($rutas_galeria) && count($rutas_galeria) > 0) {
                                 $noticiaModel->setImagenesGaleria($rutas_galeria);
                             }
                         }
@@ -88,7 +89,10 @@ class NoticiaController
                                     ];
                                 }
                             }
-                            $noticiaModel->setImagenes($archivos);
+                            if (count($archivos) > 0) {
+                                \App\Helpers\Helper::ErrorLog("Imagenes subidas recibidas: " . count($archivos));
+                                $noticiaModel->setImagenes($archivos);
+                            }
                         }
 
 						// --- AUDITORÍA: Capturar estado previo si es modificación ---

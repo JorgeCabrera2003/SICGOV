@@ -17,30 +17,34 @@
                     <div class="row g-3">
                         <div class="col-md-12">
                             <label for="titulo" class="form-label fw-semibold">Título de la Publicación <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="titulo" name="titulo" placeholder="Ej: Nueva apertura del restaurante" required>
+                            <input type="text" class="form-control form-control-lg" id="titulo" name="titulo" placeholder="Ej: Nueva apertura del restaurante" data-requerido="true" data-regla="descripcion" data-mensaje="El título debe tener entre 3 y 100 caracteres" required>
+                            <span class="invalid-feedback" id="stitulo"></span>
                         </div>
                         
                         <div class="col-md-12">
                             <label for="subtitulo" class="form-label fw-semibold">Subtítulo (Opcional)</label>
-                            <input type="text" class="form-control" id="subtitulo" name="subtitulo" placeholder="Breve descripción o entradilla redondeando el título">
+                            <input type="text" class="form-control" id="subtitulo" name="subtitulo" data-regla="texto_largo" placeholder="Breve descripción o entradilla redondeando el título">
+                            <span class="invalid-feedback" id="ssubtitulo"></span>
                         </div>
 
                         <div class="col-md-12">
                             <label for="contenido" class="form-label fw-semibold">Contenido <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="contenido" name="contenido" rows="6" placeholder="Escribe tu artículo aquí..." required style="resize: vertical;"></textarea>
+                            <textarea class="form-control" id="contenido" name="contenido" rows="6" data-requerido="true" placeholder="Escribe tu artículo aquí..." required style="resize: vertical;"></textarea>
+                            <span class="invalid-feedback" id="scontenido"></span>
                         </div>
 
                         <div class="col-md-6">
                             <label for="tipo" class="form-label fw-semibold">Clasificación / Etiqueta</label>
-                            <select class="form-select" id="tipo" name="tipo">
+                            <select class="form-select" id="tipo" name="tipo" data-requerido="true">
                                 <option value="INFO" selected>Informativo</option>
                                 <option value="EXITO">Logros/Éxitos</option>
                                 <option value="ALERTA">Importante/Alerta</option>
                             </select>
+                            <span class="invalid-feedback" id="stipo"></span>
                         </div>
 
                         <div class="col-md-6">
-                            <label for="fecha_publicacion" class="form-label fw-semibold">Fecha de Publicación <span class="text-secondary">(Dejar vacío para publicar ahora)</span></label>
+                            <label for="fecha_publicacion" class="form-label fw-semibold">Fecha de Publicación</label>
                             <input type="datetime-local" class="form-control" id="fecha_publicacion" name="fecha_publicacion">
                              <small class="text-muted">Si programas esto a futuro, no será visible hasta entonces.</small>
                         </div>

@@ -1,31 +1,60 @@
 document.addEventListener("DOMContentLoaded", function () {
     let tablaNoticias;
+    const modalNoticia = new bootstrap.Modal(document.getElementById('modalNoticia'));
+    const $formNoticia = $('#formNoticia');
+    const $inputImagenes = $('#imagenes');
+    const $previewContainer = $('#previewContainer');
 
-    // Inicializar DataTables
-    if (document.getElementById('tablaNoticias')) {
+    // Inicialización del motor Library-First en utils.js
+    if (typeof SistemaValidacion !== 'undefined') {
+        const elementos = {
+            titulo: $('#titulo'),
+            subtitulo: $('#subtitulo'),
+            contenido: $('#contenido'),
+            tipo: $('#tipo')
+        };
+        SistemaValidacion.inicializar(elementos, (valido) => {
+            $('#btnGuardarNoticia').prop('disabled', !valido);
+        });
+    }
+
+    cargarNoticias();
+
+    async function cargarNoticias() {
+        const peticion = new FormData();
+        peticion.append('peticion', 'consultar');
+        
+        try {
+            const json = await enviaAjax(peticion, BASE_URL + '?page=noticias-admin');
+            let arreglo = [];
+            if (json && json.resultado === 200) {
+                arreglo = json.datos;
+            }
+            renderTablaNoticias(arreglo);
+        } catch (e) {
+            console.error("Error al cargar noticias", e);
+            renderTablaNoticias([]);
+        }
+    }
+
+    function renderTablaNoticias(datos) {
+        if ($.fn.DataTable.isDataTable('#tablaNoticias')) {
+            $('#tablaNoticias').DataTable().destroy();
+        }
+
         tablaNoticias = $('#tablaNoticias').DataTable({
             responsive: true,
-            language: {
-                url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-            },
-            ajax: {
-                url: BASE_URL + '?page=noticias-admin',
-                type: 'POST',
-                data: function (d) {
-                    d.peticion = 'consultar';
-                },
-                dataSrc: function (json) {
-                    if (json.resultado === 200) {
-                        return json.datos;
-                    }
-                    return [];
-                }
-            },
+            data: datos,
+            order: [[3, 'desc']],
+            language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' },
             columns: [
                 {
                     data: 'cant_imagenes',
                     render: function (data) {
-                        return `<span class="badge bg-secondary"><i class="fas fa-images"></i> ${data}</span>`;
+                        const $span = $('<span>', { class: 'badge bg-secondary' })
+                            .append($('<i>', { class: 'fas fa-images me-1' }))
+                            .append(document.createTextNode(' ' + data));
+                        return $span.prop('outerHTML');
                     }
                 },
                 { data: 'titulo' },
@@ -44,11 +73,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         const now = new Date();
                         if (data == 1) {
                             if (date > now) {
-                                return '<span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> Programada</span>';
+                                return $('<span>', { class: 'badge bg-warning text-dark' })
+                                    .append($('<i>', { class: 'fas fa-clock me-1' })).append(' Programada').prop('outerHTML');
                             }
-                            return '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Publicada</span>';
+                            return $('<span>', { class: 'badge bg-success' })
+                                .append($('<i>', { class: 'fas fa-check-circle me-1' })).append(' Publicada').prop('outerHTML');
                         }
-                        return '<span class="badge bg-danger"><i class="fas fa-times-circle"></i> Eliminada</span>';
+                        return $('<span>', { class: 'badge bg-danger' })
+                            .append($('<i>', { class: 'fas fa-times-circle me-1' })).append(' Eliminada').prop('outerHTML');
                     }
                 },
                 {
@@ -56,36 +88,36 @@ document.addEventListener("DOMContentLoaded", function () {
                     orderable: false,
                     className: 'text-center',
                     render: function (data, type, row) {
-                        return `
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item btn-editar" href="#" data-id="${row.id_noticia}"><i class="fas fa-edit text-primary me-2"></i>Editar</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item btn-eliminar text-danger" href="#" data-id="${row.id_noticia}"><i class="fas fa-trash me-2"></i>Eliminar</a></li>
-                                </ul>
-                            </div>
-                        `;
+                        const $dropdown = $('<div>', { class: 'dropdown' });
+                        $dropdown.append(
+                            $('<button>', { class: 'btn btn-sm btn-light border dropdown-toggle', type: 'button', 'data-bs-toggle': 'dropdown' })
+                                .append($('<i>', { class: 'fas fa-ellipsis-v' }))
+                        );
+                        
+                        const $menu = $('<ul>', { class: 'dropdown-menu' });
+                        $menu.append(
+                            $('<li>').append($('<a>', { class: 'dropdown-item btn-editar', href: '#', 'data-id': row.id_noticia })
+                                .append($('<i>', { class: 'fas fa-edit text-primary me-2' })).append('Editar'))
+                        );
+                        $menu.append($('<li>').append($('<hr>', { class: 'dropdown-divider' })));
+                        $menu.append(
+                            $('<li>').append($('<a>', { class: 'dropdown-item btn-eliminar text-danger', href: '#', 'data-id': row.id_noticia })
+                                .append($('<i>', { class: 'fas fa-trash me-2' })).append('Eliminar'))
+                        );
+                        $dropdown.append($menu);
+                        return $dropdown.prop('outerHTML');
                     }
                 }
             ]
         });
     }
 
-    const modalNoticia = new bootstrap.Modal(document.getElementById('modalNoticia'));
-    const formNoticia = document.getElementById('formNoticia');
-    const inputImagenes = document.getElementById('imagenes');
-    const previewContainer = document.getElementById('previewContainer');
-
     // Manejo de previsualización de imágenes seleccionadas
-    if (inputImagenes) {
-        inputImagenes.addEventListener('change', function(e) {
-            // No borramos todo el previewContainer, solo las imágenes que NO son de galería
-            const galeriaItems = previewContainer.querySelectorAll('.border-warning');
-            previewContainer.innerHTML = '';
-            galeriaItems.forEach(item => previewContainer.appendChild(item));
+    if ($inputImagenes.length) {
+        $inputImagenes.on('change', function(e) {
+            const $galeriaItems = $previewContainer.find('.border-warning');
+            $previewContainer.empty();
+            $previewContainer.append($galeriaItems);
 
             const files = e.target.files;
             if (files.length > 0) {
@@ -93,12 +125,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (file.type.startsWith('image/')) {
                         const reader = new FileReader();
                         reader.onload = function(e) {
-                            const badge = index === 0 && galeriaItems.length === 0 ? '<span class="badge bg-primary position-absolute top-0 start-0 m-1">Portada</span>' : '';
-                            const col = document.createElement('div');
-                            col.className = 'position-relative m-1 rounded border shadow-sm';
-                            col.style.width = '100px'; col.style.height = '100px'; col.style.overflow = 'hidden';
-                            col.innerHTML = `${badge}<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
-                            previewContainer.appendChild(col);
+                            const $col = $('<div>', { class: 'position-relative m-1 rounded border shadow-sm', css: { width: '100px', height: '100px', overflow: 'hidden' } });
+                            if (index === 0 && $galeriaItems.length === 0) {
+                                $col.append($('<span>', { class: 'badge bg-primary position-absolute top-0 start-0 m-1', text: 'Portada' }));
+                            }
+                            $col.append($('<img>', { src: e.target.result, css: { width: '100%', height: '100%', objectFit: 'cover' } }));
+                            $previewContainer.append($col);
                         }
                         reader.readAsDataURL(file);
                     }
@@ -107,10 +139,9 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Lógica para elegir de galería
-    const btnAbrirGaleria = document.getElementById('btnAbrirGaleria');
-    if (btnAbrirGaleria) {
-        btnAbrirGaleria.addEventListener('click', function() {
+    const $btnAbrirGaleria = $('#btnAbrirGaleria');
+    if ($btnAbrirGaleria.length) {
+        $btnAbrirGaleria.on('click', function() {
             MediaPicker.open({
                 onSelect: function(ruta) {
                     agregarImagenGaleria(ruta);
@@ -120,8 +151,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function agregarImagenGaleria(ruta) {
-        const inputGaleria = document.getElementById('imagenes_galeria');
-        let seleccionadas = inputGaleria.value ? JSON.parse(inputGaleria.value) : [];
+        const $inputGaleria = $('#imagenes_galeria');
+        let seleccionadas = $inputGaleria.val() ? JSON.parse($inputGaleria.val()) : [];
         
         if (seleccionadas.includes(ruta)) {
             Swal.fire('Información', 'Esta imagen ya ha sido seleccionada', 'info');
@@ -129,251 +160,261 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         seleccionadas.push(ruta);
-        inputGaleria.value = JSON.stringify(seleccionadas);
+        $inputGaleria.val(JSON.stringify(seleccionadas));
         renderPreviewGaleria(ruta);
     }
 
     function renderPreviewGaleria(ruta) {
-        const col = document.createElement('div');
-        col.className = 'position-relative m-1 rounded border shadow-sm border-warning';
-        col.style.width = '100px';
-        col.style.height = '100px';
-        col.style.overflow = 'hidden';
+        const $col = $('<div>', {
+            class: 'position-relative m-1 rounded border shadow-sm border-warning',
+            css: { width: '100px', height: '100px', overflow: 'hidden' }
+        });
         
-        col.innerHTML = `
-            <span class="badge bg-warning text-dark position-absolute top-0 start-0 m-1" style="font-size: 0.6rem;">Galería</span>
-            <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-1 bg-danger p-1" style="font-size: 0.5rem;" onclick="this.parentElement.remove(); removerDeGaleria('${ruta}')"></button>
-            <img src="${BASE_URL}${ruta}" style="width: 100%; height: 100%; object-fit: cover;">
-        `;
-        previewContainer.appendChild(col);
+        $col.append(
+            $('<span>', { class: 'badge bg-warning text-dark position-absolute top-0 start-0 m-1', css: { fontSize: '0.6rem' }, text: 'Galería' })
+        );
+        $col.append(
+            $('<button>', { type: 'button', class: 'btn-close btn-close-white position-absolute top-0 end-0 m-1 bg-danger p-1', css: { fontSize: '0.5rem' } })
+                .on('click', function() {
+                    $(this).parent().remove();
+                    removerDeGaleria(ruta);
+                })
+        );
+        $col.append(
+            $('<img>', { src: BASE_URL + ruta, css: { width: '100%', height: '100%', objectFit: 'cover' } })
+        );
+        
+        $previewContainer.append($col);
     }
 
     window.removerDeGaleria = function(ruta) {
-        const inputGaleria = document.getElementById('imagenes_galeria');
-        let seleccionadas = JSON.parse(inputGaleria.value);
+        const $inputGaleria = $('#imagenes_galeria');
+        let seleccionadas = JSON.parse($inputGaleria.val() || '[]');
         seleccionadas = seleccionadas.filter(r => r !== ruta);
-        inputGaleria.value = JSON.stringify(seleccionadas);
+        $inputGaleria.val(JSON.stringify(seleccionadas));
     };
 
-    if (document.getElementById('btnNuevaNoticia')) {
-        document.getElementById('btnNuevaNoticia').addEventListener('click', function () {
-            formNoticia.reset();
-            document.getElementById('peticion').value = 'registrar';
-            document.getElementById('modalNoticiaLabel').innerHTML = '<i class="fas fa-newspaper me-2"></i>Nueva Noticia';
-            previewContainer.innerHTML = '';
-            document.getElementById('currentImagesSection').style.display = 'none';
+    $('#btnNuevaNoticia').on('click', function () {
+        $formNoticia[0].reset();
+        $('#peticion').val('registrar');
+        
+        $('#modalNoticiaLabel').empty()
+            .append($('<i>', { class: 'fas fa-newspaper me-2' })).append('Nueva Noticia');
+            
+        $previewContainer.empty();
+        $('#currentImagesSection').hide();
+        
+        // Reset validaciones previas
+        if (typeof SistemaValidacion !== 'undefined') {
+            $('.is-invalid, .is-valid').removeClass('is-invalid is-valid');
+            $('.invalid-feedback, .valid-feedback').removeClass('invalid-feedback valid-feedback').text('');
+        $('#btnGuardarNoticia').prop('disabled', true);
+        }
+        
+        // Autocompletar la fecha y hora de publicación con el momento actual
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        $('#fecha_publicacion').val(now.toISOString().slice(0, 16));
+        
+        modalNoticia.show();
+    });
+
+    $formNoticia.on('submit', async function (e) {
+        e.preventDefault();
+        
+        // Si hay error en validación, frenar
+        if (typeof SistemaValidacion !== 'undefined' && !SistemaValidacion.validarFormularioSilencioso({
+            titulo: $('#titulo'), contenido: $('#contenido'), tipo: $('#tipo')
+        })) {
+            return;
+        }
+        
+        const $btnSubmit = $('#btnGuardarNoticia');
+        const originalContent = $btnSubmit.html();
+        $btnSubmit.prop('disabled', true);
+        $btnSubmit.empty().append(
+            $('<span>', { class: 'spinner-border spinner-border-sm me-2' })
+        ).append('Guardando...');
+
+        const fd = new FormData(this);
+        
+        try {
+            const res = await enviaAjax(fd, BASE_URL + '?page=noticias-admin');
+            if (res && res.resultado === 200) {
+                Swal.fire('Éxito', res.mensaje, 'success');
+                modalNoticia.hide();
+                cargarNoticias();
+            } else {
+                Swal.fire('Error', res?.mensaje || 'Error en respuesta', 'error');
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        } finally {
+            $btnSubmit.prop('disabled', false).html(originalContent);
+        }
+    });
+
+    $(document).on('click', '#tablaNoticias tbody .btn-editar', async function (e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+        
+        const fd = new FormData();
+        fd.append('peticion', 'validar');
+        fd.append('id_noticia', id);
+
+        const res = await enviaAjax(fd, BASE_URL + '?page=noticias-admin');
+        if (res && res.resultado === 200) {
+            const d = res.registro;
+            $('#peticion').val('modificar');
+            $('#id_noticia').val(d.id_noticia);
+            $('#titulo').val(d.titulo);
+            $('#subtitulo').val(d.subtitulo);
+            $('#contenido').val(d.contenido);
+            $('#tipo').val(d.tipo);
+            
+            if (d.fecha_publicacion) {
+                $('#fecha_publicacion').val(d.fecha_publicacion.slice(0, 16));
+            } else {
+                $('#fecha_publicacion').val('');
+            }
+            
+            $('#modalNoticiaLabel').empty()
+                .append($('<i>', { class: 'fas fa-edit me-2' })).append('Editar Noticia');
+                
+            $previewContainer.empty();
+            $('#imagenes_galeria').val('');
+            $('#imagenes').val('');
+            
+            renderCurrentImages(d.imagenes);
+            
+            // Re-checar el estado
+            if (typeof SistemaValidacion !== 'undefined') {
+                $('#titulo, #contenido, #tipo').trigger('blur');
+            }
+            
             modalNoticia.show();
-        });
-    }
+        }
+    });
 
-    if (formNoticia) {
-        formNoticia.addEventListener('submit', function (e) {
-            e.preventDefault();
-            
-            let btnSubmit = document.getElementById('btnGuardarNoticia');
-            let originalContent = btnSubmit.innerHTML;
-            btnSubmit.disabled = true;
-            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+    $(document).on('click', '#tablaNoticias tbody .btn-eliminar', function (e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+        
+        Swal.fire({
+            title: '¿Eliminar noticia?',
+            text: "Esta acción marcará la noticia como inactiva",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                const fd = new FormData();
+                fd.append('peticion', 'eliminar');
+                fd.append('id_noticia', id);
 
-            let formData = new FormData(formNoticia);
-            
-            fetch(BASE_URL + '?page=noticias-admin', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(res => {
-                if (res.resultado === 200) {
-                    Swal.fire('Éxito', res.mensaje, 'success');
-                    modalNoticia.hide();
-                    tablaNoticias.ajax.reload();
+                const res = await enviaAjax(fd, BASE_URL + '?page=noticias-admin');
+                if (res && res.resultado === 200) {
+                    Swal.fire('Eliminado', res.mensaje, 'success');
+                    cargarNoticias();
                 } else {
-                    Swal.fire('Error', res.mensaje, 'error');
+                    Swal.fire('Error', res?.mensaje || 'Ocurrió un error', 'error');
                 }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                Swal.fire('Error', 'No se pudo conectar con el servidor', 'error');
-            })
-            .finally(() => {
-                btnSubmit.disabled = false;
-                btnSubmit.innerHTML = originalContent;
-            });
+            }
         });
-    }
-
-    // Acciones editar / eliminar
-    if (document.getElementById('tablaNoticias')) {
-        $('#tablaNoticias tbody').on('click', '.btn-editar', function (e) {
-            e.preventDefault();
-            let id = $(this).data('id');
-            
-            let formData = new FormData();
-            formData.append('peticion', 'validar');
-            formData.append('id_noticia', id);
-
-            fetch(BASE_URL + '?page=noticias-admin', {
-                method: 'POST',
-                body: formData
-            }).then(r => r.json()).then(res => {
-                if(res.resultado === 200) {
-                    let d = res.registro;
-                    document.getElementById('peticion').value = 'modificar';
-                    document.getElementById('id_noticia').value = d.id_noticia;
-                    document.getElementById('titulo').value = d.titulo;
-                    document.getElementById('subtitulo').value = d.subtitulo;
-                    document.getElementById('contenido').value = d.contenido;
-                    document.getElementById('tipo').value = d.tipo;
-                    
-                    if (d.fecha_publicacion) {
-                        // Formatear date a input datetime-local slice(0,16) elimina segundos
-                        document.getElementById('fecha_publicacion').value = d.fecha_publicacion.slice(0, 16);
-                    }
-                    
-                    
-                    document.getElementById('modalNoticiaLabel').innerHTML = '<i class="fas fa-edit me-2"></i>Editar Noticia';
-                    previewContainer.innerHTML = '';
-                    
-                    // Cargar Imágenes Actuales
-                    renderCurrentImages(d.imagenes);
-                    
-                    modalNoticia.show();
-                }
-            });
-        });
-
-        $('#tablaNoticias tbody').on('click', '.btn-eliminar', function (e) {
-            e.preventDefault();
-            let id = $(this).data('id');
-            
-            Swal.fire({
-                title: '¿Eliminar noticia?',
-                text: "Esta acción marcará la noticia como inactiva",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    let formData = new FormData();
-                    formData.append('peticion', 'eliminar');
-                    formData.append('id_noticia', id);
-
-                    fetch(BASE_URL + '?page=noticias-admin', {
-                        method: 'POST',
-                        body: formData
-                    }).then(r => r.json()).then(res => {
-                        if(res.resultado === 200) {
-                            Swal.fire('Eliminado', res.mensaje, 'success');
-                            tablaNoticias.ajax.reload();
-                        } else {
-                            Swal.fire('Error', res.mensaje, 'error');
-                        }
-                    });
-                }
-            });
-        });
-    }
+    });
 
     function renderCurrentImages(imagenes) {
-        const container = document.getElementById('currentImagesContainer');
-        const section = document.getElementById('currentImagesSection');
-        container.innerHTML = '';
+        const $container = $('#currentImagesContainer');
+        const $section = $('#currentImagesSection');
+        $container.empty();
 
         if (imagenes && imagenes.length > 0) {
-            section.style.display = 'block';
+            $section.show();
             imagenes.forEach(img => {
-                const div = document.createElement('div');
-                div.className = 'position-relative rounded border p-1 shadow-sm bg-body-tertiary';
-                div.style.width = '120px';
-                
                 const isPrincipal = img.es_principal == 1;
-                const principalBadge = isPrincipal ? '<span class="badge bg-warning text-dark position-absolute top-0 start-0 m-1 shadow-sm"><i class="fas fa-star"></i> Portada</span>' : '';
+                const $div = $('<div>', { class: 'position-relative rounded border p-1 shadow-sm bg-body-tertiary', css: { width: '120px' } });
+                
+                if (isPrincipal) {
+                    $div.append(
+                        $('<span>', { class: 'badge bg-warning text-dark position-absolute top-0 start-0 m-1 shadow-sm' })
+                            .append($('<i>', { class: 'fas fa-star' }), ' Portada')
+                    );
+                }
 
-                div.innerHTML = `
-                    ${principalBadge}
-                    <img src="${BASE_URL}${img.direccion}" class="rounded w-100" style="height: 100px; object-fit: cover;">
-                    <div class="mt-1 d-flex justify-content-center gap-1">
-                        ${!isPrincipal ? `<button type="button" class="btn btn-xs btn-outline-warning btn-principal" data-id="${img.id_imagen}" title="Poner como portada"><i class="fas fa-star"></i></button>` : ''}
-                        <button type="button" class="btn btn-xs btn-outline-danger btn-borrar-img" data-id="${img.id_imagen}" title="Eliminar imagen"><i class="fas fa-trash"></i></button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
+                $div.append(
+                    $('<img>', { class: 'rounded w-100', src: BASE_URL + img.direccion, css: { height: '100px', objectFit: 'cover' } })
+                );
 
-            // Re-vincular eventos
-            container.querySelectorAll('.btn-borrar-img').forEach(btn => {
-                btn.onclick = () => eliminarImagen(btn.dataset.id);
-            });
-            container.querySelectorAll('.btn-principal').forEach(btn => {
-                btn.onclick = () => marcarPrincipal(btn.dataset.id);
-            });
+                const $btnContainer = $('<div>', { class: 'mt-1 d-flex justify-content-center gap-1' });
+                if (!isPrincipal) {
+                    $btnContainer.append(
+                        $('<button>', { type: 'button', class: 'btn btn-xs btn-outline-warning btn-principal', 'data-id': img.id_imagen, title: 'Poner como portada' })
+                            .append($('<i>', { class: 'fas fa-star' }))
+                            .on('click', () => marcarPrincipal(img.id_imagen))
+                    );
+                }
+                $btnContainer.append(
+                    $('<button>', { type: 'button', class: 'btn btn-xs btn-outline-danger btn-borrar-img', 'data-id': img.id_imagen, title: 'Eliminar imagen' })
+                        .append($('<i>', { class: 'fas fa-trash' }))
+                        .on('click', () => eliminarImagen(img.id_imagen))
+                );
 
+                $div.append($btnContainer);
+                $container.append($div);
+            });
         } else {
-            section.style.display = 'none';
+            $section.hide();
         }
     }
 
     function eliminarImagen(id) {
         Swal.fire({
-            title: '¿Eliminar esta imagen?',
-            text: "El archivo se borrará permanentemente",
+            title: '¿Quitar imagen de la noticia?',
+            text: "La imagen se desvinculará de esta publicación. El archivo original permanece disponible en el Gestor Multimedia.",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Sí, borrar',
+            confirmButtonText: 'Sí, quitar',
             cancelButtonText: 'Cancelar'
-        }).then((result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
                 const fd = new FormData();
                 fd.append('peticion', 'eliminar_imagen');
                 fd.append('id_imagen', id);
 
-                fetch(BASE_URL + '?page=noticias-admin', {
-                    method: 'POST',
-                    body: fd
-                }).then(r => r.json()).then(res => {
-                    if (res.resultado === 200) {
-                        // Recargar modal
-                        const id_noticia = document.getElementById('id_noticia').value;
-                        reloadImages(id_noticia);
-                        tablaNoticias.ajax.reload(null, false);
-                    }
-                });
+                const res = await enviaAjax(fd, BASE_URL + '?page=noticias-admin');
+                if (res && res.resultado === 200) {
+                    const id_noticia = $('#id_noticia').val();
+                    reloadImages(id_noticia);
+                    cargarNoticias();
+                }
             }
         });
     }
 
-    function marcarPrincipal(id) {
+    async function marcarPrincipal(id) {
         const fd = new FormData();
         fd.append('peticion', 'marcar_principal');
         fd.append('id_imagen', id);
 
-        fetch(BASE_URL + '?page=noticias-admin', {
-            method: 'POST',
-            body: fd
-        }).then(r => r.json()).then(res => {
-            if (res.resultado === 200) {
-                const id_noticia = document.getElementById('id_noticia').value;
-                reloadImages(id_noticia);
-                tablaNoticias.ajax.reload(null, false);
-            }
-        });
+        const res = await enviaAjax(fd, BASE_URL + '?page=noticias-admin');
+        if (res && res.resultado === 200) {
+            const id_noticia = $('#id_noticia').val();
+            reloadImages(id_noticia);
+            cargarNoticias();
+        }
     }
 
-    function reloadImages(id) {
+    async function reloadImages(id) {
         const fd = new FormData();
         fd.append('peticion', 'validar');
         fd.append('id_noticia', id);
 
-        fetch(BASE_URL + '?page=noticias-admin', {
-            method: 'POST',
-            body: fd
-        }).then(r => r.json()).then(res => {
-            if (res.resultado === 200) {
-                renderCurrentImages(res.registro.imagenes);
-            }
-        });
+        const res = await enviaAjax(fd, BASE_URL + '?page=noticias-admin');
+        if (res && res.resultado === 200) {
+            renderCurrentImages(res.registro.imagenes);
+        }
     }
 });

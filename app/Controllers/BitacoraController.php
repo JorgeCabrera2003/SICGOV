@@ -28,9 +28,9 @@ class BitacoraController
             // Listar registros para DataTables
             if ($accion === 'listarJson') {
                 $filtros = [
-                    'modulo' => $_GET['modulo'] ?? '',
-                    'desde' => $_GET['desde'] ?? '',
-                    'hasta' => $_GET['hasta'] ?? '',
+                    'modulo' => $_POST['modulo'] ?? $_GET['modulo'] ?? '',
+                    'desde' => $_POST['desde'] ?? $_GET['desde'] ?? '',
+                    'hasta' => $_POST['hasta'] ?? $_GET['hasta'] ?? '',
                 ];
                 $registros = $bitacora->Transaccion(['peticion' => 'listar', 'filtros' => $filtros]) ?: [];
                 
@@ -62,7 +62,7 @@ class BitacoraController
             
             // Buscar registro por ID
             if ($accion === 'buscar') {
-                $id = $_GET['id'] ?? '';
+                $id = $_POST['id'] ?? $_GET['id'] ?? '';
                 if (empty($id)) {
                     echo json_encode(['success' => false, 'message' => 'ID no proporcionado']);
                     exit();

@@ -6,7 +6,6 @@ const MediaPicker = (function($) {
 
     let mediaData = [];
     let onSelectCallback = null;
-    let selectedOriginal = null;
 
     function init() {
         $('#picker-dir, #picker-search').on('change keyup', renderGrid);
@@ -18,27 +17,38 @@ const MediaPicker = (function($) {
      */
     function open(options = {}) {
         onSelectCallback = options.onSelect || null;
-        const modal = new bootstrap.Modal(document.getElementById('mediaPickerModal'));
         
+        let modalEl = document.getElementById('mediaPickerModal');
+        if (!modalEl) {
+            console.error("No se encontró el elemento #mediaPickerModal en el DOM");
+            return;
+        }
+        
+        const modal = new bootstrap.Modal(modalEl);
         cargarMedia();
         modal.show();
     }
 
-    function cargarMedia() {
-        $('#picker-grid').html('<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>');
+    async function cargarMedia() {
+        const $grid = $('#picker-grid');
+        $grid.empty().append(
+            $('<div>', { class: 'col-12 text-center py-5' }).append(
+                $('<div>', { class: 'spinner-border text-primary' })
+            )
+        );
         
-        $.ajax({
-            url: BASE_URL + '/?page=multimedia',
-            type: 'POST',
-            data: { peticion: 'consultar' },
-            dataType: 'json'
-        })
-        .done(response => {
-            if (response.resultado === 200) {
+        const fd = new FormData();
+        fd.append('peticion', 'consultar');
+
+        try {
+            const response = await enviaAjax(fd, BASE_URL + '?page=multimedia');
+            if (response && response.resultado === 200) {
                 mediaData = response.datos;
                 renderGrid();
             }
-        });
+        } catch (e) {
+            $grid.empty().append($('<div>', { class: 'col-12 text-center text-danger', text: 'Error al cargar galería.' }));
+        }
     }
 
     function renderGrid() {
@@ -51,28 +61,36 @@ const MediaPicker = (function($) {
             return matchesDir && matchesSearch;
         });
 
-        let html = '';
-        filtered.forEach((item, index) => {
-            html += `
-                <div class="col-4 col-md-3 col-lg-2 picker-item">
-                    <div class="card picker-card h-100 shadow-sm border-0" onclick="MediaPicker.select('${item.ruta}')">
-                        <img src="${BASE_URL}${item.ruta}" class="card-img-top picker-preview">
-                        <div class="card-body p-1 text-center">
-                            <span class="small text-truncate d-block" style="font-size: 0.7rem;">${item.nombre}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
+        const $grid = $('#picker-grid');
+        $grid.empty();
 
-        $('#picker-grid').html(html || '<div class="col-12 text-center py-5 text-muted">No hay imágenes.</div>');
+        if (filtered.length === 0) {
+            $grid.append($('<div>', { class: 'col-12 text-center py-5 text-muted', text: 'No hay imágenes.' }));
+        } else {
+            filtered.forEach(item => {
+                const $col = $('<div>', { class: 'col-4 col-md-3 col-lg-2 picker-item' });
+                const $card = $('<div>', { class: 'card picker-card h-100 shadow-sm border-0' })
+                    .on('click', () => select(item.ruta));
+                
+                $card.append($('<img>', { src: BASE_URL + item.ruta, class: 'card-img-top picker-preview', loading: 'lazy' }));
+                
+                const $body = $('<div>', { class: 'card-body p-1 text-center' });
+                $body.append($('<span>', { class: 'small text-truncate d-block', css: { fontSize: '0.7rem' }, text: item.nombre }));
+                
+                $card.append($body);
+                $col.append($card);
+                $grid.append($col);
+            });
+        }
+
         $('#picker-selection-info').text(`${filtered.length} imágenes encontradas.`);
     }
 
     function select(ruta) {
         if (onSelectCallback) {
             onSelectCallback(ruta);
-            bootstrap.Modal.getInstance(document.getElementById('mediaPickerModal')).hide();
+            const modalInstance = bootstrap.Modal.getInstance(document.getElementById('mediaPickerModal'));
+            if (modalInstance) modalInstance.hide();
         }
     }
 
