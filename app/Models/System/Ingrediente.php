@@ -1,7 +1,7 @@
 <?php
 
 /*
-MODELO DE INGREDIENTES
+MODELO DE INGREDIENTE
 
 OPERACIONES A BASE DE DATOS:
     REGISTRAR
@@ -15,16 +15,21 @@ namespace App\Models\System;
 
 use App\Core\Database;
 use App\Helpers\Helper;
+use App\Models\System\UnidadMedida;
+use App\Models\System\CategoriaIngrediente;
 use PDO;
 
-class Ingrediente
+class Ingrediente extends Database
 {
     private $id;
     private $nombre;
-    private $unidad_medida;
     private $precio_unitario;
+    private $stock_actual;
+    private $stock_minimo;
+    private $stock_maximo;
     private $estatus;
-    private $db;
+    private $categoria_ingrediente;
+    private $unidad_medida;
 
     public function __construct()
     {
@@ -33,25 +38,24 @@ class Ingrediente
         $this->unidad_medida = "";
         $this->precio_unitario = 0.0;
         $this->estatus = 0;
-        $this->db = NULL;
+        $this->unidad_medida = new UnidadMedida();
+        $this->categoria_ingrediente = new CategoriaIngrediente();
     }
 
-    private function LlamarConexion(PDO &$db = NULL)
+    private function LlamarUnidadMedida()
     {
-        if ($db != NULL) {
-            $this->db = $db;
+        if ($this->unidad_medida == NULL) {
+            $this->unidad_medida = new UnidadMedida();
         }
-
-        if ($this->db == NULL) {
-            $this->db = Database::getConnection('business');
-        }
-
-        return $this->db;
+        return $this->unidad_medida;
     }
 
-    private function DestruirConexion()
+    private function LlamarCategoriaIngrediente()
     {
-        $this->db == NULL;
+        if ($this->categoria_ingrediente == NULL) {
+            $this->categoria_ingrediente = new CategoriaIngrediente();
+        }
+        return $this->categoria_ingrediente;
     }
 
     // Getters y Setters
@@ -82,6 +86,15 @@ class Ingrediente
         $this->estatus = $estatus;
     }
 
+    public function setIdCategoria(string $id)
+    {
+        $this->LlamarCategoriaIngrediente()->setId($id);
+    }
+
+    public function setIdUnidadMedida(string $id)
+    {
+        $this->LlamarUnidadMedida()->setId($id);
+    }
     //FIN SETTERS
 
     //GETTERS
@@ -143,7 +156,7 @@ class Ingrediente
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM ingrediente WHERE estatus = 1";
+            $sql = "SELECT * FROM vw_ingrediente";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute();
             if ($stm->rowCount() > 0) {
@@ -184,8 +197,8 @@ class Ingrediente
                 $stm->execute();
 
                 $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Ingrediente actualizado exitosamente"];
-                $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+                $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Ingrediente actualizado exitosamente"];
+                $dato['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => "OK"];
 
             } catch (\PDOException $e) {
                 $this->LlamarConexion()->rollBack();
@@ -241,7 +254,7 @@ class Ingrediente
                 $this->LlamarConexion();
                 $this->LlamarConexion()->beginTransaction();
                 $sql = "UPDATE ingrediente SET estatus = 0 WHERE id_ingrediente = :id_ingrediente";
-                $stm = $this->db->prepare($sql);
+                $stm = $this->LlamarConexion()->prepare($sql);
                 $stm->bindParam('id_ingrediente', $this->id);
                 $stm->execute();
                 $this->LlamarConexion()->commit();
@@ -272,7 +285,7 @@ class Ingrediente
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM ingrediente WHERE id_ingrediente = :id_ingrediente";
+            $sql = "SELECT * FROM vw_ingrediente WHERE id_ingrediente = :id_ingrediente";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':id_ingrediente', $this->id);
             $stm->execute();
