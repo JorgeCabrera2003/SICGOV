@@ -208,8 +208,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (typeof SistemaValidacion !== 'undefined') {
             $('.is-invalid, .is-valid').removeClass('is-invalid is-valid');
             $('.invalid-feedback, .valid-feedback').removeClass('invalid-feedback valid-feedback').text('');
-            $('#btnGuardarNoticia').prop('disabled', true);
+        $('#btnGuardarNoticia').prop('disabled', true);
         }
+        
+        // Autocompletar la fecha y hora de publicación con el momento actual
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        $('#fecha_publicacion').val(now.toISOString().slice(0, 16));
         
         modalNoticia.show();
     });

@@ -44,7 +44,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="fecha_publicacion" class="form-label fw-semibold">Fecha de Publicación <span class="text-secondary">(Dejar vacío para publicar ahora)</span></label>
+                            <label for="fecha_publicacion" class="form-label fw-semibold">Fecha de Publicación</label>
                             <input type="datetime-local" class="form-control" id="fecha_publicacion" name="fecha_publicacion">
                              <small class="text-muted">Si programas esto a futuro, no será visible hasta entonces.</small>
                         </div>
