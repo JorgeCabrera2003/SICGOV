@@ -7,10 +7,12 @@ function etiquetasFormulario(etiquetas) {
   let referencia = null
 
   const inputCliente = {
+    tipo_doc: $('#tipo_doc'),
     cedula: $('#cedula'),
     nombre: $('#nombre'),
     apellido: $('#apellido'),
     fecha_nacimiento: $('#fecha_nacimiento'),
+    prefijo_telefono: $('#prefijo_telefono'),
     telefono: $('#telefono'),
     correo: $('#correo'),
     direccion: $('#direccion'),
@@ -96,7 +98,7 @@ function manejarCambioEstado(formularioValido) {
 
   if (accion === "Borrar") {
     // Para eliminar solo validamos la cédula
-    const cedulaValida = validarKeyUp(/^[V|E|J|G|v|e|j|g][0-9]{5,9}$/, input.cedula.val(), span.scedula, '');
+    const cedulaValida = input.tipo_doc.val() !== null && input.tipo_doc.val() !== "default" && Math.ceil(input.cedula.val().length) >= 5;
     modal.boton.prop('disabled', !cedulaValida);
   } else {
     // Para registrar y modificar validamos todos los campos requeridos
@@ -150,11 +152,17 @@ async function enviarDatos(operacion) {
 
       if (confirmacion) {
         peticion.append('peticion', accion);
-        peticion.append('cedula', input.cedula.val());
+        peticion.append('cedula', input.tipo_doc.val() + input.cedula.val());
         peticion.append('nombre', input.nombre.val());
         peticion.append('apellido', input.apellido.val());
         peticion.append('fecha_nacimiento', input.fecha_nacimiento.val());
-        peticion.append('telefono', input.telefono.val());
+        let telefonoFull = "";
+        if (input.prefijo_telefono.val() && input.prefijo_telefono.val() !== 'default' && input.telefono.val()) {
+           telefonoFull = input.prefijo_telefono.val() + input.telefono.val();
+        } else {
+           telefonoFull = input.telefono.val() || "";
+        }
+        peticion.append('telefono', telefonoFull);
         peticion.append('correo', input.correo.val());
         peticion.append('direccion', input.direccion.val());
         peticion.append('sexo', input.sexo.val());
@@ -169,12 +177,12 @@ async function enviarDatos(operacion) {
   //Eliminar
   if (operacion == "eliminar") {
 
-    if (validarKeyUp(/^[V|E|J|G|v|e|j|g][0-9]{5,9}$/, input.cedula, span.scedula, '')) {
+    if (input.tipo_doc.val() !== null && input.tipo_doc.val() !== "default" && input.cedula.val().length >= 5) {
       confirmacion = await confirmarAccion("Se eliminará un Cliente", "¿Está seguro de realizar la acción?", "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
-        peticion.append('cedula', input.cedula.val());
+        peticion.append('cedula', input.tipo_doc.val() + input.cedula.val());
         btn_formulario = true;
       }
     } else {
@@ -238,8 +246,13 @@ $('#modalCliente').on('shown.bs.modal', function () {
 
 async function vistaPermiso() {
   let botones = "";
+  let btn_consultar = "";
   let btn_modificar = "";
   let btn_eliminar = "";
+
+  btn_consultar = `<button onclick="consultarFila(this)" class="btn btn-info consultar text-white">
+                        <i class="fa-solid fa-eye"></i>
+                      </button>`;
 
   btn_modificar = `<button onclick="rellenar(this, 0)" class="btn btn-primary modificar">
                         <i class="fa-solid fa-pen-to-square"></i>
@@ -248,7 +261,7 @@ async function vistaPermiso() {
   btn_eliminar = `<button onclick="rellenar(this, 1)" class="btn btn-danger eliminar">
                         <i class="fa-solid fa-trash"></i>
                       </button>`;
-  botones = btn_modificar + "&nbsp;" + btn_eliminar;
+  botones = btn_consultar + "&nbsp;" + btn_modificar + "&nbsp;" + btn_eliminar;
   return botones;
 }
 
@@ -256,7 +269,7 @@ function capaValidar() {
   let input = etiquetasFormulario("input")
   
   input.cedula.on("keypress", function (e) {
-    validarKeyPress(/^[V|E|J|G|v|e|j|g|0-9]*$/, e);
+    validarKeyPress(/^[0-9]*$/, e);
   });
 
   input.nombre.on("keypress", function (e) {
@@ -283,13 +296,6 @@ function capaValidar() {
     const valor = $(this).val();
     if (valor.length === 1) {
       $(this).val(valor.toUpperCase());
-    }
-  });
-
-  input.cedula.on("input", function () {
-    let valor = $(this).val();
-    if (valor.length >= 1) {
-       $(this).val(valor.charAt(0).toUpperCase() + valor.slice(1));
     }
   });
 }
@@ -321,11 +327,36 @@ async function crearDataTable() {
     processing: true,
     data: arreglo,
     columns: [
-      { data: 'cedula' },
+      { 
+        data: 'cedula',
+        render: function (data) {
+          return (data && data.length > 1) ? data.charAt(0) + '-' + data.slice(1) : data;
+        }
+      },
       { data: 'nombre' },
       { data: 'apellido' },
-      { data: 'telefono' },
-      { data: 'fecha_registro' },
+      { 
+        data: 'telefono',
+        render: function (data) {
+          return (data && data.length >= 5) ? data.substring(0, 4) + '-' + data.substring(4) : data;
+        }
+      },
+      { 
+        data: 'fecha_nacimiento',
+        render: function(data) {
+          if (!data) return "N/A";
+          const partes = data.split("-");
+          if(partes.length !== 3) return "N/A";
+          const fn = new Date(partes[0], partes[1] - 1, partes[2]);
+          const hoy = new Date();
+          let edad = hoy.getFullYear() - fn.getFullYear();
+          const m = hoy.getMonth() - fn.getMonth();
+          if (m < 0 || (m === 0 && hoy.getDate() < fn.getDate())) {
+            edad--;
+          }
+          return edad + " años";
+        }
+      },
       {
         data: null,
         render: function () {
@@ -343,10 +374,12 @@ function limpia() {
 
   let input = etiquetasFormulario('input')
   
+  input.tipo_doc.val("default").prop("disabled", false)
   input.cedula.val("").prop("readOnly", false)
   input.nombre.val("").prop("readOnly", false)
   input.apellido.val("").prop("readOnly", false)
   input.fecha_nacimiento.val("").prop("readOnly", false)
+  input.prefijo_telefono.val("default").prop("disabled", false)
   input.telefono.val("").prop("readOnly", false)
   input.correo.val("").prop("readOnly", false)
   input.direccion.val("").prop("readOnly", false)
@@ -365,15 +398,26 @@ function rellenar(pos, accion) {
   const datosFila = tabla.row(linea).data();
 
   // Usar los datos directamente de DataTable
-  input.cedula.val(datosFila.cedula);
+  let cedulaFull = datosFila.cedula;
+  let tipo = cedulaFull.charAt(0);
+  let numero = cedulaFull.slice(1);
+  buscarSelect(input.tipo_doc, tipo, "value");
+  input.cedula.val(numero);
   input.nombre.val(capitalizarTexto(datosFila.nombre));
   input.apellido.val(capitalizarTexto(datosFila.apellido));
   input.fecha_nacimiento.val(datosFila.fecha_nacimiento);
-  input.telefono.val(datosFila.telefono);
+  if (datosFila.telefono && datosFila.telefono.length === 11) {
+     buscarSelect(input.prefijo_telefono, datosFila.telefono.substring(0, 4), "value");
+     input.telefono.val(datosFila.telefono.substring(4));
+  } else {
+     input.prefijo_telefono.val("default");
+     input.telefono.val(datosFila.telefono || "");
+  }
   input.correo.val(datosFila.correo);
   input.direccion.val(datosFila.direccion);
   buscarSelect(input.sexo, datosFila.sexo, "value");
 
+  input.tipo_doc.prop("disabled", true);
   input.cedula.prop("readOnly", true); // La cédula no se modifica
 
   if (accion == 0) {
@@ -382,6 +426,7 @@ function rellenar(pos, accion) {
     input.nombre.prop("readOnly", true);
     input.apellido.prop("readOnly", true);
     input.fecha_nacimiento.prop("readOnly", true);
+    input.prefijo_telefono.prop("disabled", true);
     input.telefono.prop("readOnly", true);
     input.correo.prop("readOnly", true);
     input.direccion.prop("readOnly", true);
@@ -391,4 +436,69 @@ function rellenar(pos, accion) {
 
   // Habilitar el botón inmediatamente para Modificar/Eliminar ya que los datos vienen pre-validados
   $('#btnClienteForm').prop('disabled', false);
+}
+
+function consultarFila(pos) {
+  const linea = $(pos).closest('tr');
+  const tabla = $('#tablaCliente').DataTable();
+  const datosFila = tabla.row(linea).data();
+
+  // Calcular edad
+  let edadTexto = "N/A";
+  if (datosFila.fecha_nacimiento) {
+    const partes = datosFila.fecha_nacimiento.split("-");
+    if(partes.length === 3) {
+      const fn = new Date(partes[0], partes[1] - 1, partes[2]);
+      const hoy = new Date();
+      let edad = hoy.getFullYear() - fn.getFullYear();
+      const m = hoy.getMonth() - fn.getMonth();
+      if (m < 0 || (m === 0 && hoy.getDate() < fn.getDate())) {
+        edad--;
+      }
+      edadTexto = edad + " años";
+    }
+  }
+
+  let cedulaFormateada = datosFila.cedula;
+  if(cedulaFormateada && cedulaFormateada.length > 1) {
+     cedulaFormateada = cedulaFormateada.charAt(0) + '-' + cedulaFormateada.slice(1);
+  }
+  
+  let telefonoFormateado = datosFila.telefono;
+  if(telefonoFormateado && telefonoFormateado.length >= 5) {
+     telefonoFormateado = telefonoFormateado.substring(0, 4) + '-' + telefonoFormateado.substring(4);
+  }
+
+  let sexoTxt = datosFila.sexo === 'M' ? 'Masculino' : (datosFila.sexo === 'F' ? 'Femenino' : 'No especificado');
+
+  let fechaRegistroTxt = 'N/A';
+  if (datosFila.fecha_registro) {
+    let parts = datosFila.fecha_registro.split(/[- :]/);
+    if (parts.length >= 6) {
+      const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+      const dia = parseInt(parts[2], 10);
+      const mes = meses[parseInt(parts[1], 10) - 1];
+      const anio = parts[0];
+      let hora = parseInt(parts[3], 10);
+      const minuto = parts[4].padStart(2, '0');
+      const ampm = hora >= 12 ? 'PM' : 'AM';
+      hora = hora % 12;
+      hora = hora ? hora : 12;
+      fechaRegistroTxt = `${dia} de ${mes} del ${anio} a las ${hora}:${minuto} ${ampm}`;
+    } else {
+      fechaRegistroTxt = datosFila.fecha_registro;
+    }
+  }
+
+  $('#c_cedula').text(cedulaFormateada || 'N/A');
+  $('#c_fecha_nacimiento').text(datosFila.fecha_nacimiento ? formatearFecha(datosFila.fecha_nacimiento) : 'N/A');
+  $('#c_nombre_apellido').text(capitalizarTexto(datosFila.nombre) + ' ' + capitalizarTexto(datosFila.apellido));
+  $('#c_edad').text(edadTexto);
+  $('#c_telefono').text(telefonoFormateado || 'N/A');
+  $('#c_sexo').text(sexoTxt);
+  $('#c_correo').text(datosFila.correo || 'N/A');
+  $('#c_direccion').text(datosFila.direccion || 'N/A');
+  $('#c_fecha_registro').text(fechaRegistroTxt);
+
+  $('#modalConsultarCliente').modal('show');
 }

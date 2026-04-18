@@ -22,12 +22,20 @@
                             <label for="cedula" class="form-label fw-semibold">
                                 Cédula <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control" id="cedula" name="cedula" maxlength="15" required placeholder="V12345678">
+                            <div class="input-group">
+                                <select class="form-select" id="tipo_doc" name="tipo_doc" style="width: 30%;" required>
+                                    <option value="default" selected disabled>Tipo</option>
+                                    <option value="V">V</option>
+                                    <option value="E">E</option>
+                                    <option value="J">J</option>
+                                </select>
+                                <input type="text" class="form-control" id="cedula" name="cedula" maxlength="9" style="width: 70%;" required placeholder="12345678">
+                            </div>
                             <span class="form-label text-danger" id="scedula"></span>
                         </div>
                         <div class="col-md-6">
                             <label for="fecha_nacimiento" class="form-label fw-semibold">Fecha de Nacimiento</label>
-                            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento">
+                            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" max="<?= date('Y-m-d', strtotime('-1 day')) ?>">
                             <span class="form-label text-danger" id="sfecha_nacimiento"></span>
                         </div>
                     </div>
@@ -54,7 +62,18 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label for="telefono" class="form-label fw-semibold">Teléfono</label>
-                            <input type="text" class="form-control" id="telefono" name="telefono" maxlength="20" placeholder="04121234567">
+                            <div class="input-group">
+                                <select class="form-select" id="prefijo_telefono" name="prefijo_telefono" style="width: 33%;">
+                                    <option value="default" selected disabled>Cod</option>
+                                    <option value="0414">0414</option>
+                                    <option value="0424">0424</option>
+                                    <option value="0412">0412</option>
+                                    <option value="0422">0422</option>
+                                    <option value="0416">0416</option>
+                                    <option value="0426">0426</option>
+                                </select>
+                                <input type="text" class="form-control" id="telefono" name="telefono" maxlength="7" style="width: 67%;" placeholder="5539261">
+                            </div>
                             <span class="form-label text-danger" id="stelefono"></span>
                         </div>
                         <div class="col-md-6">
