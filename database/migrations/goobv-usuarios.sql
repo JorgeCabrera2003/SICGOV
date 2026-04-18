@@ -101,6 +101,7 @@ CREATE TABLE `bitacora` (
   `modulo` varchar(50) NOT NULL,
   `accion` varchar(50) NOT NULL,
   `detalle` text NOT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
   `valores_anteriores` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`valores_anteriores`)),
   `valores_nuevos` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`valores_nuevos`)),
   PRIMARY KEY (`id_bitacora`),
