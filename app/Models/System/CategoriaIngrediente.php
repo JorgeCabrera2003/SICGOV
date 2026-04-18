@@ -110,7 +110,7 @@ class CategoriaIngrediente extends Database
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM categoria_ingrediente WHERE estatus = 1";
+            $sql = "SELECT * FROM categoria_ingrediente";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute();
             if ($stm->rowCount() > 0) {
