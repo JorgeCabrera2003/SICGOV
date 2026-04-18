@@ -65,6 +65,7 @@ const SistemaValidacion = {
    * @param {Object} elements - Un objeto de elementos jQuery a validar.
    * @param {Function} [callbackCambioEstado] - Función que se ejecuta tras validar el formulario.
    */
+  inicializar: function (elements, callbackCambioEstado = null) {
     this.elementos = elements;
     this.callbackCambioEstado = callbackCambioEstado;
 
@@ -452,41 +453,49 @@ const SistemaValidacion = {
  */
 async function enviaAjax(datos, controlador = "") {
   let response = null;
-  await $.ajax({
-    async: true,
-    url: controlador,
-    type: "POST",
-    contentType: false,
-    data: datos,
-    processData: false,
-    cache: false,
-    timeout: 10000,
-    success: function (respuesta) {
-      console.log(respuesta);
-
-      if (respuesta == undefined || respuesta == '' || respuesta == null) {
-        response = {
-          resultado: 204,
-          mensaje: ''
+  try {
+    await $.ajax({
+      async: true,
+      url: controlador,
+      type: "POST",
+      contentType: false,
+      data: datos,
+      processData: false,
+      cache: false,
+      timeout: 10000,
+      success: function (respuesta) {
+        if (respuesta == undefined || respuesta == '' || respuesta == null) {
+          response = {
+            resultado: 204,
+            mensaje: ''
+          }
+        } else {
+          try {
+             response = (typeof respuesta === 'string') ? JSON.parse(respuesta) : respuesta;
+          } catch(e) {
+             console.error("Error parseando respuesta JSON:", e, respuesta);
+             response = { resultado: 500, mensaje: "Error procesando respuesta del servidor" };
+          }
         }
-      } else {
-        response = JSON.parse(respuesta);
-      }
-      
-    },
-    error: function (request, status, err) {
-      response = {
-        resultado: request.status
-      }
-
-      if (status == "timeout") {
-        console.log("error", null, "Servidor ocupado", "Intente de nuevo");
-      } else {
-        console.log("error", null, "Ocurrió un error", err);
-      }
-      mensajes("error", 10000, mensajeHTTP(response.resultado), null);
-    },
-  });
+      },
+      error: function (request, status, err) {
+        response = {
+          resultado: request.status || 500
+        }
+        if (status == "timeout") {
+          console.log("Servidor ocupado", "Intente de nuevo");
+        } else {
+          console.log("Ocurrió un error", err);
+        }
+        mensajes("error", 10000, mensajeHTTP(response.resultado), null);
+      },
+    });
+  } catch (error) {
+     console.error("Excepcion atrapada en enviaAjax:", error);
+     if (!response) {
+       response = { resultado: error.status || 500, mensaje: "Fallo en la comunicación" };
+     }
+  }
 
   return response;
 }

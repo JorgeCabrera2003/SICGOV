@@ -99,7 +99,7 @@ class Helper
             mkdir($directorio, 0777, true); // true para crear subdirectorios recursivamente
         }
         error_log(
-            "\nError: " . $mensaje . "\n",
+            "\n[" . date('Y-m-d H:i:s') . "] Error: " . $mensaje . "\n",
             3,
             $ruta_log
         );

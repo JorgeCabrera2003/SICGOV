@@ -41,7 +41,7 @@ const MediaPicker = (function($) {
         fd.append('peticion', 'consultar');
 
         try {
-            const response = await enviaAjax(fd, BASE_URL + '/?page=multimedia');
+            const response = await enviaAjax(fd, BASE_URL + '?page=multimedia');
             if (response && response.resultado === 200) {
                 mediaData = response.datos;
                 renderGrid();

@@ -89,7 +89,10 @@ class NoticiaController
                                     ];
                                 }
                             }
-                            $noticiaModel->setImagenes($archivos);
+                            if (count($archivos) > 0) {
+                                \App\Helpers\Helper::ErrorLog("Imagenes subidas recibidas: " . count($archivos));
+                                $noticiaModel->setImagenes($archivos);
+                            }
                         }
 
 						// --- AUDITORÍA: Capturar estado previo si es modificación ---
