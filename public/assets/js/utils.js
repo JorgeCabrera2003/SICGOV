@@ -51,12 +51,20 @@ const patrones = {
   fecha_hora: /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
 };
 
-// SISTEMA DE VALIDACIÓN REUTILIZABLE
+/**
+ * Sistema de Validación "Library-First"
+ * Actúa como un motor de validación declarativo que lee configuraciones directamente del HTML.
+ * @namespace SistemaValidacion
+ */
 const SistemaValidacion = {
   elementos: {},
   callbackCambioEstado: null,
 
-  inicializar: function (elements, callbackCambioEstado = null) {
+  /**
+   * Inicializa el sistema de validación adjuntando eventos a un conjunto de elementos.
+   * @param {Object} elements - Un objeto de elementos jQuery a validar.
+   * @param {Function} [callbackCambioEstado] - Función que se ejecuta tras validar el formulario.
+   */
     this.elementos = elements;
     this.callbackCambioEstado = callbackCambioEstado;
 
@@ -85,6 +93,11 @@ const SistemaValidacion = {
     }, 100);
   },
 
+  /**
+   * Esta función se ejecuta por el evento "blur" o "input".
+   * Lee dinámicamente los atributos `data-regla` y `data-requerido` para determinar validez de un campo individual.
+   * @returns {boolean} `true` si el campo cumple sus restricciones, de lo contrario `false`.
+   */
   validarCampo: function () {
     const $campo = $(this);
     const valor = $campo.val() ? $campo.val().trim() : '';
@@ -187,6 +200,11 @@ const SistemaValidacion = {
     return esValido;
   },
 
+  /**
+   * Recorre asincrónicamente el listado de todos los elementos monitoreados por la inicialización.
+   * Es útil para habilitar/deshabilitar el botón de `Guardar` global de un formulario complejo.
+   * @returns {boolean} `true` si TODOS los campos son válidos y `false` si hay al menos un error.
+   */
   verificarEstadoFormulario: function () {
     let esValido = true;
 
@@ -268,6 +286,10 @@ const SistemaValidacion = {
     return esValido;
   },
 
+  /**
+   * Normaliza los textos en estilo de Títulos Capitalizados para mantener limpieza en Base de Datos.
+   * @param {jQuery} $elemento - El elemento input jQuery a capitalizar
+   */
   autoCapitalizar: function ($elemento) {
     const valor = $elemento.val() ? $elemento.val().trim() : '';
     if (valor) {
@@ -421,10 +443,12 @@ const SistemaValidacion = {
 
 
 /**
- * Envía Petición HTTP del Cliente
- * @param {FormData} datos Objeto FormData que contiene que se va a enviar como Petición HTTP
- * @param {string} controlador Ruta a la que se desea enviar la Petición, de estar vacía, se enviará a la misma URL por defecto
- * @return En caso de éxito, devolverá los datos recibidor por el servidor, en caso contrario, un código de error
+ * Envía una Petición HTTP asíncrona estandarizada para toda la aplicación.
+ * Pre-configurada para procesar `FormData` adecuadamente sin dañar las cabeceras de Multipart Files.
+ *
+ * @param {FormData} datos Objeto FormData que contiene que se va a enviar como Petición HTTP.
+ * @param {string} controlador Ruta a la que se desea enviar la Petición, de estar vacía, se enviará a la misma URL por defecto.
+ * @return {Promise<Object>} Promesa que resuelve a un objeto JSON si la respuesta fue exitosa. Retorna el código de error en caso de fallo.
  */
 async function enviaAjax(datos, controlador = "") {
   let response = null;
