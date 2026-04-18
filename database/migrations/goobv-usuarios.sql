@@ -234,15 +234,6 @@ FOR EACH ROW BEGIN
     END IF;
 END$$
 
-CREATE TRIGGER `trg_imagen_principal_unica` BEFORE INSERT ON `imagen`
-FOR EACH ROW BEGIN
-    IF NEW.es_principal = 1 THEN
-        UPDATE imagen SET es_principal = 0 
-        WHERE entidad_tipo = NEW.entidad_tipo 
-        AND entidad_id = NEW.entidad_id 
-        AND es_principal = 1;
-    END IF;
-END$$
 
 DELIMITER ;
 
