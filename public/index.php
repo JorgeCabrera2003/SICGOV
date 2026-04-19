@@ -23,6 +23,7 @@ $page = $_GET['page'] ?? 'noticias';
 use App\Controllers\LoginController;
 use App\Controllers\LogOutController;
 use App\Controllers\DashboardController;
+use App\Controllers\MenuController;
 use App\Controllers\ProductoController;
 use App\Controllers\CategoriaController;
 use App\Controllers\BitacoraController;
@@ -40,6 +41,7 @@ try {
         'home', 'dashboard' => (new DashboardController())->index(),
         'usuario', 'user' => (new UsuarioController())->index(),
         'productos' => (new ProductoController())->index(),
+        'menu' => (new MenuController())->index(),
         'ingredientes' => (new IngredienteController())->index(),
         'categoria-ingrediente' => (new IngredienteController())->indexCategoria(),
         'categorias' => (new CategoriaController())->index(),

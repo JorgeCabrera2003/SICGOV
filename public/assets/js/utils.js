@@ -169,15 +169,16 @@ const SistemaValidacion = {
           esValido = patrones.cedula.test(valor);
           mensajeError = 'La cédula debe tener formato V-12345678';
           break;
+        case 'correo':
         case 'correo_empleado':
         case 'email':
-          esValido = patrones.email.test(valor);
+          esValido = (valor === '') ? true : patrones.email.test(valor);
           mensajeError = 'El formato del email no es válido';
           break;
         case 'telefono_empleado':
         case 'telefono':
-          esValido = patrones.telefonoSimple.test(valor);
-          mensajeError = 'El teléfono debe tener formato 0412-1234567';
+          esValido = (valor === '') ? true : patrones.telefonoSimple.test(valor);
+          mensajeError = 'El teléfono debe tener formato 0412-1234567 o 7 dígitos';
           break;
         default:
           if ($campo.attr('type') === 'text' || $campo.is('input') || $campo.is('textarea')) {
@@ -263,13 +264,14 @@ const SistemaValidacion = {
             case 'cedula_tecnico':
               campoValido = patrones.cedula.test(valor);
               break;
+            case 'correo':
             case 'correo_empleado':
             case 'email':
-              campoValido = patrones.email.test(valor);
+              campoValido = (valor === '') ? true : patrones.email.test(valor);
               break;
             case 'telefono_empleado':
             case 'telefono':
-              campoValido = patrones.telefonoSimple.test(valor);
+              campoValido = (valor === '') ? true : patrones.telefonoSimple.test(valor);
               break;
             default:
               if (elemento.attr('type') === 'text' || elemento.is('input') || elemento.is('textarea')) {

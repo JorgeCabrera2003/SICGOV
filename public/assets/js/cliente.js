@@ -245,24 +245,44 @@ $('#modalCliente').on('shown.bs.modal', function () {
 });
 
 async function vistaPermiso() {
-  let botones = "";
-  let btn_consultar = "";
-  let btn_modificar = "";
-  let btn_eliminar = "";
+  const dropdown = $('<div>').addClass('dropdown');
+  const boton = $('<button>').addClass('btn btn-sm btn-dark dropdown-toggle')
+    .attr('type', 'button')
+    .attr('data-bs-toggle', 'dropdown')
+    .html('<i class="fas fa-ellipsis-v me-2"></i>Acciones');
 
-  btn_consultar = `<button onclick="consultarFila(this)" class="btn btn-info consultar text-white">
-                        <i class="fa-solid fa-eye"></i>
-                      </button>`;
+  const menu = $('<ul>').addClass('dropdown-menu');
 
-  btn_modificar = `<button onclick="rellenar(this, 0)" class="btn btn-primary modificar">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                      </button>`;
+  const itemConsultar = $('<li>');
+  const linkConsultar = $('<a>')
+    .addClass('dropdown-item text-info')
+    .attr('href', '#')
+    .attr('onclick', 'consultarFila(this)')
+    .html('<i class="fa-solid fa-eye me-2"></i>Consultar');
+  itemConsultar.append(linkConsultar);
 
-  btn_eliminar = `<button onclick="rellenar(this, 1)" class="btn btn-danger eliminar">
-                        <i class="fa-solid fa-trash"></i>
-                      </button>`;
-  botones = btn_consultar + "&nbsp;" + btn_modificar + "&nbsp;" + btn_eliminar;
-  return botones;
+  const itemEditar = $('<li>');
+  const linkEditar = $('<a>')
+    .addClass('dropdown-item text-primary')
+    .attr('href', '#')
+    .attr('onclick', 'rellenar(this, 0)')
+    .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
+  itemEditar.append(linkEditar);
+
+  const separador = $('<li>').html('<hr class="dropdown-divider">');
+
+  const itemEliminar = $('<li>');
+  const linkEliminar = $('<a>')
+    .addClass('dropdown-item text-danger')
+    .attr('href', '#')
+    .attr('onclick', 'rellenar(this, 1)')
+    .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
+  itemEliminar.append(linkEliminar);
+
+  menu.append(itemConsultar, itemEditar, separador, itemEliminar);
+  dropdown.append(boton, menu);
+
+  return dropdown.prop('outerHTML');
 }
 
 function capaValidar() {
@@ -329,16 +349,26 @@ async function crearDataTable() {
     columns: [
       { 
         data: 'cedula',
-        render: function (data) {
-          return (data && data.length > 1) ? data.charAt(0) + '-' + data.slice(1) : data;
+        render: function (data, type) {
+          if (!data) return data;
+          const formatted = (data.length > 1) ? data.charAt(0) + '-' + data.slice(1) : data;
+          if (type === 'display') return formatted;
+          if (type === 'filter') return data + ' ' + formatted;
+          return data;
         }
       },
       { data: 'nombre' },
       { data: 'apellido' },
       { 
         data: 'telefono',
-        render: function (data) {
-          return (data && data.length >= 5) ? data.substring(0, 4) + '-' + data.substring(4) : data;
+        render: function (data, type) {
+          if (!data || data.trim() === '') {
+            return type === 'display' ? '<span class="text-muted">N/A</span>' : '';
+          }
+          const formatted = (data.length >= 5) ? data.substring(0, 4) + '-' + data.substring(4) : data;
+          if (type === 'display') return formatted;
+          if (type === 'filter') return data + ' ' + formatted;
+          return data;
         }
       },
       { 
@@ -364,7 +394,7 @@ async function crearDataTable() {
         }
       }
     ],
-    order: [[4, 'desc']],
+    order: [[0, 'desc']],
     language: { url: idiomaTabla }
   });
 }
