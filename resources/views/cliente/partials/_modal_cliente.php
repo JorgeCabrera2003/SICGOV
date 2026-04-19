@@ -34,7 +34,7 @@
                             <span class="form-label text-danger" id="scedula"></span>
                         </div>
                         <div class="col-md-6">
-                            <label for="fecha_nacimiento" class="form-label fw-semibold">Fecha de Nacimiento</label>
+                            <label for="fecha_nacimiento" class="form-label fw-semibold">Fecha de Nacimiento <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" max="<?= date('Y-m-d', strtotime('-1 day')) ?>">
                             <span class="form-label text-danger" id="sfecha_nacimiento"></span>
                         </div>
@@ -77,7 +77,7 @@
                             <span class="form-label text-danger" id="stelefono"></span>
                         </div>
                         <div class="col-md-6">
-                            <label for="sexo" class="form-label fw-semibold">Sexo</label>
+                            <label for="sexo" class="form-label fw-semibold">Sexo <span class="text-danger">*</span></label>
                             <select class="form-select" id="sexo" name="sexo">
                                 <option value="default" selected disabled>Seleccionar</option>
                                 <option value="M">Masculino</option>
@@ -95,7 +95,7 @@
                             <span class="form-label text-danger" id="scorreo"></span>
                         </div>
                         <div class="col-md-6">
-                            <label for="direccion" class="form-label fw-semibold">Dirección</label>
+                            <label for="direccion" class="form-label fw-semibold">Dirección <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="direccion" name="direccion" maxlength="255">
                             <span class="form-label text-danger" id="sdireccion"></span>
                         </div>
