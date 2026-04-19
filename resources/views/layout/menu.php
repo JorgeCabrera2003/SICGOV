@@ -75,11 +75,18 @@
             <span class="flex-grow-1">Pedidos / Mesas</span>
         </a>
 
+        <!-- Menú -->
+        <a href="<?php echo BASE_URL; ?>/?page=menu"
+            class="nav-link <?php echo ($page == 'menu') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+            <i class="fas fa-utensils fs-5"></i>
+            <span class="flex-grow-1">Menú del Restaurante</span>
+        </a>
+
         <!-- Productos -->
         <a href="<?php echo BASE_URL; ?>/?page=productos"
             class="nav-link <?php echo ($page == 'productos') ? 'active' : ''; ?> d-flex align-items-center gap-2">
             <i class="bi bi-box-seam fs-5"></i>
-            <span class="flex-grow-1">Productos</span>
+            <span class="flex-grow-1">Productos Varios</span>
         </a>
 
         <!-- Ingredientes -->
