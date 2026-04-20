@@ -88,8 +88,8 @@ class ClienteController
 			}
 			//Fin del Consultar 
             
-            //Eliminar
-			if ($_POST["peticion"] == "eliminar") {
+            //Cambiar Estatus
+			if ($_POST["peticion"] == "cambiar_estatus") {
 				$accion_permiso = true;
 
 				if ($accion_permiso) {
@@ -97,14 +97,15 @@ class ClienteController
 					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 					
 					//Validar Cédula del formulario
-					if (!isset($_POST["cedula"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'Cedula') == 0) {
-						$json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Cédula no válida'];
+					if (!isset($_POST["cedula"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'Cedula') == 0 || !isset($_POST["estatus"])) {
+						$json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Cédula o Estatus no válida'];
 						$bool_formulario = false;
 					}
 					//Fin de la Validación
 
 					if ($bool_formulario) {
 						$clienteModel->setCedula($_POST["cedula"]);
+                        $clienteModel->setEstatus($_POST["estatus"]);
 						$json = $clienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
 					}
 				} else {
@@ -112,7 +113,7 @@ class ClienteController
 					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' un cliente'];
 				}
 			}
-			//Fin del Eliminar
+			//Fin del Cambiar Estatus
 
 			//Enviar respuesta al navegador usando un encabezado HTTP
 			header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
