@@ -8,7 +8,7 @@
     <header class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <h1 class="h3 mb-0">
             <i class="fas fa-utensils me-2 text-primary"></i>
-            Gestión del Menú del Restaurante
+            Gestión de Productos del Menú
         </h1>
         <div class="btn-group shadow-sm" role="group" aria-label="Acciones de menú">
             <button class="btn btn-primary text-white fw-bold shadow-sm" id="btnNuevoMenu">
@@ -19,12 +19,15 @@
 
     <!-- Filtros visuales (opcional peros útil) -->
     <div class="d-flex gap-2 mb-4 overflow-auto pb-2" id="filtrosCategorias">
-        <button class="btn btn-primary text-white rounded-pill px-4 btn-filtro active fw-bold shadow-sm" data-categoria="todas">Todas</button>
+        <button class="btn btn-primary text-white rounded-pill px-4 btn-filtro fw-bold shadow-sm active" data-categoria="todas">Todas</button>
         <?php foreach ($categorias as $cat): ?>
-            <button class="btn btn-primary text-white rounded-pill px-4 btn-filtro" data-categoria="<?= $cat['id_categoria'] ?>">
+            <button class="btn btn-primary text-white rounded-pill px-4 btn-filtro fw-bold shadow-sm" data-categoria="<?= $cat['id_categoria'] ?>">
                 <?= htmlspecialchars($cat['nombre_categoria']) ?>
             </button>
         <?php endforeach; ?>
+        <button class="btn btn-danger text-white rounded-pill px-4 btn-filtro fw-bold shadow-sm ms-auto" data-categoria="inactivos">
+            <i class="fas fa-power-off me-1"></i>Inactivos
+        </button>
     </div>
 
     <!-- Galería de menú (section semántica) -->

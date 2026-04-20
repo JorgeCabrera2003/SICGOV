@@ -23,6 +23,8 @@ class Menu
                 return $this->guardarMenu($datos);
             case 'buscar':
                 return $this->buscarMenu($datos['id_producto']);
+            case 'cambiar_estatus':
+                return $this->cambiarEstatusMenu($datos);
             case 'eliminar':
                 return $this->eliminarMenu($datos['id_producto']);
             case 'categorias':
@@ -42,7 +44,7 @@ class Menu
             $sql = "SELECT p.*, c.nombre_categoria as categoria_nombre 
                     FROM producto p
                     LEFT JOIN categoria_producto c ON p.id_categoria = c.id_categoria
-                    WHERE p.estatus = 1 AND p.tipo_producto IN ('COCINA', 'BARRA', 'POSTRE')
+                    WHERE p.tipo_producto IN ('COCINA', 'BARRA', 'POSTRE')
                     ORDER BY p.fecha_creacion DESC";
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
@@ -107,7 +109,7 @@ class Menu
                         id_categoria, imagen, es_personalizable, estatus, tipo_producto
                     ) VALUES (
                         :id_producto, :nombre, :descripcion, :precio, 
-                        :id_categoria, :imagen, 1, :estatus, :tipo_producto
+                        :id_categoria, :imagen, 1, 1, :tipo_producto
                     )";
             } else {
                 $sql = "UPDATE producto SET 
@@ -115,7 +117,6 @@ class Menu
                         descripcion = :descripcion,
                         precio = :precio,
                         id_categoria = :id_categoria,
-                        estatus = :estatus,
                         tipo_producto = :tipo_producto";
                 
                 if (isset($datos['imagen'])) {
@@ -131,7 +132,6 @@ class Menu
                 'descripcion' => $datos['descripcion'] ?? '',
                 'precio' => $datos['precio'],
                 'id_categoria' => $datos['id_categoria'],
-                'estatus' => $datos['estatus'] ?? 1,
                 'tipo_producto' => $datos['tipo_producto'] ?? 'COCINA'
             ];
             
@@ -242,6 +242,22 @@ class Menu
             return ['success' => $result, 'message' => $result ? 'Producto eliminado' : 'Error al eliminar'];
         } catch (\PDOException $e) {
             return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
+    private function cambiarEstatusMenu($datos)
+    {
+        try {
+            $sql = "UPDATE producto SET estatus = :estatus WHERE id_producto = :id_producto";
+            $stmt = $this->db->prepare($sql);
+            $result = $stmt->execute([
+                'id_producto' => $datos['id_producto'],
+                'estatus' => $datos['estatus']
+            ]);
+            return ['success' => $result, 'message' => $result ? 'Estatus actualizado' : 'Error al actualizar estatus'];
+        } catch (\PDOException $e) {
+            error_log("Error en cambiarEstatusMenu: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Error BD: ' . $e->getMessage()];
         }
     }
 

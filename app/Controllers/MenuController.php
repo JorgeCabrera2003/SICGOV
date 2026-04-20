@@ -47,7 +47,6 @@ class MenuController
                 'precio' => $_POST['precio'] ?? 0,
                 'id_categoria' => $_POST['id_categoria'] ?? null,
                 'tipo_producto' => $_POST['tipo_producto'] ?? 'COCINA',
-                'estatus' => isset($_POST['estatus']) ? 1 : 0,
                 'ingredientes_principales' => $_POST['ingredientes_principales'] ?? '[]',
                 'ingredientes_adicionales' => $_POST['ingredientes_adicionales'] ?? '[]'
             ];
@@ -119,6 +118,31 @@ class MenuController
 
             if ($result['success']) {
                 Helper::Bitacora("ELIMINAR", "MENU", "Se eliminó el producto del menú con ID: " . $_POST['id']);
+            }
+
+            return $result;
+        });
+    }
+
+    public function cambiar_estatus()
+    {
+        $this->responderJson(function() {
+            Helper::verificarSesion();
+
+            if (empty($_POST['id']) || !isset($_POST['estatus'])) {
+                return ['success' => false, 'message' => 'Parámetros incompletos'];
+            }
+
+            $menu = new Menu();
+            $result = $menu->Transaccion([
+                'peticion' => 'cambiar_estatus', 
+                'id_producto' => $_POST['id'],
+                'estatus' => $_POST['estatus']
+            ]);
+
+            if ($result['success']) {
+                $estado = $_POST['estatus'] == 1 ? 'activó' : 'inactivó';
+                Helper::Bitacora("ESTATUS", "MENU", "Se $estado el producto del menú con ID: " . $_POST['id']);
             }
 
             return $result;

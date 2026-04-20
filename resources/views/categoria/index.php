@@ -8,7 +8,7 @@
     <header class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">
             <i class="fas fa-tags me-2 text-primary"></i>
-            Gestión de Categorías
+            Gestión de Categorías del Menú
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de categoría">
             <button class="btn btn-primary text-white fw-semibold" id="btnNuevaCategoria">

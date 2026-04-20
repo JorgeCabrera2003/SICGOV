@@ -77,10 +77,6 @@
                                 <textarea class="form-control" id="descripcion" name="descripcion" rows="2" placeholder="Breve descripción..."></textarea>
                             </div>
                             
-                            <div class="form-check form-switch mt-4">
-                                <input class="form-check-input" type="checkbox" id="estatus" name="estatus" checked value="1" role="switch">
-                                <label class="form-check-label fw-semibold" for="estatus">Producto Activo para el Menú</label>
-                            </div>
                         </div>
 
                         <!-- COLUMNA DERECHA: RECETAS / INGREDIENTES -->
