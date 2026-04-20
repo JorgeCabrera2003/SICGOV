@@ -75,12 +75,31 @@
             <span class="flex-grow-1">Pedidos / Mesas</span>
         </a>
 
-        <!-- Menú -->
-        <a href="<?php echo BASE_URL; ?>/?page=menu"
-            class="nav-link <?php echo ($page == 'menu') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-            <i class="fas fa-utensils fs-5"></i>
-            <span class="flex-grow-1">Menú del Restaurante</span>
-        </a>
+        <!-- Menú del Restaurante (colapsable) -->
+        <div class="nav-item w-100">
+            <a class="nav-link d-flex align-items-center gap-2 collapsed" data-bs-toggle="collapse"
+                href="#menu-submenu" role="button"
+                aria-expanded="<?php echo in_array($page, ['menu', 'categorias']) ? 'true' : 'false'; ?>">
+                <i class="fas fa-utensils fs-5"></i>
+                <span class="flex-grow-1">Menú del Restaurante</span>
+                <i class="bi bi-chevron-right transition-rotate"></i>
+            </a>
+            <div class="collapse <?php echo in_array($page, ['menu', 'categorias']) ? 'show' : ''; ?>"
+                id="menu-submenu">
+                <div class="d-flex flex-column gap-1 ps-4 mt-1">
+                    <a href="<?php echo BASE_URL; ?>/?page=menu"
+                        class="nav-link <?php echo ($page == 'menu') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
+                        <i class="fas fa-hamburger fs-6"></i>
+                        <span>Platillos</span>
+                    </a>
+                    <a href="<?php echo BASE_URL; ?>/?page=categorias"
+                        class="nav-link <?php echo ($page == 'categorias') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
+                        <i class="fas fa-tags fs-6"></i>
+                        <span>Categorías</span>
+                    </a>
+                </div>
+            </div>
+        </div>
 
         <!-- Productos -->
         <a href="<?php echo BASE_URL; ?>/?page=productos"
