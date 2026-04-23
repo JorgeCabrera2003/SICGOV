@@ -3,7 +3,9 @@ namespace App\Models\Security;
 
 use App\Core\Database;
 use App\Helpers\Helper;
+use App\Helpers\RegexHelper;
 use PDO;
+use Exception;
 
 class Noticia extends Database
 {
@@ -36,17 +38,67 @@ class Noticia extends Database
         return parent::LlamarConexion($nombreBD, $pdo);
     }
 
-    // SETTERS
-    public function setId(string $id) { $this->id_noticia = $id; }
-    public function setCedula(string $cedula) { $this->cedula = $cedula; }
-    public function setTitulo(string $titulo) { $this->titulo = $titulo; }
-    public function setSubtitulo(string $subtitulo) { $this->subtitulo = $subtitulo; }
-    public function setContenido(string $contenido) { $this->contenido = $contenido; }
-    public function setTipo(string $tipo) { $this->tipo = $tipo; }
-    public function setFechaPublicacion(string $fecha) { $this->fecha_publicacion = $fecha; }
-    public function setEstatus(int $estatus) { $this->estatus = $estatus; }
-    public function setImagenes(array $imagenes) { $this->imagenes = $imagenes; }
-    public function setImagenesGaleria(array $rutas) { $this->imagenes_galeria = $rutas; }
+    // SETTERS CON VALIDACIÓN RIGUROSA (RegexHelper)
+    public function setId(string $id) { 
+        if (RegexHelper::ValidarFormatos($id, 'ID') == 0) {
+            throw new Exception("El ID de la noticia no cumple con el formato permitido.");
+        }
+        $this->id_noticia = $id; 
+    }
+
+    public function setCedula(string $cedula) { 
+        if (RegexHelper::ValidarFormatos($cedula, 'Cedula') == 0) {
+            throw new Exception("La cédula del autor no tiene un formato válido (Ej: V-12345678).");
+        }
+        $this->cedula = $cedula; 
+    }
+
+    public function setTitulo(string $titulo) { 
+        $titulo = trim($titulo);
+        if (RegexHelper::ValidarFormatos($titulo, 'Titulo') == 0) {
+            throw new Exception("El título contiene caracteres no permitidos o longitud inválida (3-150 caracteres).");
+        }
+        $this->titulo = $titulo; 
+    }
+
+    public function setSubtitulo(string $subtitulo) { 
+        $subtitulo = trim($subtitulo);
+        if (!empty($subtitulo) && RegexHelper::ValidarFormatos($subtitulo, 'ObjetoLargo') == 0) {
+            throw new Exception("El subtítulo contiene caracteres no permitidos.");
+        }
+        $this->subtitulo = $subtitulo; 
+    }
+
+    public function setContenido(string $contenido) { 
+        if (empty(trim($contenido))) {
+            throw new Exception("El contenido de la noticia es obligatorio.");
+        }
+        $this->contenido = $contenido; 
+    }
+
+    public function setTipo(string $tipo) { 
+        $tipos_validos = ['INFO', 'ALERTA', 'EXITO'];
+        if (!in_array($tipo, $tipos_validos)) {
+            throw new Exception("Categoría de noticia no válida.");
+        }
+        $this->tipo = $tipo; 
+    }
+
+    public function setFechaPublicacion(string $fecha) { 
+        $this->fecha_publicacion = $fecha; 
+    }
+
+    public function setEstatus(int $estatus) { 
+        $this->estatus = $estatus; 
+    }
+
+    public function setImagenes(array $imagenes) { 
+        $this->imagenes = $imagenes; 
+    }
+
+    public function setImagenesGaleria(array $rutas) { 
+        $this->imagenes_galeria = $rutas; 
+    }
 
     // GETTERS
     public function getId() { return $this->id_noticia; }

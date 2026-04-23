@@ -26,86 +26,57 @@ class NoticiaController
 				$accion_permiso = true;
 
 				if ($accion_permiso) {
-					$bool_formulario = true;
-					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
-
-					if ($_POST["peticion"] == "modificar") {
-						if (!isset($_POST["id_noticia"]) || RegexHelper::ValidarFormatos($_POST["id_noticia"], 'ID') == 0) {
-							$json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Id no válido'];
-							$bool_formulario = false;
-						}
-					}
-
-					if (!isset($_POST["titulo"]) || empty(trim($_POST["titulo"]))) {
-						$json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Título requerido'];
-						$bool_formulario = false;
-					}
-					
-					if (!isset($_POST["contenido"]) || empty(trim($_POST["contenido"]))) {
-						$json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Contenido requerido'];
-						$bool_formulario = false;
-					}
-
-					if ($bool_formulario) {
-						$id = NULL;
-						if ($_POST["peticion"] == "registrar") {
-							$id = Helper::generarId("NOTC");
-						} else {
-							$id = $_POST["id_noticia"];
-						}
-
+					try {
+						$id = ($_POST["peticion"] == "registrar") ? Helper::generarId("NOTC") : ($_POST["id_noticia"] ?? "");
+						
 						$noticiaModel->setId($id);
-						$noticiaModel->setCedula($_SESSION['user']['cedula'] ?? $_SESSION['user']['id_usuario']); // Dependiendo del esquema de sesion
-						$noticiaModel->setTitulo($_POST["titulo"]);
+						$noticiaModel->setCedula($_SESSION['user']['cedula'] ?? $_SESSION['user']['id_usuario'] ?? ""); 
+						$noticiaModel->setTitulo($_POST["titulo"] ?? "");
 						$noticiaModel->setSubtitulo($_POST["subtitulo"] ?? "");
-						$noticiaModel->setContenido($_POST["contenido"]);
+						$noticiaModel->setContenido($_POST["contenido"] ?? "");
 						$noticiaModel->setTipo($_POST["tipo"] ?? 'INFO');
 						
-                        // Si no envia fecha, publicar ahora
 						$fecha = (!empty($_POST["fecha_publicacion"])) ? $_POST["fecha_publicacion"] : date('Y-m-d H:i:s');
 						$noticiaModel->setFechaPublicacion($fecha);
 
-                        // Manejo de imágenes seleccionadas de la galería (JSON)
-                        if (!empty($_POST['imagenes_galeria'])) {
-                            $rutas_galeria = json_decode($_POST['imagenes_galeria'], true);
-                            // Solo procesar si tiene elementos reales (evita duplicar en edición sin nuevas imágenes)
-                            if (is_array($rutas_galeria) && count($rutas_galeria) > 0) {
-                                $noticiaModel->setImagenesGaleria($rutas_galeria);
-                            }
-                        }
+						// Manejo de imágenes seleccionadas de la galería
+						if (!empty($_POST['imagenes_galeria'])) {
+							$rutas_galeria = json_decode($_POST['imagenes_galeria'], true);
+							if (is_array($rutas_galeria) && count($rutas_galeria) > 0) {
+								$noticiaModel->setImagenesGaleria($rutas_galeria);
+							}
+						}
 
-                        // Manejo de variables superglobales de archivos (Subidas nuevas)
-                        if (isset($_FILES['imagenes'])) {
-                            $archivos = [];
-                            $count = count($_FILES['imagenes']['name']);
-                            for ($i = 0; $i < $count; $i++) {
-                                if ($_FILES['imagenes']['error'][$i] === 0) {
-                                    $archivos[] = [
-                                        'name' => $_FILES['imagenes']['name'][$i],
-                                        'type' => $_FILES['imagenes']['type'][$i],
-                                        'tmp_name' => $_FILES['imagenes']['tmp_name'][$i],
-                                        'error' => $_FILES['imagenes']['error'][$i],
-                                        'size' => $_FILES['imagenes']['size'][$i]
-                                    ];
-                                }
-                            }
-                            if (count($archivos) > 0) {
-                                \App\Helpers\Helper::ErrorLog("Imagenes subidas recibidas: " . count($archivos));
-                                $noticiaModel->setImagenes($archivos);
-                            }
-                        }
+						// Manejo de subidas nuevas
+						if (isset($_FILES['imagenes'])) {
+							$archivos = [];
+							$count = count($_FILES['imagenes']['name']);
+							for ($i = 0; $i < $count; $i++) {
+								if ($_FILES['imagenes']['error'][$i] === 0) {
+									$archivos[] = [
+										'name' => $_FILES['imagenes']['name'][$i],
+										'type' => $_FILES['imagenes']['type'][$i],
+										'tmp_name' => $_FILES['imagenes']['tmp_name'][$i],
+										'error' => $_FILES['imagenes']['error'][$i],
+										'size' => $_FILES['imagenes']['size'][$i]
+									];
+								}
+							}
+							if (count($archivos) > 0) {
+								$noticiaModel->setImagenes($archivos);
+							}
+						}
 
-						// --- AUDITORÍA: Capturar estado previo si es modificación ---
+						// --- AUDITORÍA: Capturar estado previo ---
 						$datos_anteriores = null;
 						if ($_POST["peticion"] == "modificar") {
-							$noticiaModel->setId($id);
 							$res_prev = $noticiaModel->Transaccion(['peticion' => 'validar']);
 							$datos_anteriores = $res_prev['response']['registro'] ?? null;
 						}
 
 						$json = $noticiaModel->Transaccion(['peticion' => $_POST["peticion"]]);
 
-						// --- AUDITORÍA: Registrar en Bitácora si fue exitoso ---
+						// --- AUDITORÍA: Registrar en Bitácora ---
 						if ($json['estado'] == 1) {
 							$accion_bitacora = ($_POST["peticion"] == "registrar") ? 'REGISTRAR' : 'MODIFICAR';
 							$detalle_bitacora = ($_POST["peticion"] == "registrar") 
@@ -114,15 +85,18 @@ class NoticiaController
 							
 							$datos_nuevos = [
 								'id_noticia' => $id,
-								'titulo' => $_POST['titulo'],
+								'titulo' => $_POST['titulo'] ?? "",
 								'subtitulo' => $_POST['subtitulo'] ?? '',
-								'contenido' => $_POST['contenido'],
+								'contenido' => $_POST['contenido'] ?? "",
 								'tipo' => $_POST['tipo'] ?? 'INFO',
 								'fecha_publicacion' => $fecha
 							];
 
 							Helper::Bitacora($accion_bitacora, 'NOTICIAS', $detalle_bitacora, $datos_anteriores, $datos_nuevos);
 						}
+					} catch (\Exception $e) {
+						$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Error de validación'];
+						$json['response'] = ['resultado' => 400, 'icon' => 'warning', 'mensaje' => $e->getMessage()];
 					}
 				} else {
 					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
@@ -137,12 +111,12 @@ class NoticiaController
             
             // Validar (Obteniendo un registro individual para edicion/mostrar)
             if ($_POST["peticion"] == "validar") {
-                if (isset($_POST["id_noticia"])) {
-                    $noticiaModel->setId($_POST["id_noticia"]);
-				    $json = $noticiaModel->Transaccion(['peticion' => $_POST["peticion"]]);
-                } else {
+                try {
+                    $noticiaModel->setId($_POST["id_noticia"] ?? "");
+                    $json = $noticiaModel->Transaccion(['peticion' => $_POST["peticion"]]);
+                } catch (\Exception $e) {
                     $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'ID no provisto'];
-					$json['response'] = ['resultado' => 400, 'mensaje' => 'Id requerido'];
+                    $json['response'] = ['resultado' => 400, 'mensaje' => $e->getMessage()];
                 }
 			}
 
@@ -150,18 +124,18 @@ class NoticiaController
 			if ($_POST["peticion"] == "eliminar") {
 				$accion_permiso = true;
 				if ($accion_permiso) {
-					if (isset($_POST["id_noticia"]) && RegexHelper::ValidarFormatos($_POST["id_noticia"], 'ID') != 0) {
-						$noticiaModel->setId($_POST["id_noticia"]);
+					try {
+						$noticiaModel->setId($_POST["id_noticia"] ?? "");
 						$json = $noticiaModel->Transaccion(['peticion' => $_POST["peticion"]]);
 
 						// --- AUDITORÍA: Registrar eliminación ---
 						if ($json['estado'] == 1) {
 							Helper::Bitacora('ELIMINAR', 'NOTICIAS', "Se eliminó la noticia ID: {$_POST['id_noticia']}");
 						}
-					} else {
-                        $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Id invalido'];
-					    $json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Id no válido'];
-                    }
+					} catch (\Exception $e) {
+						$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Error al eliminar'];
+						$json['response'] = ['resultado' => 400, 'mensaje' => $e->getMessage()];
+					}
 				} else {
 					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'No autorizado'];
 					$json['response'] = ['resultado' => 403, 'mensaje' => 'Permiso denegado'];

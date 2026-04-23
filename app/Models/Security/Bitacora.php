@@ -3,7 +3,9 @@ namespace App\Models\Security;
 
 use App\Core\Database;
 use App\Helpers\Helper;
+use App\Helpers\RegexHelper;
 use PDO;
+use Exception;
 
 class Bitacora extends Database {
     private $id_bitacora;
@@ -28,10 +30,36 @@ class Bitacora extends Database {
         $this->fecha = "";
     }
 
-    public function setIdBitacora($id) { $this->id_bitacora = $id; }
-    public function set_cedula($c) { $this->cedula = $c; }
-    public function set_modulo($m) { $this->modulo = $m; }
-    public function set_accion($a) { $this->accion = $a; }
+    // SETTERS CON VALIDACIÓN (RegexHelper)
+    public function setIdBitacora($id) { 
+        if (!empty($id) && RegexHelper::ValidarFormatos($id, 'ID') == 0) {
+            throw new Exception("El ID de bitácora no tiene un formato válido.");
+        }
+        $this->id_bitacora = $id; 
+    }
+
+    public function set_cedula($c) { 
+        // Permitir 'Sistema' o validar formato de cédula real
+        if (!empty($c) && $c !== 'Sistema' && RegexHelper::ValidarFormatos($c, 'Cedula') == 0) {
+            throw new Exception("La cédula en bitácora no tiene un formato válido (Ej: V-12345678).");
+        }
+        $this->cedula = $c; 
+    }
+
+    public function set_modulo($m) { 
+        if (RegexHelper::ValidarFormatos($m, 'Objeto') == 0) {
+            throw new Exception("El nombre del módulo no es válido.");
+        }
+        $this->modulo = $m; 
+    }
+
+    public function set_accion($a) { 
+        if (RegexHelper::ValidarFormatos($a, 'Objeto') == 0) {
+            throw new Exception("La acción no cumple con el formato permitido.");
+        }
+        $this->accion = $a; 
+    }
+
     public function set_detalle($d) { $this->detalle = $d; }
     public function set_ip_address($ip) { $this->ip_address = $ip; }
     public function set_anteriores($val) { $this->valores_anteriores = $val; }
