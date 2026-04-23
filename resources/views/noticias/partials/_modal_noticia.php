@@ -17,7 +17,7 @@
                     <div class="row g-3">
                         <div class="col-md-12">
                             <label for="titulo" class="form-label fw-semibold">Título de la Publicación <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control form-control-lg" id="titulo" name="titulo" placeholder="Ej: Nueva apertura del restaurante" data-requerido="true" data-regla="descripcion" data-mensaje="El título debe tener entre 3 y 100 caracteres" required>
+                            <input type="text" class="form-control form-control-lg" id="titulo" name="titulo" placeholder="Ej: Nueva apertura del restaurante" data-requerido="true" data-regla="titulo" data-mensaje="El título debe tener entre 3 y 150 caracteres" required>
                             <span class="invalid-feedback" id="stitulo"></span>
                         </div>
                         
