@@ -47,7 +47,7 @@ $badgeArray = [
 </div>
 
 <!-- 2. Logo Section -->
-<div class="news-logo-section text-center py-4 bg-white border-bottom">
+<div class="news-logo-section text-center py-4 bg-white border-bottom d-none">
     <div class="container">
         <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="Good Vibes" style="height: 160px;" class="landing-logo py-2">
     </div>

@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
 
+// Definir separador de directorios compatible con el OS (Windows \ o Linux /)
+define('DS', DIRECTORY_SEPARATOR);
+
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
 
 $host = $_SERVER['HTTP_HOST'];
@@ -32,6 +35,7 @@ use App\Controllers\UsuarioController;
 use App\Controllers\NoticiaController;
 use App\Controllers\MediaController;
 use App\Controllers\ClienteController;
+use App\Controllers\ReservacionController;
 
 try {
     match ($page) {
@@ -51,6 +55,7 @@ try {
         'noticias-detalle' => (new NoticiaController())->detallePublico(),
         'multimedia' => (new MediaController())->index(),
         'clientes' => (new ClienteController())->index(),
+        'reservaciones' => (new ReservacionController())->index(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };
 } catch (Exception $e) {

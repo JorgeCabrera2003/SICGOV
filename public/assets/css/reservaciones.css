@@ -1,0 +1,105 @@
+/* Estilos personalizados para Reservaciones */
+
+#calendar {
+    background: #fff;
+    padding: 10px;
+    border-radius: 12px;
+}
+
+/* Colores de Eventos con degradados suaves y mejor contraste */
+.status-pendiente {
+    background: linear-gradient(135deg, #ff9800, #f57c00) !important;
+    border: none !important;
+    color: #fff !important;
+}
+
+.status-confirmada {
+    background: linear-gradient(135deg, #2196f3, #1976d2) !important;
+    border: none !important;
+    color: #fff !important;
+}
+
+.status-completada {
+    background: linear-gradient(135deg, #4caf50, #388e3c) !important;
+    border: none !important;
+    color: #fff !important;
+}
+
+.status-cancelada {
+    background: linear-gradient(135deg, #f44336, #d32f2f) !important;
+    border: none !important;
+    color: #fff !important;
+}
+
+/* Estilo de los Badges en la Leyenda */
+.status-badge-pendiente { background: #ff9800; color: #fff; }
+.status-badge-confirmada { background: #2196f3; color: #fff; }
+.status-badge-completada { background: #4caf50; color: #fff; }
+.status-badge-cancelada { background: #f44336; color: #fff; }
+
+/* Botones Estilizados Premium */
+.modal-footer .btn {
+    border-radius: 50px !important;
+    padding: 10px 25px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+.btn-save-custom {
+    background-color: var(--bs-primary);
+    border: 2px solid var(--bs-primary);
+    color: white;
+}
+
+.btn-save-custom:hover {
+    background-color: transparent;
+    color: var(--bs-primary);
+}
+
+.btn-cancel-custom {
+    background-color: #6c757d;
+    border: 2px solid #6c757d;
+    color: white;
+}
+
+.btn-cancel-custom:hover {
+    background-color: transparent;
+    color: #6c757d;
+}
+
+.btn-delete-custom {
+    border: 2px solid #dc3545 !important;
+    color: #dc3545 !important;
+    background: transparent !important;
+}
+
+.btn-delete-custom:hover {
+    background: #dc3545 !important;
+    color: white !important;
+}
+
+/* Select2 Custom Styling - Mas Robusto */
+.select2-container--bootstrap-5 .select2-selection {
+    border-radius: 12px !important;
+    border: 1px solid #dee2e6 !important;
+    padding: 0.6rem 0.8rem !important; /* Aumentado */
+    height: auto !important;
+    background-color: #f8f9fa !important;
+    font-size: 0.95rem !important; /* Ligeramente más grande */
+}
+
+/* Dark Mode Support (si el sistema tiene la clase .dark) */
+.dark .fc-theme-bootstrap5 {
+    color: #e9ecef;
+}
+
+.dark #calendar {
+    background: #212529;
+}
+
+.dark .fc-day-today {
+    background: rgba(var(--bs-primary-rgb), 0.1) !important;
+}

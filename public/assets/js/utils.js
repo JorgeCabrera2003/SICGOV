@@ -23,6 +23,7 @@ const patrones = {
   descripcion: /^[0-9 a-zA-ZáéíóúüñÑçÇ -.,]{3,100}$/,
   serial: /^[0-9a-zA-ZáéíóúüñÑçÇ.-]{3,45}$/,
   tipoEquipo: /^[0-9 a-zA-ZáéíóúüñÑçÇ -.]{3,45}$/,
+  titulo: /^[0-9a-zA-ZáéíóúüñÑçÇ\s\-.,()!?"'%:;]{3,150}$/,
 
   // PATRONES PARA MATERIAL
   id_material: /^[A-Z0-9\-_]{1,50}$/,
@@ -481,15 +482,24 @@ async function enviaAjax(datos, controlador = "") {
         }
       },
       error: function (request, status, err) {
+        let errorMsg = null;
+        try {
+            if (request.responseText) {
+                const jsonErr = JSON.parse(request.responseText);
+                errorMsg = jsonErr.mensaje || null;
+            }
+        } catch(e) {}
+
         response = {
-          resultado: request.status || 500
+          resultado: request.status || 500,
+          mensaje: errorMsg
         }
         if (status == "timeout") {
           console.log("Servidor ocupado", "Intente de nuevo");
         } else {
           console.log("Ocurrió un error", err);
         }
-        mensajes("error", 10000, mensajeHTTP(response.resultado), null);
+        mensajes("error", 10000, errorMsg || mensajeHTTP(response.resultado), null);
       },
     });
   } catch (error) {

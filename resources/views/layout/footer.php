@@ -62,7 +62,7 @@
 <?php endif; ?>
 
 <!-- 9. Script específico de la página (convención por nombre de página) -->
-<?php if (isset($page) && file_exists(__DIR__ . "/../../public/assets/js/{$page}.js")): ?>
+<?php if (isset($page) && file_exists(__DIR__ . "/../../../public/assets/js/{$page}.js")): ?>
 <script src="<?php echo BASE_URL; ?>/assets/js/<?php echo $page; ?>.js"></script>
 <?php endif; ?>
 
