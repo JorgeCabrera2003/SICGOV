@@ -1,24 +1,11 @@
 <?php
-
-/*
-MODELO DE NOTICIAS
-
-OPERACIONES A BASE DE DATOS:
-    REGISTRAR
-    CONSULTAR (ADMIN)
-    CONSULTAR PUBLICAS
-    MODIFICAR
-    ELIMINAR
-    VALIDAR
-*/
-
 namespace App\Models\Security;
 
 use App\Core\Database;
 use App\Helpers\Helper;
 use PDO;
 
-class Noticia
+class Noticia extends Database
 {
     private $id_noticia;
     private $cedula;
@@ -30,7 +17,6 @@ class Noticia
     private $estatus;
     private $imagenes; // Array of dynamically uploaded files
     private $imagenes_galeria; // Array of paths from media manager
-    private $db;
 
     public function __construct()
     {
@@ -43,25 +29,11 @@ class Noticia
         $this->fecha_publicacion = date('Y-m-d H:i:s');
         $this->estatus = 1;
         $this->imagenes = [];
-        $this->db = NULL;
     }
 
     private function LlamarConexion(PDO &$db = NULL)
     {
-        if ($db != NULL) {
-            $this->db = $db;
-        }
-
-        if ($this->db == NULL) {
-            $this->db = Database::getConnection('security');
-        }
-
-        return $this->db;
-    }
-
-    private function DestruirConexion()
-    {
-        $this->db == NULL;
+        return parent::LlamarConexion('security', $db);
     }
 
     // SETTERS
@@ -90,7 +62,7 @@ class Noticia
             $response = match ($peticion['peticion']) {
                 'registrar' => $this->RegistrarNoticia(),
                 'consultar' => $this->ConsultarNoticiasAdmin(),
-                'consultar_publicas' => $this->ConsultarNoticiasPublicas(),
+                'consultar_publicas' => $this->ConsultarNoticiasPublicas($peticion['filtros'] ?? []),
                 'actualizar', 'modificar' => $this->ModificarNoticia(),
                 'eliminar' => $this->EliminarNoticia(),
                 'validar', 'detalle' => $this->ValidarNoticia(true),
@@ -111,7 +83,8 @@ class Noticia
         $arreglo = [];
         try {
             $this->LlamarConexion();
-            // Buscar todas las noticias menos las eliminadas (estatus = 0 logic)
+            $this->LlamarConexion()->beginTransaction();
+
             $sql = "SELECT n.*, u.username as autor,
                     (SELECT COUNT(i.id_imagen) FROM imagen i WHERE i.entidad_tipo = 'NOTICIA' AND i.entidad_id = n.id_noticia) as cant_imagenes
                     FROM noticia n 
@@ -123,12 +96,13 @@ class Noticia
             if ($stm->rowCount() > 0) {
                 $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
             }
-            $stm = NULL;
-
+            
+            $this->LlamarConexion()->commit();
             $dato['estado'] = 1;
             $dato['response'] = ['resultado' => 200, 'mensaje' => "OK", 'datos' => $arreglo];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
         } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             $dato['estado'] = -1;
             $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => "Ups, intente de nuevo más tarde", 'datos' => []];
@@ -144,6 +118,8 @@ class Noticia
         $arreglo = [];
         try {
             $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
+
             $sql = "SELECT n.*, u.username as autor,
                     (SELECT direccion FROM imagen WHERE entidad_tipo = 'NOTICIA' AND entidad_id = n.id_noticia ORDER BY es_principal DESC, orden ASC LIMIT 1) as imagen_principal
                     FROM noticia n
@@ -151,7 +127,6 @@ class Noticia
                     WHERE n.estatus = 1 
                     AND n.fecha_publicacion <= CURRENT_TIMESTAMP()";
 
-            // Aplicar Filtros Dinámicos
             $params = [];
             if (!empty($filtros['tipo'])) {
                 $sql .= " AND n.tipo = :tipo";
@@ -180,12 +155,13 @@ class Noticia
             if ($stm->rowCount() > 0) {
                 $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
             }
-            $stm = NULL;
-
+            
+            $this->LlamarConexion()->commit();
             $dato['estado'] = 1;
             $dato['response'] = ['resultado' => 200, 'mensaje' => "OK", 'datos' => $arreglo];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
         } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             $dato['estado'] = -1;
             $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => "Error interno del servidor", 'datos' => []];
@@ -220,11 +196,11 @@ class Noticia
             $this->LlamarConexion()->commit();
 
             $dato['estado'] = 1;
-            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Noticia u publicación registrada y/o programada con éxito"];
+            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Noticia registrada con éxito"];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
 
         } catch (\PDOException $e) {
-            $this->LlamarConexion()->rollBack();
+            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             $dato['estado'] = -1;
             $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
@@ -266,7 +242,7 @@ class Noticia
             $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "La noticia ha sido modificada"];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
         } catch (\PDOException $e) {
-            $this->LlamarConexion()->rollBack();
+            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             $dato['estado'] = -1;
             $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
@@ -286,11 +262,11 @@ class Noticia
                 $this->LlamarConexion();
                 $this->LlamarConexion()->beginTransaction();
                 $sql = "UPDATE noticia SET estatus = 0 WHERE id_noticia = :id_noticia";
-                $stm = $this->db->prepare($sql);
+                $stm = $this->LlamarConexion()->prepare($sql);
                 $stm->bindParam('id_noticia', $this->id_noticia);
                 $stm->execute();
+                
                 $this->LlamarConexion()->commit();
-
                 $dato['estado'] = 1;
                 $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "La noticia ha sido eliminada"];
                 $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
@@ -316,6 +292,8 @@ class Noticia
         $arreglo = [];
         try {
             $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
+
             $sql = "SELECT n.*, u.username as autor, p.nombre, p.apellido 
                     FROM noticia n 
                     JOIN usuario u ON n.cedula = u.cedula 
@@ -340,28 +318,29 @@ class Noticia
                 $dato['bool'] = 0;
             }
 
+            $this->LlamarConexion()->commit();
             $dato['estado'] = 1;
             $dato['response'] = ['resultado' => 200, 'registro' => $arreglo];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
         } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
             $dato['bool'] = -1;
             $dato['estado'] = -1;
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor", 'registro' => []];
             $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
         }
+        $this->DestruirConexion();
         return $dato;
     }
 
     private function GuardarImagenesContexto() {
         if (!empty($this->imagenes) || !empty($this->imagenes_galeria)) {
-            $target_dir = BASE_PATH . '/public/assets/img/noticias/';
+            $target_dir = Helper::fixPath(BASE_PATH . '/public/assets/img/noticias/');
             if (!file_exists($target_dir)) {
                 mkdir($target_dir, 0777, true);
             }
 
-            // Si estamos insertando fotos nuevas, reseteamos la principal previa para esta noticia
-            // Esto evita conflictos y asegura que la nueva selección mande.
             try {
                 $sqlReset = "UPDATE imagen SET es_principal = 0 WHERE entidad_tipo = 'NOTICIA' AND entidad_id = :entidad_id";
                 $stmReset = $this->LlamarConexion()->prepare($sqlReset);
@@ -369,6 +348,7 @@ class Noticia
                 $stmReset->execute();
             } catch (\PDOException $e) {
                 Helper::ErrorLog("Error reseteando imagen principal: " . $e->getMessage());
+                throw $e; // Re-lanzar para que el transaccion capture el error
             }
 
             $sqlInsert = "INSERT INTO imagen (id_imagen, entidad_tipo, entidad_id, direccion, orden, es_principal) 
@@ -377,26 +357,20 @@ class Noticia
 
             $orden = 1;
 
-            // 1. Procesar imágenes de galería (Seleccionadas previamente)
             if (!empty($this->imagenes_galeria)) {
                 foreach ($this->imagenes_galeria as $ruta) {
-                    try {
-                        $id_imagen = "IMG-G" . date('YmdHis') . rand(100,999);
-                        $es_principal = ($orden == 1) ? 1 : 0;
-                        $stm->bindParam(':id_imagen', $id_imagen);
-                        $stm->bindParam(':entidad_id', $this->id_noticia);
-                        $stm->bindParam(':direccion', $ruta);
-                        $stm->bindParam(':orden', $orden);
-                        $stm->bindParam(':es_principal', $es_principal);
-                        $stm->execute();
-                        $orden++;
-                    } catch (\PDOException $ex) {
-                        Helper::ErrorLog("Error vinculando img galeria NOTICIA: " . $ex->getMessage());
-                    }
+                    $id_imagen = "IMG-G" . date('YmdHis') . rand(100,999);
+                    $es_principal = ($orden == 1) ? 1 : 0;
+                    $stm->bindParam(':id_imagen', $id_imagen);
+                    $stm->bindParam(':entidad_id', $this->id_noticia);
+                    $stm->bindParam(':direccion', $ruta);
+                    $stm->bindParam(':orden', $orden);
+                    $stm->bindParam(':es_principal', $es_principal);
+                    $stm->execute();
+                    $orden++;
                 }
             }
 
-            // 2. Procesar nuevas subidas (Archivos físicos)
             if (!empty($this->imagenes)) {
                 foreach ($this->imagenes as $i => $imagen) {
                     if ($imagen['error'] === 0) {
@@ -407,34 +381,32 @@ class Noticia
                         if ($imagen['size'] > 5 * 1024 * 1024) continue;
 
                         $nombre_archivo = uniqid('not_') . '.' . $extension;
-                        $target_file = $target_dir . $nombre_archivo;
+                        $target_file = $target_dir . DS . $nombre_archivo;
 
                         if (move_uploaded_file($imagen["tmp_name"], $target_file)) {
-                            try {
-                                $id_imagen = "IMG-" . date('YmdHis') . rand(100,999);
-                                $direccion = '/assets/img/noticias/' . $nombre_archivo;
-                                $es_principal = ($orden == 1) ? 1 : 0;
+                            $id_imagen = "IMG-" . date('YmdHis') . rand(100,999);
+                            $direccion = '/assets/img/noticias/' . $nombre_archivo;
+                            $es_principal = ($orden == 1) ? 1 : 0;
 
-                                $stm->bindParam(':id_imagen', $id_imagen);
-                                $stm->bindParam(':entidad_id', $this->id_noticia);
-                                $stm->bindParam(':direccion', $direccion);
-                                $stm->bindParam(':orden', $orden);
-                                $stm->bindParam(':es_principal', $es_principal);
-                                $stm->execute();
-                                $orden++;
-                            } catch (\PDOException $ex) {
-                                Helper::ErrorLog("Error DB insertando img Noticia: " . $ex->getMessage());
-                            }
+                            $stm->bindParam(':id_imagen', $id_imagen);
+                            $stm->bindParam(':entidad_id', $this->id_noticia);
+                            $stm->bindParam(':direccion', $direccion);
+                            $stm->bindParam(':orden', $orden);
+                            $stm->bindParam(':es_principal', $es_principal);
+                            $stm->execute();
+                            $orden++;
                         }
                     }
                 }
             }
         }
     }
+
     public function ObtenerAutoresPublicos()
     {
         $autores = [];
         try {
+            $this->LlamarConexion();
             $sql = "SELECT DISTINCT u.username 
                     FROM noticia n 
                     JOIN usuario u ON n.cedula = u.cedula 
@@ -445,6 +417,7 @@ class Noticia
         } catch (\PDOException $e) {
             Helper::ErrorLog("Error obteniendo autores: " . $e->getMessage());
         }
+        $this->DestruirConexion();
         return $autores;
     }
 
@@ -453,29 +426,32 @@ class Noticia
         $dato = [];
         try {
             $this->LlamarConexion();
-            // Verificar que exista y pertenezca a una NOTICIA
+            $this->LlamarConexion()->beginTransaction();
+
             $sql = "SELECT id_imagen FROM imagen WHERE id_imagen = :id AND entidad_tipo = 'NOTICIA'";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute(['id' => $id_imagen]);
             $img = $stm->fetch(PDO::FETCH_ASSOC);
 
             if ($img) {
-                // Solo desvincular de la noticia (NO borra el archivo físico).
-                // El Gestor Multimedia es el responsable de la eliminación permanente.
                 $sqlDel = "DELETE FROM imagen WHERE id_imagen = :id";
                 $this->LlamarConexion()->prepare($sqlDel)->execute(['id' => $id_imagen]);
 
+                $this->LlamarConexion()->commit();
                 $dato['resultado'] = 200;
                 $dato['mensaje'] = "Imagen desvinculada de la noticia correctamente";
             } else {
+                $this->LlamarConexion()->rollBack();
                 $dato['resultado'] = 404;
                 $dato['mensaje'] = "Imagen no encontrada";
             }
         } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
             Helper::ErrorLog("Error desvinculando imagen: " . $e->getMessage());
             $dato['resultado'] = 500;
             $dato['mensaje'] = "Error interno";
         }
+        $this->DestruirConexion();
         return ['response' => $dato];
     }
 
@@ -486,18 +462,15 @@ class Noticia
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
 
-            // 1. Buscar a qué noticia pertenece
             $sqlSearch = "SELECT entidad_id FROM imagen WHERE id_imagen = :id AND entidad_tipo = 'NOTICIA'";
             $stmS = $this->LlamarConexion()->prepare($sqlSearch);
             $stmS->execute(['id' => $id_imagen]);
             $res = $stmS->fetch(PDO::FETCH_ASSOC);
 
             if ($res) {
-                // 2. Quitar principal a todas las de esa noticia
                 $sqlReset = "UPDATE imagen SET es_principal = 0 WHERE entidad_tipo = 'NOTICIA' AND entidad_id = :nid";
                 $this->LlamarConexion()->prepare($sqlReset)->execute(['nid' => $res['entidad_id']]);
 
-                // 3. Marcar la seleccionada
                 $sqlSet = "UPDATE imagen SET es_principal = 1 WHERE id_imagen = :id";
                 $this->LlamarConexion()->prepare($sqlSet)->execute(['id' => $id_imagen]);
 
@@ -506,6 +479,7 @@ class Noticia
                 $dato['resultado'] = 200;
                 $dato['mensaje'] = "Imagen principal actualizada";
             } else {
+                $this->LlamarConexion()->rollBack();
                 $dato['resultado'] = 404;
                 $dato['mensaje'] = "Imagen no encontrada";
             }
@@ -515,6 +489,7 @@ class Noticia
             $dato['resultado'] = 500;
             $dato['mensaje'] = "Error interno";
         }
+        $this->DestruirConexion();
         return ['response' => $dato];
     }
 }

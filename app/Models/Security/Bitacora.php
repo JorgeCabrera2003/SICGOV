@@ -2,10 +2,10 @@
 namespace App\Models\Security;
 
 use App\Core\Database;
+use App\Helpers\Helper;
 use PDO;
 
-class Bitacora {
-    private $db;
+class Bitacora extends Database {
     private $id_bitacora;
     private $cedula;
     private $modulo;
@@ -17,7 +17,15 @@ class Bitacora {
     private $fecha;
 
     public function __construct() {
-        $this->db = Database::getConnection('security');
+        $this->id_bitacora = "";
+        $this->cedula = "";
+        $this->modulo = "";
+        $this->accion = "";
+        $this->detalle = "";
+        $this->ip_address = "";
+        $this->valores_anteriores = NULL;
+        $this->valores_nuevos = NULL;
+        $this->fecha = "";
     }
 
     public function setIdBitacora($id) { $this->id_bitacora = $id; }
@@ -31,18 +39,23 @@ class Bitacora {
     public function set_fecha($f) { $this->fecha = $f; }
 
     public function Transaccion($peticion) {
-        switch ($peticion['peticion']) {
-            case 'listar':
-                return $this->listarBitacora($peticion['filtros'] ?? []);
-            case 'registrar':
-                return $this->Registrar();
-            default:
-                return false;
+        $response = false;
+        if (isset($peticion['peticion'])) {
+            $response = match ($peticion['peticion']) {
+                'listar' => $this->listarBitacora($peticion['filtros'] ?? []),
+                'registrar' => $this->Registrar(),
+                default => false
+            };
         }
+        return $response;
     }
 
     private function listarBitacora($filtros = []) {
+        $arreglo = [];
         try {
+            $this->LlamarConexion("security");
+            $this->LlamarConexion()->beginTransaction();
+
             $sql = "SELECT 
                         b.id_bitacora,
                         b.modulo,
@@ -83,18 +96,26 @@ class Bitacora {
 
             $sql .= " ORDER BY b.fecha DESC";
             
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->LlamarConexion()->prepare($sql);
             $stmt->execute($params);
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $arreglo = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
+            $this->LlamarConexion()->commit();
         } catch (\PDOException $e) {
-            error_log("Error en listarBitacora: " . $e->getMessage());
-            return [];
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog("Error en listarBitacora: " . $e->getMessage());
+            $arreglo = [];
         }
+        $this->DestruirConexion();
+        return $arreglo;
     }
 
     private function Registrar() {
+        $result = false;
         try {
+            $this->LlamarConexion("security");
+            $this->LlamarConexion()->beginTransaction();
+
             $this->ip_address = $this->ip_address ?: ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
             
             $sql = "INSERT INTO bitacora (
@@ -119,7 +140,7 @@ class Bitacora {
                         :fecha
                     )";
 
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->LlamarConexion()->prepare($sql);
             
             $result = $stmt->execute([
                 'id_bitacora' => $this->id_bitacora,
@@ -133,11 +154,13 @@ class Bitacora {
                 'fecha' => $this->fecha ?? date('Y-m-d H:i:s')
             ]);
             
-            return $result;
-            
+            $this->LlamarConexion()->commit();
         } catch (\PDOException $e) {
-            error_log("Error en Bitacora::Registrar: " . $e->getMessage());
-            return false;
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog("Error en Bitacora::Registrar: " . $e->getMessage());
+            $result = false;
         }
+        $this->DestruirConexion();
+        return $result;
     }
 }
