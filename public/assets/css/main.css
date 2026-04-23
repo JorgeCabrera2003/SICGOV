@@ -562,22 +562,35 @@
 .modal-body::-webkit-scrollbar {
     width: 12px !important;
 }
+/* Modo Claro (Defecto) */
 .modal-body::-webkit-scrollbar-track {
-    background: #1a1d20 !important;
+    background: #f8f9fa !important;
     border-radius: 10px;
 }
 .modal-body::-webkit-scrollbar-thumb {
-    background: #495057 !important;
+    background: #adb5bd !important;
     border-radius: 10px;
-    border: 3px solid #1a1d20;
+    border: 3px solid #f8f9fa;
 }
 .modal-body::-webkit-scrollbar-thumb:hover {
-    background: #ff9800 !important;
+    background: var(--color-primary) !important;
 }
 
-/* Firefox */
+/* Firefox (Modo Claro) */
 .modal-body {
     scrollbar-width: auto;
+    scrollbar-color: #adb5bd #f8f9fa;
+}
+
+/* Modo Oscuro */
+.dark .modal-body::-webkit-scrollbar-track {
+    background: #1a1d20 !important;
+}
+.dark .modal-body::-webkit-scrollbar-thumb {
+    background: #495057 !important;
+    border: 3px solid #1a1d20;
+}
+.dark .modal-body {
     scrollbar-color: #495057 #1a1d20;
 }
 

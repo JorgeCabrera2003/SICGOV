@@ -27,6 +27,7 @@ class Cliente
     private $correo;
     private $direccion;
     private $sexo;
+    private $estatus;
     private $db;
 
     public function __construct()
@@ -39,6 +40,7 @@ class Cliente
         $this->correo = "";
         $this->direccion = "";
         $this->sexo = "";
+        $this->estatus = 1;
         $this->db = NULL;
     }
 
@@ -101,6 +103,11 @@ class Cliente
         $this->sexo = $sexo;
     }
 
+    public function setEstatus(int $estatus)
+    {
+        $this->estatus = $estatus;
+    }
+
     public function getCedula()
     {
         return $this->cedula;
@@ -119,6 +126,7 @@ class Cliente
                 'consultar' => $this->ConsultarCliente(),
                 'actualizar', 'modificar' => $this->ModificarCliente(),
                 'eliminar' => $this->EliminarCliente(),
+                'cambiar_estatus' => $this->CambiarEstatusCliente(),
                 'validar' => $this->ValidarCliente(),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
@@ -137,7 +145,7 @@ class Cliente
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT p.*, c.fecha_registro FROM persona p INNER JOIN cliente c ON p.cedula = c.cedula";
+            $sql = "SELECT p.*, c.fecha_registro, c.estatus FROM persona p INNER JOIN cliente c ON p.cedula = c.cedula";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute();
             if ($stm->rowCount() > 0) {
@@ -311,6 +319,46 @@ class Cliente
         return $dato;
     }
 
+    private function CambiarEstatusCliente()
+    {
+        $dato = [];
+        $validacion = $this->ValidarCliente();
+
+        if ($validacion['bool'] == 1) {
+            try {
+                $this->LlamarConexion();
+                $this->LlamarConexion()->beginTransaction();
+                
+                $sql = "UPDATE cliente SET estatus = :estatus WHERE cedula = :cedula";
+                $stm = $this->db->prepare($sql);
+                $stm->bindParam('estatus', $this->estatus);
+                $stm->bindParam('cedula', $this->cedula);
+                $stm->execute();
+                $this->LlamarConexion()->commit();
+                $stm = NULL;
+
+                $dato['estado'] = 1;
+                $mensaje = $this->estatus == 1 ? "Cliente reactivado" : "Cliente desactivado";
+                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => $mensaje];
+                $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+            } catch (\PDOException $e) {
+                if($this->LlamarConexion()->inTransaction()) {
+                    $this->LlamarConexion()->rollBack();
+                }
+                Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+                $dato['estado'] = -1;
+                $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor"];
+                $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+            }
+        } else {
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 404, 'icon' => 'error', 'mensaje' => "Registro no encontrado"];
+            $dato['HTTP_STATUS'] = ['codigo' => 404, 'mensaje' => "No encontrado"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+
     private function ValidarCliente()
     {
         $dato = [];
@@ -320,7 +368,7 @@ class Cliente
             if (!$this->LlamarConexion()->inTransaction()) {
                 $this->LlamarConexion()->beginTransaction();
             }
-            $sql = "SELECT p.*, c.fecha_registro FROM persona p INNER JOIN cliente c ON p.cedula = c.cedula WHERE c.cedula = :cedula";
+            $sql = "SELECT p.*, c.fecha_registro, c.estatus FROM persona p INNER JOIN cliente c ON p.cedula = c.cedula WHERE c.cedula = :cedula";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':cedula', $this->cedula);
             $stm->execute();

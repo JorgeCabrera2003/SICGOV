@@ -33,10 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Listeners Filtros
         filtrosCategorias.forEach(btn => {
             btn.addEventListener('click', (e) => {
-                filtrosCategorias.forEach(b => b.classList.remove('active', 'fw-bold', 'shadow-sm'));
+                filtrosCategorias.forEach(b => b.classList.remove('active'));
                 
                 const target = e.target;
-                target.classList.add('active', 'fw-bold', 'shadow-sm');
+                target.classList.add('active');
                 
                 filtrarGaleria(target.dataset.categoria);
             });
@@ -87,9 +87,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function filtrarGaleria(idCategoria) {
         galleryContainer.innerHTML = '';
-        const filtrados = idCategoria === 'todas' 
-            ? productosActuales 
-            : productosActuales.filter(p => p.id_categoria === idCategoria);
+        let filtrados = [];
+        
+        if (idCategoria === 'todas') {
+            filtrados = productosActuales.filter(p => p.estatus == 1);
+        } else if (idCategoria === 'inactivos') {
+            filtrados = productosActuales.filter(p => p.estatus == 0);
+        } else {
+            filtrados = productosActuales.filter(p => p.estatus == 1 && p.id_categoria == idCategoria);
+        }
 
         if (filtrados.length === 0) {
             galleryContainer.style.display = 'none';
@@ -128,12 +134,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
                         <span class="badge border border-secondary bg-transparent text-body"><i class="fas fa-tag me-1 text-primary"></i>${p.categoria_nombre}</span>
                         <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-secondary btn-editar" data-id="${p.id_producto}" title="Editar Mnedú">
+                            <button class="btn btn-sm btn-outline-secondary btn-editar" data-id="${p.id_producto}" title="Editar Menú">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger btn-eliminar" data-id="${p.id_producto}" title="Eliminar del Menú">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                            ${p.estatus == 1 
+                                ? `<button class="btn btn-sm btn-outline-danger btn-estatus" data-id="${p.id_producto}" data-estatus="${p.estatus}" title="Inactivar del Menú"><i class="fas fa-power-off"></i></button>`
+                                : `<button class="btn btn-sm btn-outline-success btn-estatus" data-id="${p.id_producto}" data-estatus="${p.estatus}" title="Activar en el Menú"><i class="fas fa-power-off"></i></button>`
+                            }
                         </div>
                     </div>
                 </div>
@@ -144,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Listeners para botones creados
         card.querySelector('.btn-editar').addEventListener('click', () => editarMenu(p.id_producto));
-        card.querySelector('.btn-eliminar').addEventListener('click', () => eliminarMenu(p.id_producto));
+        card.querySelector('.btn-estatus').addEventListener('click', (e) => cambiarEstatus(p.id_producto, p.estatus));
     }
 
     // ==========================================
@@ -389,7 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('tipo_producto').value = p.tipo_producto;
                 document.getElementById('id_categoria').value = p.id_categoria;
                 document.getElementById('descripcion').value = p.descripcion;
-                document.getElementById('estatus').checked = p.estatus == 1;
 
                 if (p.imagen && p.imagen !== 'default-product.png') {
                     document.getElementById('previewImagenContainer').style.display = 'block';
@@ -426,23 +432,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function eliminarMenu(id) {
+    function cambiarEstatus(id, estatusActual) {
+        const nuevoEstatus = estatusActual == 1 ? 0 : 1;
+        const textoAccion = estatusActual == 1 ? 'inactivar' : 'activar';
+        const textoConfirmacion = estatusActual == 1 
+            ? "El producto ya no será visible para los clientes" 
+            : "El producto volverá a estar disponible";
+
         Swal.fire({
-            title: '¿Estás seguro?',
-            text: "El producto ya no estará disponible en el menú",
+            title: `¿Estás seguro de ${textoAccion} este producto?`,
+            text: textoConfirmacion,
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, eliminar',
+            confirmButtonColor: estatusActual == 1 ? '#d33' : '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: `Sí, ${textoAccion}`,
             cancelButtonText: 'Cancelar'
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
                     const formData = new FormData();
                     formData.append('id', id);
+                    formData.append('estatus', nuevoEstatus);
 
-                    const req = await fetch(`${BASE_URL}/?page=menu&action=eliminar`, {
+                    const req = await fetch(`${BASE_URL}/?page=menu&action=cambiar_estatus`, {
                         method: 'POST',
                         body: formData
                     });
@@ -451,8 +464,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (res.success) {
                         Swal.fire({
                             icon: 'success',
-                            title: 'Eliminado',
-                            text: 'Producto eliminado correctamente',
+                            title: 'Éxito',
+                            text: `Producto ${estatusActual == 1 ? 'inactivado' : 'activado'} correctamente`,
                             timer: 1500,
                             showConfirmButton: false
                         });

@@ -98,4 +98,105 @@ class CategoriaController
         }
         exit();
     }
+
+    public function index()
+    {
+        Helper::verificarSesion();
+
+        $categoriaModel = new CategoriaProducto();
+
+        if (isset($_POST["peticion"])) {
+
+            // Entrada
+            if ($_POST["peticion"] == "entrada") {
+                $json['HTTP_STATUS'] = ['codigo' => 204, 'mensaje' => ''];
+                $json['response'] = ['resultado' => 204, 'mensaje' => 'No hay contenido'];
+            }
+
+            // Registrar y Modificar
+            if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
+                $accion_permiso = true; 
+
+                if ($accion_permiso) {
+                    $bool_formulario = true;
+                    $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+
+                    if (empty($_POST["nombre_categoria"])) {
+                        $json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Nombre no válido'];
+                        $bool_formulario = false;
+                    }
+
+                    if ($bool_formulario) {
+                        $categoriaModel->setNombreCategoria($_POST["nombre_categoria"]);
+                        $categoriaModel->setDescripcion($_POST["descripcion"] ?? '');
+                        $categoriaModel->setIcono('default.png');
+                        
+                        if ($_POST["peticion"] == "modificar") {
+                            // En actualizar, se requiere el estatus
+                            $categoriaModel->setIdCategoria($_POST["id_categoria"]);
+                            $categoriaModel->setEstatus($_POST["estatus"] ?? 1); 
+                            $jsonResult = $categoriaModel->Transaccion(['peticion' => 'actualizar']);
+                        } else {
+                            $categoriaModel->setEstatus(1);
+                            $jsonResult = $categoriaModel->Transaccion(['peticion' => 'guardar']);
+                        }
+                        
+                        if ($jsonResult && isset($jsonResult['success']) && $jsonResult['success']) {
+                            $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+                            $json['response'] = ['resultado' => 200, 'mensaje' => $jsonResult['message']];
+                        } else {
+                            $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'OK'];
+                            $json['response'] = ['resultado' => 400, 'mensaje' => $jsonResult['message'] ?? 'Error desconocido'];
+                        }
+                    }
+                } else {
+                    $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+                    $json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para esto'];
+                }
+            }
+            
+            // Consultar
+            if ($_POST["peticion"] == "consultar") {
+                $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => ''];
+                $json['response'] = $categoriaModel->Transaccion(['peticion' => 'consultar']);
+            }
+            
+            // Cambiar Estatus (Eliminado lógico / Desactivar / Activar)
+            if ($_POST["peticion"] == "cambiar_estatus") {
+                $accion_permiso = true;
+
+                if ($accion_permiso) {
+                    if (empty($_POST["id_categoria"]) || !isset($_POST["estatus"])) {
+                        $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos mínimos no válidos'];
+                        $json['response'] = ['resultado' => 400, 'mensaje' => 'Error, ID y Estatus requeridos'];
+                    } else {
+                        $categoriaModel->setIdCategoria($_POST["id_categoria"]);
+                        $categoriaModel->setEstatus($_POST["estatus"]);
+                        $jsonResult = $categoriaModel->Transaccion(['peticion' => 'cambiar_estatus']);
+                        
+                        if ($jsonResult && isset($jsonResult['success']) && $jsonResult['success']) {
+                            $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+                            $json['response'] = ['resultado' => 200, 'mensaje' => $jsonResult['message']];
+                        } else {
+                            $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'OK'];
+                            $json['response'] = ['resultado' => 400, 'mensaje' => $jsonResult['message'] ?? 'Error al actualizar estatus'];
+                        }
+                    }
+                } else {
+                    $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+                    $json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para esto'];
+                }
+            }
+
+            header("Content-Type: application/json");
+            header("HTTP/1.1 " . ($json['HTTP_STATUS']['codigo'] ?? 200) . " " . ($json['HTTP_STATUS']['mensaje'] ?? ""));
+            echo json_encode($json['response'] ?? []);
+            exit;
+        }
+
+        Helper::cargarVista(
+            'categoria/index',
+            'Categorías - Good Vibes'
+        );
+    }
 }

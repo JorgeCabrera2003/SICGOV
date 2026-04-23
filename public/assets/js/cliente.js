@@ -246,7 +246,7 @@ $('#modalCliente').on('shown.bs.modal', function () {
 
 async function vistaPermiso() {
   const dropdown = $('<div>').addClass('dropdown');
-  const boton = $('<button>').addClass('btn btn-sm btn-dark dropdown-toggle')
+  const boton = $('<button>').addClass('btn btn-sm bg-body text-body border dropdown-toggle')
     .attr('type', 'button')
     .attr('data-bs-toggle', 'dropdown')
     .html('<i class="fas fa-ellipsis-v me-2"></i>Acciones');
@@ -275,8 +275,8 @@ async function vistaPermiso() {
   const linkEliminar = $('<a>')
     .addClass('dropdown-item text-danger')
     .attr('href', '#')
-    .attr('onclick', 'rellenar(this, 1)')
-    .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
+    .attr('onclick', 'cambiarEstatus(this)')
+    .html('<i class="fa-solid fa-power-off me-2"></i>Cambiar Estatus');
   itemEliminar.append(linkEliminar);
 
   menu.append(itemConsultar, itemEditar, separador, itemEliminar);
@@ -387,6 +387,14 @@ async function crearDataTable() {
           return edad + " años";
         }
       },
+      { 
+        data: 'estatus',
+        render: function(data) {
+            return data == 1 
+                ? '<span class="badge bg-success">Activo</span>'
+                : '<span class="badge bg-danger">Inactivo</span>';
+        }
+      },
       {
         data: null,
         render: function () {
@@ -466,6 +474,39 @@ function rellenar(pos, accion) {
 
   // Habilitar el botón inmediatamente para Modificar/Eliminar ya que los datos vienen pre-validados
   $('#btnClienteForm').prop('disabled', false);
+}
+
+// Función exclusiva para Cambiar Estatus directamente sin Modal
+async function cambiarEstatus(pos) {
+    const linea = $(pos).closest('tr');
+    const tabla = $('#tablaCliente').DataTable();
+    const datosFila = tabla.row(linea).data();
+    
+    let nuevoEstatus = datosFila.estatus == 1 ? 0 : 1;
+    let textoAccion = datosFila.estatus == 1 ? "desactivará" : "reactivará";
+    
+    let confirmacion = await confirmarAccion(`Se ${textoAccion} al Cliente`, "¿Está seguro de realizar la acción?", "warning");
+    
+    if (confirmacion) {
+        let peticionData = new FormData();
+        peticionData.append('peticion', 'cambiar_estatus');
+        // cédula is expected by backend instead of id_categoria
+        peticionData.append('cedula', datosFila.cedula);
+        peticionData.append('estatus', nuevoEstatus);
+        
+        try {
+            let json = await enviaAjax(peticionData);
+
+            if (json.resultado >= 200 && json.resultado < 300) {
+                crearDataTable();
+                mensajes("success", 3000, "Éxito", json.mensaje);
+            } else {
+                mensajes("error", 5000, "Error", json.mensaje || "Ocurrió un error inesperado.");
+            }
+        } catch (error) {
+            mensajes("error", 5000, "Error", "Error de comunicación con el servidor.");
+        }
+    }
 }
 
 function consultarFila(pos) {
