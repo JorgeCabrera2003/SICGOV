@@ -76,7 +76,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label small fw-bold text-uppercase">Hora</label>
-                            <input type="time" class="form-control bg-light" name="hora" id="hora" required>
+                            <input type="text" class="form-control bg-light" name="hora" id="hora" placeholder="Seleccione hora" required>
                             <div id="shora"></div>
                         </div>
                     </div>

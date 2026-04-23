@@ -81,16 +81,19 @@ class ReservacionController
             exit;
         }
 
-        // Cargar vista con dependencias de FullCalendar
+        // Cargar vista con dependencias de FullCalendar y Flatpickr
         Helper::cargarVista('reservaciones/index', 'Gestión de Reservaciones', [
             'clientes' => $resModel->ObtenerClientes(),
             'extra_css' => [
                 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css',
+                'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css',
                 BASE_URL . '/assets/css/reservaciones.css'
             ],
             'extra_js' => [
                 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js',
-                'https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/es.global.min.js'
+                'https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/es.global.min.js',
+                'https://cdn.jsdelivr.net/npm/flatpickr',
+                'https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js'
             ]
         ]);
     }

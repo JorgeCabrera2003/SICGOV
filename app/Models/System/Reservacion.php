@@ -100,8 +100,10 @@ class Reservacion extends Database
     private function Registrar()
     {
         try {
-            $this->LlamarConexion()->beginTransaction();
+            // Validar si el horario ya está ocupado
+            $this->ValidarDisponibilidad($this->fecha, $this->hora);
 
+            $this->LlamarConexion()->beginTransaction();
             $sql = "INSERT INTO reservacion(id_reservacion, cedula_cliente, fecha, hora, estado) 
                     VALUES (:id, :cedula, :fecha, :hora, :estado)";
             
@@ -125,8 +127,10 @@ class Reservacion extends Database
     private function Modificar()
     {
         try {
-            $this->LlamarConexion()->beginTransaction();
+            // Validar si el nuevo horario ya está ocupado (excluyendo la actual)
+            $this->ValidarDisponibilidad($this->fecha, $this->hora, $this->id_reservacion);
 
+            $this->LlamarConexion()->beginTransaction();
             $sql = "UPDATE reservacion SET fecha = :fecha, hora = :hora, estado = :estado 
                     WHERE id_reservacion = :id";
             
@@ -143,6 +147,22 @@ class Reservacion extends Database
         } catch (PDOException $e) {
             $this->LlamarConexion()->rollBack();
             throw $e;
+        }
+    }
+
+    private function ValidarDisponibilidad($fecha, $hora, $id_excluir = null)
+    {
+        $sql = "SELECT COUNT(*) FROM reservacion WHERE fecha = :fecha AND hora = :hora";
+        if ($id_excluir) {
+            $sql .= " AND id_reservacion != :id";
+        }
+        $stm = $this->LlamarConexion()->prepare($sql);
+        $params = [':fecha' => $fecha, ':hora' => $hora];
+        if ($id_excluir) $params[':id'] = $id_excluir;
+        
+        $stm->execute($params);
+        if ($stm->fetchColumn() > 0) {
+            throw new Exception("El horario seleccionado ya se encuentra ocupado por otra reservación.");
         }
     }
 

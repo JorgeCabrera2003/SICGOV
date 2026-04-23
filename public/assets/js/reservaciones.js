@@ -26,6 +26,17 @@ document.addEventListener('DOMContentLoaded', function() {
         inicializarBuscadorPremium('.select2-cliente', $('#modalReservacion'));
     }
 
+    // Inicializar Flatpickr para la Hora (Formato 12h AM/PM)
+    const timePicker = flatpickr("#hora", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i", // Se envía en 24h al servidor para BD
+        altInput: true,
+        altFormat: "h:i K", // Se muestra en 12h AM/PM al usuario
+        time_24hr: false,
+        locale: "es"
+    });
+
     // Inicializar FullCalendar
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
@@ -35,9 +46,15 @@ document.addEventListener('DOMContentLoaded', function() {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
-        eventTimeFormat: { // Formato 12h (AM/PM)
+        eventTimeFormat: { // Formato 12h para los eventos
             hour: 'numeric',
             minute: '2-digit',
+            meridiem: 'short'
+        },
+        slotLabelFormat: { // Formato 12h para las horas laterales (Vista semana/día)
+            hour: 'numeric',
+            minute: '2-digit',
+            omitZeroMinute: false,
             meridiem: 'short'
         },
         themeSystem: 'bootstrap5',
@@ -73,7 +90,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (info.view.type !== 'dayGridMonth') {
                 const hora = info.start.toTimeString().split(' ')[0].substring(0, 5);
-                $('#hora').val(hora);
+                timePicker.setDate(hora);
+            } else {
+                timePicker.clear();
             }
 
             $('#btnEliminar').hide();
@@ -89,7 +108,10 @@ document.addEventListener('DOMContentLoaded', function() {
             $('#id_reservacion').val(event.id);
             $('#cedula_cliente').val(props.cedula).trigger('change'); // Update Select2
             $('#fecha').val(event.startStr.split('T')[0]);
-            $('#hora').val(event.startStr.split('T')[1].substring(0, 5));
+            
+            const hora = event.startStr.split('T')[1].substring(0, 5);
+            timePicker.setDate(hora);
+
             $('#estado').val(props.estado);
 
             $('#btnEliminar').show();
