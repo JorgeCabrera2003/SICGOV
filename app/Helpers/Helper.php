@@ -91,7 +91,7 @@ class Helper
      */
     public static function ErrorLog(string $mensaje)
     {
-        $ruta_log = BASE_PATH . "\logs\logs.txt"; // Ruta del archivo
+        $ruta_log = self::fixPath(BASE_PATH . "/logs/logs.txt");
         $directorio = dirname($ruta_log);
 
         // Crear directorio si no existe
@@ -104,6 +104,16 @@ class Helper
             $ruta_log
         );
     }
+
+    /**
+     * Normaliza una ruta para que sea compatible con el OS actual
+     * Convierte / y \ al separador correcto del sistema
+     */
+    public static function fixPath($path)
+    {
+        return str_replace(['/', '\\'], DS, $path);
+    }
+
     public static function verificarSesion()
     {
         if (session_status() === PHP_SESSION_NONE) {

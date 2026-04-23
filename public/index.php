@@ -1,6 +1,9 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
 
+// Definir separador de directorios compatible con el OS (Windows \ o Linux /)
+define('DS', DIRECTORY_SEPARATOR);
+
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
 
 $host = $_SERVER['HTTP_HOST'];
