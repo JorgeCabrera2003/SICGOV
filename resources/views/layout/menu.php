@@ -68,6 +68,13 @@
             <span class="flex-grow-1">Clientes</span>
         </a>
 
+        <!-- Reservaciones -->
+        <a href="<?php echo BASE_URL; ?>/?page=reservaciones"
+            class="nav-link <?php echo ($page == 'reservaciones') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+            <i class="bi bi-calendar-check fs-5"></i>
+            <span class="flex-grow-1">Reservaciones</span>
+        </a>
+
         <!-- Pedidos / Mesas -->
         <a href="<?php echo BASE_URL; ?>/?page=pedidos"
             class="nav-link <?php echo ($page == 'pedidos') ? 'active' : ''; ?> d-flex align-items-center gap-2">

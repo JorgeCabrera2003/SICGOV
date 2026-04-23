@@ -35,6 +35,7 @@ use App\Controllers\UsuarioController;
 use App\Controllers\NoticiaController;
 use App\Controllers\MediaController;
 use App\Controllers\ClienteController;
+use App\Controllers\ReservacionController;
 
 try {
     match ($page) {
@@ -54,6 +55,7 @@ try {
         'noticias-detalle' => (new NoticiaController())->detallePublico(),
         'multimedia' => (new MediaController())->index(),
         'clientes' => (new ClienteController())->index(),
+        'reservaciones' => (new ReservacionController())->index(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };
 } catch (Exception $e) {
