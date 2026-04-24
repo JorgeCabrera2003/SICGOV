@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     render: function (data, type, row) {
                         const $dropdown = $('<div>', { class: 'dropdown' });
                         $dropdown.append(
-                            $('<button>', { class: 'btn btn-sm btn-light border dropdown-toggle', type: 'button', 'data-bs-toggle': 'dropdown' })
+                            $('<button>', { class: 'btn btn-sm btn-light border dropdown-toggle', type: 'button' })
                                 .append($('<i>', { class: 'fas fa-ellipsis-v' }))
                         );
                         
@@ -417,4 +417,22 @@ document.addEventListener("DOMContentLoaded", function () {
             renderCurrentImages(res.registro.imagenes);
         }
     }
+
+    // Comportamiento de hover para el botón de acciones en la tabla
+    $(document).on({
+        mouseenter: function() {
+            const $toggle = $(this).find('.dropdown-toggle');
+            if ($toggle.length) {
+                const instance = bootstrap.Dropdown.getOrCreateInstance($toggle[0]);
+                instance.show();
+            }
+        },
+        mouseleave: function() {
+            const $toggle = $(this).find('.dropdown-toggle');
+            if ($toggle.length) {
+                const instance = bootstrap.Dropdown.getOrCreateInstance($toggle[0]);
+                instance.hide();
+            }
+        }
+    }, '#tablaNoticias .dropdown');
 });
