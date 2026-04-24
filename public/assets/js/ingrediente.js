@@ -9,14 +9,22 @@ function etiquetasFormulario(etiquetas) {
   const inputIngrediente = {
     nombre: $('#nombre'),
     costo_unitario: $('#costo_unitario'),
+    categoria_id: $('#clave_categoria'),
     unidad_medida: $('#unidad_medida'),
+    stock_inicial: $('#stock_inicial'),
+    stock_minimo: $('#stock_minimo'),
+    stock_maximo: $('#stock_maximo'),
     id_ingrediente: $('#id_ingrediente')
   }
 
   const spanIngrediente = {
-    snombre: $('s#nombre'),
+    nombre: $('#snombre'),
     costo_unitario: $('#scosto_unitario'),
+    categoria_id: $('#sclave_categoria'),
     unidad_medida: $('#sunidad_medida'),
+    stock_inicial: $('#sstock_inicial'),
+    stock_minimo: $('#sstock_minimo'),
+    stock_maximo: $('#sstock_maximo'),
     id_ingrediente: $('#sid_ingrediente')
   }
 
@@ -40,7 +48,7 @@ function etiquetasFormulario(etiquetas) {
     referencia = spanIngrediente
   }
 
-  if (etiquetas === "span-Categoria") {
+  if (etiquetas === "input-Categoria") {
     referencia = inputCategoria;
   }
 
@@ -64,13 +72,13 @@ function etiquetasModal(etiqueta) {
 
   const modalCategoriaTabla = {
     modal: $('#modalCategoria'),
-    titulo: $('#modalTitleText-Categoia'),
+    titulo: $('#modalTitleTextCategoria'),
     boton: $('#btn-CategoriaPCancel')
   }
 
   const modalCategoria = {
     modal: $('#modal-formcategoria'),
-    titulo: $('#modalTitleText-Form-Categoia'),
+    titulo: $('#modalTitleText-Form-Categoria'),
     boton: $('#btn-CategoriaForm')
   }
 
@@ -91,7 +99,7 @@ function etiquetasModal(etiqueta) {
 //Fin de Interfaz de Acceso
 
 //Función para editar textos visuales del modal
-function editarModal(operacion, modal = "Ingrediente") {
+function editarModal(modal = "Ingrediente", operacion) {
   let titulo;
   let boton;
   let etiqueta_modal = etiquetasModal(modal);
@@ -128,7 +136,7 @@ function editarModal(operacion, modal = "Ingrediente") {
 function manejarCambioEstado(formularioValido) {
   let input = etiquetasFormulario("input");
   let span = etiquetasFormulario("span");
-  let modal = etiquetasModal("principal");
+  let modal = etiquetasModal("Ingrediente");
   const accion = modal.boton.text();
 
   if (accion === "Eliminar") {
@@ -150,7 +158,8 @@ $(document).ready(function () {
   capaValidar();
 
   // Inicializar sistema de validación con callback
-  SistemaValidacion.inicializar(etiquetasFormulario('input'), manejarCambioEstado);
+  SistemaValidacion.inicializar(etiquetasFormulario('input-Ingrediente'), manejarCambioEstado);
+  SistemaValidacion.inicializar(etiquetasFormulario('input-Categoria'), manejarCambioEstado);
 
   // Validar estado inicial del formulario
   manejarCambioEstado(false);
@@ -306,40 +315,41 @@ $("#btnIngredienteForm").on("click", async function () {
 });
 
 $("#btnNuevoIngrediente").on("click", function () {
-  limpiarFormulario("Ingrediente");
-  editarModal("registrar")
+  limpia("Ingrediente");
+  editarModal("Ingrediente", "registrar")
   // El botón se habilita automáticamente mediante el callback cuando los campos sean válidos
 });
 
 //Iniciar Tabla de Categoría de Ingrediente
 $("#btn-ModalCategorias").on("click", async function () {
   let etiqueta_modal = etiquetasModal("TablaCategoria");
-  
+
   await crearDataTable("categoria-ingrediente")
   etiqueta_modal.modal.modal("show");
-  
+
   etiqueta_modal = null;
 })
 
 //Iniciar Modal Formulario de Categoría de Ingrediente
 $("#btnNuevaCategoria").on("click", function () {
-  let etiqueta_modal = etiquetasModal("TablaCategoria");
+  let modal_tabla = etiquetasModal("TablaCategoria");
   let modal_form = etiquetasModal("Categoria");
-  etiqueta_modal.modal.modal("hide");
-  editarModal("registrar", "Categoria");
+  modal_tabla.modal.modal("hide");
+  editarModal("Categoria", "registrar");
 
-  etiqueta_modal = null;
+  modal_tabla = null;
   modal_form = null;
 })
 
 $("#btn-CategoriaCancel").on("click", function () {
-  let etiqueta_modal = etiquetasModal("Categoria");
-  let modal_form = etiquetasModal("TablaCategoria");
-  etiqueta_modal.modal.modal("show");
+  let modal_form = etiquetasModal("Categoria");
+  let modal_tabla = etiquetasModal("TablaCategoria");
   modal_form.modal.modal("hide");
+  modal_tabla.modal.modal("show");
 
-  etiqueta_modal = null;
+  console.log(modal_form);
   modal_form = null;
+  modal_tabla = null;
 })
 
 //Iniciar Tabla de Eliminadas (Papelera) usando evento click del botón
@@ -354,6 +364,43 @@ $('#modalIngrediente').on('shown.bs.modal', function () {
     SistemaValidacion.validarFormulario(etiquetasFormulario('input'));
   }, 100);
 });
+
+//CAPA DE VALIDACIÓN
+
+function capaValidar() {
+  KeyPressIngrediente();
+  KeyPressCategoria();
+}
+
+function KeyPressIngrediente() {
+  let input = etiquetasFormulario("input-Ingrediente")
+  input.nombre.on("keypress", function (e) {
+    validarKeyPress(/^[0-9 a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ -.\b]*$/, e);
+  });
+
+  input.costo_unitario.on("keypress", function (e) {
+    validarKeyPress(/^[0-9.\b]*$/, e);
+  });
+
+  // Aplicar capitalización en tiempo real para nombre y responsable
+  input.nombre.on("input", function () {
+    // Capitalizar mientras escribe (opcional)
+    const valor = $(this).val();
+    if (valor.length === 1) {
+      $(this).val(valor.toUpperCase());
+    }
+  });
+}
+
+function KeyPressCategoria() {
+  let input = etiquetasFormulario("input-Categoria");
+
+
+}
+
+function validarenvio(modulo = "Ingrediente") {
+  return SistemaValidacion.validarFormulario(etiquetasFormulario('input-' + modulo));
+}
 
 async function vistaPermiso(modulo = "Ingrediente") {
 
@@ -416,34 +463,8 @@ function ColorearStock(stockActual, stockMinimo, stockMaximo = null, abreviatura
   }
   texto.addClass(color).text(stockActual + " " + abreviatura);
   div.append(texto);
-  // Validación con formato en tiempo real
 
   return div.prop('outerHTML');
-}
-
-function capaValidar() {
-  let input = etiquetasFormulario("input")
-  // Validación con formato en tiempo real
-  input.nombre.on("keypress", function (e) {
-    validarKeyPress(/^[0-9 a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ -.\b]*$/, e);
-  });
-
-  input.costo_unitario.on("keypress", function (e) {
-    validarKeyPress(/^[0-9.\b]*$/, e);
-  });
-
-  // Aplicar capitalización en tiempo real para nombre y responsable
-  input.nombre.on("input", function () {
-    // Capitalizar mientras escribe (opcional)
-    const valor = $(this).val();
-    if (valor.length === 1) {
-      $(this).val(valor.toUpperCase());
-    }
-  });
-}
-
-function validarenvio(modulo = "Ingrediente") {
-  return SistemaValidacion.validarFormulario(etiquetasFormulario('input-' + modulo));
 }
 
 async function crearDataTable(controlador = "ingredientes") {
@@ -564,103 +585,98 @@ async function DataTableCategoria(arreglo) {
   return true;
 }
 
-async function iniciarTablaEliminadas() {
-  let peticion = new FormData();
-  let json = null;
-  let arreglo = [];
-  let boton = '';
-
-  try {
-    peticion.append('peticion', 'consultar_eliminadas');
-    json = await enviaAjax(peticion);
-    console.log(json);
-    json = JSON.parse(json);
-    arreglo = json.datos;
-    boton = await botonReactivar();
-    $("#modalEliminadas").modal("show");
-  } catch (error) {
-    arreglo = [];
-    console.log(error);
-  }
-
-
-  if ($.fn.DataTable.isDataTable('#tablaEliminadas')) {
-    $('#tablaEliminadas').DataTable().destroy();
-  }
-
-  $('#tablaEliminadas').DataTable({
-    data: arreglo,
-    columns: [
-      {
-        data: 'id',
-        visible: false
-      },
-      { data: 'nombre' },
-      { data: 'nombre_responsable' },
-      { data: 'telefono' },
-      { data: 'direccion' },
-      { data: 'tipo_ente' },
-      {
-        data: null,
-        render: function () {
-          return boton;
-        }
-      }
-    ],
-    order: [[1, 'asc']],
-    language: { url: idiomaTabla }
-  });
-}
-
 function limpia(formulario) {
   SistemaValidacion.limpiarValidacion(etiquetasFormulario('input-' + formulario));
 
   let input = etiquetasFormulario('input-' + formulario);
   let span = etiquetasFormulario('span-' + formulario);
-  let modal = null;
+  let modal = etiquetasModal(formulario);
+  let fila_stock_inicial = $("#fila-stock-inicial");
 
 
   if (formulario == "Ingrediente") {
-    modal = etiquetasModal("ingrediente");
-    input.id_ingrediente.val("").prop("readOnly", true)
-    input.nombre.val("").prop("readOnly", false)
-    input.costo_unitario.val("").prop("readOnly", false)
-    input.unidad_medida.val("default").prop("disabled", false)
-  }
+  input.id_ingrediente.val("").prop("disabled", true);
+  input.nombre.val("").prop("disabled", false);
+  input.costo_unitario.val("").prop("disabled", false);
+  input.unidad_medida.prop("disabled", false);
+  input.stock_inicial.val("").prop("disabled", false);
+  input.stock_maximo.val("").prop("disabled", false);
+  input.stock_minimo.val("").prop("disabled", false);
+
+  fila_stock_inicial.removeClass("d-none");
+}
 
   if (formulario == "Categoria") {
-
+    input.id_categoria.val("").prop("readOnly", true);
+    input.nombre.val("").prop("readOnly", false)
+    input.descripcion.val("").prop("readOnly", false)
   }
 
 
   // Deshabilitar el botón al limpiar (se habilitará automáticamente cuando los campos sean válidos)
-  $('#enviar').prop('disabled', true);
+  modal.boton.prop('disabled', true);
   input = null;
+  span = null;
+  modal = null;
 }
 
-function rellenar(pos, accion, modulo = "Ingrediente") {
-  limpia();
-  let input = etiquetasFormulario('input-'+modulo)
+async function rellenar(pos, accion, modulo = "Ingrediente") {
+  limpia(modulo);
+  let input = etiquetasFormulario('input-' + modulo);
+  let str_accion = "";
   const linea = $(pos).closest('tr');
-  const tabla = $('#tabla'+modulo).DataTable();
+  const tabla = $('#tabla' + modulo).DataTable();
   const datosFila = tabla.row(linea).data();
 
-  // Usar los datos directamente de DataTable (más confiable)
-  input.id_ingrediente.val(datosFila.id_ingrediente);
-  input.nombre.val(capitalizarTexto(datosFila.nombre_ingrediente));
-  input.costo_unitario.val((datosFila.precio_unitario));
-  buscarSelect(input.unidad_medida, datosFila.unidad_medida, "value");
-
   if (accion == 0) {
-    editarModal("modificar")
-  } else {
-    input.id_ingrediente.prop("readOnly", true);
-    input.nombre.prop("readOnly", true);
-    input.costo_unitario.prop("readOnly", true);
-    input.unidad_medida.prop("disabled", true);
-    editarModal("eliminar")
+    str_accion = "modificar";
   }
 
+  if(accion == 1){
+    str_accion = "eliminar";
+  }
+
+  if (modulo == "Ingrediente") {
+    await editarFormIngrediente(input, datosFila, str_accion)
+  }
+
+  if (modulo == "Categoria") {
+    await editarFormCategoria(input, datosFila, str_accion)
+  }
+
+
+  editarModal(modulo, str_accion)
   // Habilitar el botón inmediatamente para Modificar/Eliminar ya que los datos vienen pre-validados
   $('#btnIngredienteForm').prop('disabled', false);
 }
+
+async function editarFormIngrediente(input, datos, accion) {
+
+  let bool = false;
+  let fila_stock_inicial = $("#fila-stock-inicial");
+
+  if(accion == "eliminar") {bool = true;}
+
+  input.id_ingrediente.val(datos.id_ingrediente).prop("disabled", true);
+  input.nombre.val(datos.nombre_ingrediente).prop("disabled", bool);
+  input.costo_unitario.val(datos.precio_unitario).prop("disabled", bool);
+  input.unidad_medida.prop("disabled", bool);
+  input.stock_inicial.val(datos.stock_actual).prop("disabled", true);
+  input.stock_maximo.val(datos.stock_maximo).prop("disabled", bool);
+  input.stock_minimo.val(datos.stock_minimo).prop("disabled", bool);
+
+  fila_stock_inicial.addClass("d-none")
+};
+
+async function editarFormCategoria(input, datos, accion) {
+
+  let bool = false;
+  let modal_tabla = etiquetasModal("TablaCategoria");
+
+  if(accion == "eliminar") {bool = true;}
+
+  input.id_categoria.val(datos.id_categoria).prop("disabled", true);
+  input.nombre.val(datos.nombre).prop("disabled", bool);
+  input.descripcion.val(datos.descripcion).prop("disabled", bool);
+  modal_tabla.modal.modal("hide");
+};
