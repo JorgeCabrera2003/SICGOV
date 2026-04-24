@@ -43,7 +43,7 @@
     </div>
 
     <!-- Navegación principal -->
-    <nav class="nav nav-pills flex-column gap-1 px-2 py-3 flex-grow-1 overflow-auto" aria-label="Menú principal">
+    <nav class="nav nav-pills flex-nowrap flex-column gap-1 px-2 py-3 flex-grow-1 overflow-auto" aria-label="Menú principal">
         <!-- Dashboard -->
         <a href="<?php echo BASE_URL; ?>/?page=home"
             class="nav-link <?php echo ($page == 'home') ? 'active' : ''; ?> d-flex align-items-center gap-2">
