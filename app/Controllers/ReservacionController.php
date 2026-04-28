@@ -37,6 +37,7 @@ class ReservacionController
                         $resModel->setCedulaCliente($_POST['cedula_cliente'] ?? '');
                         $resModel->setFecha($_POST['fecha'] ?? '');
                         $resModel->setHora($_POST['hora'] ?? '');
+                        $resModel->setHoraFin($_POST['hora_fin'] ?? '');
                         $resModel->setEstado($_POST['estado'] ?? 'PENDIENTE');
 
                         $json = $resModel->Transaccion(['peticion' => $_POST['peticion']]);
@@ -54,6 +55,7 @@ class ReservacionController
                         $resModel->setId($_POST['id_reservacion']);
                         $resModel->setFecha($_POST['fecha']);
                         $resModel->setHora($_POST['hora']);
+                        $resModel->setHoraFin($_POST['hora_fin'] ?? '');
                         
                         // Obtenemos estado actual para no sobreescribirlo si no se envía
                         $detalle = $resModel->Transaccion(['peticion' => 'detalle']);

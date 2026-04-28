@@ -13,6 +13,7 @@ class Reservacion extends Database
     private $cedula_cliente;
     private $fecha;
     private $hora;
+    private $hora_fin;
     private $estado;
 
     public function __construct()
@@ -21,6 +22,7 @@ class Reservacion extends Database
         $this->cedula_cliente = "";
         $this->fecha = "";
         $this->hora = "";
+        $this->hora_fin = "";
         $this->estado = "PENDIENTE";
     }
 
@@ -50,9 +52,17 @@ class Reservacion extends Database
     public function setHora(string $hora) { 
         // Formato HH:MM:SS o HH:MM
         if (!preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $hora)) {
-            throw new Exception("La hora no tiene un formato válido (HH:MM).");
+            throw new Exception("La hora de inicio no tiene un formato válido (HH:MM).");
         }
         $this->hora = $hora; 
+    }
+
+    public function setHoraFin(string $hora) { 
+        // Formato HH:MM:SS o HH:MM
+        if (!preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $hora)) {
+            throw new Exception("La hora de fin no tiene un formato válido (HH:MM).");
+        }
+        $this->hora_fin = $hora; 
     }
 
     public function setEstado(string $estado) { 
@@ -104,8 +114,8 @@ class Reservacion extends Database
             $this->ValidarDisponibilidad($this->fecha, $this->hora);
 
             $this->LlamarConexion()->beginTransaction();
-            $sql = "INSERT INTO reservacion(id_reservacion, cedula_cliente, fecha, hora, estado) 
-                    VALUES (:id, :cedula, :fecha, :hora, :estado)";
+            $sql = "INSERT INTO reservacion(id_reservacion, cedula_cliente, fecha, hora, hora_fin, estado) 
+                    VALUES (:id, :cedula, :fecha, :hora, :hora_fin, :estado)";
             
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute([
@@ -113,6 +123,7 @@ class Reservacion extends Database
                 ':cedula' => $this->cedula_cliente,
                 ':fecha' => $this->fecha,
                 ':hora' => $this->hora,
+                ':hora_fin' => $this->hora_fin,
                 ':estado' => $this->estado
             ]);
 
@@ -131,7 +142,7 @@ class Reservacion extends Database
             $this->ValidarDisponibilidad($this->fecha, $this->hora, $this->id_reservacion);
 
             $this->LlamarConexion()->beginTransaction();
-            $sql = "UPDATE reservacion SET fecha = :fecha, hora = :hora, estado = :estado 
+            $sql = "UPDATE reservacion SET fecha = :fecha, hora = :hora, hora_fin = :hora_fin, estado = :estado 
                     WHERE id_reservacion = :id";
             
             $stm = $this->LlamarConexion()->prepare($sql);
@@ -139,6 +150,7 @@ class Reservacion extends Database
                 ':id' => $this->id_reservacion,
                 ':fecha' => $this->fecha,
                 ':hora' => $this->hora,
+                ':hora_fin' => $this->hora_fin,
                 ':estado' => $this->estado
             ]);
 
@@ -152,12 +164,23 @@ class Reservacion extends Database
 
     private function ValidarDisponibilidad($fecha, $hora, $id_excluir = null)
     {
-        $sql = "SELECT COUNT(*) FROM reservacion WHERE fecha = :fecha AND hora = :hora";
+        // Validar que fin sea mayor que inicio
+        if (strtotime($this->hora_fin) <= strtotime($this->hora)) {
+            throw new Exception("La hora de fin debe ser mayor a la hora de inicio.");
+        }
+
+        $sql = "SELECT COUNT(*) FROM reservacion 
+                WHERE fecha = :fecha 
+                AND ((hora < :hora_fin AND hora_fin > :hora))";
         if ($id_excluir) {
             $sql .= " AND id_reservacion != :id";
         }
         $stm = $this->LlamarConexion()->prepare($sql);
-        $params = [':fecha' => $fecha, ':hora' => $hora];
+        $params = [
+            ':fecha' => $fecha, 
+            ':hora' => $this->hora,
+            ':hora_fin' => $this->hora_fin
+        ];
         if ($id_excluir) $params[':id'] = $id_excluir;
         
         $stm->execute($params);
@@ -208,7 +231,7 @@ class Reservacion extends Database
                 'id' => $r['id_reservacion'],
                 'title' => $r['nombre'] . ' ' . $r['apellido'],
                 'start' => $r['fecha'] . 'T' . $r['hora'],
-                'end' => date('Y-m-d\TH:i:s', strtotime($r['fecha'] . ' ' . $r['hora'] . ' +1 hour')), // Default 1h
+                'end' => $r['fecha'] . 'T' . $r['hora_fin'],
                 'extendedProps' => [
                     'cedula' => $r['cedula_cliente'],
                     'telefono' => $r['telefono'],

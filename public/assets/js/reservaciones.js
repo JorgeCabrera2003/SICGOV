@@ -26,13 +26,24 @@ document.addEventListener('DOMContentLoaded', function() {
         inicializarBuscadorPremium('.select2-cliente', $('#modalReservacion'));
     }
 
-    // Inicializar Flatpickr para la Hora (Formato 12h AM/PM)
-    const timePicker = flatpickr("#hora", {
+    // Inicializar Flatpickr para Hora Inicio
+    const timePickerInicio = flatpickr("#hora", {
         enableTime: true,
         noCalendar: true,
-        dateFormat: "H:i", // Se envía en 24h al servidor para BD
+        dateFormat: "H:i",
         altInput: true,
-        altFormat: "h:i K", // Se muestra en 12h AM/PM al usuario
+        altFormat: "h:i K",
+        time_24hr: false,
+        locale: "es"
+    });
+
+    // Inicializar Flatpickr para Hora Fin
+    const timePickerFin = flatpickr("#hora_fin", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        altInput: true,
+        altFormat: "h:i K",
         time_24hr: false,
         locale: "es"
     });
@@ -89,10 +100,13 @@ document.addEventListener('DOMContentLoaded', function() {
             $('#fecha').val(info.startStr.split('T')[0]);
             
             if (info.view.type !== 'dayGridMonth') {
-                const hora = info.start.toTimeString().split(' ')[0].substring(0, 5);
-                timePicker.setDate(hora);
+                const horaInicio = info.start.toTimeString().split(' ')[0].substring(0, 5);
+                const horaFin = info.end.toTimeString().split(' ')[0].substring(0, 5);
+                timePickerInicio.setDate(horaInicio);
+                timePickerFin.setDate(horaFin);
             } else {
-                timePicker.clear();
+                timePickerInicio.clear();
+                timePickerFin.clear();
             }
 
             $('#btnEliminar').hide();
@@ -109,8 +123,10 @@ document.addEventListener('DOMContentLoaded', function() {
             $('#cedula_cliente').val(props.cedula).trigger('change'); // Update Select2
             $('#fecha').val(event.startStr.split('T')[0]);
             
-            const hora = event.startStr.split('T')[1].substring(0, 5);
-            timePicker.setDate(hora);
+            const horaInicio = event.startStr.split('T')[1].substring(0, 5);
+            const horaFin = event.endStr.split('T')[1].substring(0, 5);
+            timePickerInicio.setDate(horaInicio);
+            timePickerFin.setDate(horaFin);
 
             $('#estado').val(props.estado);
 
@@ -125,6 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('id_reservacion', info.event.id);
             formData.append('fecha', info.event.startStr.split('T')[0]);
             formData.append('hora', info.event.startStr.split('T')[1].substring(0, 5));
+            formData.append('hora_fin', info.event.endStr.split('T')[1].substring(0, 5));
 
             enviaAjax(formData, BASE_URL + '/?page=reservaciones')
                 .then(res => {
@@ -140,6 +157,36 @@ document.addEventListener('DOMContentLoaded', function() {
                         Toast.fire({
                             icon: 'success',
                             title: 'Reservación reprogramada con éxito'
+                        });
+                    } else {
+                        info.revert();
+                    }
+                })
+                .catch(() => info.revert());
+        },
+
+        // Redimensionar evento
+        eventResize: function(info) {
+            const formData = new FormData();
+            formData.append('peticion', 'mover');
+            formData.append('id_reservacion', info.event.id);
+            formData.append('fecha', info.event.startStr.split('T')[0]);
+            formData.append('hora', info.event.startStr.split('T')[1].substring(0, 5));
+            formData.append('hora_fin', info.event.endStr.split('T')[1].substring(0, 5));
+
+            enviaAjax(formData, BASE_URL + '/?page=reservaciones')
+                .then(res => {
+                    if (res && res.resultado == 200) {
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Duración actualizada con éxito'
                         });
                     } else {
                         info.revert();
