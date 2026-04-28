@@ -91,11 +91,16 @@ class ReservacionController
                 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css',
                 BASE_URL . '/assets/css/reservaciones.css'
             ],
+            // Dependencias clásicas (deben cargarse antes del módulo)
             'extra_js' => [
                 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js',
                 'https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/es.global.min.js',
                 'https://cdn.jsdelivr.net/npm/flatpickr',
                 'https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js'
+            ],
+            // Módulo ES — cargado con type="module" por el footer
+            'extra_js_modules' => [
+                BASE_URL . '/assets/js/modulo_reservaciones.js'
             ]
         ]);
     }
