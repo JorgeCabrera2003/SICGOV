@@ -1,9 +1,11 @@
+import * as mensajeria from "./helpers/mensajeria.js"
+
 //MODULO DE INGREDIENTES
 
 //-------INICIALIZACIÖN-------
 
 //Interfaz de Acceso a los Elementos(inputs y span del formulario)
-function etiquetasFormulario(etiquetas) {
+function EtiquetasFormulario(etiquetas) {
   let referencia = null
 
   const inputIngrediente = {
@@ -28,18 +30,6 @@ function etiquetasFormulario(etiquetas) {
     id_ingrediente: $('#sid_ingrediente')
   }
 
-  const inputCategoria = {
-    nombre: $('#categoria-nombre'),
-    descripcion: $('#categoria-descripcion'),
-    id_categoria: $('#id_categoria')
-  }
-
-  const spanCategoria = {
-    nombre: $('#scategoria-nombre'),
-    descripcion: $('#scategoria-descripcion'),
-    id_categoria: $('#sid_categoria')
-  }
-
   if (etiquetas === "input-Ingrediente") {
     referencia = inputIngrediente
   }
@@ -48,20 +38,11 @@ function etiquetasFormulario(etiquetas) {
     referencia = spanIngrediente
   }
 
-  if (etiquetas === "input-Categoria") {
-    referencia = inputCategoria;
-  }
-
-  if (etiquetas === "span-Categoria") {
-    referencia = spanCategoria
-  }
-
   return referencia
 }
 //Fin de Interfaz de Acceso a los Elementos(inputs y span del formulario)
 
-//Interfaz de Acceso a los Elementos(modal)
-function etiquetasModal(etiqueta) {
+function EtiquetasModal(etiqueta) {
   let referencia = null
 
   const modalIngrediente = {
@@ -70,59 +51,31 @@ function etiquetasModal(etiqueta) {
     boton: $('#btnIngredienteForm')
   }
 
-  const modalCategoriaTabla = {
-    modal: $('#modalCategoria'),
-    titulo: $('#modalTitleTextCategoria'),
-    boton: $('#btn-CategoriaPCancel')
-  }
-
-  const modalCategoria = {
-    modal: $('#modal-formcategoria'),
-    titulo: $('#modalTitleText-Form-Categoria'),
-    boton: $('#btn-CategoriaForm')
-  }
-
   if (etiqueta === "Ingrediente") {
     referencia = modalIngrediente;
-  }
-
-  if (etiqueta === "TablaCategoria") {
-    referencia = modalCategoriaTabla;
-  }
-
-  if (etiqueta === "Categoria") {
-    referencia = modalCategoria;
   }
 
   return referencia;
 }
 //Fin de Interfaz de Acceso
 
-//Función para editar textos visuales del modal
-function editarModal(modal = "Ingrediente", operacion) {
+export function EditarModal(operacion) {
   let titulo;
   let boton;
-  let etiqueta_modal = etiquetasModal(modal);
-  let vocal = "o";
-  let sustantivo = "Ingrediente";
-
-  if (modal == "Categoria") {
-    vocal = "a"
-    sustantivo = "Categoría";
-  }
+  let etiqueta_modal = EtiquetasModal("Ingrediente");
 
   if (operacion == 'registrar') {
-    titulo = "Nuev" + vocal + " " + sustantivo;
+    titulo = "Nuevo Ingrediente";
     boton = "Nuevo";
   }
 
   if (operacion == 'modificar') {
-    titulo = "Actualizar " + sustantivo;
+    titulo = "Actualizar Ingrediente";
     boton = "Actualizar";
   }
 
   if (operacion == 'eliminar') {
-    titulo = "Borrar " + sustantivo;
+    titulo = "Borrar Ingrediente";
     boton = "Borrar";
   }
 
@@ -130,13 +83,12 @@ function editarModal(modal = "Ingrediente", operacion) {
   etiqueta_modal.boton.text(boton)
   etiqueta_modal.modal.modal("show")
 }
-//Fin de la Función de editarModal
 
 //Función para manejar el cambio de estado del formulario
 function manejarCambioEstado(formularioValido) {
-  let input = etiquetasFormulario("input");
-  let span = etiquetasFormulario("span");
-  let modal = etiquetasModal("Ingrediente");
+  let input = EtiquetasFormulario("input");
+  let span = EtiquetasFormulario("span");
+  let modal = EtiquetasModal("Ingrediente");
   const accion = modal.boton.text();
 
   if (accion === "Eliminar") {
@@ -152,24 +104,11 @@ function manejarCambioEstado(formularioValido) {
   span = null;
 }
 
-$(document).ready(function () {
-  crearDataTable();
-  registrarEntrada();
-  capaValidar();
+export async function EnviarDatos(operacion) {
 
-  // Inicializar sistema de validación con callback
-  SistemaValidacion.inicializar(etiquetasFormulario('input-Ingrediente'), manejarCambioEstado);
-  SistemaValidacion.inicializar(etiquetasFormulario('input-Categoria'), manejarCambioEstado);
-
-  // Validar estado inicial del formulario
-  manejarCambioEstado(false);
-});
-
-async function enviarDatos(operacion, modulo = "Ingrediente") {
-
-  let input = etiquetasFormulario('input-' + modulo);
-  let span = etiquetasFormulario('span-' + modulo);
-  let modal = etiquetasModal(modulo);
+  let input = EtiquetasFormulario('input-Ingrediente');
+  let span = EtiquetasFormulario('span-Ingrediente');
+  let modal = EtiquetasModal(modulo);
 
   let confirmacion = false;
   let str_acccion = "";
@@ -180,100 +119,51 @@ async function enviarDatos(operacion, modulo = "Ingrediente") {
   let endpoint = "";
   let peticion = new FormData();
 
-  if (modulo == "Ingrediente") {
-    //Registrar y Modificar
-    if (operacion == "registrar" || operacion == "modificar") {
+  //Registrar y Modificar
+  if (operacion == "registrar" || operacion == "modificar") {
 
-      if (operacion == "registrar") {
-        str_acccion = "registrará";
-        accion = "registrar"
+    if (operacion == "registrar") {
+      str_acccion = "registrará";
+      accion = "registrar"
+    }
+
+    if (operacion == "modificar") {
+      str_acccion = "actualizará";
+      accion = "modificar";
+      peticion.append('id_ingrediente', input.id_ingrediente.val());
+    }
+
+    if (validarenvio()) {
+      confirmacion = await confirmarAccion(`Se ${str_acccion} un Ingrediente`, mensajeConfirmacion, "question");
+
+      if (confirmacion) {
+        peticion.append('peticion', accion);
+        peticion.append('nombre', input.nombre.val());
+        peticion.append('unidad_medida', input.unidad_medida.val());
+        peticion.append('costo_unitario', input.costo_unitario.val());
+        btn_formulario = true;
       }
+    } else {
+      btn_formulario = false;
+      mensajeria.GenerarMensaje("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.")
+    }
+  } //Fin del Registrar y Modificar
+  //Eliminar
+  if (operacion == "eliminar") {
 
-      if (operacion == "modificar") {
-        str_acccion = "actualizará";
-        accion = "modificar";
+    if (validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_ingrediente, span.id_ingrediente, '')) {
+      confirmacion = await confirmarAccion("Se eliminará un Ingrediente", mensajeConfirmacion, "warning");
+
+      if (confirmacion) {
+        peticion.append('peticion', 'eliminar');
         peticion.append('id_ingrediente', input.id_ingrediente.val());
+        btn_formulario = true;
       }
-
-      if (validarenvio()) {
-        confirmacion = await confirmarAccion(`Se ${str_acccion} un Ingrediente`, mensajeConfirmacion, "question");
-
-        if (confirmacion) {
-          peticion.append('peticion', accion);
-          peticion.append('nombre', input.nombre.val());
-          peticion.append('unidad_medida', input.unidad_medida.val());
-          peticion.append('costo_unitario', input.costo_unitario.val());
-          btn_formulario = true;
-        }
-      } else {
-        btn_formulario = false;
-        mensajes("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.");
-      }
-    } //Fin del Registrar y Modificar
-    //Eliminar
-    if (operacion == "eliminar") {
-
-      if (validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_ingrediente, span.id_ingrediente, '')) {
-        confirmacion = await confirmarAccion("Se eliminará un Ingrediente", mensajeConfirmacion, "warning");
-
-        if (confirmacion) {
-          peticion.append('peticion', 'eliminar');
-          peticion.append('id_ingrediente', input.id_ingrediente.val());
-          btn_formulario = true;
-        }
-      } else {
-        btn_formulario = false;
-        mensajes("error", 10000, "Error de Validación", "El ID del Ingrediente no es válido.");
-      }
-    }//Fin del Eliminar
-  }
-  if (modulo == "Categoria") {
-    endpoint = "?page=categoria-ingrediente";
-    //Registrar y Modificar
-    if (operacion == "registrar" || operacion == "modificar") {
-
-      if (operacion == "registrar") {
-        str_acccion = "registrará";
-        accion = "registrar"
-      }
-
-      if (operacion == "modificar") {
-        str_acccion = "actualizará";
-        accion = "modificar";
-        peticion.append('id_categoria', input.id_categoria.val());
-      }
-
-      if (validarenvio()) {
-        confirmacion = await confirmarAccion(`Se ${str_acccion} una Categoría`, mensajeConfirmacion, "question");
-
-        if (confirmacion) {
-          peticion.append('peticion', accion);
-          peticion.append('nombre', input.nombre.val());
-          peticion.append('descripcion', input.descripcion.val());
-          btn_formulario = true;
-        }
-      } else {
-        btn_formulario = false;
-        mensajes("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.");
-      }
-    } //Fin del Registrar y Modificar
-    //Eliminar
-    if (operacion == "eliminar") {
-
-      if (validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_categoria, span.id_categoria, '')) {
-        confirmacion = await confirmarAccion("Se eliminará una Categoría", mensajeConfirmacion, "warning");
-
-        if (confirmacion) {
-          peticion.append('peticion', 'eliminar');
-          peticion.append('id_categoria', input.id_categoria.val());
-          btn_formulario = true;
-        }
-      } else {
-        btn_formulario = false;
-        mensajes("error", 10000, "Error de Validación", "El ID de la Categoría no es válido.");
-      }
-    }//Fin del Eliminar
-  }
+    } else {
+      btn_formulario = false;
+      mensajeria.GenerarMensaje("error", 10000, "Error de Validación", "El ID del Ingrediente no es válido.");
+    }
+  }//Fin del Eliminar
 
   if (btn_formulario) {
     modal.boton.prop('disabled', true);
@@ -281,8 +171,8 @@ async function enviarDatos(operacion, modulo = "Ingrediente") {
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       modal.modal.modal("hide");
-      crearDataTable();
-      mensajes(json.icon, 10000, json.mensaje, null);
+      DataTablePrincipal();
+      mensajeria.GenerarMensaje(json.icon, 10000, json.mensaje, null);
     }
     modal.boton.prop('disabled', false);
   }
@@ -296,7 +186,7 @@ async function enviarDatos(operacion, modulo = "Ingrediente") {
 }
 
 //Manejo de envio de datos desde el modal
-$("#btnIngredienteForm").on("click", async function () {
+export async function EnviarFormulario(btn_string) {
   let accion = null;
   const MANEJADOR = {
     'Nuevo': 'registrar',
@@ -305,75 +195,23 @@ $("#btnIngredienteForm").on("click", async function () {
   }
   const DEFAULT = null
 
-  accion = MANEJADOR[$(this).text()] || DEFAULT
+  accion = MANEJADOR[btn_string] || DEFAULT
 
   if (accion != null) {
     enviarDatos(accion)
   } else {
     console.log("Error, acción no válida")
   }
-});
-
-$("#btnNuevoIngrediente").on("click", function () {
-  limpia("Ingrediente");
-  editarModal("Ingrediente", "registrar")
-  // El botón se habilita automáticamente mediante el callback cuando los campos sean válidos
-});
-
-//Iniciar Tabla de Categoría de Ingrediente
-$("#btn-ModalCategorias").on("click", async function () {
-  let etiqueta_modal = etiquetasModal("TablaCategoria");
-
-  await crearDataTable("categoria-ingrediente")
-  etiqueta_modal.modal.modal("show");
-
-  etiqueta_modal = null;
-})
-
-//Iniciar Modal Formulario de Categoría de Ingrediente
-$("#btnNuevaCategoria").on("click", function () {
-  let modal_tabla = etiquetasModal("TablaCategoria");
-  let modal_form = etiquetasModal("Categoria");
-  modal_tabla.modal.modal("hide");
-  editarModal("Categoria", "registrar");
-
-  modal_tabla = null;
-  modal_form = null;
-})
-
-$("#btn-CategoriaCancel").on("click", function () {
-  let modal_form = etiquetasModal("Categoria");
-  let modal_tabla = etiquetasModal("TablaCategoria");
-  modal_form.modal.modal("hide");
-  modal_tabla.modal.modal("show");
-
-  console.log(modal_form);
-  modal_form = null;
-  modal_tabla = null;
-})
-
-//Iniciar Tabla de Eliminadas (Papelera) usando evento click del botón
-$("#btn-consultar-eliminados").on("click", function () {
-  iniciarTablaEliminadas();
-})
-
-// Aplicar capitalización automática cuando el modal se muestra
-$('#modalIngrediente').on('shown.bs.modal', function () {
-  // Forzar validación inicial cuando se abre el modal
-  setTimeout(() => {
-    SistemaValidacion.validarFormulario(etiquetasFormulario('input'));
-  }, 100);
-});
+};
 
 //CAPA DE VALIDACIÓN
 
-function capaValidar() {
+export function CapaValidar() {
   KeyPressIngrediente();
-  KeyPressCategoria();
 }
 
 function KeyPressIngrediente() {
-  let input = etiquetasFormulario("input-Ingrediente")
+  let input = EtiquetasFormulario("input-Ingrediente")
   input.nombre.on("keypress", function (e) {
     validarKeyPress(/^[0-9 a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ -.\b]*$/, e);
   });
@@ -392,17 +230,11 @@ function KeyPressIngrediente() {
   });
 }
 
-function KeyPressCategoria() {
-  let input = etiquetasFormulario("input-Categoria");
-
-
+function Validarenvio(modulo = "Ingrediente") {
+  return SistemaValidacion.validarFormulario(EtiquetasFormulario('input-' + modulo));
 }
 
-function validarenvio(modulo = "Ingrediente") {
-  return SistemaValidacion.validarFormulario(etiquetasFormulario('input-' + modulo));
-}
-
-async function vistaPermiso(modulo = "Ingrediente") {
+async function RenderPermisoBotones(modulo = "Ingrediente") {
 
   const dropdown = $('<div>').addClass('dropdown');
   const boton = $('<button>').addClass('btn btn-sm btn-light border dropdown-toggle')
@@ -417,7 +249,8 @@ async function vistaPermiso(modulo = "Ingrediente") {
   const linkEditar = $('<a>')
     .addClass('dropdown-item btn-editar text-primary')
     .attr('href', '#')
-    .attr('onclick', `rellenar(this, 0, "` + modulo + `")`)
+    .attr('data-accion', 0)
+    .attr('data-modulo', modulo)
     .html('<i class="fas fa-edit me-2"></i>Editar');
   itemEditar.append(linkEditar);
 
@@ -425,7 +258,8 @@ async function vistaPermiso(modulo = "Ingrediente") {
   const linkEliminar = $('<a>')
     .addClass('dropdown-item btn-eliminar text-danger')
     .attr('href', '#')
-    .attr('onclick', `rellenar(this, 1, "` + modulo + `")`)
+    .attr('data-accion', 1)
+    .attr('data-modulo', modulo)
     .html('<i class="fas fa-trash me-2" me-2"></i>Eliminar');
   itemEliminar.append(linkEliminar);
 
@@ -436,7 +270,28 @@ async function vistaPermiso(modulo = "Ingrediente") {
   return dropdown.prop('outerHTML');
 }
 
-function ColorearStock(stockActual, stockMinimo, stockMaximo = null, abreviatura) {
+function RenderConfigStock(stockMinimo, abreviatura, stockMaximo) {
+
+  const textMin = $('<span>').addClass('text-danger me-1').text(stockMinimo + " " + abreviatura);
+  const textMax = $('<span>').addClass('me-1');
+  const strong = $('<strong>')
+  const text = $('<text>').addClass("ms-1 me-1 text-black").text("/");
+  const div = $('<div>');
+  let abreviaturaMax = null;
+
+  if (stockMaximo != null && !isNaN(parseFloat(valor)) && isFinite(valor)) {
+    textMax.text(stockMaximo + " " + abreviatura).addClass('text-success me-1');
+    abreviaturaMax = abreviatura;
+  } else {
+    textMax.text("Ninguno").addClass('text-black me-1');
+  }
+
+  strong.append(text);
+  div.append(textMin, strong, textMax);
+  return div.prop('outerHTML');
+}
+
+function RenderColorearStock(stockActual, stockMinimo, stockMaximo = null, abreviatura) {
   const texto = $('<span>');
   const div = $('<div>').addClass('d-flex align-items-center gap-1');
   let color = "";
@@ -467,39 +322,9 @@ function ColorearStock(stockActual, stockMinimo, stockMaximo = null, abreviatura
   return div.prop('outerHTML');
 }
 
-async function crearDataTable(controlador = "ingredientes") {
-  const peticion = new FormData();
-  let json = null;
-  let arreglo = [];
-  let endpoint = "?page=" + controlador;
-
-
-  peticion.append("peticion", "consultar");
-
-  try {
-    json = await enviaAjax(peticion, endpoint);
-    arreglo = json.datos;
-  } catch (error) {
-    arreglo = [];
-  }
-
-  if (Array.isArray(arreglo)) {
-    console.log("arreglo");
-    if (controlador === "ingredientes") {
-      DataTablePrincipal(arreglo);
-    }
-
-    if (controlador === "categoria-ingrediente") {
-      DataTableCategoria(arreglo);
-    }
-  } else {
-    console.log("falso");
-  }
-}
-
-async function DataTablePrincipal(arreglo) {
+export async function DataTablePrincipal(arreglo) {
   let botones = '';
-  botones = await vistaPermiso("Ingrediente");
+  botones = await RenderPermisoBotones();
 
   if ($.fn.DataTable.isDataTable('#tablaIngrediente')) {
     $('#tablaIngrediente').DataTable().destroy();
@@ -521,29 +346,13 @@ async function DataTablePrincipal(arreglo) {
       {
         data: null,
         render: function (row) {
-          return ColorearStock(row.stock_actual, row.stock_minimo, row.stock_maximo, row.abreviatura);
+          return RenderColorearStock(row.stock_actual, row.stock_minimo, row.stock_maximo, row.abreviatura);
         }
       },
       {
         data: null,
         render: function (row) {
-          const textMin = $('<span>').addClass('text-danger me-1').text(row.stock_minimo + " " + row.abreviatura);
-          const textMax = $('<span>').addClass('me-1');
-          const strong = $('<strong>')
-          const text = $('<text>').addClass("ms-1 me-1 text-black").text("/");
-          const div = $('<div>');
-          let abreviaturaMax = null;
-
-          if (row.stock_maximo != null && !isNaN(parseFloat(valor)) && isFinite(valor)) {
-            textMax.text(row.stock_maximo + " " + row.abreviatura).addClass('text-success me-1');
-            abreviaturaMax = row.abreviatura;
-          } else {
-            textMax.text("Ninguno").addClass('text-black me-1');
-          }
-
-          strong.append(text);
-          div.append(textMin, strong, textMax);
-          return div.prop('outerHTML');
+          return RenderConfigStock(row.stock_minimo, row.abreviatura, row.stock_maximo);
         }
       },
       {
@@ -558,43 +367,14 @@ async function DataTablePrincipal(arreglo) {
   });
 }
 
-async function DataTableCategoria(arreglo) {
-  let botones = '';
-  botones = await vistaPermiso("Categoria");
+export function LimpiarFormulario() {
+  SistemaValidacion.limpiarValidacion(EtiquetasFormulario('input-Ingrediente'));
 
-  if ($.fn.DataTable.isDataTable('#tablaCategoria')) {
-    $('#tablaCategoria').DataTable().destroy();
-  }
-
-  $('#tablaCategoria').DataTable({
-    processing: true,
-    data: arreglo,
-    columns: [
-      { data: 'nombre' },
-      { data: 'descripcion' },
-      {
-        data: null,
-        render: function () {
-          return botones;
-        }
-      }
-    ],
-    order: [[1, 'asc']],
-    language: { url: idiomaTabla }
-  });
-  return true;
-}
-
-function limpia(formulario) {
-  SistemaValidacion.limpiarValidacion(etiquetasFormulario('input-' + formulario));
-
-  let input = etiquetasFormulario('input-' + formulario);
-  let span = etiquetasFormulario('span-' + formulario);
-  let modal = etiquetasModal(formulario);
+  let input = EtiquetasFormulario('input-Ingrediente');
+  let span = EtiquetasFormulario('span-Ingrediente');
+  let modal = EtiquetasModal('Ingrediente');
   let fila_stock_inicial = $("#fila-stock-inicial");
 
-
-  if (formulario == "Ingrediente") {
   input.id_ingrediente.val("").prop("disabled", true);
   input.nombre.val("").prop("disabled", false);
   input.costo_unitario.val("").prop("disabled", false);
@@ -604,15 +384,6 @@ function limpia(formulario) {
   input.stock_minimo.val("").prop("disabled", false);
 
   fila_stock_inicial.removeClass("d-none");
-}
-
-  if (formulario == "Categoria") {
-    input.id_categoria.val("").prop("readOnly", true);
-    input.nombre.val("").prop("readOnly", false)
-    input.descripcion.val("").prop("readOnly", false)
-  }
-
-
   // Deshabilitar el botón al limpiar (se habilitará automáticamente cuando los campos sean válidos)
   modal.boton.prop('disabled', true);
   input = null;
@@ -620,42 +391,14 @@ function limpia(formulario) {
   modal = null;
 }
 
-async function rellenar(pos, accion, modulo = "Ingrediente") {
-  limpia(modulo);
-  let input = etiquetasFormulario('input-' + modulo);
-  let str_accion = "";
-  const linea = $(pos).closest('tr');
-  const tabla = $('#tabla' + modulo).DataTable();
-  const datosFila = tabla.row(linea).data();
-
-  if (accion == 0) {
-    str_accion = "modificar";
-  }
-
-  if(accion == 1){
-    str_accion = "eliminar";
-  }
-
-  if (modulo == "Ingrediente") {
-    await editarFormIngrediente(input, datosFila, str_accion)
-  }
-
-  if (modulo == "Categoria") {
-    await editarFormCategoria(input, datosFila, str_accion)
-  }
-
-
-  editarModal(modulo, str_accion)
-  // Habilitar el botón inmediatamente para Modificar/Eliminar ya que los datos vienen pre-validados
-  $('#btnIngredienteForm').prop('disabled', false);
-}
-
-async function editarFormIngrediente(input, datos, accion) {
-
+export async function EditarFormIngrediente(datos, accion) {
+  LimpiarFormulario();
+  let input = EtiquetasFormulario("input-Ingrediente");
   let bool = false;
+  let modal = EtiquetasModal("Ingrediente")
   let fila_stock_inicial = $("#fila-stock-inicial");
 
-  if(accion == "eliminar") {bool = true;}
+  if (accion == "eliminar") { bool = true; }
 
   input.id_ingrediente.val(datos.id_ingrediente).prop("disabled", true);
   input.nombre.val(datos.nombre_ingrediente).prop("disabled", bool);
@@ -666,17 +409,6 @@ async function editarFormIngrediente(input, datos, accion) {
   input.stock_minimo.val(datos.stock_minimo).prop("disabled", bool);
 
   fila_stock_inicial.addClass("d-none")
-};
-
-async function editarFormCategoria(input, datos, accion) {
-
-  let bool = false;
-  let modal_tabla = etiquetasModal("TablaCategoria");
-
-  if(accion == "eliminar") {bool = true;}
-
-  input.id_categoria.val(datos.id_categoria).prop("disabled", true);
-  input.nombre.val(datos.nombre).prop("disabled", bool);
-  input.descripcion.val(datos.descripcion).prop("disabled", bool);
-  modal_tabla.modal.modal("hide");
+  modal.boton.prop('disabled', false);
+  EditarModal(accion);
 };
