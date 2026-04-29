@@ -102,7 +102,7 @@ CREATE TABLE `persona` (
   `apellido` varchar(80) NOT NULL,
   `fecha_nacimiento` date DEFAULT NULL,
   `telefono` varchar(20) DEFAULT NULL,
-  `correo` varchar(100) DEFAULT NULL,
+  `correo` varchar(254) DEFAULT NULL,
   `direccion` varchar(255) DEFAULT NULL,
   `sexo` char(1) DEFAULT NULL,
   PRIMARY KEY (`cedula`),
