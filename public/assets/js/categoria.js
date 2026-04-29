@@ -6,8 +6,7 @@ function etiquetasFormulario() {
         peticion: $('#peticionCategoria'),
         id_categoria: $('#id_categoria'),
         nombre_categoria: $('#nombre_categoria'),
-        descripcion: $('#descripcion_categoria'),
-        estatus: $('#estatus_categoria')
+        descripcion: $('#descripcion_categoria')
     };
 }
 
@@ -17,7 +16,6 @@ function etiquetasModal() {
         modal: $('#modalCategoria'),
         titulo: $('#tituloModalCategoria'),
         boton: $('#btnGuardarCategoria'),
-        divEstatus: $('#divEstatusCategoria'),
         formulario: $('#formCategoria')
     };
 }
@@ -31,19 +29,16 @@ function editarModal(operacion) {
     if (operacion === 'registrar') {
         titulo = "Nueva Categoría";
         boton = "Guardar Categoría";
-        eti.divEstatus.hide();
     }
     
     if (operacion === 'modificar') {
         titulo = "Actualizar Categoría";
         boton = "Actualizar Categoría";
-        eti.divEstatus.show();
     }
 
     if (operacion === 'eliminar') {
         titulo = "Eliminar Categoría";
         boton = "Confirmar Eliminación";
-        eti.divEstatus.hide();
     }
 
     eti.titulo.text(titulo);
@@ -90,11 +85,7 @@ async function enviarDatos(operacion) {
         let peticionData = new FormData(form);
         peticionData.set('peticion', operacion);
         
-        if (operacion === "registrar" || operacion === "modificar") {
-             if (operacion === "modificar") {
-                 peticionData.set('estatus', input.estatus.is(':checked') ? 1 : 0);
-             }
-        }
+
 
         try {
             let json = await enviaAjax(peticionData);
@@ -126,7 +117,6 @@ function rellenar(pos, accion) {
     input.id_categoria.val(datosFila.id_categoria);
     input.nombre_categoria.val(datosFila.nombre_categoria);
     input.descripcion.val(datosFila.descripcion);
-    input.estatus.prop('checked', datosFila.estatus == 1);
     
     if (accion === 0) { // Editar
         input.peticion.val("modificar");
@@ -134,22 +124,20 @@ function rellenar(pos, accion) {
     }
 }
 
-// Función exclusiva para Cambiar Estatus directamente sin Modal
-async function cambiarEstatus(pos) {
+// Función exclusiva para Eliminar directamente sin Modal
+async function eliminar(pos) {
     const linea = $(pos).closest('tr');
     const tabla = $('#tablaCategoria').DataTable();
     const datosFila = tabla.row(linea).data();
     
-    let nuevoEstatus = datosFila.estatus == 1 ? 0 : 1;
-    let textoAccion = datosFila.estatus == 1 ? "desactivará" : "reactivará";
-    
-    let confirmacion = await confirmarAccion(`Se ${textoAccion} la Categoría`, "¿Está seguro de realizar la acción?", "warning");
+    let confirmacion = await confirmarAccion(`Se eliminará la Categoría`, "¿Está seguro de realizar la acción?", "warning");
     
     if (confirmacion) {
         let peticionData = new FormData();
-        peticionData.append('peticion', 'cambiar_estatus');
+        peticionData.append('peticion', 'eliminar');
         peticionData.append('id_categoria', datosFila.id_categoria);
-        peticionData.append('estatus', nuevoEstatus);
+        // Enviamos ID en formato que espera el controlador index() o el de API si usamos otro
+        peticionData.append('id', datosFila.id_categoria);
         
         try {
             let json = await enviaAjax(peticionData);
@@ -190,8 +178,8 @@ async function vistaPermisoCategoria() {
     const linkEliminar = $('<a>')
       .addClass('dropdown-item text-danger')
       .attr('href', '#')
-      .attr('onclick', 'cambiarEstatus(this)')
-      .html('<i class="fa-solid fa-power-off me-2"></i>Cambiar Estatus');
+      .attr('onclick', 'eliminar(this)')
+      .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
     itemEliminar.append(linkEliminar);
   
     menu.append(itemEditar, separador, itemEliminar);
@@ -236,11 +224,7 @@ async function crearDataTable() {
             },
             { 
                 data: 'estatus',
-                render: function(data) {
-                    return data == 1 
-                        ? '<span class="badge bg-success">Activo</span>'
-                        : '<span class="badge bg-danger">Inactivo</span>';
-                }
+                visible: false // Ocultamos el estatus ya que solo mostraremos activos
             },
             {
                 data: null,

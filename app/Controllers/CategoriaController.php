@@ -114,9 +114,9 @@ class CategoriaController
                         $categoriaModel->setIcono('default.png');
                         
                         if ($_POST["peticion"] == "modificar") {
-                            // En actualizar, se requiere el estatus
+                            // En actualizar
                             $categoriaModel->setIdCategoria($_POST["id_categoria"] ?? '');
-                            $categoriaModel->setEstatus($_POST["estatus"] ?? 1); 
+                            $categoriaModel->setEstatus(1); // Siempre 1 para activos modificados
                             $jsonResult = $categoriaModel->Transaccion(['peticion' => 'actualizar']);
                         } else {
                             $categoriaModel->setEstatus(1);
@@ -146,22 +146,21 @@ class CategoriaController
                 $json['response'] = $categoriaModel->Transaccion(['peticion' => 'consultar']);
             }
             
-            // Cambiar Estatus (Eliminado lógico / Desactivar / Activar)
-            if ($_POST["peticion"] == "cambiar_estatus") {
+            // Eliminado Lógico
+            if ($_POST["peticion"] == "eliminar") {
                 $accion_permiso = true;
 
                 if ($accion_permiso) {
                     try {
-                        $categoriaModel->setIdCategoria($_POST["id_categoria"] ?? '');
-                        $categoriaModel->setEstatus($_POST["estatus"] ?? '');
-                        $jsonResult = $categoriaModel->Transaccion(['peticion' => 'cambiar_estatus']);
+                        $categoriaModel->setIdCategoria($_POST["id_categoria"] ?? $_POST["id"] ?? '');
+                        $jsonResult = $categoriaModel->Transaccion(['peticion' => 'eliminar']);
                         
                         if ($jsonResult && isset($jsonResult['success']) && $jsonResult['success']) {
                             $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
                             $json['response'] = ['resultado' => 200, 'mensaje' => $jsonResult['message']];
                         } else {
                             $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'OK'];
-                            $json['response'] = ['resultado' => 400, 'mensaje' => $jsonResult['message'] ?? 'Error al actualizar estatus'];
+                            $json['response'] = ['resultado' => 400, 'mensaje' => $jsonResult['message'] ?? 'Error al eliminar'];
                         }
                     } catch (\Exception $e) {
                         $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos mínimos no válidos'];

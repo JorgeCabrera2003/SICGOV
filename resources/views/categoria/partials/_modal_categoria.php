@@ -38,14 +38,7 @@
                             </div>
                         </div>
 
-                        <!-- Estatus (Sólo visible en edición) -->
-                        <div class="col-12" id="divEstatusCategoria" style="display: none;">
-                            <label class="form-label fw-medium text-secondary">Estatus</label>
-                            <div class="form-check form-switch fs-5">
-                                <input class="form-check-input" type="checkbox" role="switch" id="estatus_categoria" name="estatus" value="1" checked>
-                                <label class="form-check-label fs-6 ms-2 mt-1" for="estatus_categoria">Activo</label>
-                            </div>
-                        </div>
+
                     </div>
                 </form>
             </div>

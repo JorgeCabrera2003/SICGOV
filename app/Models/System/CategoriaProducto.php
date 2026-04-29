@@ -71,8 +71,6 @@ class CategoriaProducto
                     return $this->guardarCategoria();
                 case 'actualizar':
                     return $this->actualizarCategoria();
-                case 'cambiar_estatus':
-                    return $this->actualizarEstatusCategoria();
                 case 'eliminar':
                     return $this->eliminarCategoria();
                 case 'buscar':
@@ -101,37 +99,13 @@ class CategoriaProducto
     private function listarTodasCategorias()
     {
         try {
-            $sql = "SELECT * FROM categoria_producto ORDER BY nombre_categoria";
+            $sql = "SELECT * FROM categoria_producto WHERE estatus = 1 ORDER BY nombre_categoria";
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             error_log("Error en listarTodasCategorias: " . $e->getMessage());
             return [];
-        }
-    }
-
-    private function actualizarEstatusCategoria()
-    {
-        try {
-            $this->db->beginTransaction();
-            $sql = "UPDATE categoria_producto SET estatus = :estatus WHERE id_categoria = :id_categoria";
-            $stmt = $this->db->prepare($sql);
-            $result = $stmt->execute([
-                'id_categoria' => $this->id_categoria,
-                'estatus' => $this->estatus
-            ]);
-            
-            if ($result) {
-                $this->db->commit();
-                return ['success' => true, 'message' => 'Estatus actualizado correctamente'];
-            }
-            
-            $this->db->rollBack();
-            return ['success' => false, 'message' => 'Error al cambiar estatus'];
-        } catch (\PDOException $e) {
-            $this->db->rollBack();
-            return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
         }
     }
 
