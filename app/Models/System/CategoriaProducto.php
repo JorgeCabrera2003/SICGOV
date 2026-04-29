@@ -3,7 +3,9 @@
 namespace App\Models\System;
 
 use App\Core\Database;
+use App\Helpers\RegexHelper;
 use PDO;
+use Exception;
 
 class CategoriaProducto
 {
@@ -22,48 +24,64 @@ class CategoriaProducto
     // Getters y Setters
     public function setIdCategoria($id)
     {
+        if (empty($id) || RegexHelper::ValidarFormatos($id, 'ID') == 0) {
+            throw new Exception("El ID de la categoría no es válido.");
+        }
         $this->id_categoria = $id;
     }
     
     public function setNombreCategoria($nombre)
     {
+        if (empty($nombre) || RegexHelper::ValidarFormatos($nombre, 'Objeto') == 0) {
+            throw new Exception("El nombre de la categoría no es válido (solo letras, números y espacios, de 3 a 65 caracteres).");
+        }
         $this->nombre_categoria = $nombre;
     }
     
     public function setDescripcion($desc)
     {
+        if (!empty($desc) && RegexHelper::ValidarFormatos($desc, 'ObjetoLargo') == 0) {
+            throw new Exception("La descripción no es válida (máximo 200 caracteres permitidos).");
+        }
         $this->descripcion = $desc;
     }
     
     public function setIcono($icono)
     {
-        $this->icono = $icono;
+        $this->icono = empty($icono) ? 'default.png' : $icono;
     }
     
     public function setEstatus($estatus)
     {
+        if (!in_array((string)$estatus, ['0', '1'], true)) {
+            throw new Exception("Estatus de categoría no válido.");
+        }
         $this->estatus = $estatus;
     }
 
     public function Transaccion($peticion)
     {
-        switch ($peticion['peticion']) {
-            case 'listar':
-                return $this->listarCategorias();
-            case 'consultar':
-                return $this->listarTodasCategorias();
-            case 'guardar':
-                return $this->guardarCategoria();
-            case 'actualizar':
-                return $this->actualizarCategoria();
-            case 'cambiar_estatus':
-                return $this->actualizarEstatusCategoria();
-            case 'eliminar':
-                return $this->eliminarCategoria();
-            case 'buscar':
-                return $this->buscarCategoria();
-            default:
-                return false;
+        try {
+            switch ($peticion['peticion']) {
+                case 'listar':
+                    return $this->listarCategorias();
+                case 'consultar':
+                    return $this->listarTodasCategorias();
+                case 'guardar':
+                    return $this->guardarCategoria();
+                case 'actualizar':
+                    return $this->actualizarCategoria();
+                case 'cambiar_estatus':
+                    return $this->actualizarEstatusCategoria();
+                case 'eliminar':
+                    return $this->eliminarCategoria();
+                case 'buscar':
+                    return $this->buscarCategoria();
+                default:
+                    return ['success' => false, 'message' => 'Petición no válida'];
+            }
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
         }
     }
 
@@ -96,14 +114,23 @@ class CategoriaProducto
     private function actualizarEstatusCategoria()
     {
         try {
+            $this->db->beginTransaction();
             $sql = "UPDATE categoria_producto SET estatus = :estatus WHERE id_categoria = :id_categoria";
             $stmt = $this->db->prepare($sql);
             $result = $stmt->execute([
                 'id_categoria' => $this->id_categoria,
                 'estatus' => $this->estatus
             ]);
-            return ['success' => $result, 'message' => $result ? 'Estatus actualizado correctamente' : 'Error al cambiar estatus'];
+            
+            if ($result) {
+                $this->db->commit();
+                return ['success' => true, 'message' => 'Estatus actualizado correctamente'];
+            }
+            
+            $this->db->rollBack();
+            return ['success' => false, 'message' => 'Error al cambiar estatus'];
         } catch (\PDOException $e) {
+            $this->db->rollBack();
             return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
         }
     }
@@ -111,6 +138,7 @@ class CategoriaProducto
     private function guardarCategoria()
     {
         try {
+            $this->db->beginTransaction();
             $this->id_categoria = $this->generarIdCategoria();
 
             $sql = "INSERT INTO categoria_producto (
@@ -136,11 +164,15 @@ class CategoriaProducto
             ]);
 
             if ($result) {
+                $this->db->commit();
                 return ['success' => true, 'id' => $this->id_categoria, 'message' => 'Categoría guardada exitosamente'];
             }
+            
+            $this->db->rollBack();
             return ['success' => false, 'message' => 'Error al guardar la categoría'];
             
         } catch (\PDOException $e) {
+            $this->db->rollBack();
             if ($e->errorInfo[1] == 1062) {
                 return ['success' => false, 'message' => 'Ya existe una categoría con ese nombre'];
             }
@@ -151,6 +183,7 @@ class CategoriaProducto
     private function actualizarCategoria()
     {
         try {
+            $this->db->beginTransaction();
             $sql = "UPDATE categoria_producto SET 
                     nombre_categoria = :nombre_categoria,
                     descripcion = :descripcion,
@@ -167,9 +200,16 @@ class CategoriaProducto
                 'estatus' => $this->estatus
             ]);
 
-            return ['success' => $result, 'message' => $result ? 'Categoría actualizada' : 'Error al actualizar'];
+            if ($result) {
+                $this->db->commit();
+                return ['success' => true, 'message' => 'Categoría actualizada'];
+            }
+            
+            $this->db->rollBack();
+            return ['success' => false, 'message' => 'Error al actualizar'];
             
         } catch (\PDOException $e) {
+            $this->db->rollBack();
             return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
         }
     }
@@ -177,12 +217,14 @@ class CategoriaProducto
     private function eliminarCategoria()
     {
         try {
+            $this->db->beginTransaction();
             $checkSql = "SELECT COUNT(*) as total FROM producto WHERE id_categoria = :id_categoria";
             $checkStmt = $this->db->prepare($checkSql);
             $checkStmt->execute(['id_categoria' => $this->id_categoria]);
             $result = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
             if ($result['total'] > 0) {
+                $this->db->rollBack();
                 return ['success' => false, 'message' => 'No se puede eliminar: Hay productos usando esta categoría'];
             }
 
@@ -190,9 +232,16 @@ class CategoriaProducto
             $stmt = $this->db->prepare($sql);
             $result = $stmt->execute(['id_categoria' => $this->id_categoria]);
 
-            return ['success' => $result, 'message' => $result ? 'Categoría eliminada' : 'Error al eliminar'];
+            if ($result) {
+                $this->db->commit();
+                return ['success' => true, 'message' => 'Categoría eliminada'];
+            }
+            
+            $this->db->rollBack();
+            return ['success' => false, 'message' => 'Error al eliminar'];
             
         } catch (\PDOException $e) {
+            $this->db->rollBack();
             return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
         }
     }

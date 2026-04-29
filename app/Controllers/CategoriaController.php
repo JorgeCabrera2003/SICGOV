@@ -39,13 +39,8 @@ class CategoriaController
                 exit();
             }
 
-            if (empty($_POST['nombre'])) {
-                echo json_encode(['success' => false, 'message' => 'El nombre es requerido']);
-                exit();
-            }
-
             $categoria = new CategoriaProducto();
-            $categoria->setNombreCategoria($_POST['nombre']);
+            $categoria->setNombreCategoria($_POST['nombre'] ?? '');
             $categoria->setDescripcion($_POST['descripcion'] ?? '');
             
             $result = $categoria->Transaccion(['peticion' => 'guardar']);
@@ -75,13 +70,8 @@ class CategoriaController
                 exit();
             }
 
-            if (empty($_POST['id'])) {
-                echo json_encode(['success' => false, 'message' => 'ID no proporcionado']);
-                exit();
-            }
-
             $categoria = new CategoriaProducto();
-            $categoria->setIdCategoria($_POST['id']);
+            $categoria->setIdCategoria($_POST['id'] ?? '');
             $result = $categoria->Transaccion(['peticion' => 'eliminar']);
 
             if ($result['success']) {
@@ -118,22 +108,14 @@ class CategoriaController
                 $accion_permiso = true; 
 
                 if ($accion_permiso) {
-                    $bool_formulario = true;
-                    $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
-
-                    if (empty($_POST["nombre_categoria"])) {
-                        $json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Nombre no válido'];
-                        $bool_formulario = false;
-                    }
-
-                    if ($bool_formulario) {
-                        $categoriaModel->setNombreCategoria($_POST["nombre_categoria"]);
+                    try {
+                        $categoriaModel->setNombreCategoria($_POST["nombre_categoria"] ?? '');
                         $categoriaModel->setDescripcion($_POST["descripcion"] ?? '');
                         $categoriaModel->setIcono('default.png');
                         
                         if ($_POST["peticion"] == "modificar") {
                             // En actualizar, se requiere el estatus
-                            $categoriaModel->setIdCategoria($_POST["id_categoria"]);
+                            $categoriaModel->setIdCategoria($_POST["id_categoria"] ?? '');
                             $categoriaModel->setEstatus($_POST["estatus"] ?? 1); 
                             $jsonResult = $categoriaModel->Transaccion(['peticion' => 'actualizar']);
                         } else {
@@ -148,6 +130,9 @@ class CategoriaController
                             $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'OK'];
                             $json['response'] = ['resultado' => 400, 'mensaje' => $jsonResult['message'] ?? 'Error desconocido'];
                         }
+                    } catch (\Exception $e) {
+                        $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+                        $json['response'] = ['resultado' => 400, 'mensaje' => $e->getMessage()];
                     }
                 } else {
                     $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
@@ -166,12 +151,9 @@ class CategoriaController
                 $accion_permiso = true;
 
                 if ($accion_permiso) {
-                    if (empty($_POST["id_categoria"]) || !isset($_POST["estatus"])) {
-                        $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos mínimos no válidos'];
-                        $json['response'] = ['resultado' => 400, 'mensaje' => 'Error, ID y Estatus requeridos'];
-                    } else {
-                        $categoriaModel->setIdCategoria($_POST["id_categoria"]);
-                        $categoriaModel->setEstatus($_POST["estatus"]);
+                    try {
+                        $categoriaModel->setIdCategoria($_POST["id_categoria"] ?? '');
+                        $categoriaModel->setEstatus($_POST["estatus"] ?? '');
                         $jsonResult = $categoriaModel->Transaccion(['peticion' => 'cambiar_estatus']);
                         
                         if ($jsonResult && isset($jsonResult['success']) && $jsonResult['success']) {
@@ -181,6 +163,9 @@ class CategoriaController
                             $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'OK'];
                             $json['response'] = ['resultado' => 400, 'mensaje' => $jsonResult['message'] ?? 'Error al actualizar estatus'];
                         }
+                    } catch (\Exception $e) {
+                        $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos mínimos no válidos'];
+                        $json['response'] = ['resultado' => 400, 'mensaje' => $e->getMessage()];
                     }
                 } else {
                     $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
