@@ -23,8 +23,6 @@ class Menu
                 return $this->guardarMenu($datos);
             case 'buscar':
                 return $this->buscarMenu($datos['id_producto']);
-            case 'cambiar_estatus':
-                return $this->cambiarEstatusMenu($datos);
             case 'eliminar':
                 return $this->eliminarMenu($datos['id_producto']);
             case 'categorias':
@@ -45,6 +43,7 @@ class Menu
                     FROM producto p
                     LEFT JOIN categoria_producto c ON p.id_categoria = c.id_categoria
                     WHERE p.tipo_producto IN ('COCINA', 'BARRA', 'POSTRE')
+                    AND p.estatus = 1
                     ORDER BY p.fecha_creacion DESC";
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
@@ -169,11 +168,15 @@ class Menu
 
     private function insertarPreparacion($id_producto, $ingredientes_json, $prioridad)
     {
+        error_log("Recibido ingredientes_json para prioridad $prioridad: " . print_r($ingredientes_json, true));
         $ingredientes = is_string($ingredientes_json) ? json_decode($ingredientes_json, true) : $ingredientes_json;
-        if (!is_array($ingredientes)) return;
+        if (!is_array($ingredientes)) {
+            error_log("Error: ingredientes no es un array valido. Valor: " . json_last_error_msg());
+            return;
+        }
 
-        $sql = "INSERT INTO preparacion (id_preparacion, id_producto, id_ingrediente, prioridad_ingrediente, cantidad, id_unidad_medida) 
-                VALUES (:id_preparacion, :id_producto, :id_ingrediente, :prioridad, :cantidad, :id_unidad)";
+        $sql = "INSERT INTO preparacion (id_preparacion, id_producto, id_ingrediente, prioridad_ingrediente, cantidad, id_unidad_medida, precio_ingrediente) 
+                VALUES (:id_preparacion, :id_producto, :id_ingrediente, :prioridad, :cantidad, :id_unidad, :precio_ingrediente)";
         $stmt = $this->db->prepare($sql);
 
         foreach ($ingredientes as $ing) {
@@ -184,7 +187,8 @@ class Menu
                 'id_ingrediente' => $ing['id'],
                 'prioridad' => $prioridad,
                 'cantidad' => $ing['cantidad'] ?? 1,
-                'id_unidad' => $ing['unidad'] ?? 'UN'
+                'id_unidad' => $ing['unidad'] ?? 'UN',
+                'precio_ingrediente' => !empty($ing['precio']) ? (float)$ing['precio'] : 0
             ]);
             usleep(1000); // Pequeña pausa para asegurar id_preparacion único si se insertan muy rápido
         }
@@ -242,22 +246,6 @@ class Menu
             return ['success' => $result, 'message' => $result ? 'Producto eliminado' : 'Error al eliminar'];
         } catch (\PDOException $e) {
             return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
-        }
-    }
-
-    private function cambiarEstatusMenu($datos)
-    {
-        try {
-            $sql = "UPDATE producto SET estatus = :estatus WHERE id_producto = :id_producto";
-            $stmt = $this->db->prepare($sql);
-            $result = $stmt->execute([
-                'id_producto' => $datos['id_producto'],
-                'estatus' => $datos['estatus']
-            ]);
-            return ['success' => $result, 'message' => $result ? 'Estatus actualizado' : 'Error al actualizar estatus'];
-        } catch (\PDOException $e) {
-            error_log("Error en cambiarEstatusMenu: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Error BD: ' . $e->getMessage()];
         }
     }
 

@@ -124,31 +124,7 @@ class MenuController
         });
     }
 
-    public function cambiar_estatus()
-    {
-        $this->responderJson(function() {
-            Helper::verificarSesion();
 
-            if (empty($_POST['id']) || !isset($_POST['estatus'])) {
-                return ['success' => false, 'message' => 'Parámetros incompletos'];
-            }
-
-            $menu = new Menu();
-            $result = $menu->Transaccion([
-                'peticion' => 'cambiar_estatus', 
-                'id_producto' => $_POST['id'],
-                'estatus' => $_POST['estatus']
-            ]);
-
-            if ($result['success']) {
-                $estado = $_POST['estatus'] == 1 ? 'activó' : 'inactivó';
-                Helper::Bitacora("ESTATUS", "MENU", "Se $estado el producto del menú con ID: " . $_POST['id']);
-            }
-
-            return $result;
-        });
-    }
-    
     public function listarJson()
     {
         $this->responderJson(function() {
