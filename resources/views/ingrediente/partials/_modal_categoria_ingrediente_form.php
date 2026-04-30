@@ -45,7 +45,8 @@
                     <!-- Fila: Descripción-->
                     <div class="row g-3 mb-3 justify-content-center">
                         <div class="col-md-7">
-                            <label for="categoria-descripcion" class="form-label fw-semibold">Descripción de la Categoría</label>
+                            <label for="categoria-descripcion" class="form-label fw-semibold">Descripción de la
+                                Categoría</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light">
                                     <i class="fas fa-align-left"></i>
@@ -64,6 +65,7 @@
 
                         </button>
                     </div>
+                </div>
             </form>
         </div>
     </div>
