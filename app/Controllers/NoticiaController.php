@@ -194,6 +194,7 @@ class NoticiaController
         
         $page = 'noticias_publicas';
         $titulo = 'Noticias - Good Vibes';
+        $extra_css = [BASE_URL . '/assets/css/noticias.css?v=' . time()];
         
         require_once BASE_PATH . '/resources/views/layout/head.php';
         
@@ -227,6 +228,7 @@ class NoticiaController
 
         $page = 'noticias_detalle';
         $titulo = $noticia['titulo'] . ' - Good Vibes Noticias';
+        $extra_css = [BASE_URL . '/assets/css/noticias.css?v=' . time()];
         
         require_once BASE_PATH . '/resources/views/layout/head.php';
         require_once BASE_PATH . '/resources/views/layout/menu.php';
