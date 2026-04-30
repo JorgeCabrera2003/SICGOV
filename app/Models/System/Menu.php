@@ -4,37 +4,166 @@ namespace App\Models\System;
 
 use App\Core\Database;
 use PDO;
+use Exception;
 
 class Menu
 {
     private $db;
-    
+    private $id_producto;
+    private $nombre_producto;
+    private $descripcion;
+    private $precio;
+    private $id_categoria;
+    private $tipo_producto;
+    private $imagen;
+    private $ingredientes_principales;
+    private $ingredientes_adicionales;
+
     public function __construct()
     {
         $this->db = Database::getConnection('business');
     }
 
-    public function Transaccion($datos)
+    
+    public function setIdProducto($id)
     {
-        switch ($datos['peticion']) {
-            case 'listar':
-                return $this->listarMenu();
-            case 'guardar':
-                return $this->guardarMenu($datos);
-            case 'buscar':
-                return $this->buscarMenu($datos['id_producto']);
-            case 'eliminar':
-                return $this->eliminarMenu($datos['id_producto']);
-            case 'categorias':
-                return $this->listarCategorias();
-            case 'ingredientes':
-                return $this->listarIngredientes();
-            case 'unidades':
-                return $this->listarUnidades();
-            default:
-                return false;
+        $this->id_producto = $id;
+    }
+
+    public function setNombreProducto($nombre)
+    {
+        if (empty($nombre)) {
+            throw new Exception("El nombre del producto es requerido.");
+        }
+        $this->nombre_producto = $nombre;
+    }
+
+    public function setDescripcion($descripcion)
+    {
+        $this->descripcion = $descripcion;
+    }
+
+    public function setPrecio($precio)
+    {
+        $this->precio = $precio;
+    }
+
+    public function setIdCategoria($id_categoria)
+    {
+        $this->id_categoria = $id_categoria;
+    }
+
+    public function setTipoProducto($tipo)
+    {
+        $this->tipo_producto = $tipo;
+    }
+
+    public function setImagen($imagen)
+    {
+        $this->imagen = $imagen;
+    }
+
+    public function setIngredientesPrincipales($ingredientes)
+    {
+        $this->ingredientes_principales = $ingredientes;
+    }
+
+    public function setIngredientesAdicionales($ingredientes)
+    {
+        $this->ingredientes_adicionales = $ingredientes;
+    }
+
+
+
+
+  
+    public function getIdProducto()
+    {
+        return $this->id_producto;
+    }
+
+    public function getNombreProducto()
+    {
+        return $this->nombre_producto;
+    }
+
+    public function getDescripcion()
+    {
+        return $this->descripcion;
+    }
+
+    public function getPrecio()
+    {
+        return $this->precio;
+    }
+
+    public function getIdCategoria()
+    {
+        return $this->id_categoria;
+    }
+
+    public function getTipoProducto()
+    {
+        return $this->tipo_producto;
+    }
+
+    public function getImagen()
+    {
+        return $this->imagen;
+    }
+
+    public function getIngredientesPrincipales()
+    {
+        return $this->ingredientes_principales;
+    }
+
+    public function getIngredientesAdicionales()
+    {
+        return $this->ingredientes_adicionales;
+    }
+
+//#########################################################################################
+
+
+    public function Transaccion($peticion)
+    {
+        try {
+            switch ($peticion['peticion']) {
+                case 'listar':
+                    return $this->listarMenu();
+                case 'registrar':
+                    return $this->registrarMenu();
+                case 'modificar':
+                    return $this->modificarMenu();
+                case 'buscar':
+                    return $this->buscarMenu();
+                case 'eliminar':
+                    return $this->eliminarMenu();
+                case 'categorias':
+                    return $this->listarCategorias();
+                case 'ingredientes':
+                    return $this->listarIngredientes();
+                case 'unidades':
+                    return $this->listarUnidades();
+                default:
+                    return ['success' => false, 'message' => 'Petición no válida'];
+            }
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
         }
     }
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
 
     private function listarMenu()
     {
@@ -54,6 +183,25 @@ class Menu
         }
     }
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
+
     private function listarCategorias()
     {
         try {
@@ -66,6 +214,25 @@ class Menu
             return [];
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
 
     private function listarIngredientes()
     {
@@ -81,6 +248,27 @@ class Menu
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
+
     private function listarUnidades()
     {
         try {
@@ -94,77 +282,175 @@ class Menu
         }
     }
 
-    private function guardarMenu($datos)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
+
+    private function registrarMenu()
     {
         try {
             $this->db->beginTransaction();
             
-            $id_producto = !empty($datos['id_producto']) ? $datos['id_producto'] : $this->generarIdProducto();
-            $es_nuevo = empty($datos['id_producto']);
+            $this->id_producto = $this->generarIdProducto();
 
-            if ($es_nuevo) {
-                $sql = "INSERT INTO producto (
-                        id_producto, nombre_producto, descripcion, precio, 
-                        id_categoria, imagen, es_personalizable, estatus, tipo_producto
-                    ) VALUES (
-                        :id_producto, :nombre, :descripcion, :precio, 
-                        :id_categoria, :imagen, 1, 1, :tipo_producto
-                    )";
-            } else {
-                $sql = "UPDATE producto SET 
-                        nombre_producto = :nombre,
-                        descripcion = :descripcion,
-                        precio = :precio,
-                        id_categoria = :id_categoria,
-                        tipo_producto = :tipo_producto";
-                
-                if (isset($datos['imagen'])) {
-                    $sql .= ", imagen = :imagen";
-                }
-                $sql .= " WHERE id_producto = :id_producto";
-            }
+            $sql = "INSERT INTO producto (
+                    id_producto, nombre_producto, descripcion, precio, 
+                    id_categoria, imagen, es_personalizable, estatus, tipo_producto
+                ) VALUES (
+                    :id_producto, :nombre, :descripcion, :precio, 
+                    :id_categoria, :imagen, 1, 1, :tipo_producto
+                )";
 
             $stmt = $this->db->prepare($sql);
             $params = [
-                'id_producto' => $id_producto,
-                'nombre' => $datos['nombre_producto'],
-                'descripcion' => $datos['descripcion'] ?? '',
-                'precio' => $datos['precio'],
-                'id_categoria' => $datos['id_categoria'],
-                'tipo_producto' => $datos['tipo_producto'] ?? 'COCINA'
+                'id_producto' => $this->getIdProducto(),
+                'nombre' => $this->getNombreProducto(),
+                'descripcion' => $this->getDescripcion() ?? '',
+                'precio' => $this->getPrecio(),
+                'id_categoria' => $this->getIdCategoria(),
+                'tipo_producto' => $this->getTipoProducto() ?? 'COCINA',
+                'imagen' => $this->getImagen() ?? 'default-product.png'
             ];
             
-            if ($es_nuevo || isset($datos['imagen'])) {
-                $params['imagen'] = $datos['imagen'] ?? 'default-product.png';
+            $stmt->execute($params);
+
+            // Insertar Principales (prioridad 1)
+            if (!empty($this->getIngredientesPrincipales())) {
+                $this->insertarPreparacion($this->getIdProducto(), $this->getIngredientesPrincipales(), 1);
+            }
+
+            // Insertar Adicionales (prioridad 2)
+            if (!empty($this->getIngredientesAdicionales())) {
+                $this->insertarPreparacion($this->getIdProducto(), $this->getIngredientesAdicionales(), 2);
+            }
+
+            $this->db->commit();
+            return ['success' => true, 'id' => $this->getIdProducto(), 'message' => 'Menú registrado exitosamente'];
+
+        } catch (\PDOException $e) {
+            $this->db->rollBack();
+            error_log("Error en registrarMenu: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Error al registrar el menú: ' . $e->getMessage()];
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
+
+    private function modificarMenu()
+    {
+        try {
+            $this->db->beginTransaction();
+            
+            $sql = "UPDATE producto SET 
+                    nombre_producto = :nombre,
+                    descripcion = :descripcion,
+                    precio = :precio,
+                    id_categoria = :id_categoria,
+                    tipo_producto = :tipo_producto";
+            
+            if ($this->getImagen() !== null) {
+                $sql .= ", imagen = :imagen";
+            }
+            $sql .= " WHERE id_producto = :id_producto";
+
+            $stmt = $this->db->prepare($sql);
+            $params = [
+                'id_producto' => $this->getIdProducto(),
+                'nombre' => $this->getNombreProducto(),
+                'descripcion' => $this->getDescripcion() ?? '',
+                'precio' => $this->getPrecio(),
+                'id_categoria' => $this->getIdCategoria(),
+                'tipo_producto' => $this->getTipoProducto() ?? 'COCINA'
+            ];
+            
+            if ($this->getImagen() !== null) {
+                $params['imagen'] = $this->getImagen();
             }
             
             $stmt->execute($params);
 
             // Limpiar receta si es edición
-            if (!$es_nuevo) {
-                $del = $this->db->prepare("DELETE FROM preparacion WHERE id_producto = :id_producto");
-                $del->execute(['id_producto' => $id_producto]);
-            }
+            $del = $this->db->prepare("DELETE FROM preparacion WHERE id_producto = :id_producto");
+            $del->execute(['id_producto' => $this->getIdProducto()]);
 
             // Insertar Principales (prioridad 1)
-            if (!empty($datos['ingredientes_principales'])) {
-                $this->insertarPreparacion($id_producto, $datos['ingredientes_principales'], 1);
+            if (!empty($this->getIngredientesPrincipales())) {
+                $this->insertarPreparacion($this->getIdProducto(), $this->getIngredientesPrincipales(), 1);
             }
 
             // Insertar Adicionales (prioridad 2)
-            if (!empty($datos['ingredientes_adicionales'])) {
-                $this->insertarPreparacion($id_producto, $datos['ingredientes_adicionales'], 2);
+            if (!empty($this->getIngredientesAdicionales())) {
+                $this->insertarPreparacion($this->getIdProducto(), $this->getIngredientesAdicionales(), 2);
             }
 
             $this->db->commit();
-            return ['success' => true, 'id' => $id_producto, 'message' => 'Menú guardado exitosamente'];
+            return ['success' => true, 'id' => $this->getIdProducto(), 'message' => 'Menú guardado exitosamente'];
 
         } catch (\PDOException $e) {
             $this->db->rollBack();
-            error_log("Error en guardarMenu: " . $e->getMessage());
-            return ['success' => false, 'message' => 'Error al guardar el menú: ' . $e->getMessage()];
+            error_log("Error en modificarMenu: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Error al modificar el menú: ' . $e->getMessage()];
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
 
     private function insertarPreparacion($id_producto, $ingredientes_json, $prioridad)
     {
@@ -194,7 +480,22 @@ class Menu
         }
     }
 
-    private function buscarMenu($id_producto)
+
+
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
+
+    private function buscarMenu()
     {
         try {
             $sql = "SELECT p.*, c.nombre_categoria 
@@ -202,7 +503,7 @@ class Menu
                     LEFT JOIN categoria_producto c ON p.id_categoria = c.id_categoria
                     WHERE p.id_producto = :id";
             $stmt = $this->db->prepare($sql);
-            $stmt->execute(['id' => $id_producto]);
+            $stmt->execute(['id' => $this->getIdProducto()]);
             $producto = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($producto) {
@@ -213,7 +514,7 @@ class Menu
                             JOIN unidad_medida u ON pr.id_unidad_medida = u.id_unidad
                             WHERE pr.id_producto = :id_producto";
                 $stPrep = $this->db->prepare($sqlPrep);
-                $stPrep->execute(['id_producto' => $id_producto]);
+                $stPrep->execute(['id_producto' => $this->getIdProducto()]);
                 $preparacion = $stPrep->fetchAll(PDO::FETCH_ASSOC);
 
                 $principales = [];
@@ -237,17 +538,57 @@ class Menu
         }
     }
 
-    private function eliminarMenu($id_producto)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
+
+    private function eliminarMenu()
     {
         try {
             $sql = "UPDATE producto SET estatus = 0 WHERE id_producto = :id_producto";
             $stmt = $this->db->prepare($sql);
-            $result = $stmt->execute(['id_producto' => $id_producto]);
+            $result = $stmt->execute(['id_producto' => $this->getIdProducto()]);
             return ['success' => $result, 'message' => $result ? 'Producto eliminado' : 'Error al eliminar'];
         } catch (\PDOException $e) {
             return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
 
     private function generarIdProducto()
     {
@@ -304,4 +645,5 @@ class Menu
             return false;
         }
     }
+
 }

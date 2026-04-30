@@ -59,6 +59,42 @@ class CategoriaProducto
         $this->estatus = $estatus;
     }
 
+
+
+
+
+
+    public function getIdCategoria() 
+    { 
+        return $this->id_categoria; 
+    }
+    public function getNombreCategoria() 
+    { 
+        return $this->nombre_categoria; 
+    }
+    public function getDescripcion() 
+    { 
+        return $this->descripcion; 
+    }
+    public function getIcono() 
+    { 
+        return $this->icono; 
+    }
+    public function getEstatus() 
+    { 
+        return $this->estatus; 
+    }
+
+
+
+
+
+
+    
+
+//#########################################################################################
+
+
     public function Transaccion($peticion)
     {
         try {
@@ -83,6 +119,20 @@ class CategoriaProducto
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
+
     private function listarCategorias()
     {
         try {
@@ -96,6 +146,18 @@ class CategoriaProducto
         }
     }
 
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
+
     private function listarTodasCategorias()
     {
         try {
@@ -108,6 +170,21 @@ class CategoriaProducto
             return [];
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
 
     private function guardarCategoria()
     {
@@ -131,15 +208,15 @@ class CategoriaProducto
 
             $stmt = $this->db->prepare($sql);
             $result = $stmt->execute([
-                'id_categoria' => $this->id_categoria,
-                'nombre_categoria' => $this->nombre_categoria,
-                'descripcion' => $this->descripcion ?? '',
-                'icono' => $this->icono ?? 'default.png'
+                'id_categoria' => $this->getIdCategoria(),
+                'nombre_categoria' => $this->getNombreCategoria(),
+                'descripcion' => $this->getDescripcion() ?? '',
+                'icono' => $this->getIcono() ?? 'default.png'
             ]);
 
             if ($result) {
                 $this->db->commit();
-                return ['success' => true, 'id' => $this->id_categoria, 'message' => 'Categoría guardada exitosamente'];
+                return ['success' => true, 'id' => $this->getIdCategoria(), 'message' => 'Categoría guardada exitosamente'];
             }
             
             $this->db->rollBack();
@@ -154,6 +231,24 @@ class CategoriaProducto
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
+
     private function actualizarCategoria()
     {
         try {
@@ -167,11 +262,11 @@ class CategoriaProducto
 
             $stmt = $this->db->prepare($sql);
             $result = $stmt->execute([
-                'id_categoria' => $this->id_categoria,
-                'nombre_categoria' => $this->nombre_categoria,
-                'descripcion' => $this->descripcion,
-                'icono' => $this->icono,
-                'estatus' => $this->estatus
+                'id_categoria' => $this->getIdCategoria(),
+                'nombre_categoria' => $this->getNombreCategoria(),
+                'descripcion' => $this->getDescripcion(),
+                'icono' => $this->getIcono(),
+                'estatus' => $this->getEstatus()
             ]);
 
             if ($result) {
@@ -188,13 +283,28 @@ class CategoriaProducto
         }
     }
 
+
+
+
+
+
+
+
+
+
+    
+
+
+//#########################################################################################
+
+
     private function eliminarCategoria()
     {
         try {
             $this->db->beginTransaction();
             $checkSql = "SELECT COUNT(*) as total FROM producto WHERE id_categoria = :id_categoria";
             $checkStmt = $this->db->prepare($checkSql);
-            $checkStmt->execute(['id_categoria' => $this->id_categoria]);
+            $checkStmt->execute(['id_categoria' => $this->getIdCategoria()]);
             $result = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
             if ($result['total'] > 0) {
@@ -204,7 +314,7 @@ class CategoriaProducto
 
             $sql = "UPDATE categoria_producto SET estatus = 0 WHERE id_categoria = :id_categoria";
             $stmt = $this->db->prepare($sql);
-            $result = $stmt->execute(['id_categoria' => $this->id_categoria]);
+            $result = $stmt->execute(['id_categoria' => $this->getIdCategoria()]);
 
             if ($result) {
                 $this->db->commit();
@@ -220,18 +330,44 @@ class CategoriaProducto
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
+
     private function buscarCategoria()
     {
         try {
             $sql = "SELECT * FROM categoria_producto WHERE id_categoria = :id_categoria";
             $stmt = $this->db->prepare($sql);
-            $stmt->execute(['id_categoria' => $this->id_categoria]);
+            $stmt->execute(['id_categoria' => $this->getIdCategoria()]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             error_log("Error en buscarCategoria: " . $e->getMessage());
             return null;
         }
     }
+
+
+
+
+
+
+
+
+
+
+//#########################################################################################
+
 
     private function generarIdCategoria()
     {
