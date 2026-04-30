@@ -11,7 +11,7 @@
             Gestión de Clientes
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de cliente">
-            <button class="btn btn-primary text-white fw-semibold" id="btnNuevoCliente">
+            <button class="btn btn-primary fw-semibold" id="btnNuevoCliente">
                 <i class="fas fa-plus me-2"></i>Nuevo Cliente
             </button>
         </div>
