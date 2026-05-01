@@ -1,167 +1,15 @@
 import * as ingrediente from "./ingrediente.js"
 import * as categoriaIngrediente from "./categoria_ingrediente.js"
+import * as AjaxHelper from "./Helpers/AjaxHelper.js"
 
 //MODULO DE INGREDIENTES
 
 //-------INICIALIZACIÖN-------
 
-//Interfaz de Acceso a los Elementos(inputs y span del formulario)
-function etiquetasFormulario(etiquetas) {
-  let referencia = null
-
-  const inputIngrediente = {
-    nombre: $('#nombre'),
-    costo_unitario: $('#costo_unitario'),
-    categoria_id: $('#clave_categoria'),
-    unidad_medida: $('#unidad_medida'),
-    stock_inicial: $('#stock_inicial'),
-    stock_minimo: $('#stock_minimo'),
-    stock_maximo: $('#stock_maximo'),
-    id_ingrediente: $('#id_ingrediente')
-  }
-
-  const spanIngrediente = {
-    nombre: $('#snombre'),
-    costo_unitario: $('#scosto_unitario'),
-    categoria_id: $('#sclave_categoria'),
-    unidad_medida: $('#sunidad_medida'),
-    stock_inicial: $('#sstock_inicial'),
-    stock_minimo: $('#sstock_minimo'),
-    stock_maximo: $('#sstock_maximo'),
-    id_ingrediente: $('#sid_ingrediente')
-  }
-
-  const inputCategoria = {
-    nombre: $('#categoria-nombre'),
-    descripcion: $('#categoria-descripcion'),
-    id_categoria: $('#id_categoria')
-  }
-
-  const spanCategoria = {
-    nombre: $('#scategoria-nombre'),
-    descripcion: $('#scategoria-descripcion'),
-    id_categoria: $('#sid_categoria')
-  }
-
-  if (etiquetas === "input-Ingrediente") {
-    referencia = inputIngrediente
-  }
-
-  if (etiquetas === "span-Ingrediente") {
-    referencia = spanIngrediente
-  }
-
-  if (etiquetas === "input-Categoria") {
-    referencia = inputCategoria;
-  }
-
-  if (etiquetas === "span-Categoria") {
-    referencia = spanCategoria
-  }
-
-  return referencia;
-}
-//Fin de Interfaz de Acceso a los Elementos(inputs y span del formulario)
-
-//Interfaz de Acceso a los Elementos(modal)
-function etiquetasModal(etiqueta) {
-  let referencia = null
-
-  const modalIngrediente = {
-    modal: $('#modalIngrediente'),
-    titulo: $('#modalTitleTextIngrediente'),
-    boton: $('#btnIngredienteForm')
-  }
-
-  const modalCategoriaTabla = {
-    modal: $('#modalCategoria'),
-    titulo: $('#modalTitleTextCategoria'),
-    boton: $('#btn-CategoriaPCancel')
-  }
-
-  const modalCategoria = {
-    modal: $('#modal-formcategoria'),
-    titulo: $('#modalTitleText-Form-Categoria'),
-    boton: $('#btn-CategoriaForm')
-  }
-
-  if (etiqueta === "Ingrediente") {
-    referencia = modalIngrediente;
-  }
-
-  if (etiqueta === "TablaCategoria") {
-    referencia = modalCategoriaTabla;
-  }
-
-  if (etiqueta === "Categoria") {
-    referencia = modalCategoria;
-  }
-
-  return referencia;
-}
-//Fin de Interfaz de Acceso
-
-//Función para editar textos visuales del modal
-function editarModal(modal = "Ingrediente", operacion) {
-  let titulo;
-  let boton;
-  let etiqueta_modal = etiquetasModal(modal);
-  let vocal = "o";
-  let sustantivo = "Ingrediente";
-
-  if (modal == "Categoria") {
-    vocal = "a"
-    sustantivo = "Categoría";
-  }
-
-  if (operacion == 'registrar') {
-    titulo = "Nuev" + vocal + " " + sustantivo;
-    boton = "Nuevo";
-  }
-
-  if (operacion == 'modificar') {
-    titulo = "Actualizar " + sustantivo;
-    boton = "Actualizar";
-  }
-
-  if (operacion == 'eliminar') {
-    titulo = "Borrar " + sustantivo;
-    boton = "Borrar";
-  }
-
-  etiqueta_modal.titulo.text(titulo)
-  etiqueta_modal.boton.text(boton)
-  etiqueta_modal.modal.modal("show")
-}
-//Fin de la Función de editarModal
-
-//Función para manejar el cambio de estado del formulario
-function manejarCambioEstado(formularioValido) {
-  let input = etiquetasFormulario("input");
-  let span = etiquetasFormulario("span");
-  let modal = etiquetasModal("Ingrediente");
-  const accion = modal.boton.text();
-
-  if (accion === "Eliminar") {
-    // Para eliminar solo validamos el ID
-    const idValido = validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_ingrediente.val(), span.id_ingrediente, '');
-    modal.boton.prop('disabled', !idValido);
-  } else {
-    // Para registrar y modificar validamos todos los campos
-    modal.boton.prop('disabled', !formularioValido);
-  }
-  modal = null;
-  input = null;
-  span = null;
-}
-
 $(document).ready(function () {
   crearDataTable();
   registrarEntrada();
-  capaValidar();
-
-  // Validar estado inicial del formulario
-  manejarCambioEstado(false);
+  iniciarValidaciones();
 });
 
 async function enviarDatos(operacion, modulo = "Ingrediente") {
@@ -306,12 +154,8 @@ $("#btnNuevoIngrediente").on("click", function () {
 
 //Iniciar Tabla de Categoría de Ingrediente
 $("#btn-ModalCategorias").on("click", async function () {
-  let etiqueta_modal = etiquetasModal("TablaCategoria");
-
-  await crearDataTable("categoria-ingrediente")
-  etiqueta_modal.modal.modal("show");
-
-  etiqueta_modal = null;
+  await crearDataTable("categoria-ingrediente");
+  categoriaIngrediente.MostrarModalTabla();
 })
 
 //Iniciar Modal Formulario de Categoría de Ingrediente
@@ -325,15 +169,11 @@ $("#btn-CategoriaCancel").on("click", function () {
 
 //CAPA DE VALIDACIÓN
 
-function capaValidar() {
+function iniciarValidaciones() {
   ingrediente.CapaValidar();
   categoriaIngrediente.KeyPressCategoria();
+  categoriaIngrediente.KeyUpCategoria();
 }
-
-function alidarenvio(modulo = "Ingrediente") {
-  return SistemaValidacion.validarFormulario(etiquetasFormulario('input-' + modulo));
-}
-
 
 async function crearDataTable(controlador = "ingredientes") {
   const peticion = new FormData();
@@ -343,7 +183,7 @@ async function crearDataTable(controlador = "ingredientes") {
   peticion.append("peticion", "consultar");
 
   try {
-    json = await enviaAjax(peticion, endpoint);
+    json = await AjaxHelper.enviaAjax(peticion, endpoint);
     arreglo = json.datos;
   } catch (error) {
     arreglo = [];
