@@ -1,3 +1,5 @@
+import * as mensajeriaHelper from "./MensajeriaHelper.js";
+
 export async function enviaAjax(datos, controlador = "") {
   let response = null;
   try {
@@ -43,7 +45,7 @@ export async function enviaAjax(datos, controlador = "") {
         } else {
           console.log("Ocurrió un error", err);
         }
-        mensajes("error", 10000, errorMsg || mensajeHTTP(response.resultado), null);
+        mensajeriaHelper.GenerarMensaje("error", 10000, errorMsg || mensajeHTTP(response.resultado), null);
       },
     });
   } catch (error) {
