@@ -11,7 +11,7 @@
             Gestión de Categorías del Menú
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de categoría">
-            <button class="btn btn-primary text-white fw-semibold" id="btnNuevaCategoria">
+            <button class="btn btn-primary fw-semibold" id="btnNuevaCategoria">
                 <i class="fas fa-plus me-2"></i>Nueva Categoría
             </button>
         </div>

@@ -4,12 +4,12 @@
     <header class="article-header text-center px-3">
         <div class="container position-relative z-1">
             <span class="badge bg-body-tertiary text-primary fs-6 mb-3 px-3 py-2 rounded-pill"><?= htmlspecialchars($noticia['tipo']) ?></span>
-            <h1 class="h1 fw-bold mb-3 text-white"><?= htmlspecialchars($noticia['titulo']) ?></h1>
-            <p class="lead mb-3 mx-auto text-white" style="max-width: 800px;">
+            <h1 class="h1 fw-bold mb-3"><?= htmlspecialchars($noticia['titulo']) ?></h1>
+            <p class="lead mb-3 mx-auto" style="max-width: 800px;">
                 <?= htmlspecialchars($noticia['subtitulo']) ?>
             </p>
             
-            <div class="d-flex justify-content-center align-items-center gap-4 text-white-50 small">
+            <div class="d-flex justify-content-center align-items-center gap-4 small opacity-75">
                 <span>
                     <i class="fas fa-user-circle me-2 fs-5"></i>
                     Escrito por <strong><?= htmlspecialchars($noticia['autor']) ?></strong>

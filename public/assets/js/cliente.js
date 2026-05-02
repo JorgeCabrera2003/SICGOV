@@ -245,44 +245,27 @@ $('#modalCliente').on('shown.bs.modal', function () {
 });
 
 async function vistaPermiso() {
-  const dropdown = $('<div>').addClass('dropdown');
-  const boton = $('<button>').addClass('btn btn-sm bg-body text-body border dropdown-toggle')
-    .attr('type', 'button')
-    .attr('data-bs-toggle', 'dropdown')
-    .html('<i class="fas fa-ellipsis-v me-2"></i>Acciones');
-
-  const menu = $('<ul>').addClass('dropdown-menu');
-
-  const itemConsultar = $('<li>');
-  const linkConsultar = $('<a>')
-    .addClass('dropdown-item text-info')
-    .attr('href', '#')
-    .attr('onclick', 'consultarFila(this)')
-    .html('<i class="fa-solid fa-eye me-2"></i>Consultar');
-  itemConsultar.append(linkConsultar);
-
-  const itemEditar = $('<li>');
-  const linkEditar = $('<a>')
-    .addClass('dropdown-item text-primary')
-    .attr('href', '#')
-    .attr('onclick', 'rellenar(this, 0)')
-    .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
-  itemEditar.append(linkEditar);
-
-  const separador = $('<li>').html('<hr class="dropdown-divider">');
-
-  const itemEliminar = $('<li>');
-  const linkEliminar = $('<a>')
-    .addClass('dropdown-item text-danger')
-    .attr('href', '#')
-    .attr('onclick', 'cambiarEstatus(this)')
-    .html('<i class="fa-solid fa-power-off me-2"></i>Cambiar Estatus');
-  itemEliminar.append(linkEliminar);
-
-  menu.append(itemConsultar, itemEditar, separador, itemEliminar);
-  dropdown.append(boton, menu);
-
-  return dropdown.prop('outerHTML');
+    return UIActionBtn({
+        text: 'Acciones',
+        items: [
+            {
+                text: 'Consultar',
+                icon: 'fa-solid fa-eye text-info',
+                onclick: 'consultarFila(this)'
+            },
+            {
+                text: 'Editar',
+                icon: 'fa-solid fa-pen-to-square text-primary',
+                onclick: 'rellenar(this, 0)'
+            },
+            { divider: true },
+            {
+                text: 'Cambiar Estatus',
+                icon: 'fa-solid fa-power-off text-danger',
+                onclick: 'cambiarEstatus(this)'
+            }
+        ]
+    });
 }
 
 function capaValidar() {

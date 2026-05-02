@@ -88,24 +88,23 @@ document.addEventListener("DOMContentLoaded", function () {
                     orderable: false,
                     className: 'text-center',
                     render: function (data, type, row) {
-                        const $dropdown = $('<div>', { class: 'dropdown' });
-                        $dropdown.append(
-                            $('<button>', { class: 'btn btn-sm btn-light border dropdown-toggle', type: 'button' })
-                                .append($('<i>', { class: 'fas fa-ellipsis-v' }))
-                        );
-                        
-                        const $menu = $('<ul>', { class: 'dropdown-menu' });
-                        $menu.append(
-                            $('<li>').append($('<a>', { class: 'dropdown-item btn-editar', href: '#', 'data-id': row.id_noticia })
-                                .append($('<i>', { class: 'fas fa-edit text-primary me-2' })).append('Editar'))
-                        );
-                        $menu.append($('<li>').append($('<hr>', { class: 'dropdown-divider' })));
-                        $menu.append(
-                            $('<li>').append($('<a>', { class: 'dropdown-item btn-eliminar text-danger', href: '#', 'data-id': row.id_noticia })
-                                .append($('<i>', { class: 'fas fa-trash me-2' })).append('Eliminar'))
-                        );
-                        $dropdown.append($menu);
-                        return $dropdown.prop('outerHTML');
+                        return UIActionBtn({
+                            items: [
+                                {
+                                    text: 'Editar',
+                                    icon: 'fas fa-edit text-primary',
+                                    class: 'btn-editar',
+                                    id: row.id_noticia
+                                },
+                                { divider: true },
+                                {
+                                    text: 'Eliminar',
+                                    icon: 'fas fa-trash',
+                                    class: 'btn-eliminar text-danger',
+                                    id: row.id_noticia
+                                }
+                            ]
+                        });
                     }
                 }
             ]

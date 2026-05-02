@@ -917,6 +917,51 @@ $(document).ready(function () {
   console.log("Utils cargado completamente");
 });
 
+/**
+ * Componente Global: Generador de Botón de Acciones (Dropdown)
+ * @param {Object} options Configuración del botón y sus ítems
+ * @returns {string} HTML del componente
+ */
+function UIActionBtn(options = {}) {
+    const $dropdown = $('<div>', { class: 'dropdown d-inline-block' });
+    const $btn = $('<button>', {
+        class: `action-btn dropdown-toggle ${options.class || ''}`,
+        type: 'button',
+        'data-bs-toggle': 'dropdown',
+        'aria-expanded': 'false',
+        title: options.title || 'Acciones'
+    }).append($('<i>', { class: options.icon || 'fas fa-ellipsis-v' }));
+
+    if (options.text) {
+        $btn.append($('<span>', { class: 'ms-2 small fw-bold d-none d-md-inline', text: options.text }));
+    }
+
+    const $menu = $('<ul>', { class: 'dropdown-menu dropdown-menu-end shadow-sm' });
+    
+    if (options.items && Array.isArray(options.items)) {
+        options.items.forEach(item => {
+            if (item.divider) {
+                $menu.append($('<li>').append($('<hr>', { class: 'dropdown-divider' })));
+            } else {
+                const $link = $('<a>', {
+                    class: `dropdown-item d-flex align-items-center ${item.class || ''}`,
+                    href: item.href || 'javascript:void(0)',
+                    'data-id': item.id || '',
+                    onclick: item.onclick || null
+                });
+
+                if (item.icon) {
+                    $link.append($('<i>', { class: `${item.icon} me-2 opacity-75`, css: { width: '1.2rem' } }));
+                }
+                $link.append($('<span>', { text: item.text }));
+                $menu.append($('<li>').append($link));
+            }
+        });
+    }
+
+    return $dropdown.append($btn, $menu).prop('outerHTML');
+}
+
 // EXPORTAR FUNCIONES
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
