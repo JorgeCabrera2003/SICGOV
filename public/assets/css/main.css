@@ -234,7 +234,7 @@ body {
     --color-sidebar: #F8F9FA;
     --color-border: rgba(255, 255, 255, 0.1);
     --color-bg-muted: rgba(255, 255, 255, 0.05);
-    --color-placeholder: rgba(248, 249, 250, 0.4);
+    --color-placeholder: rgba(255, 255, 255, 0.5);
 
     /* Sobrescribir variables de Bootstrap */
     --bs-body-bg: var(--bg-principal);
@@ -266,6 +266,11 @@ body {
         background-color: #15171A;
         border-color: var(--color-border);
         color: var(--color-sidebar);
+
+        &::placeholder {
+            color: rgba(255, 255, 255, 0.45) !important;
+            opacity: 1;
+        }
 
         &:focus {
             background-color: #1A1C20;
@@ -366,6 +371,50 @@ body {
         &.active {
             background-color: var(--color-acento) !important;
             color: var(--bg-principal) !important;
+        }
+    }
+
+    /* Select2 Dark Mode Fixes */
+    & .select2-container--bootstrap-5 {
+        & .select2-selection {
+            background-color: #15171A !important;
+            border-color: var(--color-border) !important;
+            color: var(--color-sidebar) !important;
+            border-radius: var(--border-radius-base);
+        }
+
+        & .select2-selection--single .select2-selection__rendered {
+            color: var(--color-sidebar) !important;
+        }
+
+        & .select2-dropdown {
+            background-color: var(--bg-tarjetas) !important;
+            border-color: var(--color-border) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        & .select2-results__option {
+            background-color: transparent !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+            padding: 10px 15px;
+
+            &[aria-selected="true"] {
+                background-color: rgba(255, 214, 0, 0.15) !important;
+                color: var(--color-acento) !important;
+            }
+        }
+
+        & .select2-results__option--highlighted {
+            background-color: rgba(255, 214, 0, 0.2) !important; /* Amarillo sutil al 20% */
+            color: #FFFFFF !important; 
+            font-weight: 600;
+        }
+
+        & .select2-search__field {
+            background-color: #0F1114 !important;
+            border-color: var(--color-border) !important;
+            color: var(--color-sidebar) !important;
+            border-radius: 4px;
         }
     }
 }
