@@ -1,61 +1,78 @@
-#tablaBitacora td {
-    vertical-align: middle;
-    font-size: 0.9rem;
+/* ==========================================
+   COMPONENTE: Bitácora / Auditoría
+   Metodología: BEM + Anidamiento Nativo
+========================================== */
+
+.audit-log {
+    /* Elemento: Tabla Principal */
+    &__table {
+        & td {
+            vertical-align: middle;
+            font-size: 0.9rem;
+        }
+
+        /* Formato especial para código / IDs / JSON */
+        & .font-monospace {
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--color-sidebar);
+            background-color: var(--color-bg-muted);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            font-size: 0.8rem;
+        }
+    }
+
+    /* Elemento: Panel de Detalles (Contenido del Modal) */
+    &__details {
+        & label {
+            color: var(--color-sidebar);
+            opacity: 0.6;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+            font-weight: 700;
+        }
+
+        & p {
+            font-size: 0.95rem;
+            word-break: break-word;
+            margin-bottom: 0;
+            color: var(--color-sidebar);
+        }
+
+        & .bg-light {
+            background-color: var(--bg-principal) !important;
+            border: 1px solid var(--color-border);
+        }
+        
+        @media (max-width: 768px) {
+            & .row {
+                margin-bottom: 0.5rem;
+            }
+        }
+    }
+
+    /* Modificadores: Acciones */
+    &__action {
+        &--info {
+            &:hover {
+                background-color: var(--color-acento) !important;
+                color: var(--color-sidebar) !important;
+            }
+        }
+    }
 }
 
-#tablaBitacora .font-monospace {
-    font-family: 'Courier New', monospace;
-}
-
-
-#detalleBody label {
-    color: #6c757d;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.25rem;
-}
-
-#detalleBody p {
-    font-size: 0.95rem;
-    word-break: break-word;
-    margin-bottom: 0;
-}
-
-#detalleBody .bg-light {
-    background-color: #f8f9fa !important;
-}
-
-
-.btn-outline-info.border-0:hover {
-    background-color: #0dcaf0;
-    color: white !important;
-}
-
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
+/* Animación Global para Modales (Se extrae a base si aplica a todos) */
+@keyframes fadeInSlideUp {
+    from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 .modal.fade .modal-dialog {
-    animation: fadeIn 0.3s ease;
-}
-
-/* ==========================================
-   RESPONSIVE
-   ========================================== */
-
-@media (max-width: 768px) {
-    #tablaBitacora {
-        font-size: 0.8rem;
-    }
-    
-    .btn-group .btn {
-        padding: 0.2rem 0.4rem;
-    }
-    
-    #detalleBody .row {
-        margin-bottom: 0.5rem;
-    }
+    animation: fadeInSlideUp 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }

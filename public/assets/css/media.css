@@ -1,0 +1,86 @@
+/* ==========================================
+   COMPONENTE: Gestor Multimedia
+   Metodología: BEM + Anidamiento Nativo
+========================================== */
+
+.media-manager {
+    /* El contenedor principal usa clases de Bootstrap para layout */
+    
+    /* Elemento: Cuadrícula de medios */
+    &__grid {
+        /* Bootstrap d-flex flex-wrap ya maneja esto, pero añadimos transiciones a los items */
+    }
+
+    /* Elemento: Botón de Subida Especial */
+    &__upload-btn {
+        background: linear-gradient(135deg, var(--color-acento), #E6C000);
+        color: var(--color-sidebar);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 214, 0, 0.4) !important;
+            color: var(--color-sidebar);
+        }
+    }
+
+    /* Elemento: Tarjeta de Medio (Item) */
+    &__item {
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s ease;
+        border: 1px solid var(--color-border);
+        background-color: var(--bg-tarjetas);
+        cursor: pointer;
+
+        &:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 24px rgba(26, 28, 32, 0.08);
+
+            & .media-manager__image {
+                transform: scale(1.08);
+            }
+        }
+    }
+
+    /* Elemento: Contenedor de Previsualización */
+    &__preview {
+        height: 160px;
+        background-color: var(--bg-principal);
+        overflow: hidden;
+    }
+
+    /* Elemento: Imagen */
+    &__image {
+        transition: transform 0.5s ease;
+    }
+
+    /* Elemento: Badge de Estado */
+    &__badge {
+        backdrop-filter: blur(4px);
+        background-color: rgba(15, 17, 20, 0.85); /* Un tono oscuro profundo para el badge */
+        color: var(--color-acento);
+        border: 1px solid rgba(255, 214, 0, 0.2);
+        letter-spacing: 0.5px;
+    }
+
+    /* Elemento: Panel de Filtros */
+    &__filters {
+        background-color: var(--bg-tarjetas);
+        border: 1px solid var(--color-border);
+    }
+}
+
+/* Modal de Detalles (Sobrescribiendo genéricos con BEM para este módulo) */
+.media-detail {
+    &__preview-box {
+        background-color: var(--bg-principal);
+        border: 1px solid var(--color-border);
+    }
+
+    &__path {
+        word-break: break-all;
+        background-color: var(--bg-principal);
+        color: var(--color-sidebar);
+        border: 1px dashed var(--color-border);
+    }
+}

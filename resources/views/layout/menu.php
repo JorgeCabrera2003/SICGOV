@@ -15,7 +15,7 @@
 <aside class="sidebar d-flex flex-column flex-shrink-0 vh-100 position-fixed" id="sidebar">
     <!-- Cabecera con logo -->
     <div class="d-flex align-items-center justify-content-between p-3 border-bottom">
-        <div class="d-flex align-items-center gap-2 overflow-hidden">
+        <div class="sidebar-header-content d-flex align-items-center gap-2 overflow-hidden">
             <button class="btn btn-link p-0 text-decoration-none" id="collapse-btn" aria-label="Colapsar menú">
                 <i class="bi bi-chevron-left fs-5" id="collapse-icon"></i>
             </button>

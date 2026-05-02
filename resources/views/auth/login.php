@@ -4,37 +4,50 @@ require_once __DIR__ . '/../layout/head.php';
 $openRegisterSlide = $openRegisterSlide ?? false;
 ?>
 
-<main class="auth-shell d-flex align-items-center">
-    <div class="container py-5">
+<main class="auth-shell">
+    <div class="container">
         <div class="row justify-content-center">
-            <div class="col-xxl-8">
-                <div class="card border-0 shadow-lg auth-card overflow-hidden">
-                    <div class="row g-0 justify-content-center">
-                        <div class="col-12 col-lg-8 col-xl-7 p-4 p-lg-5 auth-form-column">
+            <div class="col-12 col-xxl-10">
+                <div class="card border-0 auth-card">
+                    <div class="row g-0">
+                        <!-- Columna de Branding (Visible solo en Desktop) -->
+                        <div class="col-lg-5 d-none d-lg-flex auth-card__banner align-items-center justify-content-center text-center p-5">
+                            <div class="auth-card__banner-content">
+                                <img src="<?php echo BASE_URL; ?>/assets/img/logo.png" alt="Logo" class="auth-card__banner-logo mb-4">
+                                <h2 class="text-white fw-bold mb-3">¡Bienvenido de nuevo!</h2>
+                                <p class="text-white opacity-75">Gestiona tu sistema con la mejor experiencia y seguridad.</p>
+                            </div>
+                        </div>
+
+                        <!-- Columna de Formularios -->
+                        <div class="col-12 col-lg-7 auth-form-column">
                             <div id="authCarousel" class="carousel slide carousel-swap" data-bs-interval="false">
                                 <div class="carousel-inner">
+                                    
+                                    <!-- Slide de Login -->
                                     <div class="carousel-item active" data-auth-slide="login">
-                                        <div class="text-center mb-4 d-flex flex-column align-items-center gap-3">
-                                            <div class="d-flex align-items-center justify-content-center gap-2">
-                                                <img src="<?php echo BASE_URL; ?>/assets/img/logo.png" alt="Good Vibes" class="auth-brand mb-0">
+                                        <div class="auth-header mb-4">
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <img src="<?php echo BASE_URL; ?>/assets/img/logo.png" alt="Logo" class="auth-brand d-lg-none">
                                                 <h1 class="h3 fw-bold mb-0">Iniciar sesión</h1>
                                             </div>
-                                            <p class="text-muted mb-0">Ingresa con tu usuario y contraseña.</p>
+                                            <p class="text-muted">Ingresa tus credenciales para acceder al panel.</p>
                                         </div>
 
                                         <?php if (isset($_SESSION['error_login']) && $_SESSION['error_login']): ?>
-                                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                            <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
                                                 <i class="fas fa-circle-exclamation me-2"></i>
                                                 <?php echo $_SESSION['error_login']; ?>
                                                 <?php unset($_SESSION['error_login']); ?>
+                                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                             </div>
                                         <?php endif; ?>
 
-                                        <form action="?page=login" method="post" id="login-form" class="row g-3">
-                                            <div class="col-12">
+                                        <form action="?page=login" method="post" id="login-form">
+                                            <div class="form-group">
                                                 <label for="particle" class="form-label">Cédula de identidad</label>
-                                                <div class="input-group shadow-sm rounded">
-                                                    <select class="form-select form-select-sm auth-sm-select" id="particle" name="particle" required>
+                                                <div class="input-group">
+                                                    <select class="form-select auth-sm-select" id="particle" name="particle" required style="max-width: 80px;">
                                                         <option value="V">V</option>
                                                         <option value="E">E</option>
                                                         <option value="J">J</option>
@@ -43,29 +56,34 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                                                     <input type="text" name="CI" class="form-control" placeholder="Ej: 12345678" required maxlength="8">
                                                 </div>
                                             </div>
-                                            <div class="col-12">
+
+                                            <div class="form-group">
                                                 <label for="password" class="form-label">Contraseña</label>
-                                                <div class="input-group shadow-sm rounded">
-                                                    <input type="password" name="password" id="password" class="form-control" required>
+                                                <div class="input-group">
+                                                    <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required>
                                                     <button class="btn btn-outline-secondary" type="button" data-password-toggle="#password">
                                                         <i class="fa fa-eye"></i>
                                                     </button>
                                                 </div>
+                                                <div class="text-end mt-2">
+                                                    <a href="?page=recuperar" class="text-decoration-none small text-muted">¿Olvidaste tu contraseña?</a>
+                                                </div>
                                             </div>
-                                            <div class="col-12 d-flex justify-content-center">
+
+                                            <div class="d-flex justify-content-center my-2">
                                                 <div class="g-recaptcha" data-sitekey="<?php echo $siteKey; ?>"></div>
                                             </div>
-                                            <div class="col-12 d-grid gap-3">
-                                                <button class="btn btn-primary btn-lg" type="submit" name="peticion" value="sesion">
+
+                                            <div class="d-grid gap-3">
+                                                <button class="btn btn-primary btn-lg py-3" type="submit" name="peticion" value="sesion">
                                                     Ingresar al Sistema <i class="fa-solid fa-right-to-bracket ms-2"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-target="#authCarousel" data-bs-slide-to="1">
+                                                <button type="button" class="btn btn-outline-dark btn-lg py-3" data-bs-target="#authCarousel" data-bs-slide-to="1">
                                                     Crear cuenta <i class="fa-solid fa-user-plus ms-2"></i>
                                                 </button>
                                             </div>
-                                            <div class="col-12 text-center d-flex flex-column gap-2">
-                                                <a href="?page=recuperar" class="text-decoration-none small text-muted">¿Olvidaste tu contraseña?</a>
-                                                <hr class="my-2 opacity-10">
+
+                                            <div class="text-center mt-4">
                                                 <a href="<?= BASE_URL ?>" class="text-decoration-none small fw-bold text-primary">
                                                     <i class="fas fa-arrow-left me-1"></i> Regresar al Inicio
                                                 </a>
@@ -73,38 +91,44 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                                         </form>
                                     </div>
 
+                                    <!-- Slide de Registro -->
                                     <div class="carousel-item" data-auth-slide="register">
-                                        <div class="text-center mb-4">
+                                        <div class="auth-header mb-4">
                                             <h1 class="h3 fw-bold mb-2">Crear cuenta</h1>
-                                            <p class="text-muted mb-0">Regístrate ahora y comienza a gestionar tu sistema.</p>
+                                            <p class="text-muted">Únete a nuestra plataforma y gestiona todo en un solo lugar.</p>
                                         </div>
 
                                         <?php if (isset($_SESSION['error_register']) && $_SESSION['error_register']): ?>
-                                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                            <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
                                                 <i class="fas fa-circle-exclamation me-2"></i>
                                                 <?php echo $_SESSION['error_register']; ?>
                                                 <?php unset($_SESSION['error_register']); ?>
+                                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                             </div>
                                         <?php endif; ?>
 
-                                        <form id="register-form" action="?page=crear-cuenta" method="post" class="row g-3 needs-validation" novalidate>
+                                        <form id="register-form" action="?page=crear-cuenta" method="post" class="needs-validation" novalidate>
                                             <input type="hidden" name="peticion" value="registrar">
-                                            <?php $formContext = 'auth'; include __DIR__ . '/../partials/_user_form.php'; ?>
-                                            <div class="col-12 d-grid gap-3">
-                                                <button type="submit" class="btn btn-warning btn-lg text-dark fw-semibold">
-                                                    Crear cuenta <i class="fa-solid fa-user-plus ms-2"></i>
+                                            
+                                            <div class="auth-register-scroll pe-2" style="max-height: 400px; overflow-y: auto;">
+                                                <?php $formContext = 'auth'; include __DIR__ . '/../partials/_user_form.php'; ?>
+                                            </div>
+
+                                            <div class="d-grid gap-3 mt-4">
+                                                <button type="submit" class="btn btn-primary btn-lg py-3">
+                                                    Registrarse ahora <i class="fa-solid fa-user-plus ms-2"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-link text-decoration-none" data-bs-target="#authCarousel" data-bs-slide-to="0">
-                                                    Ya tengo cuenta
+                                                <button type="button" class="btn btn-link text-decoration-none text-muted" data-bs-target="#authCarousel" data-bs-slide-to="0">
+                                                    Ya tengo una cuenta, iniciar sesión
                                                 </button>
                                             </div>
                                         </form>
                                     </div>
                                 </div>
 
-                                <div class="carousel-indicators mt-4 mb-3 justify-content-center">
-                                    <button type="button" data-bs-target="#authCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Iniciar sesión"></button>
-                                    <button type="button" data-bs-target="#authCarousel" data-bs-slide-to="1" aria-label="Crear cuenta"></button>
+                                <div class="carousel-indicators position-relative mt-4 mb-0">
+                                    <button type="button" data-bs-target="#authCarousel" data-bs-slide-to="0" class="active" aria-current="true"></button>
+                                    <button type="button" data-bs-target="#authCarousel" data-bs-slide-to="1"></button>
                                 </div>
                             </div>
                         </div>

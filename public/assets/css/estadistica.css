@@ -1,78 +1,85 @@
-/* Estilos para la vista de Estadistica */
-.puertos-grid {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 5px;
-}
+/* ==========================================
+   COMPONENTE: Estadísticas y Dashboard (Puertos)
+   Metodología: BEM + Anidamiento Nativo
+========================================== */
 
-.puerto-item {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
+.stats-dashboard {
+    /* Elemento: Grid de puertos interactivos */
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 0.5rem;
 
-.puerto-btn {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 0;
-    transition: all 0.3s ease;
-}
+        @media (max-width: 768px) {
+            grid-template-columns: repeat(6, 1fr);
+        }
 
-.puerto-btn:hover {
-    transform: scale(1.1);
-}
+        @media (max-width: 576px) {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
 
-.puerto-btn i {
-    font-size: 14px;
-    margin-bottom: 2px;
-}
+    /* Elemento: Botón interactivo de puerto */
+    &__port-btn {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        max-width: 50px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 0.2rem;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s ease;
+        background-color: var(--bg-tarjetas);
+        border: 1px solid var(--color-border);
+        border-radius: var(--border-radius-base);
+        transition: transform 0.3s ease;
+        color: var(--color-sidebar);
+        cursor: pointer;
+        margin: 0 auto;
 
-.puerto-btn small {
-    font-size: 10px;
-    line-height: 1;
+        &:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+            border-color: var(--color-acento);
+            background-color: var(--bg-principal);
+            /* Animación de pulso continuo al hacer hover */
+            animation: pulse-border 1.5s infinite;
+        }
+
+        & i {
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+            color: inherit;
+        }
+
+        & small {
+            font-size: 0.65rem;
+            line-height: 1;
+            font-weight: 700;
+        }
+    }
 }
 
 /* Animaciones */
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
+@keyframes pulse-border {
+    0% { box-shadow: 0 0 0 0 rgba(255, 214, 0, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(255, 214, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 214, 0, 0); }
 }
 
-.puerto-btn:hover {
-    animation: pulse 0.6s infinite;
-}
-
-/* Estilos para tooltips personalizados */
+/* Tooltips globales estilizados */
 .tooltip-inner {
-    background-color: #333;
-    color: white;
-    border-radius: 4px;
-    padding: 5px 10px;
+    background-color: var(--color-sidebar);
+    color: var(--bg-tarjetas);
+    border-radius: var(--border-radius-base);
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+    font-size: 0.8rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.bs-tooltip-top .tooltip-arrow::before {
-    border-top-color: #333;
-}
-
-/* Responsividad */
-@media (max-width: 768px) {
-    .puertos-grid {
-        grid-template-columns: repeat(6, 1fr);
-    }
-}
-
-@media (max-width: 576px) {
-    .puertos-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-    
-    .puerto-btn {
-        width: 35px;
-        height: 35px;
-    }
+.bs-tooltip-top .tooltip-arrow::before,
+.bs-tooltip-auto[data-popper-placement^="top"] .tooltip-arrow::before {
+    border-top-color: var(--color-sidebar);
 }

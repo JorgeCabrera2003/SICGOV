@@ -37,6 +37,7 @@ class ReservacionController
                         $resModel->setCedulaCliente($_POST['cedula_cliente'] ?? '');
                         $resModel->setFecha($_POST['fecha'] ?? '');
                         $resModel->setHora($_POST['hora'] ?? '');
+                        $resModel->setHoraFin($_POST['hora_fin'] ?? '');
                         $resModel->setEstado($_POST['estado'] ?? 'PENDIENTE');
 
                         $json = $resModel->Transaccion(['peticion' => $_POST['peticion']]);
@@ -54,6 +55,7 @@ class ReservacionController
                         $resModel->setId($_POST['id_reservacion']);
                         $resModel->setFecha($_POST['fecha']);
                         $resModel->setHora($_POST['hora']);
+                        $resModel->setHoraFin($_POST['hora_fin'] ?? '');
                         
                         // Obtenemos estado actual para no sobreescribirlo si no se envía
                         $detalle = $resModel->Transaccion(['peticion' => 'detalle']);
@@ -89,11 +91,16 @@ class ReservacionController
                 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css',
                 BASE_URL . '/assets/css/reservaciones.css'
             ],
+            // Dependencias clásicas (deben cargarse antes del módulo)
             'extra_js' => [
                 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js',
                 'https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/es.global.min.js',
                 'https://cdn.jsdelivr.net/npm/flatpickr',
                 'https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js'
+            ],
+            // Módulo ES — cargado con type="module" por el footer
+            'extra_js_modules' => [
+                BASE_URL . '/assets/js/modulo_reservaciones.js'
             ]
         ]);
     }
