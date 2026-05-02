@@ -13,7 +13,14 @@
  */
 function formatarEstadoCliente(state) {
     if (!state.id) return state.text;
-    return $(`<span><i class="bi bi-person-circle me-2 text-primary"></i>${state.text}</span>`);
+    return $(`
+        <div class="d-flex align-items-center py-1">
+            <i class="bi bi-person-circle me-3 text-primary fs-5"></i>
+            <div>
+                <span class="fw-medium">${state.text}</span>
+            </div>
+        </div>
+    `);
 }
 
 /**
@@ -55,7 +62,7 @@ export function inicializarSelect2(selector, $parent) {
         theme: 'bootstrap-5',
         dropdownParent: $parent,
         width: '100%',
-        placeholder: '🔍 Buscar cliente por nombre o cédula...',
+        placeholder: 'Buscar cliente por nombre o cédula...',
         language: {
             noResults: () => "No se encontraron resultados"
         },
@@ -190,7 +197,7 @@ export function inicializarCalendario(calendarEl, pickers) {
 
         // Redimensionar evento → delegar a moverEvento (DRY)
         eventResize: function (info) {
-            moverEvento(info, calendar, '🕒 Duración actualizada con éxito');
+            moverEvento(info, calendar, 'Duración actualizada con éxito');
         }
     });
 
@@ -204,7 +211,7 @@ export function inicializarCalendario(calendarEl, pickers) {
  * @param {object} calendar        - Instancia del calendario (para refetch si es necesario).
  * @param {string} mensajeExito    - Texto del toast de éxito.
  */
-export async function moverEvento(info, calendar, mensajeExito = '📅 Reservación reprogramada con éxito') {
+export async function moverEvento(info, calendar, mensajeExito = 'Reservación reprogramada con éxito') {
     const formData = new FormData();
     formData.append('peticion', 'mover');
     formData.append('id_reservacion', info.event.id);

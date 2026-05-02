@@ -25,7 +25,18 @@ $(document).ready(function () {
     // ── 4. Envío del formulario (Registrar / Modificar) ───────────────────
     $('#formReservacion').on('submit', function (e) {
         e.preventDefault();
-        e.stopPropagation();
+        
+        // Validación de rango de tiempo en frontend
+        const horaInicio = $('#hora').val();
+        const horaFin = $('#hora_fin').val();
+        
+        if (horaInicio && horaFin) {
+            // Comparación simple de strings HH:MM funciona para orden cronológico
+            if (horaFin <= horaInicio) {
+                mensajes("warning", 5000, "Rango de tiempo inválido", "La hora de fin debe ser estrictamente posterior a la hora de inicio.");
+                return;
+            }
+        }
 
         const formData = new FormData(this);
         const url = $(this).attr('action') || (BASE_URL + '/?page=reservaciones');
