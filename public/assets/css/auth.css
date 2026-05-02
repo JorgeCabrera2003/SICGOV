@@ -1,110 +1,212 @@
 /* ==========================================
-   COMPONENTE: Autenticación (Login/Registro)
+   COMPONENTE: Autenticación
    Metodología: BEM + Anidamiento Nativo
 ========================================== */
 
 .auth-shell {
     min-height: 100vh;
-    background: linear-gradient(180deg, rgba(26, 28, 32, 0.75), rgba(26, 28, 32, 0.9)), url('../img/gobernacion.jpg') center/cover no-repeat;
-    padding: 2.5rem 0;
+    background: linear-gradient(135deg, rgba(26, 28, 32, 0.9), rgba(26, 28, 32, 0.98)), 
+                url('../img/default.jpg') center/cover no-repeat;
+    padding: 2rem 0;
     display: flex;
     align-items: center;
 }
 
 .auth-card {
-    border-radius: 1.5rem;
+    border-radius: 2rem;
     overflow: hidden;
     background: var(--bg-tarjetas);
-    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     width: 100%;
-    max-width: 700px;
     margin: 0 auto;
 
-    &__brand {
-        width: 80px;
-        height: auto;
-        object-fit: contain;
+    /* Banner Lateral (Desktop) */
+    .auth-card__banner {
+        background: linear-gradient(135deg, #1A1C20 0%, #2D3139 100%);
+        position: relative;
+        overflow: hidden;
+        
+        &::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, var(--color-acento) 0%, transparent 70%);
+            opacity: 0.1;
+            filter: blur(50px);
+        }
+
+        .auth-card__banner-logo {
+            width: 120px;
+            height: auto;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+        }
+
+        h2 {
+            font-size: 2.25rem;
+            letter-spacing: -0.02em;
+        }
     }
 
-    &__form-column {
-        width: 100%;
-        padding: 2rem;
+    .auth-form-column {
+        padding: 3.5rem;
+        background: var(--bg-tarjetas);
         
-        @media (max-width: 767.98px) {
-            padding: 1.5rem;
+        @media (max-width: 991.98px) {
+            padding: 2.5rem 1.5rem;
         }
     }
 }
 
-/* Sistema de Carrusel Swap (Login/Registro) */
+/* Sistema de Carrusel Swap (Efecto Hojas de Papel) */
 .carousel-swap {
-    overflow: hidden;
-    position: relative;
+    perspective: 1000px; /* Perspectiva más sutil */
 
-    & .carousel-inner {
-        position: relative;
-        min-height: 520px;
+    .carousel-inner {
+        min-height: 580px;
+        overflow: hidden; /* Mantener dentro de la tarjeta */
     }
 
-    & .carousel-item {
-        position: relative;
-        display: flex;
+    .carousel-item {
+        display: none;
         flex-direction: column;
         justify-content: center;
-        width: 100%;
-        transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.6s ease;
         opacity: 0;
-        visibility: hidden;
-        padding: 1.5rem 0.5rem;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-origin: center;
         
-        &.active, &-next, &-prev {
-            opacity: 1;
-            visibility: visible;
+        /* Estado inicial (Hoja preparada a un lado) */
+        &.carousel-item-next {
+            display: flex;
+            transform: translateX(30px) rotateY(-5deg) scale(0.98);
+            opacity: 0;
         }
         
+        &.carousel-item-prev {
+            display: flex;
+            transform: translateX(-30px) rotateY(5deg) scale(0.98);
+            opacity: 0;
+        }
+
+        /* Hoja Activa (En el frente) */
         &.active {
-            z-index: 10;
+            display: flex;
+            opacity: 1;
+            transform: translateX(0) rotateY(0) scale(1);
+            z-index: 2;
+        }
+
+        /* Salida (La hoja se desliza y se desvanece suavemente) */
+        &.active.carousel-item-start {
+            transform: translateX(-30px) rotateY(5deg) scale(0.98);
+            opacity: 0;
+            z-index: 1;
+        }
+        
+        &.active.carousel-item-end {
+            transform: translateX(30px) rotateY(-5deg) scale(0.98);
+            opacity: 0;
+            z-index: 1;
+        }
+        
+        /* Entrada (Ajuste de posición final) */
+        &.carousel-item-next.carousel-item-start,
+        &.carousel-item-prev.carousel-item-end {
+            transform: translateX(0) rotateY(0) scale(1);
+            opacity: 1;
         }
     }
+}
 
-    /* Ajustes internos de formularios */
-    & form {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
+/* Form Styles */
+form {
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
 
-        & .form-label {
-            font-weight: 600;
-            color: var(--color-sidebar);
-            opacity: 0.9;
+    .form-label {
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-sidebar);
+        opacity: 0.8;
+        margin-bottom: 0.6rem;
+        display: block;
+    }
+
+    .input-group {
+        border-radius: 1rem;
+        overflow: hidden;
+        background: var(--bg-principal);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+
+        &:focus-within {
+            border-color: var(--color-acento);
+            background: var(--bg-tarjetas);
+            box-shadow: 0 10px 25px rgba(255, 214, 0, 0.1);
         }
 
-        & .input-group {
-            border-radius: var(--border-radius-base);
-            overflow: hidden;
-            border: 1px solid rgba(26, 28, 32, 0.15);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        .form-control, .form-select {
+            background: transparent;
+            border: none;
+            padding: 1rem 1.25rem;
+            font-weight: 500;
+            
+            &:focus {
+                box-shadow: none;
+            }
+        }
 
-            & .form-control, & .form-select {
-                padding: 0.875rem 1rem;
-                border: none;
-                background-color: var(--bg-principal);
-                
-                &:focus {
-                    background-color: var(--bg-tarjetas);
-                }
+        .btn-outline-secondary {
+            border: none;
+            padding: 0 1.25rem;
+            color: var(--color-sidebar);
+            opacity: 0.5;
+            transition: opacity 0.3s;
+            
+            &:hover {
+                opacity: 1;
+                background: transparent;
             }
         }
     }
 }
 
-/* Animaciones de Error */
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-    20%, 40%, 60%, 80% { transform: translateX(5px); }
+/* Scrollbar para el registro largo */
+.auth-register-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-acento) transparent;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    &::-webkit-scrollbar-thumb {
+        background-color: var(--color-acento);
+        border-radius: 10px;
+    }
 }
 
-.auth-shake {
-    animation: shake 0.5s;
+/* Indicators */
+.carousel-indicators {
+    button {
+        width: 12px !important;
+        height: 12px !important;
+        border-radius: 50% !important;
+        background-color: var(--color-sidebar) !important;
+        opacity: 0.2 !important;
+        margin: 0 6px !important;
+        border: none !important;
+        
+        &.active {
+            opacity: 1 !important;
+            background-color: var(--color-acento) !important;
+            transform: scale(1.2);
+        }
+    }
 }
