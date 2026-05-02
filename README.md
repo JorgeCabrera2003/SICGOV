@@ -1,118 +1,191 @@
 # 📋 **SICGOV - Sistema de Información Complementario Good Vibes**
 
 [![PHP Version](https://img.shields.io/badge/php-%5E8.2-777bb4.svg)](https://www.php.net/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-active-success.svg)](#)
+[![MySQL](https://img.shields.io/badge/mysql-8.0+-blue.svg)](#)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/status-v1.5.0--active-success.svg)](#)
 
 ## 📌 Tabla de Contenidos
 1.  [Descripción del Proyecto](#-descripción-del-proyecto)
 2.  [Tecnologías Utilizadas](#-tecnologías-utilizadas)
-3.  [Arquitectura y Estándares](#-arquitectura-y-estándares)
-4.  [Instalación y Configuración](#-instalación-y-configuración)
-5.  [Módulos del Sistema](#-módulos-del-sistema)
-6.  [Guía de Estilos CSS](#-guía-de-estilos-css)
-7.  [Contribución](#-contribución)
-8.  [Créditos y Versión](#-créditos-y-versión)
+3.  [Requisitos del Sistema](#-requisitos-del-sistema)
+4.  [Guía de Instalación Detallada](#-guía-de-instalación-detallada)
+5.  [Gestión de Base de Datos](#-gestión-de-base-de-datos)
+6.  [Estructura y Arquitectura (MVC)](#-estructura-y-arquitectura-mvc)
+7.  [Flujo de Trabajo con Git](#-flujo-de-trabajo-con-git)
+8.  [Estándares de Código y Estilo](#-estándares-de-código-y-estilo)
+9.  [Módulos del Sistema](#-módulos-del-sistema)
+10. [Solución de Problemas (FAQ)](#-solución-de-problemas-faq)
 
 ---
 
 ## 🎯 Descripción del Proyecto
 
-**SICGOV** es una plataforma integral de gestión diseñada específicamente para **Good Vibes Tapas & Bar**. El sistema opera bajo un patrón **MVC (Model-View-Controller)** en PHP puro, proporcionando una solución robusta y escalable para la administración de personal, inventario, reservaciones y analítica financiera.
+**SICGOV (Sistema de Información Complementario Good Vibes)** es una solución integral de gestión empresarial diseñada para el restaurante temático **Good Vibes Tapas & Bar**. El sistema ha sido construido desde cero utilizando el patrón **MVC (Model-View-Controller)** en PHP puro, garantizando un control total sobre la lógica de negocio y una alta eficiencia en el rendimiento.
 
-### Objetivos Estratégicos:
-- **Automatización de Procesos**: Digitalización completa del ciclo de vida del cliente y el inventario.
-- **Auditoría y Control**: Sistema de bitácora detallado para el seguimiento de operaciones críticas.
-- **Experiencia de Usuario Premium**: Interfaz moderna con soporte nativo para Modo Oscuro y animaciones fluidas.
+El sistema complementa las operaciones administrativas, permitiendo la gestión de inventario, personal, reservaciones y un portal de noticias dinámico, todo bajo una arquitectura segura y modular.
 
 ---
 
 ## 🛠 Tecnologías Utilizadas
 
-| Categoría | Tecnologías |
-|-----------|-------------|
-| **Core** | PHP 8.2+, MySQL 8.0, PDO |
-| **Frontend** | Bootstrap 5.3, JavaScript ES6+, jQuery 3.7 |
-| **Componentes** | FullCalendar 6, Select2, DataTables, SweetAlert2, Flatpickr |
-| **DevOps** | Composer, Git, Dotenv |
+### Core & Backend
+- **PHP 8.2+**: Uso de tipado estricto y características modernas.
+- **MySQL 8.0 / MariaDB**: Base de datos relacional con integridad referencial.
+- **PDO (PHP Data Objects)**: Para consultas preparadas y seguridad contra Inyección SQL.
+- **Composer**: Gestión de dependencias (Dotenv, PHPMailer, Faker).
+
+### Frontend Premium
+- **Bootstrap 5.3**: Framework base para diseño responsivo.
+- **JavaScript (ES6+)**: Lógica asíncrona mediante AJAX (jQuery 3.7).
+- **FullCalendar 6**: Motor interactivo para el módulo de reservaciones.
+- **DataTables**: Gestión avanzada de tablas y reportes.
+- **SweetAlert2 & Flatpickr**: UI moderna para notificaciones y selección de fechas.
 
 ---
 
-## 🏗 Arquitectura y Estándares
+## 📋 Requisitos del Sistema
 
-El proyecto sigue una estructura MVC estricta para garantizar la separación de responsabilidades:
-
-- **Controllers**: Lógica de negocio y orquestación de peticiones.
-- **Models**: Abstracción de la base de datos y validaciones de datos (Seguridad y Sistema).
-- **Views**: Presentación mediante plantillas PHP limpias y componentes reutilizables.
-- **Core**: Componentes base como la conexión Singleton y el manejador de rutas.
+- **Servidor Web**: Apache 2.4+ (con `mod_rewrite` activo).
+- **PHP**: Versión 8.2 o superior.
+- **Extensiones PHP**: `pdo_mysql`, `gd`, `mbstring`, `openssl`.
+- **Base de Datos**: MySQL 8.0+ o MariaDB 10.4+.
+- **Herramientas**: Composer y Git instalados en el PATH.
 
 ---
 
-## 🚀 Instalación y Configuración
+## 🚀 Guía de Instalación Detallada
 
-### Requisitos
-- PHP >= 8.2
-- MySQL >= 8.0
-- Composer
+### 1. Clonación del Repositorio
+Abre tu terminal y navega hasta tu directorio de servidor (ej: `htdocs`):
+```bash
+git clone https://github.com/JorgeCabrera2003/SICGOV.git
+cd sicgov
+```
 
-### Pasos Rápidos
-1. **Clonar**: `git clone https://github.com/JorgeCabrera2003/SICGOV.git`
-2. **Dependencias**: `composer install`
-3. **Entorno**: Copia `.env.example` a `.env` y ajusta tus credenciales.
-4. **Base de Datos**: Ejecuta el instalador interactivo:
-   ```bash
-   php database/setup.php
-   ```
-5. **Servidor**: Configura tu DocumentRoot a la raíz del proyecto o accede vía `localhost/good-vibes/public/`.
+### 2. Instalación de Dependencias
+Ejecuta Composer para descargar las librerías necesarias:
+```bash
+composer install
+```
+*Si tienes errores de carga de clases después, ejecuta: `composer dump-autoload`.*
+
+### 3. Configuración de Variables de Entorno
+Crea un archivo `.env` en la raíz del proyecto basado en `.env.example`:
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASS=tu_password
+DB_NAME_SYSTEM=goobv-sistema
+DB_NAME_USER=goobv-usuarios
+```
+
+---
+
+## 💾 Gestión de Base de Datos
+
+El sistema cuenta con un **Instalador Automático e Interactivo** que configura todo el entorno.
+
+### Ejecución del Setup
+```bash
+php database/setup.php
+```
+
+### ¿Qué hace el instalador?
+1.  **Validación de Conexión**: Verifica que tus credenciales en `.env` sean correctas.
+2.  **Creación de Esquemas**: Crea las bases de datos `goobv-sistema` y `goobv-usuarios`.
+3.  **Migraciones**: Carga la estructura de tablas desde `/database/migrations/`.
+4.  **Seeders (Datos de Prueba)**: 
+    - Crea el usuario administrador por defecto (`admin_root` / `1234`).
+    - Genera datos aleatorios realistas (clientes, productos, mesas) usando **FakerPHP**.
+
+---
+
+## 🏗 Estructura y Arquitectura (MVC)
+
+El sistema está organizado para facilitar el trabajo en equipo y la escalabilidad:
+
+- **`/app`**: El corazón del sistema.
+  - `/Controllers`: Reciben las peticiones y orquestan la respuesta.
+  - `/Models`: Interactúan con la base de datos (Seguridad y Sistema).
+  - `/Core`: Clases base (Database Singleton, Router).
+- **`/public`**: Único punto de acceso público. Contiene `index.php` y los assets.
+- **`/resources/views`**: Contiene las plantillas HTML/PHP divididas por módulos.
+- **`/config`**: Archivos de configuración estática.
+
+---
+
+## 🔄 Flujo de Trabajo con Git
+
+Para mantener la integridad del código, seguimos un flujo de **Feature Branches**:
+
+### 1. Sincronización Diaria
+Antes de empezar a trabajar, trae los últimos cambios de la rama de integración (`dev`):
+```bash
+git checkout jorge-dev
+git pull origin dev
+```
+
+### 2. Registro de Cambios (Commits)
+Usamos **Conventional Commits** para que el historial sea legible:
+- `FEAT: [Módulo] Descripción` -> Nueva funcionalidad.
+- `FIX: [Módulo] Descripción` -> Corrección de bug.
+- `STYLE: [Módulo] Descripción` -> Cambios visuales (CSS).
+- `DOCS: Descripción` -> Cambios en documentación.
+
+### 3. Envío de Código
+```bash
+git add .
+git commit -m "FEAT: Agregar validación de reservaciones"
+git push origin jorge-dev
+```
+
+---
+
+## 🎨 Estándares de Código y Estilo
+
+### CSS Moderno
+Hemos adoptado el estándar **BEM + Native Nesting**. Es imperativo seguir las reglas documentadas para evitar conflictos de especificidad.
+👉 **[Ver Guía de Estilos CSS](docs/STYLE_GUIDE.md)**
+
+### PHP Clean Code
+- Usar **PascalCase** para Clases y Modelos.
+- Usar **camelCase** para métodos y variables.
+- Siempre usar **PDO Prepared Statements** para cualquier interacción con la BD.
 
 ---
 
 ## 🧩 Módulos del Sistema
 
-| Módulo | Estado | Descripción |
-|--------|--------|-------------|
-| **Autenticación** | ✅ | Login seguro con reCAPTCHA y gestión de roles. |
-| **Noticias** | ✅ | Portal editorial con gestión dinámica de contenido. |
-| **Reservaciones** | ✅ | Agenda interactiva con FullCalendar y gestión de horarios. |
-| **Productos** | ✅ | CRUD completo con gestión de imágenes y categorías. |
-| **Inventario** | 🔄 | Control de existencias y alertas de stock. |
-| **Personal** | 📅 | Gestión de empleados y asistencia (Próximamente). |
+| Módulo | Estado | Características |
+|--------|--------|-----------------|
+| **Seguridad** | ✅ | Login, Roles, Bitácora, reCAPTCHA. |
+| **Portal Noticias** | ✅ | Editorial, Carrusel, Filtros avanzados. |
+| **Reservaciones** | ✅ | Calendario 3D, Validación de choque de horarios. |
+| **Inventario** | 🔄 | Control de insumos, stock mínimo, alertas. |
+| **Ventas** | 📅 | Toma de pedidos, facturación, QR. |
 
 ---
 
-## 🎨 Guía de Estilos CSS
+## 🔧 Solución de Problemas (FAQ)
 
-Hemos implementado un sistema de diseño moderno basado en:
-- **BEM (Block Element Modifier)** para la nomenclatura de clases.
-- **Anidamiento Nativo de CSS** para un código limpio y mantenible.
-- **Diseño Responsivo** priorizando la experiencia móvil.
+**1. ¿Por qué no cargan los estilos o imágenes?**
+Asegúrate de que la constante `BASE_URL` en `config/config.php` apunte correctamente a tu URL local.
 
-👉 **[Consulta la Guía Completa de Estilos aquí](docs/STYLE_GUIDE.md)**
+**2. Error "Class not found" al crear un nuevo archivo**
+Recuerda que usamos PSR-4. Debes ejecutar `composer dump-autoload` cada vez que crees una clase nueva con un namespace.
 
----
-
-## 📝 Nomenclatura de Commits (Convencional)
-Para mantener un historial de cambios profesional, utilizamos:
-- `FEAT:` Nuevas funcionalidades.
-- `FIX:` Corrección de errores.
-- `STYLE:` Cambios visuales y CSS.
-- `REFACTOR:` Mejoras de código sin cambio funcional.
+**3. Error de reCAPTCHA en local**
+Asegúrate de tener la extensión `gd` habilitada en tu `php.ini` de XAMPP.
 
 ---
 
-## 📅 Versión y Estado
-
-**Versión Actual:** 1.5.0
-**Fecha Última Actualización:** Mayo 2026
-**Estado:** Desarrollo Activo
-
----
-
-## 🏆 Créditos
-Desarrollado por el equipo **SICGOV**:
-- **Jorge Cabrera** (Líder Técnico)
-- Leizer Torrealba, Mariangel Bokor, Santiago Coello, Abrahan Rodriguez.
+## 👥 Equipo SICGOV
+- **Jorge Cabrera** - Líder Técnico & Arquitecto.
+- **Leizer Torrealba** - Documentación & QA.
+- **Mariangel Bokor** - Especialista en UI/UX.
+- **Santiago Coello** - Backend Developer.
+- **Abrahan Rodriguez** - Database Manager.
 
 ---
-*SICGOV - Innovación y Estilo en cada bit.* 🌟
+*SICGOV - Innovación y Estilo para Good Vibes Tapas & Bar.* 🌟
