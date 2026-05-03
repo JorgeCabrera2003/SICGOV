@@ -11,6 +11,7 @@
  */
 ?>
 
+<?php if (!isset($hideSidebar) || !$hideSidebar): ?>
 <!-- Sidebar -->
 <aside class="sidebar d-flex flex-column flex-shrink-0 vh-100 position-fixed" id="sidebar">
     <!-- Cabecera con logo -->
@@ -201,11 +202,12 @@
         </a>
     </div>
 </aside>
+<?php endif; ?>
 
 <!-- Contenido principal -->
-<main class="main-content flex-grow-1" id="main-content">
+<main class="main-content flex-grow-1 <?php echo (isset($hideSidebar) && $hideSidebar) ? 'ms-0 w-100' : ''; ?>" id="main-content">
     <!-- Barra superior -->
-    <header class="bg-body-tertiary border-bottom sticky-top" id="top-nav">
+    <header class="bg-body-tertiary border-bottom sticky-top" id="top-nav" style="z-index: 1040;">
         <div class="d-flex align-items-center justify-content-between px-3" style="height: 60px;">
             <div class="d-flex align-items-center gap-3">
                 <!-- Botón para móvil (abrir sidebar) -->
@@ -227,7 +229,7 @@
                 <div class="dropdown">
                     <button class="btn btn-link text-decoration-none p-2 position-relative" type="button"
                         data-bs-toggle="dropdown" aria-expanded="false" id="notificationDropdown"
-                        aria-label="Notificaciones">
+                        aria-label="Notificaciones" <?php echo !isset($_SESSION['user']) ? 'disabled' : ''; ?>>
                         <i class="bi bi-bell fs-5"></i>
                         <span
                             class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge"
@@ -260,20 +262,19 @@
                     <i class="bi bi-moon-stars fs-5" id="theme-icon"></i>
                 </button>
 
-                <!-- Perfil de usuario (menú) -->
-                <div class="dropdown">
                     <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button"
                         data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                         <div class="user-avatar" style="width: 36px; height: 36px;">
                             <i class="bi bi-person-circle fs-5"></i>
                         </div>
-                        <span class="d-none d-lg-inline"><?php echo $datos['nombres'] ?? 'Usuario'; ?></span>
+                        <span class="d-none d-lg-inline"><?php echo $datos['nombres'] ?? 'Invitado'; ?></span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <?php if (isset($_SESSION['user'])): ?>
                         <li>
                             <div class="dropdown-header">
                                 <div class="fw-semibold">
-                                    <?php echo $datos['nombres'] . ' ' . ($datos['apellidos'] ?? ''); ?></div>
+                                    <?php echo ($datos['nombres'] ?? '') . ' ' . ($datos['apellidos'] ?? ''); ?></div>
                                 <div class="small text-muted"><?php echo $datos['cedula'] ?? ''; ?></div>
                             </div>
                         </li>
@@ -301,6 +302,14 @@
                                 <i class="bi bi-box-arrow-right"></i> Cerrar sesión
                             </a>
                         </li>
+                        <?php else: ?>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                href="<?php echo BASE_URL; ?>/?page=login">
+                                <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
+                            </a>
+                        </li>
+                        <?php endif; ?>
                     </ul>
                 </div>
             </div>
