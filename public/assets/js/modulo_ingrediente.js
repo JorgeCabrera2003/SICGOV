@@ -12,137 +12,7 @@ $(document).ready(function () {
   iniciarValidaciones();
 });
 
-async function enviarDatos(operacion, modulo = "Ingrediente") {
-
-  let input = etiquetasFormulario('input-' + modulo);
-  let span = etiquetasFormulario('span-' + modulo);
-  let modal = etiquetasModal(modulo);
-
-  let confirmacion = false;
-  let str_acccion = "";
-  let accion = "";
-  let btn_formulario = false;
-  let estado_peticion = null;
-  let mensajeConfirmacion = "¿Está seguro de realizar esta acción?";
-  let endpoint = "";
-  let peticion = new FormData();
-
-  if (modulo == "Ingrediente") {
-    //Registrar y Modificar
-    if (operacion == "registrar" || operacion == "modificar") {
-
-      if (operacion == "registrar") {
-        str_acccion = "registrará";
-        accion = "registrar"
-      }
-
-      if (operacion == "modificar") {
-        str_acccion = "actualizará";
-        accion = "modificar";
-        peticion.append('id_ingrediente', input.id_ingrediente.val());
-      }
-
-      if (validarenvio()) {
-        confirmacion = await confirmarAccion(`Se ${str_acccion} un Ingrediente`, mensajeConfirmacion, "question");
-
-        if (confirmacion) {
-          peticion.append('peticion', accion);
-          peticion.append('nombre', input.nombre.val());
-          peticion.append('unidad_medida', input.unidad_medida.val());
-          peticion.append('costo_unitario', input.costo_unitario.val());
-          btn_formulario = true;
-        }
-      } else {
-        btn_formulario = false;
-        mensajes("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.");
-      }
-    } //Fin del Registrar y Modificar
-    //Eliminar
-    if (operacion == "eliminar") {
-
-      if (validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_ingrediente, span.id_ingrediente, '')) {
-        confirmacion = await confirmarAccion("Se eliminará un Ingrediente", mensajeConfirmacion, "warning");
-
-        if (confirmacion) {
-          peticion.append('peticion', 'eliminar');
-          peticion.append('id_ingrediente', input.id_ingrediente.val());
-          btn_formulario = true;
-        }
-      } else {
-        btn_formulario = false;
-        mensajes("error", 10000, "Error de Validación", "El ID del Ingrediente no es válido.");
-      }
-    }//Fin del Eliminar
-  }
-  if (modulo == "Categoria") {
-    endpoint = "?page=categoria-ingrediente";
-    //Registrar y Modificar
-    if (operacion == "registrar" || operacion == "modificar") {
-
-      if (operacion == "registrar") {
-        str_acccion = "registrará";
-        accion = "registrar"
-      }
-
-      if (operacion == "modificar") {
-        str_acccion = "actualizará";
-        accion = "modificar";
-        peticion.append('id_categoria', input.id_categoria.val());
-      }
-
-      if (validarenvio()) {
-        confirmacion = await confirmarAccion(`Se ${str_acccion} una Categoría`, mensajeConfirmacion, "question");
-
-        if (confirmacion) {
-          peticion.append('peticion', accion);
-          peticion.append('nombre', input.nombre.val());
-          peticion.append('descripcion', input.descripcion.val());
-          btn_formulario = true;
-        }
-      } else {
-        btn_formulario = false;
-        mensajes("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.");
-      }
-    } //Fin del Registrar y Modificar
-    //Eliminar
-    if (operacion == "eliminar") {
-
-      if (validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_categoria, span.id_categoria, '')) {
-        confirmacion = await confirmarAccion("Se eliminará una Categoría", mensajeConfirmacion, "warning");
-
-        if (confirmacion) {
-          peticion.append('peticion', 'eliminar');
-          peticion.append('id_categoria', input.id_categoria.val());
-          btn_formulario = true;
-        }
-      } else {
-        btn_formulario = false;
-        mensajes("error", 10000, "Error de Validación", "El ID de la Categoría no es válido.");
-      }
-    }//Fin del Eliminar
-  }
-
-  if (btn_formulario) {
-    modal.boton.prop('disabled', true);
-    json = await enviaAjax(peticion, endpoint);
-
-    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-      modal.modal.modal("hide");
-      crearDataTable();
-      mensajes(json.icon, 10000, json.mensaje, null);
-    }
-    modal.boton.prop('disabled', false);
-  }
-
-  if (!confirmacion) {
-    modal.boton.prop('disabled', false);
-  }
-
-  input = null;
-  modal = null;
-}
-
-//Manejo de envio de datos desde el modal
+//EVENTOS CLICK DE LOS BOTONES DE LA INTERFAZ
 $("#btnIngredienteForm").on("click", async function () {
   ingrediente.EnviarFormulario($(this).text());
 });
@@ -152,7 +22,6 @@ $("#btnNuevoIngrediente").on("click", function () {
  ingrediente.EditarModal("registrar");
 });
 
-//Iniciar Tabla de Categoría de Ingrediente
 $("#btn-ModalCategorias").on("click", async function () {
   await crearDataTable("categoria-ingrediente");
   categoriaIngrediente.MostrarModalTabla();
@@ -167,6 +36,9 @@ $("#btn-CategoriaCancel").on("click", function () {
   categoriaIngrediente.CancelarFormulario();
 })
 
+$("#btn-CategoriaForm").on("click", function () {
+  categoriaIngrediente.EnviarFormulario($(this));
+})
 //CAPA DE VALIDACIÓN
 
 function iniciarValidaciones() {
