@@ -39,7 +39,7 @@ $(document).ready(function () {
         }
 
         const formData = new FormData(this);
-        const url = $(this).attr('action') || (BASE_URL + '/?page=reservaciones');
+        const url = $(this).attr('action') || (BASE_URL + '?page=reservaciones');
 
         enviaAjax(formData, url)
             .then(res => {
@@ -72,7 +72,7 @@ $(document).ready(function () {
             formData.append('peticion', 'eliminar');
             formData.append('id_reservacion', id);
 
-            enviaAjax(formData, BASE_URL + '/?page=reservaciones')
+            enviaAjax(formData, BASE_URL + '?page=reservaciones')
                 .then(res => {
                     if (res?.resultado == 200) {
                         $('#modalReservacion').modal('hide');
