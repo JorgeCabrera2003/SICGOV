@@ -8,7 +8,7 @@
             <p class="text-muted small mb-0">Gestiona las citas y disponibilidad de mesas en tiempo real.</p>
         </div>
         <div class="col-md-6 text-md-end mt-3 mt-md-0">
-            <button class="btn btn-primary shadow-sm fw-bold px-4 rounded-pill" data-bs-toggle="modal" data-bs-target="#modalReservacion">
+            <button class="btn btn-primary shadow-sm fw-bold px-4 rounded-3" data-bs-toggle="modal" data-bs-target="#modalReservacion">
                 <i class="bi bi-plus-lg me-2"></i>Nueva Reservación
             </button>
         </div>
@@ -69,15 +69,20 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label class="form-label small fw-bold text-uppercase">Fecha</label>
                             <input type="date" class="form-control bg-light" name="fecha" id="fecha" required>
                             <div id="sfecha"></div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold text-uppercase">Hora</label>
-                            <input type="text" class="form-control bg-light" name="hora" id="hora" placeholder="Seleccione hora" required>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label small fw-bold text-uppercase">Inicio</label>
+                            <input type="text" class="form-control bg-light" name="hora" id="hora" placeholder="Inicio" required>
                             <div id="shora"></div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label small fw-bold text-uppercase">Fin</label>
+                            <input type="text" class="form-control bg-light" name="hora_fin" id="hora_fin" placeholder="Fin" required>
+                            <div id="shora_fin"></div>
                         </div>
                     </div>
 

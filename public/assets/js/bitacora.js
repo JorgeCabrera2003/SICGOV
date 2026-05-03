@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
             peticion.append('hasta', $('#fecha_hasta').val());
 
             try {
-                const json = await enviaAjax(peticion, BASE_URL + '/?page=bitacora');
+                const json = await enviaAjax(peticion, BASE_URL + '?page=bitacora');
                 let arreglo = [];
                 if (json && json.data) {
                     arreglo = json.data;
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
             fd.append('id', id);
 
             try {
-                const response = await enviaAjax(fd, BASE_URL + '/?page=bitacora');
+                const response = await enviaAjax(fd, BASE_URL + '?page=bitacora');
                 if (response && response.success && response.data) {
                     mostrarDetalles(response.data);
                 } else {

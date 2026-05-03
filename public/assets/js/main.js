@@ -112,6 +112,11 @@ const SICGOV = (function($) {
                     isCollapsed ? CONFIG.classes.collapsed : '');
                 
                 updateChevron($(this), isCollapsed);
+
+                // Trigger resize for components like FullCalendar
+                setTimeout(() => {
+                    window.dispatchEvent(new Event('resize'));
+                }, 310);
             });
         }
 
@@ -143,9 +148,7 @@ const SICGOV = (function($) {
     }
 
     function updateChevron($btn, isCollapsed) {
-        const $icon = $btn.find('i');
-        $icon.toggleClass(CONFIG.icons.chevronLeft, !isCollapsed)
-             .toggleClass(CONFIG.icons.chevronRight, isCollapsed);
+        // La rotación se maneja por CSS para una transición más suave
     }
 
     // ==========================================
@@ -167,7 +170,7 @@ const SICGOV = (function($) {
 
     function cargarNotificaciones() {
         $.ajax({
-            url: BASE_URL + '/?page=notificaciones&action=listar',
+            url: BASE_URL + '?page=notificaciones&action=listar',
             type: 'GET',
             dataType: 'json'
         })
@@ -257,7 +260,7 @@ const SICGOV = (function($) {
 
     function marcarTodasLeidas() {
         $.ajax({
-            url: BASE_URL + '/?page=notificaciones&action=marcar-todas',
+            url: BASE_URL + '?page=notificaciones&action=marcar-todas',
             type: 'POST',
             dataType: 'json'
         })

@@ -159,7 +159,7 @@ SELECT `u`.`cedula` AS `cedula`,
 `p`.`correo` AS `correo`, 
 `u`.`clave` AS `clave` 
 FROM `usuario` `u`
-JOIN `goobv-sistema`.`persona` `p` ON(`u`.`cedula` = `p`.`cedula`);
+JOIN `{{DB_SYSTEM}}`.persona `p` ON(`u`.`cedula` = `p`.`cedula`);
 
 CREATE VIEW vw_perfil_usuario AS
 SELECT `u`.`cedula`,
@@ -177,9 +177,9 @@ SELECT `u`.`cedula`,
 `u`.`tema`,
 `u`.`ultimo_acceso`,
 `u`.`fecha_registro`
-FROM `goobv-usuarios`.`usuario` AS `u`
-JOIN `goobv-sistema`.`persona` AS `p` ON (`u`.`cedula` = `p`.`cedula`)
-JOIN `goobv-usuarios`.`rol` AS `r` ON (`u`.`id_rol` = `r`.`id_rol`);
+FROM `{{DB_SECURITY}}`.`usuario` AS `u`
+JOIN `{{DB_SYSTEM}}`.persona AS `p` ON (`u`.`cedula` = `p`.`cedula`)
+JOIN `{{DB_SECURITY}}`.`rol` AS `r` ON (`u`.`id_rol` = `r`.`id_rol`);
 
 CREATE VIEW `vw_sesiones_activas` AS
 SELECT s.id_sesion, u.cedula, r.nombre_rol AS rol, s.ip, s.dispositivo, s.fecha_inicio 

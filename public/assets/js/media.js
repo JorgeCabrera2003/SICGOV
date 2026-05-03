@@ -15,7 +15,7 @@ const MediaManager = (function($) {
     function bindEvents() {
         $('#btn-refresh').on('click', cargarMedia);
         $('#filter-dir, #filter-status').on('change', () => renderGrid());
-        $('#search-media').on('keyup', () => renderGrid());
+        $('#search-input').on('keyup', () => renderGrid());
 
         // Modal de subida
         $('#upload-form').on('submit', function(e) {
@@ -47,12 +47,12 @@ const MediaManager = (function($) {
         fd.append('peticion', 'consultar');
 
         try {
-            const response = await enviaAjax(fd, BASE_URL + '/?page=multimedia');
+            const response = await enviaAjax(fd, BASE_URL + '?page=multimedia');
             if (response && response.resultado === 200) {
-                allMedia = response.datos;
+                allMedia = Array.isArray(response.datos) ? response.datos : [];
                 renderGrid();
             } else {
-                mostrarError('Error al cargar multimedia: ' + (response?.mensaje || 'Error desconocido'));
+                mostrarError('Error al cargar multimedia: ' + (response?.mensaje || 'Respuesta inválida del servidor'));
             }
         } catch (e) {
             mostrarError('Fallo al cargar multimedia');
@@ -62,12 +62,13 @@ const MediaManager = (function($) {
     function renderGrid() {
         const dirFilter = $('#filter-dir').val();
         const statusFilter = $('#filter-status').val();
-        const searchFilter = $('#search-media').val().toLowerCase();
+        const searchFilter = $('#search-input').val().toLowerCase();
 
         let filtered = allMedia.filter(item => {
             const matchesDir = !dirFilter || item.directorio === dirFilter;
             const matchesStatus = !statusFilter || (statusFilter === 'linked' ? item.en_uso : !item.en_uso);
-            const matchesSearch = !searchFilter || item.nombre.toLowerCase().includes(searchFilter);
+            const nombre = item.nombre || '';
+            const matchesSearch = !searchFilter || nombre.toLowerCase().includes(searchFilter);
             return matchesDir && matchesStatus && matchesSearch;
         });
 
@@ -87,20 +88,21 @@ const MediaManager = (function($) {
             const badgeText = item.en_uso ? 'Vinculada' : 'Sin uso';
             const fileSize = (item.size / 1024).toFixed(1) + ' KB';
 
-            const $col = $('<div>', { class: 'col-6 col-sm-4 col-md-3 col-lg-2 media-item', 'data-path': item.ruta });
-            const $card = $('<div>', { class: 'card media-card border-0 shadow-sm overflow-hidden' })
+            const $col = $('<div>', { class: 'col-6 col-md-4 col-lg-3 mb-4', 'data-path': item.ruta });
+            const $card = $('<div>', { class: 'media-manager__item rounded-4 overflow-hidden position-relative h-100 d-flex flex-column' })
                 .on('click', () => mostrarDetalles(item.ruta));
             
-            const $preview = $('<div>', { class: 'media-preview-container' });
-            $preview.append($('<img>', { src: BASE_URL + item.ruta, loading: 'lazy' }));
-            $preview.append($('<span>', { class: `badge ${badgeClass} media-badge`, text: badgeText }));
+            const $preview = $('<div>', { class: 'media-manager__preview position-relative w-100 d-flex align-items-center justify-content-center' });
+            $preview.append($('<span>', { class: `badge media-manager__badge position-absolute top-0 end-0 m-2 rounded-pill z-2 ${badgeClass}`, text: badgeText }));
+            $preview.append($('<img>', { src: BASE_URL + item.ruta, loading: 'lazy', class: 'media-manager__image w-100 h-100 object-fit-cover' }));
             
-            const $body = $('<div>', { class: 'card-body p-2' });
-            $body.append($('<p>', { class: 'small text-truncate mb-0 fw-bold', title: item.nombre, text: item.nombre }));
+            const $body = $('<div>', { class: 'p-3 d-flex flex-column flex-grow-1' });
+            $body.append($('<p>', { class: 'small text-truncate mb-2 fw-bold', title: item.nombre || 'Sin nombre', text: item.nombre || 'Sin nombre' }));
             
-            const $info = $('<div>', { class: 'd-flex justify-content-between align-items-center mt-1' });
-            $info.append($('<span>', { class: 'badge directory-badge fw-normal bg-secondary', css: { fontSize: '0.7rem' }, text: item.directorio.toUpperCase() }));
-            $info.append($('<span>', { class: 'text-muted', css: { fontSize: '0.7rem' }, text: fileSize }));
+            const $info = $('<div>', { class: 'd-flex justify-content-between align-items-center mt-auto' });
+            const dirLabel = (item.directorio || 'General').toUpperCase();
+            $info.append($('<span>', { class: 'badge rounded-pill', css: { backgroundColor: 'var(--color-bg-muted, rgba(26, 28, 32, 0.05))', color: 'var(--color-sidebar)', fontSize: '0.65rem' }, text: dirLabel }));
+            $info.append($('<span>', { class: 'text-muted fw-bold', css: { fontSize: '0.7rem' }, text: fileSize }));
             $body.append($info);
 
             $card.append($preview, $body);
@@ -150,7 +152,7 @@ const MediaManager = (function($) {
         fd.append('peticion', 'registrar');
 
         try {
-            const response = await enviaAjax(fd, BASE_URL + '/?page=multimedia');
+            const response = await enviaAjax(fd, BASE_URL + '?page=multimedia');
             if (response && response.resultado === 200) {
                 Swal.fire('¡Éxito!', 'Imagen subida correctamente', 'success');
                 const modalInstance = bootstrap.Modal.getInstance(document.getElementById('uploadModal'));
@@ -184,7 +186,7 @@ const MediaManager = (function($) {
                 fd.append('ruta', ruta);
 
                 try {
-                    const response = await enviaAjax(fd, BASE_URL + '/?page=multimedia');
+                    const response = await enviaAjax(fd, BASE_URL + '?page=multimedia');
                     if (response && response.resultado === 200) {
                         Swal.fire('Eliminado', response.mensaje || 'Archivo eliminado', 'success');
                         const modalInstance = bootstrap.Modal.getInstance(document.getElementById('imageDetailModal'));

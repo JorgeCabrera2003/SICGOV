@@ -54,6 +54,16 @@ class Database
         return self::$instances[$type];
     }
 
+    public static function getSystemDb()
+    {
+        return $_ENV['DB_NAME_SYSTEM'] ?? 'goobv-sistema';
+    }
+
+    public static function getSecurityDb()
+    {
+        return $_ENV['DB_NAME_USER'] ?? 'goobv-usuarios';
+    }
+
     /**
      * Llama a la Conexión a la Base de Datos de no existir el objeto,
      * se instancia uno al ser llamado por primera vez

@@ -17,7 +17,7 @@ $badgeArray = [
 ?>
 
 <!-- 1. Top Bar (Fecha, Redes y Login) -->
-<div class="news-top-bar py-2 shadow-sm">
+<div class="news-top-bar py-2 shadow-sm border-bottom">
     <div class="container d-flex justify-content-between align-items-center">
         <div class="date-now small">
             <i class="far fa-calendar-alt me-2 text-primary"></i>
@@ -47,7 +47,7 @@ $badgeArray = [
 </div>
 
 <!-- 2. Logo Section -->
-<div class="news-logo-section text-center py-4 bg-white border-bottom d-none">
+<div class="news-logo-section text-center py-4 bg-tarjetas border-bottom d-none">
     <div class="container">
         <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="Good Vibes" style="height: 160px;" class="landing-logo py-2">
     </div>
@@ -71,7 +71,7 @@ $badgeArray = [
 </div>
 
 <!-- 4. Navegación por Pestañas (Landing Page) -->
-<nav class="sticky-top bg-white border-bottom shadow-sm py-2" id="landingNav" style="z-index: 1020;">
+<nav class="sticky-top bg-tarjetas border-bottom shadow-sm py-2" id="landingNav" style="z-index: 1020;">
     <div class="container d-flex justify-content-center">
         <ul class="nav nav-pills nav-fill gap-2" id="pills-tab" role="tablist">
             <li class="nav-item" role="presentation">
@@ -152,7 +152,7 @@ $badgeArray = [
                 <input type="hidden" name="page" value="noticias">
                 
                 <div class="col-md-3">
-                    <label class="form-label small fw-bold text-uppercase opacity-75">Categoría</label>
+                    <label class="form-label small fw-bold text-uppercase">Categoría</label>
                     <select name="tipo" class="form-select">
                         <option value="">Todas las categorías</option>
                         <option value="INFO" <?= ($_GET['tipo']??'')=='INFO'?'selected':'' ?>>Informativo</option>
@@ -162,7 +162,7 @@ $badgeArray = [
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label small fw-bold text-uppercase opacity-75">Publicador</label>
+                    <label class="form-label small fw-bold text-uppercase">Publicador</label>
                     <select name="autor" class="form-select">
                         <option value="">Todos los autores</option>
                         <?php foreach($autores as $autor): ?>
@@ -172,7 +172,7 @@ $badgeArray = [
                 </div>
 
                 <div class="col-md-2">
-                    <label class="form-label small fw-bold text-uppercase opacity-75">Mes</label>
+                    <label class="form-label small fw-bold text-uppercase">Mes</label>
                     <select name="mes" class="form-select">
                         <option value="">Cualquier mes</option>
                         <?php 
@@ -186,7 +186,7 @@ $badgeArray = [
                 </div>
 
                 <div class="col-md-2">
-                    <label class="form-label small fw-bold text-uppercase opacity-75">Año</label>
+                    <label class="form-label small fw-bold text-uppercase">Año</label>
                     <select name="anio" class="form-select">
                         <option value="">Cualquier año</option>
                         <option value="2024" <?= ($_GET['anio']??'')=='2024'?'selected':'' ?>>2024</option>
@@ -215,7 +215,7 @@ $badgeArray = [
                 ?>
                 
                 <div class="col-md-6 col-lg-4">
-                    <article class="editorial-card h-100 bg-white">
+                    <article class="editorial-card h-100 bg-tarjetas shadow-sm border">
                         <div class="editorial-img-container">
                             <span class="badge <?= $badgeClass ?> editorial-badge shadow"><?= $badgeText ?></span>
                             <img src="<?= $img ?>" alt="<?= htmlspecialchars($noti['titulo']) ?>">
@@ -227,7 +227,7 @@ $badgeArray = [
                                 <span><i class="far fa-calendar me-1"></i> <?= $fecha->format('d/m/Y') ?></span>
                             </div>
                             <h4 class="editorial-title">
-                                <a href="<?= BASE_URL ?>?page=noticias-detalle&id=<?= $noti['id_noticia'] ?>" class="text-dark text-decoration-none">
+                                <a href="<?= BASE_URL ?>?page=noticias-detalle&id=<?= $noti['id_noticia'] ?>" class="text-body text-decoration-none">
                                     <?= htmlspecialchars($noti['titulo']) ?>
                                 </a>
                             </h4>
@@ -276,7 +276,7 @@ $badgeArray = [
 
                 <div class="row g-4 mb-5">
                     <div class="col-md-6 animate__animated animate__fadeInUp">
-                        <div class="card h-100 border-0 shadow-sm bg-white p-4">
+                        <div class="card h-100 border-0 shadow-sm bg-tarjetas p-4">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="icon-box bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                     <i class="fas fa-eye text-primary fs-3"></i>
@@ -291,7 +291,7 @@ $badgeArray = [
                         </div>
                     </div>
                     <div class="col-md-6 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
-                        <div class="card h-100 border-0 shadow-sm bg-white p-4">
+                        <div class="card h-100 border-0 shadow-sm bg-tarjetas p-4">
                             <div class="d-flex align-items-center mb-3">
                                 <div class="icon-box bg-success bg-opacity-10 p-3 rounded-circle me-3">
                                     <i class="fas fa-star text-success fs-3"></i>
@@ -318,7 +318,7 @@ $badgeArray = [
                         <h2 class="h3 fw-bold mb-4">¿Cómo encontrarnos?</h2>
                         
                         <div class="mb-4 d-flex align-items-start">
-                            <div class="icon-circle bg-primary text-white me-3 mt-1">
+                            <div class="icon-circle bg-primary me-3 mt-1">
                                 <i class="fas fa-map-marker-alt"></i>
                             </div>
                             <div>
@@ -354,13 +354,13 @@ $badgeArray = [
                         <div class="p-4 bg-body-tertiary rounded-4 border dashed-border text-center">
                             <h5 class="fw-bold mb-3">Síguenos en Redes</h5>
                             <div class="d-flex justify-content-center gap-3">
-                                <a href="https://www.instagram.com/goodvibes_tapasbar/" target="_blank" class="btn btn-lg btn-primary rounded-circle shadow-sm" style="width: 50px; height: 50px; display:flex; align-items:center; justify-content:center;">
+                                <a href="https://www.instagram.com/goodvibes_tapasbar/" target="_blank" class="btn btn-primary icon-circle shadow-sm">
                                     <i class="fab fa-instagram fs-4"></i>
                                 </a>
-                                <a href="#" class="btn btn-lg btn-dark rounded-circle shadow-sm" style="width: 50px; height: 50px; display:flex; align-items:center; justify-content:center;">
+                                <a href="#" class="btn btn-dark icon-circle shadow-sm">
                                     <i class="fab fa-tiktok fs-4"></i>
                                 </a>
-                                <a href="#" class="btn btn-lg btn-info text-white rounded-circle shadow-sm" style="width: 50px; height: 50px; display:flex; align-items:center; justify-content:center;">
+                                <a href="#" class="btn btn-info text-white icon-circle shadow-sm">
                                     <i class="fab fa-facebook-f fs-4"></i>
                                 </a>
                             </div>

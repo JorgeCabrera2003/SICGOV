@@ -11,7 +11,7 @@
             Gestión de Noticias y Publicaciones
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de noticia">
-            <button class="btn btn-primary text-white fw-semibold shadow-sm" id="btnNuevaNoticia">
+            <button class="btn btn-primary fw-semibold shadow-sm" id="btnNuevaNoticia">
                 <i class="fas fa-plus me-2"></i>Nueva Noticia
             </button>
             <a href="<?= BASE_URL ?>?page=noticias" target="_blank" class="btn btn-outline-primary shadow-sm" id="btnVerBlog">

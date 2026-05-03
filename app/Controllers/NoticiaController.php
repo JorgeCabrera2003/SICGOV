@@ -13,12 +13,21 @@ class NoticiaController
 		Helper::verificarSesion();
 
 		$noticiaModel = new Noticia();
-		if (isset($_POST["peticion"])) {
+		
+		// Detección mejorada de peticiones AJAX
+		$isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
+
+		if (isset($_POST["peticion"]) || $isAjax && isset($_POST['peticion'])) {
+			
+			// Limpiar cualquier salida previa (avisos de PHP, etc) para no corromper el JSON
+			if (ob_get_length()) ob_clean();
+			
+			header('Content-Type: application/json');
 
 			// Entrada
 			if ($_POST["peticion"] == "entrada") {
-				$json['HTTP_STATUS'] = ['codigo' => 204, 'mensaje' => 'No Content'];
-				$json['response'] = ['resultado' => 204, 'mensaje' => 'No hay contenido'];
+				$json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+				$json['response'] = ['resultado' => 200, 'mensaje' => 'Conexión establecida'];
 			}
 
 			// Registrar y Modificar
@@ -194,6 +203,7 @@ class NoticiaController
         
         $page = 'noticias_publicas';
         $titulo = 'Noticias - Good Vibes';
+        $extra_css = [BASE_URL . '/assets/css/noticias.css?v=' . time()];
         
         require_once BASE_PATH . '/resources/views/layout/head.php';
         
@@ -227,6 +237,7 @@ class NoticiaController
 
         $page = 'noticias_detalle';
         $titulo = $noticia['titulo'] . ' - Good Vibes Noticias';
+        $extra_css = [BASE_URL . '/assets/css/noticias.css?v=' . time()];
         
         require_once BASE_PATH . '/resources/views/layout/head.php';
         require_once BASE_PATH . '/resources/views/layout/menu.php';

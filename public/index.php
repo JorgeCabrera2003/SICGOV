@@ -12,7 +12,7 @@ $scriptName = $_SERVER['SCRIPT_NAME'];
 
 $basePath = rtrim(dirname($scriptName), '/\\');
 
-define('BASE_URL', $protocol . $host . $basePath);
+define('BASE_URL', rtrim($protocol . $host . $basePath, '/\\') . '/');
 define('BASE_PATH', realpath(__DIR__ . '/..'));
 
 ini_set('display_errors', 1);
@@ -36,6 +36,7 @@ use App\Controllers\NoticiaController;
 use App\Controllers\MediaController;
 use App\Controllers\ClienteController;
 use App\Controllers\ReservacionController;
+use App\Controllers\NotificationController;
 
 try {
     match ($page) {
@@ -56,9 +57,28 @@ try {
         'multimedia' => (new MediaController())->index(),
         'clientes' => (new ClienteController())->index(),
         'reservaciones' => (new ReservacionController())->index(),
+        'notificaciones' => (new NotificationController())->index(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };
 } catch (Exception $e) {
+    $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
+    
+    if ($isAjax) {
+        if (ob_get_length()) ob_clean();
+        header('Content-Type: application/json');
+        header('HTTP/1.1 500 Internal Server Error');
+        echo json_encode([
+            'resultado' => 500,
+            'mensaje' => 'Error crítico del sistema',
+            'debug' => [
+                'mensaje' => $e->getMessage(),
+                'archivo' => $e->getFile(),
+                'linea' => $e->getLine()
+            ]
+        ]);
+        exit;
+    }
+
     echo "<h1>Error en la aplicación</h1>";
     echo "<p><strong>Mensaje:</strong> " . $e->getMessage() . "</p>";
     echo "<p><strong>Archivo:</strong> " . $e->getFile() . ":" . $e->getLine() . "</p>";
