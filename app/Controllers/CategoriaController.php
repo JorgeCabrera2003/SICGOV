@@ -111,7 +111,6 @@ class CategoriaController
                     try {
                         $categoriaModel->setNombreCategoria($_POST["nombre_categoria"] ?? '');
                         $categoriaModel->setDescripcion($_POST["descripcion"] ?? '');
-                        $categoriaModel->setIcono('default.png');
                         
                         if ($_POST["peticion"] == "modificar") {
                             // En actualizar
@@ -140,6 +139,35 @@ class CategoriaController
                 }
             }
             
+            // Verificar nombre duplicado (llamada asíncrona del frontend)
+            if ($_POST["peticion"] == "verificar") {
+                try {
+                    $nombre = trim($_POST["nombre_categoria"] ?? '');
+                    $id_excluir = trim($_POST["id_categoria"] ?? '');
+
+                    if (empty($nombre)) {
+                        $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+                        $json['response'] = ['resultado' => 200, 'existe' => false, 'mensaje' => ''];
+                    } else {
+                        $categoriaModel->setNombreCategoria($nombre);
+                        $jsonResult = $categoriaModel->Transaccion([
+                            'peticion'   => 'verificar',
+                            'id_excluir' => $id_excluir ?: null
+                        ]);
+                        $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+                        $json['response'] = [
+                            'resultado' => 200,
+                            'existe'    => $jsonResult['existe'],
+                            'mensaje'   => $jsonResult['message']
+                        ];
+                    }
+                } catch (\Exception $e) {
+                    // Si falla la validación del setter, no hay duplicado que reportar
+                    $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+                    $json['response'] = ['resultado' => 200, 'existe' => false, 'mensaje' => ''];
+                }
+            }
+
             // Consultar
             if ($_POST["peticion"] == "consultar") {
                 $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => ''];

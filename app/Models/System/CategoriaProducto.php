@@ -13,7 +13,6 @@ class CategoriaProducto
     private $id_categoria;
     private $nombre_categoria;
     private $descripcion;
-    private $icono;
     private $estatus;
 
     public function __construct()
@@ -32,23 +31,39 @@ class CategoriaProducto
     
     public function setNombreCategoria($nombre)
     {
-        if (empty($nombre) || RegexHelper::ValidarFormatos($nombre, 'Objeto') == 0) {
-            throw new Exception("El nombre de la categoría no es válido (solo letras, números y espacios, de 3 a 65 caracteres).");
+        $nombre = trim($nombre ?? '');
+        if (empty($nombre)) {
+            throw new Exception("El nombre de la categoría es obligatorio.");
+        }
+        if (mb_strlen($nombre) < 2) {
+            throw new Exception("El nombre de la categoría debe tener al menos 2 caracteres.");
+        }
+        if (!preg_match('/^[A-ZÁÉÍÓÚÑ]/', $nombre)) {
+            throw new Exception("El nombre de la categoría debe comenzar con una letra mayúscula.");
+        }
+        if (RegexHelper::ValidarFormatos($nombre, 'CategoriaMenu') == 0) {
+            throw new Exception("El nombre de la categoría solo puede contener letras y espacios (2 a 65 caracteres).");
         }
         $this->nombre_categoria = $nombre;
     }
     
     public function setDescripcion($desc)
     {
-        if (!empty($desc) && RegexHelper::ValidarFormatos($desc, 'ObjetoLargo') == 0) {
-            throw new Exception("La descripción no es válida (máximo 200 caracteres permitidos).");
+        $desc = trim($desc ?? '');
+        if (empty($desc)) {
+            $this->descripcion = '';
+            return;
+        }
+        if (mb_strlen($desc) < 2) {
+            throw new Exception("La descripción debe tener al menos 2 caracteres.");
+        }
+        if (!preg_match('/^[A-ZÁÉÍÓÚÑ]/', $desc)) {
+            throw new Exception("La descripción debe comenzar con una letra mayúscula.");
+        }
+        if (RegexHelper::ValidarFormatos($desc, 'CategoriaMenuDesc') == 0) {
+            throw new Exception("La descripción solo puede contener letras y espacios (2 a 200 caracteres).");
         }
         $this->descripcion = $desc;
-    }
-    
-    public function setIcono($icono)
-    {
-        $this->icono = empty($icono) ? 'default.png' : $icono;
     }
     
     public function setEstatus($estatus)
@@ -75,10 +90,6 @@ class CategoriaProducto
     public function getDescripcion() 
     { 
         return $this->descripcion; 
-    }
-    public function getIcono() 
-    { 
-        return $this->icono; 
     }
     public function getEstatus() 
     { 
@@ -111,6 +122,8 @@ class CategoriaProducto
                     return $this->eliminarCategoria();
                 case 'buscar':
                     return $this->buscarCategoria();
+                case 'verificar':
+                    return $this->verificarNombreExiste($peticion['id_excluir'] ?? null);
                 default:
                     return ['success' => false, 'message' => 'Petición no válida'];
             }
@@ -196,22 +209,19 @@ class CategoriaProducto
                     id_categoria, 
                     nombre_categoria, 
                     descripcion, 
-                    icono, 
                     estatus
                 ) VALUES (
                     :id_categoria,
                     :nombre_categoria, 
                     :descripcion, 
-                    :icono, 
                     1
                 )";
 
             $stmt = $this->db->prepare($sql);
             $result = $stmt->execute([
-                'id_categoria' => $this->getIdCategoria(),
+                'id_categoria'     => $this->getIdCategoria(),
                 'nombre_categoria' => $this->getNombreCategoria(),
-                'descripcion' => $this->getDescripcion() ?? '',
-                'icono' => $this->getIcono() ?? 'default.png'
+                'descripcion'      => $this->getDescripcion() ?? ''
             ]);
 
             if ($result) {
@@ -256,17 +266,15 @@ class CategoriaProducto
             $sql = "UPDATE categoria_producto SET 
                     nombre_categoria = :nombre_categoria,
                     descripcion = :descripcion,
-                    icono = :icono,
                     estatus = :estatus
                     WHERE id_categoria = :id_categoria";
 
             $stmt = $this->db->prepare($sql);
             $result = $stmt->execute([
-                'id_categoria' => $this->getIdCategoria(),
+                'id_categoria'     => $this->getIdCategoria(),
                 'nombre_categoria' => $this->getNombreCategoria(),
-                'descripcion' => $this->getDescripcion(),
-                'icono' => $this->getIcono(),
-                'estatus' => $this->getEstatus()
+                'descripcion'      => $this->getDescripcion(),
+                'estatus'          => $this->getEstatus()
             ]);
 
             if ($result) {
@@ -354,6 +362,58 @@ class CategoriaProducto
         } catch (\PDOException $e) {
             error_log("Error en buscarCategoria: " . $e->getMessage());
             return null;
+        }
+    }
+
+
+//#########################################################################################
+
+
+    /**
+     * Verifica si ya existe una categoría activa con el mismo nombre.
+     * Al editar, se excluye el propio registro usando $id_excluir.
+     *
+     * @param string|null $id_excluir ID de la categoría que se está editando (null al registrar)
+     * @return array ['existe' => bool, 'message' => string]
+     */
+    private function verificarNombreExiste(?string $id_excluir = null): array
+    {
+        try {
+            if (empty($this->nombre_categoria)) {
+                return ['existe' => false, 'message' => ''];
+            }
+
+            if ($id_excluir) {
+                // Al editar: excluir el registro actual para permitir guardar sin cambiar nombre
+                $sql = "SELECT COUNT(*) as total FROM categoria_producto
+                        WHERE LOWER(nombre_categoria) = LOWER(:nombre)
+                          AND estatus = 1
+                          AND id_categoria != :id_excluir";
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute([
+                    'nombre'     => $this->nombre_categoria,
+                    'id_excluir' => $id_excluir
+                ]);
+            } else {
+                // Al registrar: buscar cualquier coincidencia activa
+                $sql = "SELECT COUNT(*) as total FROM categoria_producto
+                        WHERE LOWER(nombre_categoria) = LOWER(:nombre)
+                          AND estatus = 1";
+                $stmt = $this->db->prepare($sql);
+                $stmt->execute(['nombre' => $this->nombre_categoria]);
+            }
+
+            $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+            $existe = ($resultado['total'] ?? 0) > 0;
+
+            return [
+                'existe'  => $existe,
+                'message' => $existe ? 'Ya existe una categoría con ese nombre.' : ''
+            ];
+
+        } catch (\PDOException $e) {
+            error_log("Error en verificarNombreExiste: " . $e->getMessage());
+            return ['existe' => false, 'message' => 'Error al verificar el nombre.'];
         }
     }
 
