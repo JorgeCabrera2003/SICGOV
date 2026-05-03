@@ -146,61 +146,86 @@ $badgeArray = [
 
     <div class="container mt-4">
         
-        <!-- 5. Filtros -->
-        <section class="news-filters-bar mb-5">
-            <form action="<?= BASE_URL ?>" method="GET" class="row g-3 align-items-end">
-                <input type="hidden" name="page" value="noticias">
-                
-                <div class="col-md-3">
-                    <label class="form-label small fw-bold text-uppercase">Categoría</label>
-                    <select name="tipo" class="form-select">
-                        <option value="">Todas las categorías</option>
-                        <option value="INFO" <?= ($_GET['tipo']??'')=='INFO'?'selected':'' ?>>Informativo</option>
-                        <option value="EXITO" <?= ($_GET['tipo']??'')=='EXITO'?'selected':'' ?>>Logros/Éxitos</option>
-                        <option value="ALERTA" <?= ($_GET['tipo']??'')=='ALERTA'?'selected':'' ?>>Importante/Alerta</option>
-                    </select>
-                </div>
+        <!-- 5. Filtros con Accordion -->
+        <section class="news-filters-accordion mb-4">
+            <div class="accordion" id="accordionFiltros">
+                <div class="accordion-item border-0 bg-transparent">
+                    <div class="accordion-header" id="headingOne">
+                        <button class="accordion-button collapsed bg-tarjetas shadow-sm rounded-3 border fw-bold text-uppercase py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFiltros" aria-expanded="false" aria-controls="collapseFiltros">
+                            <div class="d-flex align-items-center justify-content-between w-100 me-3">
+                                <span><i class="fas fa-sliders-h me-2 text-primary"></i> Panel de Filtros</span>
+                                <?php if(isset($_GET['tipo']) || isset($_GET['autor']) || isset($_GET['mes']) || isset($_GET['anio'])): ?>
+                                    <span class="badge bg-primary rounded-pill small ms-2">Filtros Activos</span>
+                                <?php endif; ?>
+                            </div>
+                        </button>
+                    </div>
+                    <div id="collapseFiltros" class="accordion-collapse collapse <?= (isset($_GET['tipo']) || isset($_GET['autor']) || isset($_GET['mes']) || isset($_GET['anio'])) ? 'show' : '' ?>" aria-labelledby="headingOne" data-bs-parent="#accordionFiltros">
+                        <div class="accordion-body bg-tarjetas border rounded-3 mt-2 shadow-sm p-4">
+                            <form action="<?= BASE_URL ?>" method="GET" class="row g-3 align-items-end">
+                                <input type="hidden" name="page" value="noticias">
+                                
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold text-uppercase">Categoría</label>
+                                    <select name="tipo" class="form-select">
+                                        <option value="">Todas las categorías</option>
+                                        <option value="INFO" <?= ($_GET['tipo']??'')=='INFO'?'selected':'' ?>>Informativo</option>
+                                        <option value="EXITO" <?= ($_GET['tipo']??'')=='EXITO'?'selected':'' ?>>Logros/Éxitos</option>
+                                        <option value="ALERTA" <?= ($_GET['tipo']??'')=='ALERTA'?'selected':'' ?>>Importante/Alerta</option>
+                                    </select>
+                                </div>
 
-                <div class="col-md-3">
-                    <label class="form-label small fw-bold text-uppercase">Publicador</label>
-                    <select name="autor" class="form-select">
-                        <option value="">Todos los autores</option>
-                        <?php foreach($autores as $autor): ?>
-                            <option value="<?= $autor ?>" <?= ($_GET['autor']??'')==$autor?'selected':'' ?>><?= htmlspecialchars($autor) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small fw-bold text-uppercase">Publicador</label>
+                                    <select name="autor" class="form-select">
+                                        <option value="">Todos los autores</option>
+                                        <?php foreach($autores as $autor): ?>
+                                            <option value="<?= $autor ?>" <?= ($_GET['autor']??'')==$autor?'selected':'' ?>><?= htmlspecialchars($autor) ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
 
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold text-uppercase">Mes</label>
-                    <select name="mes" class="form-select">
-                        <option value="">Cualquier mes</option>
-                        <?php 
-                        $mesesNombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-                        foreach($mesesNombres as $m => $nombre): 
-                            $val = $m + 1;
-                        ?>
-                            <option value="<?= $val ?>" <?= ($_GET['mes']??'')==$val?'selected':'' ?>><?= $nombre ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-uppercase">Mes</label>
+                                    <select name="mes" class="form-select">
+                                        <option value="">Cualquier mes</option>
+                                        <?php 
+                                        $mesesNombres = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+                                        foreach($mesesNombres as $m => $nombre): 
+                                            $val = $m + 1;
+                                        ?>
+                                            <option value="<?= $val ?>" <?= ($_GET['mes']??'')==$val?'selected':'' ?>><?= $nombre ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
 
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold text-uppercase">Año</label>
-                    <select name="anio" class="form-select">
-                        <option value="">Cualquier año</option>
-                        <option value="2024" <?= ($_GET['anio']??'')=='2024'?'selected':'' ?>>2024</option>
-                        <option value="2025" <?= ($_GET['anio']??'')=='2025'?'selected':'' ?>>2025</option>
-                        <option value="2026" <?= ($_GET['anio']??'')=='2026'?'selected':'' ?>>2026</option>
-                    </select>
-                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small fw-bold text-uppercase">Año</label>
+                                    <select name="anio" class="form-select">
+                                        <option value="">Cualquier año</option>
+                                        <option value="2024" <?= ($_GET['anio']??'')=='2024'?'selected':'' ?>>2024</option>
+                                        <option value="2025" <?= ($_GET['anio']??'')=='2025'?'selected':'' ?>>2025</option>
+                                        <option value="2026" <?= ($_GET['anio']??'')=='2026'?'selected':'' ?>>2026</option>
+                                    </select>
+                                </div>
 
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100 fw-bold">
-                        <i class="fas fa-filter me-2"></i> FILTRAR
-                    </button>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary w-100 fw-bold">
+                                        <i class="fas fa-filter me-2"></i> FILTRAR
+                                    </button>
+                                </div>
+                            </form>
+                            <?php if(isset($_GET['tipo']) || isset($_GET['autor']) || isset($_GET['mes']) || isset($_GET['anio'])): ?>
+                                <div class="mt-3 text-end">
+                                    <a href="<?= BASE_URL ?>?page=noticias" class="text-decoration-none small text-danger fw-bold">
+                                        <i class="fas fa-times-circle"></i> Limpiar Filtros
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
-            </form>
+            </div>
         </section>
 
         <!-- 6. Noticias Grid Section -->
