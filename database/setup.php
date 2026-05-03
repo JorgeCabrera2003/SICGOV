@@ -166,6 +166,12 @@ class GoodVibesInstallerService
         }
 
         $sql = file_get_contents($archivo);
+        
+        // --- DINAMISMO: Reemplazar Placeholders por nombres reales de .env ---
+        $dbUsers = $_ENV['DB_NAME_USER'] ?? 'goobv-usuarios';
+        $dbSystem = $_ENV['DB_NAME_SYSTEM'] ?? 'goobv-sistema';
+        $sql = str_replace(['{{DB_SYSTEM}}', '{{DB_SECURITY}}'], [$dbSystem, $dbUsers], $sql);
+
         $statements = $this->splitSQLStatements($sql);
 
         foreach ($statements as $statement) {

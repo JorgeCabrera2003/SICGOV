@@ -170,7 +170,7 @@ const SICGOV = (function($) {
 
     function cargarNotificaciones() {
         $.ajax({
-            url: BASE_URL + '/?page=notificaciones&action=listar',
+            url: BASE_URL + '?page=notificaciones&action=listar',
             type: 'GET',
             dataType: 'json'
         })
@@ -260,7 +260,7 @@ const SICGOV = (function($) {
 
     function marcarTodasLeidas() {
         $.ajax({
-            url: BASE_URL + '/?page=notificaciones&action=marcar-todas',
+            url: BASE_URL + '?page=notificaciones&action=marcar-todas',
             type: 'POST',
             dataType: 'json'
         })

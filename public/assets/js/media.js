@@ -47,7 +47,7 @@ const MediaManager = (function($) {
         fd.append('peticion', 'consultar');
 
         try {
-            const response = await enviaAjax(fd, BASE_URL + '/?page=multimedia');
+            const response = await enviaAjax(fd, BASE_URL + '?page=multimedia');
             if (response && response.resultado === 200) {
                 allMedia = Array.isArray(response.datos) ? response.datos : [];
                 renderGrid();
@@ -152,7 +152,7 @@ const MediaManager = (function($) {
         fd.append('peticion', 'registrar');
 
         try {
-            const response = await enviaAjax(fd, BASE_URL + '/?page=multimedia');
+            const response = await enviaAjax(fd, BASE_URL + '?page=multimedia');
             if (response && response.resultado === 200) {
                 Swal.fire('¡Éxito!', 'Imagen subida correctamente', 'success');
                 const modalInstance = bootstrap.Modal.getInstance(document.getElementById('uploadModal'));
@@ -186,7 +186,7 @@ const MediaManager = (function($) {
                 fd.append('ruta', ruta);
 
                 try {
-                    const response = await enviaAjax(fd, BASE_URL + '/?page=multimedia');
+                    const response = await enviaAjax(fd, BASE_URL + '?page=multimedia');
                     if (response && response.resultado === 200) {
                         Swal.fire('Eliminado', response.mensaje || 'Archivo eliminado', 'success');
                         const modalInstance = bootstrap.Modal.getInstance(document.getElementById('imageDetailModal'));
