@@ -154,11 +154,11 @@ class Noticia extends Database
             $dato['response'] = ['resultado' => 200, 'mensaje' => "OK", 'datos' => $arreglo];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
         } catch (\PDOException $e) {
-            $this->LlamarConexion()->rollBack();
-            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog("Error en ConsultarNoticiasAdmin: " . $e->getMessage());
             $dato['estado'] = -1;
-            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => "Ups, intente de nuevo más tarde", 'datos' => []];
-            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => "Error al obtener noticias admin", 'datos' => []];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno"];
         }
         $this->DestruirConexion();
         return $dato;
@@ -213,10 +213,10 @@ class Noticia extends Database
             $dato['response'] = ['resultado' => 200, 'mensaje' => "OK", 'datos' => $arreglo];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
         } catch (\PDOException $e) {
-            $this->LlamarConexion()->rollBack();
-            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog("Error en ConsultarNoticiasPublicas: " . $e->getMessage());
             $dato['estado'] = -1;
-            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => "Error interno del servidor", 'datos' => []];
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => "Error al cargar el blog público", 'datos' => []];
             $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error"];
         }
         $this->DestruirConexion();
@@ -346,10 +346,11 @@ class Noticia extends Database
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
 
+            $dbSystem = self::getSystemDb();
             $sql = "SELECT n.*, u.username as autor, p.nombre, p.apellido 
                     FROM noticia n 
                     JOIN usuario u ON n.cedula = u.cedula 
-                    JOIN `goobv-sistema`.persona p ON u.cedula = p.cedula
+                    JOIN `{$dbSystem}`.persona p ON u.cedula = p.cedula
                     WHERE n.id_noticia = :id_noticia AND n.estatus = 1";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':id_noticia', $this->id_noticia);

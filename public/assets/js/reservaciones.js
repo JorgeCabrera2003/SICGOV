@@ -133,7 +133,7 @@ export function inicializarCalendario(calendarEl, pickers) {
             formData.append('start', fetchInfo.startStr.split('T')[0]);
             formData.append('end', fetchInfo.endStr.split('T')[0]);
 
-            enviaAjax(formData, BASE_URL + '/?page=reservaciones')
+            enviaAjax(formData, BASE_URL + '?page=reservaciones')
                 .then(res => {
                     if (res && res.resultado == 200) {
                         successCallback(res.datos);
@@ -220,7 +220,7 @@ export async function moverEvento(info, calendar, mensajeExito = 'Reservación r
     formData.append('hora_fin', extraerHora(info.event.endStr) ?? '');
 
     try {
-        const res = await enviaAjax(formData, BASE_URL + '/?page=reservaciones');
+        const res = await enviaAjax(formData, BASE_URL + '?page=reservaciones');
         if (res && res.resultado == 200) {
             crearToast().fire({ icon: 'success', title: mensajeExito });
         } else {
