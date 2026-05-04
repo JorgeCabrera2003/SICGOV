@@ -58,6 +58,7 @@ CREATE TABLE `turno` (
   `hora_inicio` time NOT NULL,
   `hora_fin` time NOT NULL,
   `minuto_tolerancia` int(11) DEFAULT 15,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_turno`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -65,6 +66,7 @@ CREATE TABLE `categoria_ingrediente` (
   `id_categoria` varchar(30) NOT NULL,
   `nombre` varchar(60) NOT NULL,
   `descripcion` varchar(200) DEFAULT NULL,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_categoria`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -82,6 +84,7 @@ CREATE TABLE `area_mesa` (
   `id_area` varchar(30) NOT NULL,
   `nombre` varchar(60) NOT NULL COMMENT 'Ej: Terraza, VIP, Salón Principal',
   `descripcion` varchar(200) DEFAULT NULL,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_area`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
