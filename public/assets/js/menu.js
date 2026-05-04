@@ -4,17 +4,17 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     // Referencias DOM
-    const modalMenu = new bootstrap.Modal(document.getElementById('modalMenu'));
+    const modalMenu = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalMenu'));
     const formMenu = document.getElementById('formMenu');
     const loadingGallery = document.getElementById('loadingGallery');
     const galleryContainer = document.getElementById('galleryContainer');
     const emptyGallery = document.getElementById('emptyGallery');
     const filtrosCategorias = document.querySelectorAll('.btn-filtro');
-    
+
     // Arrays de ingredientes seleccionados
     let listPrincipales = [];
     let listAdicionales = [];
-    
+
     // Almacenará productos para filtro en cliente
     let productosActuales = [];
 
@@ -23,21 +23,21 @@ document.addEventListener('DOMContentLoaded', () => {
     function init() {
         renderCatalogoIngredientes();
         cargarMenu();
-        
+
         // Listeners básicos
         document.getElementById('btnNuevoMenu').addEventListener('click', abrirModalNuevo);
         formMenu.addEventListener('submit', guardarMenu);
         document.getElementById('imagen').addEventListener('change', handlePreviewImagen);
         document.getElementById('btnAbrirGaleria').addEventListener('click', handleAbrirGaleria);
-        
+
         // Listeners Filtros
         filtrosCategorias.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 filtrosCategorias.forEach(b => b.classList.remove('active'));
-                
+
                 const target = e.target;
                 target.classList.add('active');
-                
+
                 filtrarGaleria(target.dataset.categoria);
             });
         });
@@ -46,11 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const searchInput = document.querySelector('.select-ingrediente-input');
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
-            const collapse = new bootstrap.Collapse(document.getElementById('catalogoIngredientes'), {toggle: false});
+            const collapse = new bootstrap.Collapse(document.getElementById('catalogoIngredientes'), { toggle: false });
             collapse.show();
             renderCatalogoIngredientes(query);
         });
-        
+
         // Cambio de Tabs
         document.getElementById('principales-tab').addEventListener('shown.bs.tab', () => {
             document.getElementById('catalogoIngredientes').classList.remove('show');
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==========================================
     // RENDERIZADO GALERIA
     // ==========================================
-    
+
     async function cargarMenu() {
         try {
             loadingGallery.style.display = 'block';
@@ -69,9 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const res = await fetch(`${BASE_URL}/?page=menu&action=listarJson`);
             const json = await res.json();
-            
+
             loadingGallery.style.display = 'none';
-            
+
             if (json.data && json.data.length > 0) {
                 productosActuales = json.data;
                 const catElement = document.querySelector('.btn-filtro.active');
@@ -88,11 +88,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function filtrarGaleria(idCategoria) {
         galleryContainer.innerHTML = '';
         let filtrados = [];
-        
+
         if (idCategoria === 'todas') {
             filtrados = productosActuales.filter(p => p.estatus == 1);
-        } else if (idCategoria === 'inactivos') {
-            filtrados = productosActuales.filter(p => p.estatus == 0);
         } else {
             filtrados = productosActuales.filter(p => p.estatus == 1 && p.id_categoria == idCategoria);
         }
@@ -108,19 +106,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderCard(p) {
-        const estatusBadge = p.estatus == 1 
-            ? '<span class="badge bg-success shadow-sm">Activo</span>' 
-            : '<span class="badge bg-danger shadow-sm">Inactivo</span>';
-            
         const imgUrl = (p.imagen && p.imagen !== 'default-product.png') ? `${BASE_URL}/assets/img/productos/${p.imagen}` : `${BASE_URL}/assets/img/placeholder.png`;
 
         const card = document.createElement('div');
         card.className = 'col';
         card.innerHTML = `
             <div class="card h-100 shadow-sm border-0 position-relative hover-shadow transition-all">
-                <div class="position-absolute top-0 end-0 p-2 z-1">
-                    ${estatusBadge}
-                </div>
                 <div class="ratio ratio-4x3 overflow-hidden bg-light rounded-top">
                     <img src="${imgUrl}" class="card-img-top object-fit-cover" alt="${p.nombre_producto}" onerror="this.onerror=null; this.src='${BASE_URL}/assets/img/placeholder.png'">
                 </div>
@@ -137,21 +128,20 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="btn btn-sm btn-outline-secondary btn-editar" data-id="${p.id_producto}" title="Editar Menú">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            ${p.estatus == 1 
-                                ? `<button class="btn btn-sm btn-outline-danger btn-estatus" data-id="${p.id_producto}" data-estatus="${p.estatus}" title="Inactivar del Menú"><i class="fas fa-power-off"></i></button>`
-                                : `<button class="btn btn-sm btn-outline-success btn-estatus" data-id="${p.id_producto}" data-estatus="${p.estatus}" title="Activar en el Menú"><i class="fas fa-power-off"></i></button>`
-                            }
+                            <button class="btn btn-sm btn-outline-danger btn-eliminar" data-id="${p.id_producto}" title="Eliminar del Menú">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         `;
-        
+
         galleryContainer.appendChild(card);
-        
+
         // Listeners para botones creados
         card.querySelector('.btn-editar').addEventListener('click', () => editarMenu(p.id_producto));
-        card.querySelector('.btn-estatus').addEventListener('click', (e) => cambiarEstatus(p.id_producto, p.estatus));
+        card.querySelector('.btn-eliminar').addEventListener('click', (e) => eliminarMenu(p.id_producto));
     }
 
     // ==========================================
@@ -168,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         document.getElementById('imagen_galeria').value = '';
         const reader = new FileReader();
-        reader.onload = function(ev) {
+        reader.onload = function (ev) {
             document.getElementById('previewImagen').src = ev.target.result;
             document.getElementById('previewImagenContainer').style.display = 'block';
         };
@@ -178,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleAbrirGaleria() {
         if (typeof MediaPicker !== 'undefined') {
             MediaPicker.open({
-                onSelect: function(ruta) {
+                onSelect: function (ruta) {
                     document.getElementById('imagen_galeria').value = ruta;
                     document.getElementById('imagen').value = '';
                     document.getElementById('previewImagen').src = `${BASE_URL}${ruta}`;
@@ -196,21 +186,21 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('imagen_galeria').value = '';
         document.getElementById('previewImagenContainer').style.display = 'none';
         document.getElementById('modalTitleText').textContent = 'Nuevo Producto al Menú';
-        
+
         listPrincipales = [];
         listAdicionales = [];
         renderReceta();
-        
+
         modalMenu.show();
     }
 
     function renderCatalogoIngredientes(query = '') {
         const container = document.getElementById('listaIngredientesUI');
         container.innerHTML = '';
-        
+
         const q = query.toLowerCase();
         const results = ingredientesDB.filter(i => i.nombre_ingrediente.toLowerCase().includes(q));
-        
+
         if (results.length === 0) {
             container.innerHTML = '<div class="p-3 text-center text-muted">No se encontraron ingredientes.</div>';
             return;
@@ -230,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="btn btn-info text-dark fw-bold btn-add-adicional border-0" type="button">Extra</button>
                 </div>
             `;
-            
+
             // Add listeners
             item.querySelector('.btn-add-principal').addEventListener('click', (e) => {
                 e.preventDefault();
@@ -240,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 addIngredienteTo(ing, 'adicional');
             });
-            
+
             container.appendChild(item);
         });
     }
@@ -248,10 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function addIngredienteTo(ing, listType) {
         let isPrincipal = listType === 'principal';
         let targetList = isPrincipal ? listPrincipales : listAdicionales;
-        
+
         // Evitar duplicados
         if (targetList.find(i => i.id === ing.id_ingrediente)) {
-            toastr.warning('El ingrediente ya fue agregado a esta lista');
             return;
         }
 
@@ -260,7 +249,8 @@ document.addEventListener('DOMContentLoaded', () => {
             nombre: ing.nombre_ingrediente,
             cantidad: 1,
             unidad: ing.id_unidad_medida,
-            default_unidad_name: ing.nombre_unidad
+            default_unidad_name: ing.nombre_unidad,
+            precio: 0
         });
 
         // Activar el tab correspondiente
@@ -268,7 +258,6 @@ document.addEventListener('DOMContentLoaded', () => {
         new bootstrap.Tab(tabEl).show();
 
         renderReceta();
-        toastr.success(`Agregado como ${isPrincipal ? 'Principal' : 'Adicional'}`);
     }
 
     function removeIngrediente(id, isPrincipal) {
@@ -283,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderReceta() {
         renderTablaReceta('tablaPrincipales', listPrincipales, true);
         renderTablaReceta('tablaAdicionales', listAdicionales, false);
-        
+
         document.getElementById('contPrincipales').innerText = listPrincipales.length;
         document.getElementById('contAdicionales').innerText = listAdicionales.length;
     }
@@ -291,19 +280,29 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTablaReceta(tableId, list, isPrincipal) {
         const tbody = document.querySelector(`#${tableId} tbody`);
         tbody.innerHTML = '';
-        
+
         if (list.length === 0) {
             tbody.innerHTML = `<tr class="empty-row text-center text-muted"><td colspan="4" class="py-4">No hay ingredientes añadidos</td></tr>`;
             return;
         }
 
         // Crear options para unidades basado en unidadesDB
-        const unidadesHtml = (selectedId) => unidadesDB.map(u => 
+        const unidadesHtml = (selectedId) => unidadesDB.map(u =>
             `<option value="${u.id_unidad}" ${u.id_unidad == selectedId ? 'selected' : ''}>${u.abreviatura}</option>`
         ).join('');
 
         list.forEach((ing, index) => {
             const tr = document.createElement('tr');
+
+            let precioHtml = '';
+            if (!isPrincipal) {
+                precioHtml = `
+                <td>
+                    <input type="number" step="0.01" min="0" class="form-control form-control-sm price-input" 
+                        data-id="${ing.id}" data-type="adicional" value="${ing.precio || 0}" required>
+                </td>`;
+            }
+
             tr.innerHTML = `
                 <td><span class="fw-semibold">${ing.nombre}</span></td>
                 <td>
@@ -315,6 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${unidadesHtml(ing.unidad)}
                     </select>
                 </td>
+                ${precioHtml}
                 <td class="text-end">
                     <button type="button" class="btn btn-sm btn-outline-primary border-0 btn-remove-ing">
                         <i class="fas fa-times"></i>
@@ -326,6 +326,9 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.querySelector('.btn-remove-ing').addEventListener('click', () => removeIngrediente(ing.id, isPrincipal));
             tr.querySelector('.qty-input').addEventListener('change', (e) => updateIngrediente(ing.id, isPrincipal, 'cantidad', e.target.value));
             tr.querySelector('.unit-select').addEventListener('change', (e) => updateIngrediente(ing.id, isPrincipal, 'unidad', e.target.value));
+            if (!isPrincipal) {
+                tr.querySelector('.price-input').addEventListener('change', (e) => updateIngrediente(ing.id, isPrincipal, 'precio', e.target.value));
+            }
 
             tbody.appendChild(tr);
         });
@@ -343,18 +346,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function guardarMenu(e) {
         e.preventDefault();
-        
+
         const btnSave = document.getElementById('btnGuardarMenu');
         btnSave.disabled = true;
         btnSave.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Guardando...';
 
         try {
             const formData = new FormData(formMenu);
-            
+
             // Adjuntar recetas como string JSON
             formData.append('ingredientes_principales', JSON.stringify(listPrincipales));
             formData.append('ingredientes_adicionales', JSON.stringify(listAdicionales));
-            
+
             const req = await fetch(`${BASE_URL}/?page=menu&action=guardar`, {
                 method: 'POST',
                 body: formData
@@ -362,6 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await req.json();
 
             if (res.success) {
+                modalMenu.hide();
                 Swal.fire({
                     icon: 'success',
                     title: '¡Guardado!',
@@ -369,7 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     timer: 1500,
                     showConfirmButton: false
                 });
-                modalMenu.hide();
                 cargarMenu(); // Recargar Galería
             } else {
                 Swal.fire('Error', res.message || 'Error al guardar.', 'error');
@@ -418,7 +421,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     nombre: i.nombre_ingrediente,
                     cantidad: parseFloat(i.cantidad),
                     unidad: i.id_unidad_medida,
-                    default_unidad_name: i.nombre_unidad
+                    default_unidad_name: i.nombre_unidad,
+                    precio: parseFloat(i.precio_ingrediente || 0)
                 }));
 
                 renderReceta();
@@ -432,30 +436,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function cambiarEstatus(id, estatusActual) {
-        const nuevoEstatus = estatusActual == 1 ? 0 : 1;
-        const textoAccion = estatusActual == 1 ? 'inactivar' : 'activar';
-        const textoConfirmacion = estatusActual == 1 
-            ? "El producto ya no será visible para los clientes" 
-            : "El producto volverá a estar disponible";
-
+    function eliminarMenu(id) {
         Swal.fire({
-            title: `¿Estás seguro de ${textoAccion} este producto?`,
-            text: textoConfirmacion,
+            title: '¿Estás seguro de eliminar este producto?',
+            text: 'El producto será eliminado del menú (borrado lógico)',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: estatusActual == 1 ? '#d33' : '#28a745',
+            confirmButtonColor: '#d33',
             cancelButtonColor: '#6c757d',
-            confirmButtonText: `Sí, ${textoAccion}`,
+            confirmButtonText: 'Sí, eliminar',
             cancelButtonText: 'Cancelar'
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
                     const formData = new FormData();
                     formData.append('id', id);
-                    formData.append('estatus', nuevoEstatus);
 
-                    const req = await fetch(`${BASE_URL}/?page=menu&action=cambiar_estatus`, {
+                    const req = await fetch(`${BASE_URL}/?page=menu&action=eliminar`, {
                         method: 'POST',
                         body: formData
                     });
@@ -464,8 +461,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (res.success) {
                         Swal.fire({
                             icon: 'success',
-                            title: 'Éxito',
-                            text: `Producto ${estatusActual == 1 ? 'inactivado' : 'activado'} correctamente`,
+                            title: 'Eliminado',
+                            text: 'Producto eliminado correctamente',
                             timer: 1500,
                             showConfirmButton: false
                         });

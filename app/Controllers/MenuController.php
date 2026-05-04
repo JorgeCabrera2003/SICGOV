@@ -35,36 +35,30 @@ class MenuController
         $this->responderJson(function() {
             Helper::verificarSesion();
 
-            if (empty($_POST['nombre'])) {
-                return ['success' => false, 'message' => 'El nombre es requerido'];
-            }
+            $menu = new Menu();
+            $menu->setIdProducto($_POST['id_producto'] ?? '');
+            $menu->setNombreProducto($_POST['nombre'] ?? '');
+            $menu->setDescripcion($_POST['descripcion'] ?? '');
+            $menu->setPrecio($_POST['precio'] ?? 0);
+            $menu->setIdCategoria($_POST['id_categoria'] ?? null);
+            $menu->setTipoProducto($_POST['tipo_producto'] ?? 'COCINA');
+            $menu->setIngredientesPrincipales($_POST['ingredientes_principales'] ?? '[]');
+            $menu->setIngredientesAdicionales($_POST['ingredientes_adicionales'] ?? '[]');
 
-            $datos = [
-                'peticion' => 'guardar',
-                'id_producto' => $_POST['id_producto'] ?? '',
-                'nombre_producto' => $_POST['nombre'],
-                'descripcion' => $_POST['descripcion'] ?? '',
-                'precio' => $_POST['precio'] ?? 0,
-                'id_categoria' => $_POST['id_categoria'] ?? null,
-                'tipo_producto' => $_POST['tipo_producto'] ?? 'COCINA',
-                'ingredientes_principales' => $_POST['ingredientes_principales'] ?? '[]',
-                'ingredientes_adicionales' => $_POST['ingredientes_adicionales'] ?? '[]'
-            ];
-
+            $imagen_nombre = null;
             // Prioridad 1: Imagen seleccionada de la galería
             if (!empty($_POST['imagen_galeria'])) {
-                $datos['imagen'] = basename($_POST['imagen_galeria']);
-                error_log("Imagen seleccionada de galeria: " . $datos['imagen']);
+                $imagen_nombre = basename($_POST['imagen_galeria']);
+                error_log("Imagen seleccionada de galeria: " . $imagen_nombre);
             } 
             // Prioridad 2: Nueva subida de archivo
             elseif (isset($_FILES['imagen'])) {
                 error_log("FILES imagen detectado. Error code: " . $_FILES['imagen']['error']);
                 if ($_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
-                    $menu = new Menu();
-                    $imagen = $menu->subirImagen($_FILES['imagen']);
-                    if ($imagen) {
-                        $datos['imagen'] = $imagen;
-                        error_log("Imagen subida exitosamente: " . $imagen);
+                    $imagen_subida = $menu->subirImagen($_FILES['imagen']);
+                    if ($imagen_subida) {
+                        $imagen_nombre = $imagen_subida;
+                        error_log("Imagen subida exitosamente: " . $imagen_subida);
                     } else {
                         error_log("subirImagen() devolvio false");
                     }
@@ -73,12 +67,17 @@ class MenuController
                 error_log("No hay FILES imagen ni POST imagen_galeria");
             }
 
-            $menu = isset($menu) ? $menu : new Menu();
-            $result = $menu->Transaccion($datos);
+            if ($imagen_nombre) {
+                $menu->setImagen($imagen_nombre);
+            }
 
-            if ($result['success']) {
-                $accion = empty($datos['id_producto']) ? 'Se creó' : 'Se actualizó';
-                $detalle = "$accion el producto del menú '{$datos['nombre_producto']}'";
+            $peticion = empty($_POST['id_producto']) ? 'registrar' : 'modificar';
+            $result = $menu->Transaccion(['peticion' => $peticion]);
+
+            if (isset($result['success']) && $result['success']) {
+                $accion = empty($_POST['id_producto']) ? 'Se creó' : 'Se actualizó';
+                $nombre_producto = $_POST['nombre'] ?? '';
+                $detalle = "$accion el producto del menú '{$nombre_producto}'";
                 Helper::Bitacora(strtoupper(explode(' ', $accion)[1]), "MENU", $detalle);
             }
 
@@ -96,7 +95,8 @@ class MenuController
             }
 
             $menu = new Menu();
-            $data = $menu->Transaccion(['peticion' => 'buscar', 'id_producto' => $_GET['id']]);
+            $menu->setIdProducto($_GET['id']);
+            $data = $menu->Transaccion(['peticion' => 'buscar']);
 
             return $data 
                 ? ['success' => true, 'data' => $data]
@@ -114,9 +114,10 @@ class MenuController
             }
 
             $menu = new Menu();
-            $result = $menu->Transaccion(['peticion' => 'eliminar', 'id_producto' => $_POST['id']]);
+            $menu->setIdProducto($_POST['id']);
+            $result = $menu->Transaccion(['peticion' => 'eliminar']);
 
-            if ($result['success']) {
+            if (isset($result['success']) && $result['success']) {
                 Helper::Bitacora("ELIMINAR", "MENU", "Se eliminó el producto del menú con ID: " . $_POST['id']);
             }
 
@@ -124,31 +125,7 @@ class MenuController
         });
     }
 
-    public function cambiar_estatus()
-    {
-        $this->responderJson(function() {
-            Helper::verificarSesion();
 
-            if (empty($_POST['id']) || !isset($_POST['estatus'])) {
-                return ['success' => false, 'message' => 'Parámetros incompletos'];
-            }
-
-            $menu = new Menu();
-            $result = $menu->Transaccion([
-                'peticion' => 'cambiar_estatus', 
-                'id_producto' => $_POST['id'],
-                'estatus' => $_POST['estatus']
-            ]);
-
-            if ($result['success']) {
-                $estado = $_POST['estatus'] == 1 ? 'activó' : 'inactivó';
-                Helper::Bitacora("ESTATUS", "MENU", "Se $estado el producto del menú con ID: " . $_POST['id']);
-            }
-
-            return $result;
-        });
-    }
-    
     public function listarJson()
     {
         $this->responderJson(function() {

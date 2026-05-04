@@ -38,6 +38,10 @@ public static function ValidarFormatos(string $valor, string $config) {
          "Telefono" => preg_match('/^[0-9]{4}[-][0-9]{3}[-][0-9]{4}$/', $valor),
          "Correo" => preg_match('/^[^\s@]+@[^\s@]+\.[^\s@]+$/', $valor),
          "Sexo" => preg_match('/^[MF]{1}$/', $valor),
+         // Solo letras (incluyendo tildes y ñ) y espacios, mínimo 2 caracteres, máximo 65
+         "CategoriaMenu" => preg_match('/^[A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{1,64}$/', $valor),
+         // Igual que CategoriaMenu pero hasta 200 chars (descripción opcional)
+         "CategoriaMenuDesc" => preg_match('/^[A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{1,199}$/', $valor),
          default => 0
     };
 
