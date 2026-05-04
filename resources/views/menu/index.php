@@ -25,9 +25,6 @@
                 <?= htmlspecialchars($cat['nombre_categoria']) ?>
             </button>
         <?php endforeach; ?>
-        <button class="btn btn-danger text-white rounded-pill px-4 btn-filtro fw-bold shadow-sm ms-auto" data-categoria="inactivos">
-            <i class="fas fa-power-off me-1"></i>Inactivos
-        </button>
     </div>
 
     <!-- Galería de menú (section semántica) -->
@@ -66,4 +63,3 @@
 
 <!-- Recursos específicos de la página -->
 <script src="<?= BASE_URL ?>/assets/js/media-picker.js" defer></script>
-<script src="<?= BASE_URL ?>/assets/js/menu.js" defer></script>
