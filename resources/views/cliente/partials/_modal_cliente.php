@@ -31,7 +31,7 @@
                                 </select>
                                 <input type="text" class="form-control" id="cedula" name="cedula" maxlength="9" style="width: 70%;" required placeholder="12345678">
                             </div>
-                            <span class="form-label text-danger" id="scedula"></span>
+                            <span class="text-danger small" id="scedula" style="min-height:1.2em; display:block;"></span>
                         </div>
                         <div class="col-md-6">
                             <label for="fecha_nacimiento" class="form-label fw-semibold">Fecha de Nacimiento <span class="text-danger">*</span></label>
@@ -74,7 +74,7 @@
                                 </select>
                                 <input type="text" class="form-control" id="telefono" name="telefono" maxlength="7" style="width: 67%;" placeholder="5539261">
                             </div>
-                            <span class="form-label text-danger" id="stelefono"></span>
+                            <span class="text-danger small" id="stelefono" style="min-height:1.2em; display:block;"></span>
                         </div>
                         <div class="col-md-6">
                             <label for="sexo" class="form-label fw-semibold">Sexo <span class="text-danger">*</span></label>
