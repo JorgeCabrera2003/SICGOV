@@ -1,6 +1,6 @@
-import * as MensajeriaHelper from "./Helpers/MensajeriaHelper.js"
-import * as AjaxHelper from "./Helpers/AjaxHelper.js"
-import * as ValidadorHelper from "./Helpers/ValidadorHelper.js"
+import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js"
+import * as AjaxHelper from "../Helpers/AjaxHelper.js"
+import * as ValidadorHelper from "../Helpers/ValidadorHelper.js"
 
 //SUBMODULO DE CATEGORIA DE INGREDIENTES
 
@@ -102,13 +102,14 @@ export function CancelarFormulario() {
   modal_form.modal.modal("hide");
   modal_tabla.modal.modal("show");
 
-  console.log(modal_form);
   modal_form = null;
   modal_tabla = null;
 }
 
 export function MostrarModalTabla() {
   let modal_tabla = EtiquetasModal("TablaCategoria");
+  let modal_form = EtiquetasModal("Categoria");
+  modal_form.modal.modal("hide");
   modal_tabla.modal.modal("show");
 
   modal_tabla = null;
@@ -130,6 +131,7 @@ async function EnviarDatos(operacion) {
   let mensajeConfirmacion = "¿Está seguro de realizar esta acción?";
   let endpoint = "";
   let peticion = new FormData();
+  let json = null;
   //Registrar y Modificar
   if (operacion == "registrar" || operacion == "modificar") {
 
@@ -145,7 +147,7 @@ async function EnviarDatos(operacion) {
     }
 
     if (ValidarEnvio()) {
-      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} una Categoriagit`, mensajeConfirmacion, "question");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} una Categoria`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', accion);
@@ -177,14 +179,11 @@ async function EnviarDatos(operacion) {
 
   if (btn_formulario) {
     modal.boton.prop('disabled', true);
-    json = await enviaAjax(peticion, "?page=categoria-ingrediente");
-
+    json = await AjaxHelper.enviaAjax(peticion, "?page=categoria-ingrediente");
+    modal.boton.prop('disabled', false);
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-      modal.modal.modal("hide");
-      DataTableCategoria();
       MensajeriaHelper.GenerarMensaje(json.icon, 10000, json.mensaje, null);
     }
-    modal.boton.prop('disabled', false);
   }
 
   if (!confirmacion) {
@@ -193,10 +192,12 @@ async function EnviarDatos(operacion) {
 
   input = null;
   modal = null;
+  return json;
 }
 
 export async function EnviarFormulario(etiqueta_boton) {
   let accion = null;
+  let respuesta = null;
   const MANEJADOR = {
     'Nuevo': 'registrar',
     'Actualizar': 'modificar',
@@ -207,42 +208,44 @@ export async function EnviarFormulario(etiqueta_boton) {
   accion = MANEJADOR[etiqueta_boton.text()] || DEFAULT
 
   if (accion != null) {
-    EnviarDatos(accion)
+    respuesta = await EnviarDatos(accion)
   } else {
+    respuesta = { resultado: 0 }
     MensajeriaHelper.GenerarMensaje("danger", 10000, "Error, acción no válida", "")
   }
+  return respuesta ;
 };
 
 export function KeyPressCategoria() {
   let input = EtiquetasFormulario("input");
-  $(input.nombre).on("keypress",function(e){ ValidadorHelper.ValidarTecla("NombreObjeto", e); })
-  $(input.descripcion).on("keypress",function(e){ ValidadorHelper.ValidarTecla("NombreObjeto", e); })
+  $(input.nombre).on("keypress", function (e) { ValidadorHelper.ValidarTecla("NombreObjeto", e); })
+  $(input.descripcion).on("keypress", function (e) { ValidadorHelper.ValidarTecla("NombreObjeto", e); })
 }
 
 export function KeyUpCategoria() {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
-  
-  $(input.nombre).on("keyup",function(){
+
+  $(input.nombre).on("keyup", function () {
     ValidadorHelper.ValidarCampo("NombreObjeto", $(this), span.nombre);
   })
-  
-    $(input.descripcion).on("keyup",function(){
+
+  $(input.descripcion).on("keyup", function () {
     ValidadorHelper.ValidarCampo("NombreObjeto", $(this), span.descripcion);
   })
 }
 
 export function ValidarEnvio() {
-  
+
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
   let bool = true;
-  
-  if(!ValidadorHelper.ValidarCampo("NombreObjeto", input.nombre, span.nombre)){
+
+  if (!ValidadorHelper.ValidarCampo("NombreObjeto", input.nombre, span.nombre)) {
     bool = false;
   }
 
-  if(!ValidadorHelper.ValidarCampo("NombreObjeto", input.descripcion, span.descripcion)){
+  if (!ValidadorHelper.ValidarCampo("NombreObjeto", input.descripcion, span.descripcion)) {
     bool = false;
   };
 
@@ -284,6 +287,11 @@ async function VistaPermiso(modulo = "Categoria") {
   console.log(dropdown)
   return dropdown.prop('outerHTML');
 }
+
+function RecargarDataTable() {
+
+  DataTableCategoria(arreglo);
+};
 
 export async function DataTableCategoria(arreglo) {
   let botones = '';

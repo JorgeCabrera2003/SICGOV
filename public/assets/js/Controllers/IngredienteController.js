@@ -1,6 +1,6 @@
-import * as ingrediente from "./ingrediente.js"
-import * as categoriaIngrediente from "./categoria_ingrediente.js"
-import * as AjaxHelper from "./Helpers/AjaxHelper.js"
+import * as ingrediente from "../Handlers/IngredienteHandler.js"
+import * as categoriaIngrediente from "../Handlers/CategoriaIngredienteHandler.js"
+import * as AjaxHelper from "../Helpers/AjaxHelper.js"
 
 //MODULO DE INGREDIENTES
 
@@ -18,8 +18,8 @@ $("#btnIngredienteForm").on("click", async function () {
 });
 
 $("#btnNuevoIngrediente").on("click", function () {
- ingrediente.LimpiarFormulario();
- ingrediente.EditarModal("registrar");
+  ingrediente.LimpiarFormulario();
+  ingrediente.EditarModal("registrar");
 });
 
 $("#btn-ModalCategorias").on("click", async function () {
@@ -36,8 +36,15 @@ $("#btn-CategoriaCancel").on("click", function () {
   categoriaIngrediente.CancelarFormulario();
 })
 
-$("#btn-CategoriaForm").on("click", function () {
-  categoriaIngrediente.EnviarFormulario($(this));
+$("#btn-CategoriaForm").on("click", async function () {
+  let respuesta = null;
+  respuesta = await categoriaIngrediente.EnviarFormulario($(this));
+  console.log(respuesta);
+
+  if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
+    await crearDataTable("categoria-ingrediente");
+    categoriaIngrediente.MostrarModalTabla();
+  };
 })
 //CAPA DE VALIDACIÓN
 
@@ -100,13 +107,13 @@ async function rellenar(pos, accion, modulo = "Ingrediente") {
   // Habilitar el botón inmediatamente para Modificar/Eliminar ya que los datos vienen pre-validados
 }
 
-$(document).on('click', '.btn-editar', function(){
+$(document).on('click', '.btn-editar', function () {
   console.log($(this));
   console.log($(this).attr("data-modulo"));
   rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
 })
 
-$(document).on('click', '.btn-eliminar', function(){
+$(document).on('click', '.btn-eliminar', function () {
   console.log($(this));
   rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
 })

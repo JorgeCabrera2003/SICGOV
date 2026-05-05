@@ -24,6 +24,31 @@ export function MensajeHTTP(codigo = null) {
     return mensaje;
 }
 
+export async function MostrarConfirmacion(titulo, mensaje, icono) {
+  let resultado = false;
+
+  await Swal.fire({
+    title: titulo,
+    text: mensaje,
+    icon: icono,
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Sí',
+    cancelButtonText: 'Cancelar'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      console.log("Confirmado");
+      resultado = true;
+    } else {
+      console.log("Negado");
+      resultado = false;
+    }
+  });
+
+  return resultado;
+}
+
 export function DiccionarioValidacion(termino){
     let mensaje = "";
         const RESPUESTAS = {

@@ -1,6 +1,6 @@
-import * as mensajeria from "./Helpers/MensajeriaHelper.js"
-import * as AjaxHelper from "./Helpers/AjaxHelper.js"
-import * as ValidarHelper from "./Helpers/ValidadorHelper.js"
+import * as mensajeria from "../Helpers/MensajeriaHelper.js"
+import * as AjaxHelper from "../Helpers/AjaxHelper.js"
+import * as ValidarHelper from "../Helpers/ValidadorHelper.js"
 
 //MODULO DE INGREDIENTES
 
