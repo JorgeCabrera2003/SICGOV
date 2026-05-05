@@ -15,6 +15,8 @@ namespace App\Models\System;
 
 use App\Core\Database;
 use App\Helpers\Helper;
+use App\Helpers\RegexHelper;
+use Exception;
 use PDO;
 
 class CategoriaIngrediente extends Database
@@ -37,21 +39,33 @@ class CategoriaIngrediente extends Database
     //SETTERS
     public function setId(string $id)
     {
+        if (RegexHelper::ValidarFormatos($id, 'ID') == 0) {
+            throw new Exception("El ID de la Categoría no cumple con el formato permitido.");
+        }
         $this->id = $id;
     }
 
     public function setNombre(string $nombre)
     {
+        if (RegexHelper::ValidarFormatos($nombre, 'Objeto') == 0) {
+            throw new Exception("El Nombre de la Categoría no cumple con el formato permitido.");
+        }
         $this->nombre = $nombre;
     }
 
     public function setDescripcion(string $descripcion)
     {
+        if (RegexHelper::ValidarFormatos($descripcion, 'ObjetoLargo') == 0) {
+            throw new Exception("La Descripción de la Categoría no cumple con el formato permitido");
+        }
         $this->descripcion = $descripcion;
     }
 
     public function setEstatus(int $estatus)
     {
+        if ($estatus != 0 && $estatus != 1) {
+            throw new Exception("El ID de la noticia no cumple con el formato permitido.");
+        }
         $this->estatus = $estatus;
     }
 
@@ -110,7 +124,7 @@ class CategoriaIngrediente extends Database
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM categoria_ingrediente";
+            $sql = "SELECT * FROM categoria_ingrediente WHERE estatus = 1";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute();
             if ($stm->rowCount() > 0) {
@@ -170,7 +184,7 @@ class CategoriaIngrediente extends Database
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "UPDATE categoria_ingrediente SET nombre = :nombre, descripcion = :descripcion, 
+            $sql = "UPDATE categoria_ingrediente SET nombre = :nombre, descripcion = :descripcion 
             WHERE id_categoria = :id_categoria";
 
             $stm = $this->LlamarConexion()->prepare($sql);
@@ -182,7 +196,7 @@ class CategoriaIngrediente extends Database
             $stm = NULL;
 
             $dato['estado'] = 1;
-            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Ingrediente actualizado exitosamente"];
+            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Categoría actualizada exitosamente"];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
 
         } catch (\PDOException $e) {
@@ -205,15 +219,15 @@ class CategoriaIngrediente extends Database
             try {
                 $this->LlamarConexion();
                 $this->LlamarConexion()->beginTransaction();
-                $sql = "DELETE categoria_ingrediente WHERE id_categoria = :id_categoria";
+                $sql = "UPDATE categoria_ingrediente SET estatus = 0 WHERE id_categoria = :id_categoria";
                 $stm = $this->LlamarConexion()->prepare($sql);
-                $stm->bindParam('id_categoria', $this->id);
+                $stm->bindParam(':id_categoria', $this->id);
                 $stm->execute();
                 $this->LlamarConexion()->commit();
                 $stm = NULL;
 
                 $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Ingrediente eliminado exitosamente"];
+                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Categoría eliminada exitosamente"];
                 $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
             } catch (\PDOException $e) {
                 Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());

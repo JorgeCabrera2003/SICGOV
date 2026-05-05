@@ -34,21 +34,21 @@
                                 <span class="input-group-text bg-light"><i class="fas fa-font"></i></span>
                                 <input type="text" class="form-control" id="nombre" name="nombre" maxlength="100"
                                     required>
+                                <div class="form-label" id="snombre"></div>
                             </div>
-                            <span class="form-label" id="snombre"></span>
                         </div>
                         <div class="col-md-6">
                             <label for="costo_unitario" class="form-label fw-semibold">
                                 Costo Unitario ($) <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
-                                 <span class="input-group-text bg-light">
+                                <span class="input-group-text bg-light">
                                     <i class="fa-solid fa-dollar-sign"></i>
-                                 </span>                                
+                                </span>
                                 <input type="number" class="form-control" id="costo_unitario" name="costo_unitario"
                                     step="0.01" min="0" required placeholder="0.00">
+                                <div class="form-label" id="scosto_unitario"></div>
                             </div>
-                            <span class="form-label" id="scosto_unitario"></span>
                         </div>
                     </div>
 
@@ -65,8 +65,8 @@
                                 <select class="form-select" id="clave_categoria" name="clave_categoria">
                                     <!--Contenido Dinámico -->
                                 </select>
+                                <div class="form-label" id="sclave_categoria"></div>
                             </div>
-                            <span class="form-label" id="sclave_categoria"></span>
                         </div>
                         <div class="col-md-6">
                             <label for="unidad_medida" class="form-label fw-semibold">
@@ -79,11 +79,12 @@
                                 <select class="form-select" id="unidad_medida" name="unidad_medida">
                                     <!--Contenido Dinámico -->
                                 </select>
+                                <div class="form-label" id="sunidad_medida"></div>
                             </div>
-                            
+
                         </div>
                     </div>
-                    
+
                     <div class="row g-3 mb-3 justify-content-center">
                         <div class="col-md-6">
                             <label for="id_proveedor" class="form-label fw-semibold">
@@ -96,8 +97,8 @@
                                 <select class="form-select" id="id_proveedor" name="id_proveedor">
                                     <!--Contenido Dinámico -->
                                 </select>
+                                <div class="form-label" id="sid_proveedor"></div>
                             </div>
-                            <span class="form-label" id="sid_proveedor"></span>
                         </div>
                         <div class="col-md-6" id="fila-stock-inicial">
                             <label for="stock_inicial" class="form-label fw-semibold">
@@ -109,8 +110,8 @@
                                 </span>
                                 <input type="number" class="form-control" id="stock_inicial" name="stock_inicial"
                                     step="0.01" min="0" required placeholder="0.00">
+                                <div class="form-label" id="sstock_inicial"></div>
                             </div>
-                            <span class="form-label" id="sstock_inicial"></span>
                         </div>
                     </div>
                     <!-- Fila: Stock Inicial, Stock Máximo, Stock Mínimo-->
@@ -126,8 +127,8 @@
                                 </span>
                                 <input type="number" class="form-control" id="stock_minimo" name="stock_minimo"
                                     step="0.01" min="0" required placeholder="0.00">
+                                <div class="form-label" id="sstock_minimo"></div>
                             </div>
-                            <span class="form-label" id="sstock_minimo"></span>
                         </div>
                         <div class="col-md-6">
                             <label for="stock_maximo" class="form-label fw-semibold">
@@ -139,8 +140,8 @@
                                 </span>
                                 <input type="number" class="form-control" id="stock_maximo" name="stock_maximo"
                                     step="0.01" min="0" required placeholder="0.00">
+                                <div class="form-label" id="sstock_maximo"></div>
                             </div>
-                            <span class="form-label" id="sstock_maximo"></span>
                         </div>
                     </div>
                 </div>

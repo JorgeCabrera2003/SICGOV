@@ -3,6 +3,7 @@
 namespace App\Database\Seeders;
 
 use Faker\Factory;
+use Faker\Provider\es_VE\PhoneNumber;
 
 class BusinessSeeder
 {
@@ -13,6 +14,7 @@ class BusinessSeeder
     {
         $this->db = $db;
         $this->faker = Factory::create('es_VE');
+        $this->faker->addProvider(new PhoneNumber($this->faker));
     }
 
     public function run()

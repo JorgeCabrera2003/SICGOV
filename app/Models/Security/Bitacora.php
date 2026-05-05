@@ -47,7 +47,7 @@ class Bitacora extends Database {
     }
 
     public function set_modulo($m) { 
-        if (RegexHelper::ValidarFormatos($m, 'Objeto') == 0) {
+        if (RegexHelper::ValidarFormatos($m, 'Titulo') == 0) {
             throw new Exception("El nombre del módulo no es válido.");
         }
         $this->modulo = $m; 
