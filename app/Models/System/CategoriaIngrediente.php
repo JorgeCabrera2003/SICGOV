@@ -196,7 +196,7 @@ class CategoriaIngrediente extends Database
             $stm = NULL;
 
             $dato['estado'] = 1;
-            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Ingrediente actualizado exitosamente"];
+            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Categoría actualizada exitosamente"];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
 
         } catch (\PDOException $e) {
@@ -219,15 +219,15 @@ class CategoriaIngrediente extends Database
             try {
                 $this->LlamarConexion();
                 $this->LlamarConexion()->beginTransaction();
-                $sql = "DELETE categoria_ingrediente WHERE id_categoria = :id_categoria";
+                $sql = "UPDATE categoria_ingrediente SET estatus = 0 WHERE id_categoria = :id_categoria";
                 $stm = $this->LlamarConexion()->prepare($sql);
-                $stm->bindParam('id_categoria', $this->id);
+                $stm->bindParam(':id_categoria', $this->id);
                 $stm->execute();
                 $this->LlamarConexion()->commit();
                 $stm = NULL;
 
                 $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Ingrediente eliminado exitosamente"];
+                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Categoría eliminada exitosamente"];
                 $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
             } catch (\PDOException $e) {
                 Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());

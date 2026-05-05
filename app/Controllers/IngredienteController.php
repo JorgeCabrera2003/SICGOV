@@ -189,13 +189,14 @@ class IngredienteController
 					$msg = "(" . $_SESSION['user']['cedula'] . "), envió solicitud no válida";
 
 					try {
-						$categoriaIngredienteModel->setId($_POST["id_ingrediente"]);
+						$categoriaIngredienteModel->setId($_POST["id_categoria"]);
 						$json = $categoriaIngredienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
 						if ($json['estado'] == 1) {
-							$msg = "(" . $_SESSION['user']['cedula'] . "), Se eliminó un ingrediente con el id:" . $_POST["id_ingrediente"];
+							$msg = "Se eliminó una categoría de ingrediente con el ID: " . $_POST["id_categoria"];
 						} else {
-							$msg = "(" . $_SESSION['user']['cedula'] . "), error al eliminar un ingrediente";
+							$msg = "Error al eliminar una categoría de ingrediente";
 						}
+						Helper::Bitacora('ELIMINAR', 'INGREDIENTE/CATEGORÍA DE INGREDIENTE', $msg);
 					} catch (Exception $exception) {
 						$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 						$json['response'] = ['resultado' => 400, 'mensaje' => $exception->getMessage()];
@@ -203,7 +204,7 @@ class IngredienteController
 
 				} else {
 					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
-					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a un ente'];
+					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a una categoría de ingrediente'];
 					$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
 				}
 			}
