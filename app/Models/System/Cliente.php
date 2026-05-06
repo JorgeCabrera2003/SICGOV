@@ -15,7 +15,9 @@ namespace App\Models\System;
 
 use App\Core\Database;
 use App\Helpers\Helper;
+use App\Helpers\RegexHelper;
 use PDO;
+use Exception;
 
 class Cliente
 {
@@ -63,48 +65,131 @@ class Cliente
     }
 
     // Getters y Setters
+
+    /**
+     * Cédula: prefijo (V/E/J/P/G) + 7 a 9 dígitos.
+     * El frontend envía ya concatenado, ej. "V12345678".
+     */
     public function setCedula(string $cedula)
     {
-        $this->cedula = $cedula;
+        $cedula = trim($cedula);
+        if (empty($cedula)) {
+            throw new Exception('La cédula es obligatoria.');
+        }
+        if (!preg_match('/^[VEJPGvejpg]\d{7,9}$/', $cedula)) {
+            throw new Exception('La cédula debe tener un prefijo válido (V, E, J, P, G) seguido de 7 a 9 dígitos.');
+        }
+        $this->cedula = strtoupper($cedula[0]) . substr($cedula, 1);
     }
 
+    /** Nombre: obligatorio, mínimo 2 caracteres, solo letras y espacios. */
     public function setNombre(string $nombre)
     {
+        $nombre = trim($nombre);
+        if (empty($nombre)) {
+            throw new Exception('El nombre es obligatorio.');
+        }
+        if (mb_strlen($nombre) < 2) {
+            throw new Exception('El nombre debe tener al menos 2 caracteres.');
+        }
+        if (!preg_match('/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ][a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]*$/', $nombre)) {
+            throw new Exception('El nombre solo puede contener letras y espacios.');
+        }
         $this->nombre = $nombre;
     }
 
+    /** Apellido: obligatorio, mínimo 2 caracteres, solo letras y espacios. */
     public function setApellido(string $apellido)
     {
+        $apellido = trim($apellido);
+        if (empty($apellido)) {
+            throw new Exception('El apellido es obligatorio.');
+        }
+        if (mb_strlen($apellido) < 2) {
+            throw new Exception('El apellido debe tener al menos 2 caracteres.');
+        }
+        if (!preg_match('/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ][a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]*$/', $apellido)) {
+            throw new Exception('El apellido solo puede contener letras y espacios.');
+        }
         $this->apellido = $apellido;
     }
 
+    /** Fecha de nacimiento: obligatoria, formato YYYY-MM-DD, no puede ser hoy ni futura. */
     public function setFechaNacimiento($fecha_nacimiento)
     {
+        $fecha_nacimiento = trim($fecha_nacimiento ?? '');
+        if (empty($fecha_nacimiento)) {
+            throw new Exception('La fecha de nacimiento es obligatoria.');
+        }
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_nacimiento)) {
+            throw new Exception('El formato de la fecha de nacimiento no es válido.');
+        }
+        if ($fecha_nacimiento >= date('Y-m-d')) {
+            throw new Exception('La fecha de nacimiento debe ser anterior a hoy.');
+        }
         $this->fecha_nacimiento = $fecha_nacimiento;
     }
 
+    /**
+     * Teléfono: opcional.
+     * Si se ingresa, debe ser exactamente 11 dígitos (prefijo 4 + número 7).
+     */
     public function setTelefono(string $telefono)
     {
+        $telefono = trim($telefono);
+        if ($telefono === '') {
+            $this->telefono = '';
+            return;
+        }
+        if (!preg_match('/^\d{11}$/', $telefono)) {
+            throw new Exception('El teléfono debe incluir el prefijo (4 dígitos) más 7 dígitos de número (11 en total).');
+        }
         $this->telefono = $telefono;
     }
 
+    /** Correo: opcional. Si se ingresa debe tener formato válido. */
     public function setCorreo(string $correo)
     {
+        $correo = trim($correo);
+        if ($correo === '') {
+            $this->correo = '';
+            return;
+        }
+        if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+            throw new Exception('El formato del correo electrónico no es válido.');
+        }
         $this->correo = $correo;
     }
 
+    /** Dirección: obligatoria, mínimo 3 caracteres. */
     public function setDireccion(string $direccion)
     {
+        $direccion = trim($direccion);
+        if (empty($direccion)) {
+            throw new Exception('La dirección es obligatoria.');
+        }
+        if (mb_strlen($direccion) < 3) {
+            throw new Exception('La dirección debe tener al menos 3 caracteres.');
+        }
         $this->direccion = $direccion;
     }
 
+    /** Sexo: obligatorio, debe ser M o F. */
     public function setSexo(string $sexo)
     {
+        $sexo = trim($sexo);
+        if (!in_array($sexo, ['M', 'F'], true)) {
+            throw new Exception('El sexo debe ser M (Masculino) o F (Femenino).');
+        }
         $this->sexo = $sexo;
     }
 
+    /** Estatus: 0 (inactivo) o 1 (activo). */
     public function setEstatus(int $estatus)
     {
+        if (!in_array($estatus, [0, 1], true)) {
+            throw new Exception('El estatus no es válido.');
+        }
         $this->estatus = $estatus;
     }
 
@@ -113,7 +198,24 @@ class Cliente
         return $this->cedula;
     }
 
-    // MANEJADOR DE OPERACIONES
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//########################################################################################
+
+
     public function Transaccion($peticion)
     {
         $response = [];
@@ -122,14 +224,15 @@ class Cliente
 
         if (isset($peticion['peticion'])) {
             $response = match ($peticion['peticion']) {
-                'registrar' => $this->RegistrarCliente(),
-                'consultar' => $this->ConsultarCliente(),
+                'registrar'       => $this->RegistrarCliente(),
+                'consultar'       => $this->ConsultarCliente(),
                 'actualizar', 'modificar' => $this->ModificarCliente(),
-                'eliminar' => $this->EliminarCliente(),
+                'eliminar'        => $this->EliminarCliente(),
                 'cambiar_estatus' => $this->CambiarEstatusCliente(),
-                'validar' => $this->ValidarCliente(),
+                'validar'         => $this->ValidarCliente(),
+                'verificar_cedula' => $this->verificarCedulaExiste(),
                 default => [
-                    'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
+                    'response'    => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
                 ]
             };
@@ -137,7 +240,32 @@ class Cliente
         return $response;
     }
 
-    //OPERACIONES A BASE DE DATOS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ //########################################################################################
+
+
     private function ConsultarCliente()
     {
         $dato = [];
@@ -170,235 +298,379 @@ class Cliente
         return $dato;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//########################################################################################
+
+
     private function RegistrarCliente()
     {
-        $dato = [];
-        $validacion = $this->ValidarCliente();
-        if ($validacion['bool'] == 0) {
-            try {
-                $this->LlamarConexion();
-                $this->LlamarConexion()->beginTransaction();
-                
-                // Verificar si la persona ya existe
-                $sqlCheck = "SELECT cedula FROM persona WHERE cedula = :cedula";
-                $stmCheck = $this->LlamarConexion()->prepare($sqlCheck);
-                $stmCheck->bindParam(':cedula', $this->cedula);
-                $stmCheck->execute();
-                
-                if ($stmCheck->rowCount() == 0) {
-                    $sqlPersona = "INSERT INTO persona(cedula, nombre, apellido, fecha_nacimiento, telefono, correo, direccion, sexo)
-                    VALUES (:cedula, :nombre, :apellido, :fecha_nacimiento, :telefono, :correo, :direccion, :sexo)";
-                    $stmPersona = $this->LlamarConexion()->prepare($sqlPersona);
-                    $stmPersona->bindParam(':cedula', $this->cedula);
-                    $stmPersona->bindParam(':nombre', $this->nombre);
-                    $stmPersona->bindParam(':apellido', $this->apellido);
-                    $stmPersona->bindParam(':fecha_nacimiento', $this->fecha_nacimiento);
-                    $stmPersona->bindParam(':telefono', $this->telefono);
-                    $stmPersona->bindParam(':correo', $this->correo);
-                    $stmPersona->bindParam(':direccion', $this->direccion);
-                    $stmPersona->bindParam(':sexo', $this->sexo);
-                    $stmPersona->execute();
-                } else {
-                    $sqlPersona = "UPDATE persona SET nombre = :nombre, apellido = :apellido, fecha_nacimiento = :fecha_nacimiento, 
-                    telefono = :telefono, correo = :correo, direccion = :direccion, sexo = :sexo WHERE cedula = :cedula";
-                    $stmPersona = $this->LlamarConexion()->prepare($sqlPersona);
-                    $stmPersona->bindParam(':cedula', $this->cedula);
-                    $stmPersona->bindParam(':nombre', $this->nombre);
-                    $stmPersona->bindParam(':apellido', $this->apellido);
-                    $stmPersona->bindParam(':fecha_nacimiento', $this->fecha_nacimiento);
-                    $stmPersona->bindParam(':telefono', $this->telefono);
-                    $stmPersona->bindParam(':correo', $this->correo);
-                    $stmPersona->bindParam(':direccion', $this->direccion);
-                    $stmPersona->bindParam(':sexo', $this->sexo);
-                    $stmPersona->execute();
-                }
-
-                $sqlCliente = "INSERT INTO cliente(cedula) VALUES (:cedula)";
-                $stmCliente = $this->LlamarConexion()->prepare($sqlCliente);
-                $stmCliente->bindParam(':cedula', $this->cedula);
-                $stmCliente->execute();
-                
-                $this->LlamarConexion()->commit();
-
-                $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Cliente registrado exitosamente"];
-                $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
-
-            } catch (\PDOException $e) {
-                if($this->LlamarConexion()->inTransaction()) {
-                    $this->LlamarConexion()->rollBack();
-                }
-                Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
-                $dato['estado'] = -1;
-                $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
-                $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        $db = $this->LlamarConexion();
+        try {
+            // Primero verificar si ya existe como cliente (sin transacción)
+            $stmCheck = $db->prepare(
+                "SELECT c.cedula FROM cliente c WHERE c.cedula = :cedula"
+            );
+            $stmCheck->execute([':cedula' => $this->cedula]);
+            if ($stmCheck->rowCount() > 0) {
+                return [
+                    'estado'      => -1,
+                    'response'    => ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El cliente ya se encuentra registrado.'],
+                    'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'El cliente ya existe'],
+                ];
             }
-        } else {
-            $dato['estado'] = -1;
-            $dato['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => "El cliente ya se encuentra registrado"];
-            $dato['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => "El cliente ya existe"];
+
+            $db->beginTransaction();
+
+            // Upsert en persona
+            $stmPCheck = $db->prepare("SELECT cedula FROM persona WHERE cedula = :cedula");
+            $stmPCheck->execute([':cedula' => $this->cedula]);
+
+            if ($stmPCheck->rowCount() === 0) {
+                $db->prepare(
+                    "INSERT INTO persona (cedula, nombre, apellido, fecha_nacimiento, telefono, correo, direccion, sexo)
+                     VALUES (:cedula, :nombre, :apellido, :fecha_nacimiento, :telefono, :correo, :direccion, :sexo)"
+                )->execute([
+                    ':cedula'           => $this->cedula,
+                    ':nombre'           => $this->nombre,
+                    ':apellido'         => $this->apellido,
+                    ':fecha_nacimiento' => $this->fecha_nacimiento,
+                    ':telefono'         => $this->telefono,
+                    ':correo'           => $this->correo,
+                    ':direccion'        => $this->direccion,
+                    ':sexo'             => $this->sexo,
+                ]);
+            } else {
+                $db->prepare(
+                    "UPDATE persona SET nombre = :nombre, apellido = :apellido,
+                     fecha_nacimiento = :fecha_nacimiento, telefono = :telefono,
+                     correo = :correo, direccion = :direccion, sexo = :sexo
+                     WHERE cedula = :cedula"
+                )->execute([
+                    ':cedula'           => $this->cedula,
+                    ':nombre'           => $this->nombre,
+                    ':apellido'         => $this->apellido,
+                    ':fecha_nacimiento' => $this->fecha_nacimiento,
+                    ':telefono'         => $this->telefono,
+                    ':correo'           => $this->correo,
+                    ':direccion'        => $this->direccion,
+                    ':sexo'             => $this->sexo,
+                ]);
+            }
+
+            $db->prepare("INSERT INTO cliente (cedula) VALUES (:cedula)")
+               ->execute([':cedula' => $this->cedula]);
+
+            $db->commit();
+
+            return [
+                'estado'      => 1,
+                'response'    => ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Cliente registrado exitosamente.'],
+                'HTTP_STATUS' => ['codigo' => 200, 'mensaje' => 'OK'],
+            ];
+
+        } catch (\PDOException $e) {
+            if ($db->inTransaction()) $db->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            return [
+                'estado'      => -1,
+                'response'    => ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde.'],
+                'HTTP_STATUS' => ['codigo' => 500, 'mensaje' => 'Error interno del servidor'],
+            ];
+        } finally {
+            $this->DestruirConexion();
         }
-        $this->DestruirConexion();
-        return $dato;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+//########################################################################################
+
 
     private function ModificarCliente()
     {
+        $db = $this->LlamarConexion();
         try {
-            $this->LlamarConexion();
-            $this->LlamarConexion()->beginTransaction();
-            $sql = "UPDATE persona SET nombre = :nombre, apellido = :apellido, fecha_nacimiento = :fecha_nacimiento, 
-            telefono = :telefono, correo = :correo, direccion = :direccion, sexo = :sexo WHERE cedula = :cedula";
+            $db->beginTransaction();
 
-            $stm = $this->LlamarConexion()->prepare($sql);
-            $stm->bindParam(':cedula', $this->cedula);
-            $stm->bindParam(':nombre', $this->nombre);
-            $stm->bindParam(':apellido', $this->apellido);
-            $stm->bindParam(':fecha_nacimiento', $this->fecha_nacimiento);
-            $stm->bindParam(':telefono', $this->telefono);
-            $stm->bindParam(':correo', $this->correo);
-            $stm->bindParam(':direccion', $this->direccion);
-            $stm->bindParam(':sexo', $this->sexo);
-            $stm->execute();
-            
-            $this->LlamarConexion()->commit();
-            $stm = NULL;
+            $db->prepare(
+                "UPDATE persona SET nombre = :nombre, apellido = :apellido,
+                 fecha_nacimiento = :fecha_nacimiento, telefono = :telefono,
+                 correo = :correo, direccion = :direccion, sexo = :sexo
+                 WHERE cedula = :cedula"
+            )->execute([
+                ':cedula'           => $this->cedula,
+                ':nombre'           => $this->nombre,
+                ':apellido'         => $this->apellido,
+                ':fecha_nacimiento' => $this->fecha_nacimiento,
+                ':telefono'         => $this->telefono,
+                ':correo'           => $this->correo,
+                ':direccion'        => $this->direccion,
+                ':sexo'             => $this->sexo,
+            ]);
 
-            $dato['estado'] = 1;
-            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Cliente actualizado exitosamente"];
-            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+            $db->commit();
+
+            return [
+                'estado'      => 1,
+                'response'    => ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Cliente actualizado exitosamente.'],
+                'HTTP_STATUS' => ['codigo' => 200, 'mensaje' => 'OK'],
+            ];
 
         } catch (\PDOException $e) {
-            if($this->LlamarConexion()->inTransaction()) {
-                $this->LlamarConexion()->rollBack();
-            }
+            if ($db->inTransaction()) $db->rollBack();
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
-            $dato['estado'] = -1;
-            $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
-            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+            return [
+                'estado'      => -1,
+                'response'    => ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde.'],
+                'HTTP_STATUS' => ['codigo' => 500, 'mensaje' => 'Error interno del servidor'],
+            ];
+        } finally {
+            $this->DestruirConexion();
         }
-        $this->DestruirConexion();
-        return $dato;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//########################################################################################
+
 
     private function EliminarCliente()
     {
-        $dato = [];
-        $validacion = $this->ValidarCliente();
-
-        if ($validacion['bool'] == 1) {
-            try {
-                $this->LlamarConexion();
-                $this->LlamarConexion()->beginTransaction();
-                
-                $sql = "DELETE FROM cliente WHERE cedula = :cedula";
-                $stm = $this->db->prepare($sql);
-                $stm->bindParam('cedula', $this->cedula);
-                $stm->execute();
-                $this->LlamarConexion()->commit();
-                $stm = NULL;
-
-                $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Cliente eliminado exitosamente"];
-                $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
-            } catch (\PDOException $e) {
-                if($this->LlamarConexion()->inTransaction()) {
-                    $this->LlamarConexion()->rollBack();
-                }
-                Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
-                $dato['estado'] = -1;
-                $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor"];
-                $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        $db = $this->LlamarConexion();
+        try {
+            // Verificar existencia sin transacción
+            $stmCheck = $db->prepare(
+                "SELECT c.cedula FROM cliente c WHERE c.cedula = :cedula"
+            );
+            $stmCheck->execute([':cedula' => $this->cedula]);
+            if ($stmCheck->rowCount() === 0) {
+                return [
+                    'estado'      => -1,
+                    'response'    => ['resultado' => 404, 'icon' => 'error', 'mensaje' => 'Registro no encontrado.'],
+                    'HTTP_STATUS' => ['codigo' => 404, 'mensaje' => 'No encontrado'],
+                ];
             }
-        } else {
-            $dato['estado'] = -1;
-            $dato['response'] = ['resultado' => 404, 'icon' => 'error', 'mensaje' => "Registro no encontrado"];
-            $dato['HTTP_STATUS'] = ['codigo' => 404, 'mensaje' => "No encontrado"];
+
+            $db->beginTransaction();
+
+            $db->prepare("UPDATE cliente SET estatus = 0 WHERE cedula = :cedula")
+               ->execute([':cedula' => $this->cedula]);
+
+            $db->commit();
+
+            return [
+                'estado'      => 1,
+                'response'    => ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Cliente eliminado exitosamente.'],
+                'HTTP_STATUS' => ['codigo' => 200, 'mensaje' => 'OK'],
+            ];
+
+        } catch (\PDOException $e) {
+            if ($db->inTransaction()) $db->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            return [
+                'estado'      => -1,
+                'response'    => ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Error interno del servidor.'],
+                'HTTP_STATUS' => ['codigo' => 500, 'mensaje' => 'Error interno del servidor'],
+            ];
+        } finally {
+            $this->DestruirConexion();
         }
-        $this->DestruirConexion();
-        return $dato;
     }
+
+
+
+
+
+
+
+
+
+
+
+//########################################################################################
+
 
     private function CambiarEstatusCliente()
     {
-        $dato = [];
-        $validacion = $this->ValidarCliente();
-
-        if ($validacion['bool'] == 1) {
-            try {
-                $this->LlamarConexion();
-                $this->LlamarConexion()->beginTransaction();
-                
-                $sql = "UPDATE cliente SET estatus = :estatus WHERE cedula = :cedula";
-                $stm = $this->db->prepare($sql);
-                $stm->bindParam('estatus', $this->estatus);
-                $stm->bindParam('cedula', $this->cedula);
-                $stm->execute();
-                $this->LlamarConexion()->commit();
-                $stm = NULL;
-
-                $dato['estado'] = 1;
-                $mensaje = $this->estatus == 1 ? "Cliente reactivado" : "Cliente desactivado";
-                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => $mensaje];
-                $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
-            } catch (\PDOException $e) {
-                if($this->LlamarConexion()->inTransaction()) {
-                    $this->LlamarConexion()->rollBack();
-                }
-                Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
-                $dato['estado'] = -1;
-                $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor"];
-                $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        $db = $this->LlamarConexion();
+        try {
+            // Verificar existencia sin transacción
+            $stmCheck = $db->prepare(
+                "SELECT c.cedula FROM cliente c WHERE c.cedula = :cedula"
+            );
+            $stmCheck->execute([':cedula' => $this->cedula]);
+            if ($stmCheck->rowCount() === 0) {
+                return [
+                    'estado'      => -1,
+                    'response'    => ['resultado' => 404, 'icon' => 'error', 'mensaje' => 'Registro no encontrado.'],
+                    'HTTP_STATUS' => ['codigo' => 404, 'mensaje' => 'No encontrado'],
+                ];
             }
-        } else {
-            $dato['estado'] = -1;
-            $dato['response'] = ['resultado' => 404, 'icon' => 'error', 'mensaje' => "Registro no encontrado"];
-            $dato['HTTP_STATUS'] = ['codigo' => 404, 'mensaje' => "No encontrado"];
+
+            $db->beginTransaction();
+
+            $db->prepare("UPDATE cliente SET estatus = :estatus WHERE cedula = :cedula")
+               ->execute([':estatus' => $this->estatus, ':cedula' => $this->cedula]);
+
+            $db->commit();
+
+            $mensaje = $this->estatus == 1 ? 'Cliente reactivado.' : 'Cliente desactivado.';
+            return [
+                'estado'      => 1,
+                'response'    => ['resultado' => 200, 'icon' => 'success', 'mensaje' => $mensaje],
+                'HTTP_STATUS' => ['codigo' => 200, 'mensaje' => 'OK'],
+            ];
+
+        } catch (\PDOException $e) {
+            if ($db->inTransaction()) $db->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            return [
+                'estado'      => -1,
+                'response'    => ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Error interno del servidor.'],
+                'HTTP_STATUS' => ['codigo' => 500, 'mensaje' => 'Error interno del servidor'],
+            ];
+        } finally {
+            $this->DestruirConexion();
         }
-        $this->DestruirConexion();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * ValidarCliente: comprueba si la cédula existe ya en la tabla cliente.
+     * Solo hace un SELECT, sin transacción.
+     */
+    private function ValidarCliente()
+    {
+        try {
+            $db   = $this->LlamarConexion();
+            $sql  = "SELECT c.cedula FROM cliente c WHERE c.cedula = :cedula";
+            $stm  = $db->prepare($sql);
+            $stm->execute([':cedula' => $this->cedula]);
+
+            $dato['bool']        = $stm->rowCount() > 0 ? 1 : 0;
+            $dato['estado']      = 1;
+            $dato['response']    = ['resultado' => 200];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+
+        } catch (\PDOException $e) {
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['bool']        = -1;
+            $dato['estado']      = -1;
+            $dato['response']    = ['resultado' => 500, 'mensaje' => 'Error interno del servidor'];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Error interno del servidor'];
+        } finally {
+            $this->DestruirConexion();
+        }
+
         return $dato;
     }
 
-    private function ValidarCliente()
+    /**
+     * Verifica si ya existe un cliente con la cédula indicada.
+     * Usado por la validación asíncrona del frontend (peticion=verificar_cedula).
+     * Retorna: { resultado: 200, existe: true|false }
+     */
+    private function verificarCedulaExiste()
     {
-        $dato = [];
-        $arreglo = [];
         try {
-            $this->LlamarConexion();
-            if (!$this->LlamarConexion()->inTransaction()) {
-                $this->LlamarConexion()->beginTransaction();
-            }
-            $sql = "SELECT p.*, c.fecha_registro, c.estatus FROM persona p INNER JOIN cliente c ON p.cedula = c.cedula WHERE c.cedula = :cedula";
-            $stm = $this->LlamarConexion()->prepare($sql);
-            $stm->bindParam(':cedula', $this->cedula);
-            $stm->execute();
-            if ($stm->rowCount() > 0) {
-                $arreglo = $stm->fetch(PDO::FETCH_ASSOC);
-                $dato['bool'] = 1;
-            } else {
-                $dato['bool'] = 0;
-            }
-            
-            // Note: This matches the Ingrediente code, although it might be better to just select without transactions
-            if ($this->LlamarConexion()->inTransaction()) {
-                $this->LlamarConexion()->commit();
-            }
-            $stm = NULL;
+            $db  = $this->LlamarConexion();
+            $stm = $db->prepare("SELECT cedula FROM cliente WHERE cedula = :cedula LIMIT 1");
+            $stm->execute([':cedula' => $this->cedula]);
 
-            $dato['estado'] = 1;
-            $dato['response'] = ['resultado' => 200, 'registro' => $arreglo];
-            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+            $existe = $stm->rowCount() > 0;
+
+            return [
+                'estado'      => 1,
+                'response'    => [
+                    'resultado' => 200,
+                    'existe'    => $existe,
+                    'mensaje'   => $existe ? 'Cedula ya registrada' : '',
+                ],
+                'HTTP_STATUS' => ['codigo' => 200, 'mensaje' => 'OK'],
+            ];
+
         } catch (\PDOException $e) {
-            if($this->LlamarConexion()->inTransaction()) {
-                $this->LlamarConexion()->rollBack();
-            }
-            $dato['bool'] = -1;
-            $dato['estado'] = -1;
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
-            $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor", 'registro' => []];
-            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+            return [
+                'estado'      => -1,
+                'response'    => ['resultado' => 500, 'existe' => false, 'mensaje' => 'Error interno del servidor'],
+                'HTTP_STATUS' => ['codigo' => 500, 'mensaje' => 'Error interno del servidor'],
+            ];
+        } finally {
+            $this->DestruirConexion();
         }
-        $this->DestruirConexion();
-        return $dato;
     }
 }

@@ -1,5 +1,8 @@
 //MODULO DE CLIENTES
 
+/** Estado global: true si la cédula ya existe en la BD */
+let _cedulaDuplicada = false;
+
 //-------INICIALIZACIÖN-------
 
 //Interfaz de Acceso a los Elementos(inputs y span del formulario)
@@ -89,24 +92,200 @@ function editarModal(operacion) {
 }
 //Fin de la Función de editarModal
 
-//Función para manejar el cambio de estado del formulario
-function manejarCambioEstado(formularioValido) {
-  let input = etiquetasFormulario("input");
-  let span = etiquetasFormulario("span");
-  let modal = etiquetasModal("principal");
-  const accion = modal.boton.text();
+/**
+ * Verifica de forma asíncrona (con debounce) si la cédula ya existe en la BD.
+ * Solo se activa en modo 'registrar'; en 'modificar' la cédula no puede cambiar.
+ */
+const verificarCedulaDuplicada = debounce(async function (tipoCedula, numCedula) {
+    const input    = etiquetasFormulario('input');
+    const $span    = $('#scedula');
+    const accion   = etiquetasModal('principal').boton.text();
 
-  if (accion === "Borrar") {
-    // Para eliminar solo validamos la cédula
-    const cedulaValida = input.tipo_doc.val() !== null && input.tipo_doc.val() !== "default" && Math.ceil(input.cedula.val().length) >= 5;
-    modal.boton.prop('disabled', !cedulaValida);
-  } else {
-    // Para registrar y modificar validamos todos los campos requeridos
-    modal.boton.prop('disabled', !formularioValido);
-  }
-  modal = null;
-  input = null;
-  span = null;
+    // Solo verificar en modo registrar y si la cédula es formalmente válida
+    if (accion !== 'Nuevo') return;
+    if (!tipoCedula || tipoCedula === 'default') return;
+    if (!numCedula || numCedula.length < 7 || numCedula.length > 9) return;
+
+    const cedulaCompleta = tipoCedula + numCedula;
+
+    try {
+        const fd = new FormData();
+        fd.append('peticion', 'verificar_cedula');
+        fd.append('cedula', cedulaCompleta);
+
+        const json = await enviaAjax(fd);
+
+        if (json && json.existe) {
+            _cedulaDuplicada = true;
+            input.cedula.addClass('is-invalid').removeClass('is-valid');
+            $span.text(json.mensaje || 'Ya existe un cliente con esta cédula.');
+        } else {
+            _cedulaDuplicada = false;
+        }
+    } catch (e) {
+        _cedulaDuplicada = false;
+    }
+
+    validarCamposCliente();
+}, 500);
+
+/**
+ * Valida todos los campos del formulario de cliente en tiempo real.
+ * Aplica estilos is-valid / is-invalid a cada campo y
+ * habilita o deshabilita el botón según el resultado global.
+ */
+function validarCamposCliente() {
+    const input = etiquetasFormulario('input');
+    const modal = etiquetasModal('principal');
+    const accion = modal.boton.text();
+    let formularioValido = true;
+
+    // Helper local para aplicar estilos y mensaje en un span
+    function aplicar($campo, $span, valido, msg) {
+        const val = typeof $campo.val === 'function' ? $campo.val() : '';
+        const tieneValor = val !== '' && val !== 'default' && val !== null;
+
+        if (!tieneValor && !valido) {
+            // Campo obligatorio vacío: mostrar error sólo si fue tocado
+            if ($campo.data('touched')) {
+                $campo.addClass('is-invalid').removeClass('is-valid');
+                $span.text(msg);
+            } else {
+                $campo.removeClass('is-valid is-invalid');
+                $span.text('');
+            }
+        } else if (tieneValor && !valido) {
+            $campo.addClass('is-invalid').removeClass('is-valid');
+            $span.text(msg);
+        } else if (valido) {
+            // Solo colorear verde si el campo tiene contenido; vacío = sin color
+            if (tieneValor) {
+                $campo.addClass('is-valid').removeClass('is-invalid');
+            } else {
+                $campo.removeClass('is-valid is-invalid');
+            }
+            $span.text('');
+        } else {
+            $campo.removeClass('is-valid is-invalid');
+            $span.text('');
+        }
+
+        if (!valido) formularioValido = false;
+    }
+
+    // ── Cédula ───────────────────────────────────────────
+    const tipoCedula = input.tipo_doc.val();
+    const numCedula  = input.cedula.val().trim();
+    const $spanCedula = $('#scedula');
+
+    let cedulaValida = false;
+    let msgCedula = '';
+
+    if (!tipoCedula || tipoCedula === 'default') {
+        msgCedula = 'Selecciona el tipo de documento.';
+    } else if (numCedula.length < 7) {
+        msgCedula = 'La cédula debe tener al menos 7 dígitos.';
+    } else if (numCedula.length > 9) {
+        msgCedula = 'La cédula no puede tener más de 9 dígitos.';
+    } else if (!/^\d+$/.test(numCedula)) {
+        msgCedula = 'La cédula solo puede contener números.';
+    } else if (_cedulaDuplicada) {
+        msgCedula = 'Esta cédula ya está registrada.';
+    } else {
+        cedulaValida = true;
+    }
+
+    // Para cédula aplicamos sobre el input numérico
+    // (si async ya marcó is-invalid, no sobreescribir con is-valid prematuro)
+    if (!_cedulaDuplicada || !cedulaValida) {
+        if (numCedula !== '' || input.cedula.data('touched')) {
+            input.cedula.addClass(cedulaValida ? 'is-valid' : 'is-invalid')
+                        .removeClass(cedulaValida ? 'is-invalid' : 'is-valid');
+            $spanCedula.text(cedulaValida ? '' : msgCedula);
+        } else {
+            input.cedula.removeClass('is-valid is-invalid');
+            $spanCedula.text('');
+        }
+    }
+    if (!cedulaValida) formularioValido = false;
+
+    // ── Nombre ───────────────────────────────────────────
+    const nombre = input.nombre.val().trim();
+    const nombreValido = nombre.length >= 2;
+    aplicar(input.nombre, $('#snombre'), nombreValido, 'El nombre debe tener al menos 2 caracteres.');
+
+    // ── Apellido ─────────────────────────────────────────
+    const apellido = input.apellido.val().trim();
+    const apellidoValido = apellido.length >= 2;
+    aplicar(input.apellido, $('#sapellido'), apellidoValido, 'El apellido debe tener al menos 2 caracteres.');
+
+    // ── Fecha de Nacimiento ─────────────────────────────
+    const fechaNac = input.fecha_nacimiento.val();
+    const fechaValida = fechaNac !== '';
+    aplicar(input.fecha_nacimiento, $('#sfecha_nacimiento'), fechaValida, 'La fecha de nacimiento es obligatoria.');
+
+    // ── Teléfono (opcional) ─────────────────────────────
+    const prefijo   = input.prefijo_telefono.val();
+    const numTel    = input.telefono.val().trim();
+    const $spanTel  = $('#stelefono');
+    let telValido   = true;
+    let msgTel      = '';
+
+    if (numTel !== '') {
+        // Si escribió número → prefijo obligatorio
+        if (!prefijo || prefijo === 'default') {
+            telValido = false;
+            msgTel = 'Selecciona el prefijo del teléfono.';
+        } else if (numTel.length !== 7) {
+            telValido = false;
+            msgTel = 'El número de teléfono debe tener exactamente 7 dígitos.';
+        } else if (!/^\d{7}$/.test(numTel)) {
+            telValido = false;
+            msgTel = 'El teléfono solo puede contener números.';
+        }
+    } else if (prefijo && prefijo !== 'default') {
+        // Si seleccionó prefijo pero no escribió número
+        telValido = false;
+        msgTel = 'Ingresa el número de teléfono o retira el prefijo.';
+    }
+
+    if (numTel !== '' || (prefijo && prefijo !== 'default')) {
+        input.telefono.addClass(telValido ? 'is-valid' : 'is-invalid')
+                      .removeClass(telValido ? 'is-invalid' : 'is-valid');
+        $spanTel.text(telValido ? '' : msgTel);
+    } else {
+        input.telefono.removeClass('is-valid is-invalid');
+        $spanTel.text('');
+    }
+    if (!telValido) formularioValido = false;
+
+    // ── Sexo (obligatorio) ──────────────────────────────
+    const sexoVal   = input.sexo.val();
+    const sexoValido = sexoVal && sexoVal !== 'default';
+    aplicar(input.sexo, $('#ssexo'), sexoValido, 'El sexo es obligatorio.');
+
+    // ── Correo (opcional) ──────────────────────────────
+    const correoVal = input.correo.val().trim();
+    const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const correoValido = correoVal === '' || regexEmail.test(correoVal);
+    aplicar(input.correo, $('#scorreo'), correoValido, 'El formato del correo no es válido.');
+
+    // ── Dirección (obligatoria) ──────────────────────────
+    const dirVal   = input.direccion.val().trim();
+    const dirValida = dirVal.length >= 3;
+    aplicar(input.direccion, $('#sdireccion'), dirValida, 'La dirección debe tener al menos 3 caracteres.');
+
+    // ── Resultado final ──────────────────────────────────
+    if (accion === 'Borrar') {
+        modal.boton.prop('disabled', !cedulaValida);
+    } else {
+        modal.boton.prop('disabled', !formularioValido);
+    }
+}
+
+//Función para manejar el cambio de estado del formulario (mantener compatibilidad con SistemaValidacion)
+function manejarCambioEstado(formularioValido) {
+    validarCamposCliente();
 }
 
 $(document).ready(function () {
@@ -114,10 +293,10 @@ $(document).ready(function () {
   registrarEntrada();
   capaValidar();
 
-  // Inicializar sistema de validación con callback
+  // Inicializar sistema de validación (para capitalizar y eventos base)
   SistemaValidacion.inicializar(etiquetasFormulario('input'), manejarCambioEstado);
 
-  // Validar estado inicial del formulario
+  // Estado inicial: botón deshabilitado
   manejarCambioEstado(false);
 });
 
@@ -245,61 +424,115 @@ $('#modalCliente').on('shown.bs.modal', function () {
 });
 
 async function vistaPermiso() {
-    return UIActionBtn({
-        text: 'Acciones',
-        items: [
-            {
-                text: 'Consultar',
-                icon: 'fa-solid fa-eye text-info',
-                onclick: 'consultarFila(this)'
-            },
-            {
-                text: 'Editar',
-                icon: 'fa-solid fa-pen-to-square text-primary',
-                onclick: 'rellenar(this, 0)'
-            },
-            { divider: true },
-            {
-                text: 'Cambiar Estatus',
-                icon: 'fa-solid fa-power-off text-danger',
-                onclick: 'cambiarEstatus(this)'
-            }
-        ]
-    });
+    const dropdown = $('<div>').addClass('dropdown');
+    const boton = $('<button>').addClass('btn btn-sm bg-body text-body border dropdown-toggle')
+        .attr('type', 'button')
+        .attr('data-bs-toggle', 'dropdown')
+        .html('<i class="fas fa-ellipsis-v me-2"></i>Acciones');
+
+    const menu = $('<ul>').addClass('dropdown-menu dropdown-menu-end');
+
+    const itemConsultar = $('<li>');
+    const linkConsultar = $('<a>')
+        .addClass('dropdown-item text-info')
+        .attr('href', '#')
+        .attr('onclick', 'consultarFila(this)')
+        .html('<i class="fa-solid fa-eye me-2"></i>Consultar');
+    itemConsultar.append(linkConsultar);
+
+    const itemEditar = $('<li>');
+    const linkEditar = $('<a>')
+        .addClass('dropdown-item text-primary')
+        .attr('href', '#')
+        .attr('onclick', 'rellenar(this, 0)')
+        .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
+    itemEditar.append(linkEditar);
+
+    const separador = $('<li>').html('<hr class="dropdown-divider">');
+
+    const itemEstatus = $('<li>');
+    const linkEstatus = $('<a>')
+        .addClass('dropdown-item text-danger')
+        .attr('href', '#')
+        .attr('onclick', 'cambiarEstatus(this)')
+        .html('<i class="fa-solid fa-power-off me-2"></i>Cambiar Estatus');
+    itemEstatus.append(linkEstatus);
+
+    menu.append(itemConsultar, itemEditar, separador, itemEstatus);
+    dropdown.append(boton, menu);
+
+    return dropdown.prop('outerHTML');
 }
 
 function capaValidar() {
-  let input = etiquetasFormulario("input")
-  
-  input.cedula.on("keypress", function (e) {
-    validarKeyPress(/^[0-9]*$/, e);
+  let input = etiquetasFormulario('input');
+
+  // Marcar como tocado y validar al interactuar
+  function marcarYValidar() {
+      $(this).data('touched', true);
+      validarCamposCliente();
+  }
+
+  // Bloqueo de teclas
+  input.cedula.on('keypress', function (e) {
+      validarKeyPress(/^[0-9]*$/, e);
+  });
+  input.nombre.on('keypress', function (e) {
+      validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/, e);
+  });
+  input.apellido.on('keypress', function (e) {
+      validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/, e);
+  });
+  input.telefono.on('keypress', function (e) {
+      validarKeyPress(/^[0-9\b]*$/, e);
   });
 
-  input.nombre.on("keypress", function (e) {
-    validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/, e);
+  // Capitalización automática de primera letra
+  input.nombre.on('input', function () {
+      const valor = $(this).val();
+      if (valor.length === 1) $(this).val(valor.toUpperCase());
+      marcarYValidar.call(this);
+  });
+  input.apellido.on('input', function () {
+      const valor = $(this).val();
+      if (valor.length === 1) $(this).val(valor.toUpperCase());
+      marcarYValidar.call(this);
   });
 
-  input.apellido.on("keypress", function (e) {
-    validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/, e);
+  // Inputs que solo disparan validación
+  input.cedula.on('input', function () {
+      $(this).data('touched', true);
+      // Resetear estado duplicado al cambiar el número
+      _cedulaDuplicada = false;
+      validarCamposCliente();
+      // Disparar verificación async
+      const tipo = input.tipo_doc.val();
+      verificarCedulaDuplicada(tipo, $(this).val().trim());
   });
+  input.fecha_nacimiento.on('change', marcarYValidar);
+  input.telefono.on('input', marcarYValidar);
+  input.correo.on('input', marcarYValidar);
+  input.direccion.on('input', marcarYValidar);
 
-  input.telefono.on("keypress", function (e) {
-    validarKeyPress(/^[0-9\b]*$/, e);
+  // Selects: marcar tocados y revalidar al cambiar
+  input.tipo_doc.on('change', function () {
+      $(this).data('touched', true);
+      input.cedula.data('touched', true);
+      // Resetear duplicado al cambiar el tipo
+      _cedulaDuplicada = false;
+      validarCamposCliente();
+      // Disparar verificación async con el nuevo tipo
+      const num = input.cedula.val().trim();
+      verificarCedulaDuplicada($(this).val(), num);
   });
-
-  // Aplicar capitalización en tiempo real
-  input.nombre.on("input", function () {
-    const valor = $(this).val();
-    if (valor.length === 1) {
-      $(this).val(valor.toUpperCase());
-    }
+  input.prefijo_telefono.on('change', function () {
+      $(this).data('touched', true);
+      input.telefono.data('touched', true);
+      validarCamposCliente();
   });
-
-  input.apellido.on("input", function () {
-    const valor = $(this).val();
-    if (valor.length === 1) {
-      $(this).val(valor.toUpperCase());
-    }
+  input.sexo.on('change', function () {
+      $(this).data('touched', true);
+      validarCamposCliente();
   });
 }
 
@@ -393,20 +626,29 @@ async function crearDataTable() {
 function limpia() {
   SistemaValidacion.limpiarValidacion(etiquetasFormulario('input'));
 
-  let input = etiquetasFormulario('input')
-  
-  input.tipo_doc.val("default").prop("disabled", false)
-  input.cedula.val("").prop("readOnly", false)
-  input.nombre.val("").prop("readOnly", false)
-  input.apellido.val("").prop("readOnly", false)
-  input.fecha_nacimiento.val("").prop("readOnly", false)
-  input.prefijo_telefono.val("default").prop("disabled", false)
-  input.telefono.val("").prop("readOnly", false)
-  input.correo.val("").prop("readOnly", false)
-  input.direccion.val("").prop("readOnly", false)
-  input.sexo.val("default").prop("disabled", false)
+  let input = etiquetasFormulario('input');
 
-  // Deshabilitar el botón al limpiar 
+  input.tipo_doc.val("default").prop("disabled", false);
+  input.cedula.val("").prop("readOnly", false);
+  input.nombre.val("").prop("readOnly", false);
+  input.apellido.val("").prop("readOnly", false);
+  input.fecha_nacimiento.val("").prop("readOnly", false);
+  input.prefijo_telefono.val("default").prop("disabled", false);
+  input.telefono.val("").prop("readOnly", false);
+  input.correo.val("").prop("readOnly", false);
+  input.direccion.val("").prop("readOnly", false);
+  input.sexo.val("default").prop("disabled", false);
+
+  // Resetear estado visual de validación y flags 'touched'
+  Object.values(input).forEach(function ($el) {
+      if ($el && typeof $el.removeClass === 'function') {
+          $el.removeClass('is-valid is-invalid').removeData('touched');
+      }
+  });
+  // Limpiar solo los spans de feedback del formulario de clientes
+  $('#scedula, #snombre, #sapellido, #sfecha_nacimiento, #stelefono, #ssexo, #scorreo, #sdireccion').text('');
+
+  // Deshabilitar el botón al limpiar
   $('#btnClienteForm').prop('disabled', true);
   input = null;
 }
