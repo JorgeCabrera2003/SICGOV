@@ -1,3 +1,7 @@
+import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js"
+import * as AjaxHelper from "../Helpers/AjaxHelper.js"
+import * as ValidadorHelper from "../Helpers/ValidadorHelper.js"
+
 //SUBMODULO DE CATEGORIA DE INGREDIENTES
 
 //-------INICIALIZACIÖN-------
@@ -98,18 +102,26 @@ export function CancelarFormulario() {
   modal_form.modal.modal("hide");
   modal_tabla.modal.modal("show");
 
-  console.log(modal_form);
   modal_form = null;
+  modal_tabla = null;
+}
+
+export function MostrarModalTabla() {
+  let modal_tabla = EtiquetasModal("TablaCategoria");
+  let modal_form = EtiquetasModal("Categoria");
+  modal_form.modal.modal("hide");
+  modal_tabla.modal.modal("show");
+
   modal_tabla = null;
 }
 
 //-------FUNNCIONES-------
 
-async function EnviarDatos(operacion, modulo = "Ingrediente") {
+async function EnviarDatos(operacion) {
 
-  let input = EtiquetasFormulario('input-' + modulo);
-  let span = EtiquetasFormulario('span-' + modulo);
-  let modal = EtiquetasModal(modulo);
+  let input = EtiquetasFormulario('input');
+  let span = EtiquetasFormulario('span');
+  let modal = EtiquetasModal("Categoria");
 
   let confirmacion = false;
   let str_acccion = "";
@@ -119,6 +131,7 @@ async function EnviarDatos(operacion, modulo = "Ingrediente") {
   let mensajeConfirmacion = "¿Está seguro de realizar esta acción?";
   let endpoint = "";
   let peticion = new FormData();
+  let json = null;
   //Registrar y Modificar
   if (operacion == "registrar" || operacion == "modificar") {
 
@@ -133,8 +146,8 @@ async function EnviarDatos(operacion, modulo = "Ingrediente") {
       peticion.append('id_categoria', input.id_categoria.val());
     }
 
-    if (Validarenvio()) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} una Categoría`, mensajeConfirmacion, "question");
+    if (ValidarEnvio()) {
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} una Categoria`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', accion);
@@ -144,14 +157,14 @@ async function EnviarDatos(operacion, modulo = "Ingrediente") {
       }
     } else {
       btn_formulario = false;
-      mensajeria.GenerarMensaje("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.");
+      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar");
     }
   } //Fin del Registrar y Modificar
   //Eliminar
   if (operacion == "eliminar") {
 
-    if (validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_categoria, span.id_categoria, '')) {
-      confirmacion = await confirmarAccion("Se eliminará una Categoría", mensajeConfirmacion, "warning");
+    if (ValidadorHelper.ValidarCampo("ID", input.id_categoria, span.id_categoria)) {
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion("Se eliminará una Categoría", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
@@ -160,20 +173,17 @@ async function EnviarDatos(operacion, modulo = "Ingrediente") {
       }
     } else {
       btn_formulario = false;
-      mensajeria.GenerarMensaje("error", 10000, "Error de Validación", "El ID de la Categoría no es válido.");
+      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "El ID de la Categoría no es válido.");
     }
   }//Fin del Eliminar
 
   if (btn_formulario) {
     modal.boton.prop('disabled', true);
-    json = await enviaAjax(peticion, "?page=categoria-ingrediente");
-
-    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-      modal.modal.modal("hide");
-      DataTableCategoria();
-      mensajeria.GenerarMensaje(json.icon, 10000, json.mensaje, null);
-    }
+    json = await AjaxHelper.enviaAjax(peticion, "?page=categoria-ingrediente");
     modal.boton.prop('disabled', false);
+    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
+      MensajeriaHelper.GenerarMensaje(json.icon, 10000, json.mensaje, null);
+    }
   }
 
   if (!confirmacion) {
@@ -182,14 +192,64 @@ async function EnviarDatos(operacion, modulo = "Ingrediente") {
 
   input = null;
   modal = null;
+  return json;
 }
 
+export async function EnviarFormulario(etiqueta_boton) {
+  let accion = null;
+  let respuesta = null;
+  const MANEJADOR = {
+    'Nuevo': 'registrar',
+    'Actualizar': 'modificar',
+    'Borrar': 'eliminar'
+  }
+  const DEFAULT = null
+
+  accion = MANEJADOR[etiqueta_boton.text()] || DEFAULT
+
+  if (accion != null) {
+    respuesta = await EnviarDatos(accion)
+  } else {
+    respuesta = { resultado: 0 }
+    MensajeriaHelper.GenerarMensaje("danger", 10000, "Error, acción no válida", "")
+  }
+  return respuesta ;
+};
+
 export function KeyPressCategoria() {
-  let input = EtiquetasFormulario("input-Categoria");
+  let input = EtiquetasFormulario("input");
+  $(input.nombre).on("keypress", function (e) { ValidadorHelper.ValidarTecla("NombreObjeto", e); })
+  $(input.descripcion).on("keypress", function (e) { ValidadorHelper.ValidarTecla("NombreObjeto", e); })
+}
+
+export function KeyUpCategoria() {
+  let input = EtiquetasFormulario("input");
+  let span = EtiquetasFormulario("span");
+
+  $(input.nombre).on("keyup", function () {
+    ValidadorHelper.ValidarCampo("NombreObjeto", $(this), span.nombre);
+  })
+
+  $(input.descripcion).on("keyup", function () {
+    ValidadorHelper.ValidarCampo("NombreObjeto", $(this), span.descripcion);
+  })
 }
 
 export function ValidarEnvio() {
-  return SistemaValidacion.validarFormulario(EtiquetasFormulario('input-' + modulo));
+
+  let input = EtiquetasFormulario("input");
+  let span = EtiquetasFormulario("span");
+  let bool = true;
+
+  if (!ValidadorHelper.ValidarCampo("NombreObjeto", input.nombre, span.nombre)) {
+    bool = false;
+  }
+
+  if (!ValidadorHelper.ValidarCampo("NombreObjeto", input.descripcion, span.descripcion)) {
+    bool = false;
+  };
+
+  return bool;
 }
 
 async function VistaPermiso(modulo = "Categoria") {
@@ -227,6 +287,11 @@ async function VistaPermiso(modulo = "Categoria") {
   console.log(dropdown)
   return dropdown.prop('outerHTML');
 }
+
+function RecargarDataTable() {
+
+  DataTableCategoria(arreglo);
+};
 
 export async function DataTableCategoria(arreglo) {
   let botones = '';

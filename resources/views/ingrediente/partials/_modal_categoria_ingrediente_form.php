@@ -37,8 +37,8 @@
                                 </span>
                                 <input type="text" class="form-control" id="categoria-nombre" name="categoria-nombre"
                                     maxlength="100" required>
+                                <div class="form-label" id="scategoria-nombre"></div>
                             </div>
-                            <span class="form-label" id="scategoria-nombre"></span>
                         </div>
 
                     </div>
@@ -52,8 +52,8 @@
                                     <i class="fas fa-align-left"></i>
                                 </span>
                                 <textarea class="form-control" id="categoria-descripcion" rows="5"></textarea>
+                                <div class="form-label" id="scategoria-descripcion"></div>
                             </div>
-                            <span class="form-label" id="scategoria-descripcion"></span>
                         </div>
                     </div>
 

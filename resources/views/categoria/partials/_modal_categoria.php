@@ -22,30 +22,18 @@
                             <label for="nombre_categoria" class="form-label fw-medium text-secondary">
                                 Nombre de la Categoría <span class="text-danger">*</span>
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fas fa-font"></i></span>
-                                <input type="text" class="form-control" id="nombre_categoria" name="nombre_categoria" placeholder="Ej. Bebidas Calientes" required>
-                                <div class="invalid-feedback">Por favor, ingresa el nombre de la categoría.</div>
-                            </div>
+                            <input type="text" class="form-control" id="nombre_categoria" name="nombre_categoria" placeholder="Ej. Bebidas Calientes" required>
+                            <div class="invalid-feedback" id="feedback_nombre_categoria">Por favor, ingresa el nombre de la categoría.</div>
                         </div>
 
                         <!-- Descripción -->
                         <div class="col-12">
                             <label for="descripcion_categoria" class="form-label fw-medium text-secondary">Descripción</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fas fa-align-left"></i></span>
-                                <textarea class="form-control" id="descripcion_categoria" name="descripcion" rows="3" placeholder="Descripción opcional..."></textarea>
-                            </div>
+                            <textarea class="form-control" id="descripcion_categoria" name="descripcion" rows="3" placeholder="Descripción opcional..."></textarea>
+                            <div class="invalid-feedback" id="feedback_descripcion_categoria">La descripción solo puede contener letras y espacios.</div>
                         </div>
 
-                        <!-- Estatus (Sólo visible en edición) -->
-                        <div class="col-12" id="divEstatusCategoria" style="display: none;">
-                            <label class="form-label fw-medium text-secondary">Estatus</label>
-                            <div class="form-check form-switch fs-5">
-                                <input class="form-check-input" type="checkbox" role="switch" id="estatus_categoria" name="estatus" value="1" checked>
-                                <label class="form-check-label fs-6 ms-2 mt-1" for="estatus_categoria">Activo</label>
-                            </div>
-                        </div>
+
                     </div>
                 </form>
             </div>

@@ -145,13 +145,14 @@
                                             <thead class="border-bottom">
                                                 <tr>
                                                     <th>Ingrediente</th>
-                                                    <th style="width: 120px;">Cantidad</th>
-                                                    <th style="width: 140px;">Unidad</th>
+                                                    <th style="width: 100px;">Cantidad</th>
+                                                    <th style="width: 120px;">Unidad</th>
+                                                    <th style="width: 100px;">Precio ($)</th>
                                                     <th style="width: 50px;"></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr class="empty-row text-center text-muted"><td colspan="4" class="py-4">No hay ingredientes adicionales</td></tr>
+                                                <tr class="empty-row text-center text-muted"><td colspan="5" class="py-4">No hay ingredientes adicionales</td></tr>
                                             </tbody>
                                         </table>
                                     </div>

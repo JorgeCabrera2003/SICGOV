@@ -52,4 +52,4 @@ include_once 'partials/_modal_categoria_ingrediente_form.php';
 ?>
 
 <!-- Recursos específicos de la página -->
-<script type="module" src="<?= BASE_URL ?>/assets/js/modulo_ingrediente.js" defer></script>
+<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/IngredienteController.js" defer></script>
