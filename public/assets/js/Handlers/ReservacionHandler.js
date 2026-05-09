@@ -2,30 +2,44 @@ import * as AjaxHelper from "../Helpers/AjaxHelper.js";
 import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js";
 
 /**
- * Formatea el estado del select de Select2 con ícono de persona.
+ * ReservacionHandler - Manejador Universal para Reservaciones
+ * Gestiona tanto la vista administrativa como la pública.
  */
-export function formatarEstadoCliente(state) {
-    if (!state.id) return state.text;
-    return $(`
-        <div class="d-flex align-items-center py-1">
-            <i class="bi bi-person-circle me-3 text-primary fs-5"></i>
-            <div>
-                <span class="fw-medium">${state.text}</span>
-            </div>
-        </div>
-    `);
-}
+
+// Detectar si estamos en vista pública
+const ES_PUBLICO = window.location.search.includes('page=reservar');
+const BASE_URL_API = ES_PUBLICO ? '?page=reservar' : '?page=reservaciones';
+
+// IDs de elementos que cambian según la vista
+const IDs = {
+    form: ES_PUBLICO ? '#formReservarPublico' : '#formReservacion',
+    modal: ES_PUBLICO ? '#modalPublico' : '#modalReservacion',
+    fecha: ES_PUBLICO ? '#fechaPublica' : '#fecha',
+    hora: ES_PUBLICO ? '#horaPublica' : '#hora',
+    hora_fin: ES_PUBLICO ? '#hora_finPublica' : '#hora_fin',
+    calendar: 'calendarPublico' // ID unificado en el DOM
+};
 
 /**
- * Extrae la hora en formato HH:MM desde un string datetime ISO.
+ * Helpers compartidos
  */
 export function extraerHora(datetimeStr) {
     if (!datetimeStr || !datetimeStr.includes('T')) return null;
     return datetimeStr.split('T')[1].substring(0, 5);
 }
 
+export function formatarEstadoCliente(state) {
+    if (!state.id) return state.text;
+    return $(`
+        <div class="d-flex align-items-center py-1">
+            <i class="bi bi-person-circle me-3 text-primary fs-5"></i>
+            <div><span class="fw-medium">${state.text}</span></div>
+        </div>
+    `);
+}
+
 /**
- * Inicializa los pickers de hora (inicio y fin) con Flatpickr.
+ * Inicialización de Pickers (Flatpickr)
  */
 export function inicializarPickers() {
     const configBase = {
@@ -39,13 +53,13 @@ export function inicializarPickers() {
     };
 
     return {
-        timePickerInicio: flatpickr("#hora", configBase),
-        timePickerFin: flatpickr("#hora_fin", configBase)
+        timePickerInicio: flatpickr(IDs.hora, configBase),
+        timePickerFin: flatpickr(IDs.hora_fin, configBase)
     };
 }
 
 /**
- * Configura e inicializa FullCalendar.
+ * Configuración Universal de FullCalendar
  */
 export function inicializarCalendario(calendarEl, pickers) {
     const { timePickerInicio, timePickerFin } = pickers;
@@ -53,10 +67,11 @@ export function inicializarCalendario(calendarEl, pickers) {
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'es',
+        height: 'auto',
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            right: ES_PUBLICO ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
         },
         eventTimeFormat: {
             hour: 'numeric',
@@ -64,31 +79,24 @@ export function inicializarCalendario(calendarEl, pickers) {
             meridiem: 'short',
             hour12: true
         },
-
-        slotLabelFormat: {
-            hour: 'numeric',
-            minute: '2-digit',
-            omitZeroMinute: false,
-            meridiem: 'short',
-            hour12: true
-        },
-
         themeSystem: 'bootstrap5',
-        editable: true,
+        editable: !ES_PUBLICO,
         selectable: true,
-        droppable: true,
-        eventDisplay: 'block',
+        unselectAuto: false,
 
         events: async function (fetchInfo, successCallback, failureCallback) {
             const formData = new FormData();
             formData.append('peticion', 'listar');
-            formData.append('start', fetchInfo.startStr.split('T')[0]);
-            formData.append('end', fetchInfo.endStr.split('T')[0]);
+            if (!ES_PUBLICO) {
+                formData.append('start', fetchInfo.startStr.split('T')[0]);
+                formData.append('end', fetchInfo.endStr.split('T')[0]);
+            }
 
             try {
-                const res = await AjaxHelper.enviaAjax(formData, '?page=reservaciones');
-                if (res && res.resultado == 200) {
-                    successCallback(res.datos);
+                const res = await AjaxHelper.enviaAjax(formData, BASE_URL_API);
+                if (res && (res.resultado == 200 || Array.isArray(res))) {
+                    const datos = Array.isArray(res) ? res : res.datos;
+                    successCallback(datos);
                 } else {
                     failureCallback();
                 }
@@ -98,66 +106,25 @@ export function inicializarCalendario(calendarEl, pickers) {
         },
 
         select: function (info) {
-            $('#formReservacion')[0].reset();
-            $('#peticion').val('registrar');
-            $('#id_reservacion').val('');
-            $('#cedula_cliente').val('').trigger('change');
-            $('#fecha').val(info.startStr.split('T')[0]);
-
-            if (info.view.type !== 'dayGridMonth') {
-                const horaInicio = info.start.toTimeString().split(' ')[0].substring(0, 5);
-                const horaFin = info.end.toTimeString().split(' ')[0].substring(0, 5);
-                timePickerInicio.setDate(horaInicio);
-                timePickerFin.setDate(horaFin);
-            } else {
-                timePickerInicio.clear();
-                timePickerFin.clear();
-            }
-
-            // Habilitar campos para nueva reservación
-            $('#formReservacion input, #formReservacion select').prop('disabled', false);
-            $('#formReservacion button[type="submit"]').show();
-            $('#btnEliminar').hide();
-            $('#modalReservacion').modal('show');
+            prepararNuevaReservacion(info, timePickerInicio, timePickerFin);
         },
-
 
         eventClick: function (info) {
             const event = info.event;
             const props = event.extendedProps;
-            const esEditable = props.estado === 'PENDIENTE';
-
-            $('#peticion').val('modificar');
-            $('#id_reservacion').val(event.id);
-            $('#cedula_cliente').val(props.cedula).trigger('change');
-            $('#fecha').val(event.startStr.split('T')[0]);
-
-            const horaInicio = extraerHora(event.startStr);
-            const horaFin = extraerHora(event.endStr);
-
-            if (horaInicio) timePickerInicio.setDate(horaInicio);
-            else timePickerInicio.clear();
-
-            if (horaFin) timePickerFin.setDate(horaFin);
-            else timePickerFin.clear();
-
-            $('#estado').val(props.estado);
             
-            // Bloquear campos si no es editable
-            $('#formReservacion input, #formReservacion select').prop('disabled', !esEditable);
-            $('#formReservacion button[type="submit"]').toggle(esEditable);
-            $('#btnEliminar').toggle(esEditable);
+            // Si es público y el evento es de otro (OCUPADO), no hacer nada
+            if (ES_PUBLICO && props.ocupado) return;
 
-            $('#modalReservacion').modal('show');
+            abrirDetalleReservacion(event, props, timePickerInicio, timePickerFin);
         },
 
-
         eventDrop: function (info) {
-            MoverEvento(info, calendar);
+            if (!ES_PUBLICO) MoverEvento(info, calendar);
         },
 
         eventResize: function (info) {
-            MoverEvento(info, calendar, 'Duración actualizada con éxito');
+            if (!ES_PUBLICO) MoverEvento(info, calendar, 'Duración actualizada');
         }
     });
 
@@ -166,9 +133,71 @@ export function inicializarCalendario(calendarEl, pickers) {
 }
 
 /**
- * Persiste cambios de drag & drop o resize.
+ * Lógica Interna
  */
-export async function MoverEvento(info, calendar, mensajeExito = 'Reservación reprogramada con éxito') {
+
+function prepararNuevaReservacion(info, tpInicio, tpFin) {
+    const $form = $(IDs.form);
+    $form[0].reset();
+    
+    // Resetear IDs y estados
+    $('#peticion').val('registrar');
+    $('#id_reservacion').val('');
+    if (!ES_PUBLICO) $('#cedula_cliente').val('').trigger('change');
+    
+    $(IDs.fecha).val(info.startStr.split('T')[0]);
+
+    if (info.view.type !== 'dayGridMonth') {
+        tpInicio.setDate(info.start.toTimeString().split(' ')[0].substring(0, 5));
+        tpFin.setDate(info.end.toTimeString().split(' ')[0].substring(0, 5));
+    } else {
+        tpInicio.clear();
+        tpFin.clear();
+    }
+
+    // Habilitar campos
+    $(`${IDs.form} input, ${IDs.form} select`).prop('disabled', false);
+    $(`${IDs.form} button[type="submit"]`).show();
+    $('#btnEliminar').hide();
+    $(IDs.modal).modal('show');
+}
+
+function abrirDetalleReservacion(event, props, tpInicio, tpFin) {
+    const esEditable = props.estado === 'PENDIENTE' && !ES_PUBLICO;
+    const $form = $(IDs.form);
+
+    $('#peticion').val('modificar');
+    $('#id_reservacion').val(event.id);
+    if (!ES_PUBLICO) $('#cedula_cliente').val(props.cedula).trigger('change');
+    
+    $(IDs.fecha).val(event.startStr.split('T')[0]);
+
+    const hInicio = extraerHora(event.startStr);
+    const hFin = extraerHora(event.endStr);
+    
+    tpInicio.setDate(hInicio || '');
+    tpFin.setDate(hFin || '');
+
+    if (!ES_PUBLICO) $('#estado').val(props.estado);
+    
+    // Configurar permisos en el modal
+    $(`${IDs.form} input, ${IDs.form} select`).prop('disabled', !esEditable && !ES_PUBLICO);
+    
+    // En vista pública, las propias siempre son read-only si ya están creadas
+    if (ES_PUBLICO) {
+        $(`${IDs.form} input`).prop('disabled', true);
+        $(`${IDs.form} button[type="submit"]`).hide();
+        $('.modal-title').text('Detalle de mi Cita');
+    } else {
+        $(`${IDs.form} button[type="submit"]`).toggle(esEditable);
+        $('#btnEliminar').toggle(esEditable);
+        $('.modal-title').text('Gestionar Reservación');
+    }
+
+    $(IDs.modal).modal('show');
+}
+
+export async function MoverEvento(info, calendar, mensaje = 'Reprogramado con éxito') {
     const formData = new FormData();
     formData.append('peticion', 'mover');
     formData.append('id_reservacion', info.event.id);
@@ -176,74 +205,50 @@ export async function MoverEvento(info, calendar, mensajeExito = 'Reservación r
     formData.append('hora', extraerHora(info.event.startStr) ?? '');
     formData.append('hora_fin', extraerHora(info.event.endStr) ?? '');
 
-    try {
-        const res = await AjaxHelper.enviaAjax(formData, '?page=reservaciones');
-        if (res && res.resultado == 200) {
-            MensajeriaHelper.GenerarMensaje('success', 3000, '¡Éxito!', mensajeExito);
-        } else {
-            info.revert();
-            MensajeriaHelper.GenerarMensaje('error', 5000, 'Error', res?.mensaje || 'No se pudo mover');
-        }
-    } catch {
+    const res = await AjaxHelper.enviaAjax(formData, BASE_URL_API);
+    if (res && res.resultado == 200) {
+        MensajeriaHelper.GenerarMensaje('success', 3000, '¡Éxito!', mensaje);
+    } else {
         info.revert();
+        MensajeriaHelper.GenerarMensaje('error', 5000, 'Error', res?.mensaje || 'No se pudo mover');
     }
 }
 
-/**
- * Procesa el envío del formulario.
- */
 export async function GestionarEnvio(form, calendar) {
     const formData = new FormData(form);
     
-    // Validación básica de tiempo
-    const horaInicio = $('#hora').val();
-    const horaFin = $('#hora_fin').val();
-    
-    if (horaInicio && horaFin && horaFin <= horaInicio) {
-        MensajeriaHelper.GenerarMensaje('warning', 5000, "Rango inválido", "La hora de fin debe ser posterior a la de inicio.");
+    // Validación compartida
+    const h1 = $(IDs.hora).val();
+    const h2 = $(IDs.hora_fin).val();
+    if (h1 && h2 && h2 <= h1) {
+        MensajeriaHelper.GenerarMensaje('warning', 5000, "Rango inválido", "La hora de fin debe ser posterior.");
         return;
     }
 
-    try {
-        const res = await AjaxHelper.enviaAjax(formData, '?page=reservaciones');
-        if (res && res.resultado == 200) {
-            $('#modalReservacion').modal('hide');
-            MensajeriaHelper.GenerarMensaje('success', 2000, "¡Éxito!", res.mensaje);
-            calendar.refetchEvents();
-        } else {
-            MensajeriaHelper.GenerarMensaje('error', 5000, "Error", res?.mensaje || "Error desconocido");
-        }
-    } catch (e) {
-        MensajeriaHelper.GenerarMensaje('error', 5000, "Error crítico", "No se pudo procesar la solicitud");
+    const res = await AjaxHelper.enviaAjax(formData, BASE_URL_API);
+    if (res && res.resultado == 200) {
+        $(IDs.modal).modal('hide');
+        const msg = ES_PUBLICO ? "Solicitud enviada con éxito" : res.mensaje;
+        MensajeriaHelper.GenerarMensaje('success', 2000, "¡Éxito!", msg);
+        calendar.refetchEvents();
+    } else {
+        MensajeriaHelper.GenerarMensaje('error', 5000, "Error", res?.mensaje || "Error al procesar");
     }
 }
 
-/**
- * Elimina una reservación.
- */
 export async function EliminarReservacion(id, calendar) {
-    const confirmado = await MensajeriaHelper.MostrarConfirmacion(
-        '¿Eliminar reservación?',
-        'Esta acción no se puede deshacer.',
-        'warning'
-    );
+    if (ES_PUBLICO) return;
+    const confirmado = await MensajeriaHelper.MostrarConfirmacion('¿Eliminar?', 'Esta acción no se puede deshacer.');
+    if (!confirmado) return;
 
-    if (confirmado) {
-        const formData = new FormData();
-        formData.append('peticion', 'eliminar');
-        formData.append('id_reservacion', id);
+    const formData = new FormData();
+    formData.append('peticion', 'eliminar');
+    formData.append('id_reservacion', id);
 
-        try {
-            const res = await AjaxHelper.enviaAjax(formData, '?page=reservaciones');
-            if (res && res.resultado == 200) {
-                $('#modalReservacion').modal('hide');
-                MensajeriaHelper.GenerarMensaje('success', 2000, "Eliminado", "La reservación ha sido borrada.");
-                calendar.refetchEvents();
-            } else {
-                MensajeriaHelper.GenerarMensaje('error', 5000, "Error", res?.mensaje || "No se pudo eliminar");
-            }
-        } catch (e) {
-            MensajeriaHelper.GenerarMensaje('error', 5000, "Error", "Error al intentar eliminar");
-        }
+    const res = await AjaxHelper.enviaAjax(formData, BASE_URL_API);
+    if (res && res.resultado == 200) {
+        $(IDs.modal).modal('hide');
+        MensajeriaHelper.GenerarMensaje('success', 2000, "Eliminado", "La reservación ha sido borrada.");
+        calendar.refetchEvents();
     }
 }

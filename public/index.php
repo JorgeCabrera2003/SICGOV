@@ -58,7 +58,10 @@ try {
         'multimedia' => (new MediaController())->index(),
         'clientes' => (new ClienteController())->index(),
         'reservaciones' => (new ReservacionController())->index(),
+        'reservar' => (new ReservacionController())->index(true),
+
         'notificaciones' => (new NotificationController())->index(),
+
         'papelera' => (new PapeleraController())->index(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };

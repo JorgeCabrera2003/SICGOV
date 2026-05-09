@@ -69,12 +69,34 @@
             <span class="flex-grow-1">Clientes</span>
         </a>
 
-        <!-- Reservaciones -->
-        <a href="<?php echo BASE_URL; ?>/?page=reservaciones"
-            class="nav-link <?php echo ($page == 'reservaciones') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-            <i class="bi bi-calendar-check fs-5"></i>
-            <span class="flex-grow-1">Reservaciones</span>
-        </a>
+        <!-- Reservaciones (Colapsable) -->
+        <div class="nav-item w-100">
+            <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['reservaciones', 'reservar']) ? '' : 'collapsed'; ?>" 
+                data-bs-toggle="collapse" href="#reservas-submenu" role="button"
+                aria-expanded="<?php echo in_array($page, ['reservaciones', 'reservar']) ? 'true' : 'false'; ?>">
+                <i class="bi bi-calendar-check fs-5"></i>
+                <span class="flex-grow-1">Reservaciones</span>
+                <i class="bi bi-chevron-right transition-rotate"></i>
+            </a>
+            <div class="collapse <?php echo in_array($page, ['reservaciones', 'reservar']) ? 'show' : ''; ?>" id="reservas-submenu">
+                <div class="d-flex flex-column gap-1 ps-4 mt-1">
+                    <?php if (in_array($datos['rol'], ['ADMINISTRADOR', 'VENTAS'])): ?>
+                    <a href="<?php echo BASE_URL; ?>/?page=reservaciones"
+                        class="nav-link <?php echo ($page == 'reservaciones') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
+                        <i class="bi bi-calendar3 fs-6"></i>
+                        <span>Agenda Global</span>
+                    </a>
+                    <?php endif; ?>
+                    
+                    <a href="<?php echo BASE_URL; ?>/?page=reservar"
+                        class="nav-link <?php echo ($page == 'reservar') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
+                        <i class="bi bi-calendar-heart fs-6"></i>
+                        <span>Mis Citas</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
 
         <!-- Pedidos / Mesas -->
         <a href="<?php echo BASE_URL; ?>/?page=pedidos"
@@ -222,14 +244,8 @@
                 <button class="btn btn-link d-lg-none p-0" id="sidebar-toggle" aria-label="Abrir menú">
                     <i class="bi bi-list fs-4"></i>
                 </button>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="<?php echo BASE_URL; ?>/?page=home"
-                                class="text-decoration-none">Inicio</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">
-                            <?php echo ucfirst($page ?? 'Dashboard'); ?></li>
-                    </ol>
-                </nav>
+                <!-- Breadcrumbs removidos por solicitud del usuario -->
+
             </div>
 
             <div class="d-flex align-items-center gap-2">
