@@ -250,7 +250,6 @@
     color: rgba(248, 249, 250, 0.6);
 }
 
-
 .dark .article-header {
     background: linear-gradient(135deg, #1A1C20 0%, #0F1114 100%);
     border-bottom: 1px solid var(--color-border);
@@ -268,35 +267,32 @@
     border: 1px solid var(--color-border);
 }
 
-/* 8. Contact Icons & Social circles */
-.icon-circle {
-    width: 42px;
-    height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-    transition: var(--transition-base);
+.dark .dashed-border {
+    border: 2px dashed var(--color-border) !important;
+    background-color: rgba(255, 255, 255, 0.02) !important;
 }
 
-.icon-circle.bg-primary {
+.dark .modal-body {
+    background-color: #15171A !important;
+}
+
+.dark label.form-label {
+    color: var(--color-sidebar) !important;
+}
+
+.dark .text-muted {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.dark .btn-outline-warning {
+    color: var(--color-acento) !important;
+    border-color: var(--color-acento) !important;
+}
+
+.dark .btn-outline-warning:hover {
+    background-color: var(--color-acento) !important;
     color: #1A1C20 !important;
 }
 
-.dark .icon-circle {
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-
-.dark .btn-dark {
-    background-color: #333 !important;
-    border-color: #444 !important;
-    color: #fff !important;
-}
-
-.dark .dashed-border {
-    border-style: dashed !important;
-    border-color: var(--color-border) !important;
-}
+/* 8. Contact Icons & Social circles */
 
