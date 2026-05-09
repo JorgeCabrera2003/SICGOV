@@ -114,13 +114,18 @@ export function inicializarCalendario(calendarEl, pickers) {
                 timePickerFin.clear();
             }
 
+            // Habilitar campos para nueva reservación
+            $('#formReservacion input, #formReservacion select').prop('disabled', false);
+            $('#formReservacion button[type="submit"]').show();
             $('#btnEliminar').hide();
             $('#modalReservacion').modal('show');
         },
 
+
         eventClick: function (info) {
             const event = info.event;
             const props = event.extendedProps;
+            const esEditable = props.estado === 'PENDIENTE';
 
             $('#peticion').val('modificar');
             $('#id_reservacion').val(event.id);
@@ -137,9 +142,15 @@ export function inicializarCalendario(calendarEl, pickers) {
             else timePickerFin.clear();
 
             $('#estado').val(props.estado);
-            $('#btnEliminar').show();
+            
+            // Bloquear campos si no es editable
+            $('#formReservacion input, #formReservacion select').prop('disabled', !esEditable);
+            $('#formReservacion button[type="submit"]').toggle(esEditable);
+            $('#btnEliminar').toggle(esEditable);
+
             $('#modalReservacion').modal('show');
         },
+
 
         eventDrop: function (info) {
             MoverEvento(info, calendar);
