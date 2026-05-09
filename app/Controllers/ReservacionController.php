@@ -100,8 +100,9 @@ class ReservacionController
             ],
             // Módulo ES — cargado con type="module" por el footer
             'extra_js_modules' => [
-                BASE_URL . '/assets/js/modulo_reservaciones.js'
+                BASE_URL . '/assets/js/Controllers/ReservacionController.js'
             ]
+
         ]);
     }
 }

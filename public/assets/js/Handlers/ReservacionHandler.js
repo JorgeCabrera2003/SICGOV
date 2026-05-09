@@ -1,17 +1,10 @@
-// ES Module — Lógica del Módulo de Reservaciones
-// Sigue el mismo patrón de ingrediente.js: exporta funciones puras de lógica.
-// El orquestador de eventos vive en modulo_reservaciones.js
-
-// ─────────────────────────────────────────────
-// HELPERS PRIVADOS
-// ─────────────────────────────────────────────
+import * as AjaxHelper from "../Helpers/AjaxHelper.js";
+import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js";
 
 /**
  * Formatea el estado del select de Select2 con ícono de persona.
- * @param {object} state
- * @returns {jQuery|string}
  */
-function formatarEstadoCliente(state) {
+export function formatarEstadoCliente(state) {
     if (!state.id) return state.text;
     return $(`
         <div class="d-flex align-items-center py-1">
@@ -25,55 +18,14 @@ function formatarEstadoCliente(state) {
 
 /**
  * Extrae la hora en formato HH:MM desde un string datetime ISO.
- * Guard: retorna null si el string no contiene la parte de tiempo.
- * @param {string} datetimeStr
- * @returns {string|null}
  */
-function extraerHora(datetimeStr) {
+export function extraerHora(datetimeStr) {
     if (!datetimeStr || !datetimeStr.includes('T')) return null;
     return datetimeStr.split('T')[1].substring(0, 5);
 }
 
-// ─────────────────────────────────────────────
-// EXPORTS PÚBLICOS
-// ─────────────────────────────────────────────
-
-/**
- * Crea y retorna un mixin Toast de SweetAlert2 reutilizable (DRY).
- * @returns {import('sweetalert2').SweetAlert}
- */
-export function crearToast() {
-    return Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true
-    });
-}
-
-/**
- * Inicializa Select2 premium para el selector de clientes.
- * @param {string} selector  - Selector CSS del elemento.
- * @param {jQuery} $parent   - Elemento contenedor del dropdown.
- */
-export function inicializarSelect2(selector, $parent) {
-    $(selector).select2({
-        theme: 'bootstrap-5',
-        dropdownParent: $parent,
-        width: '100%',
-        placeholder: 'Buscar cliente por nombre o cédula...',
-        language: {
-            noResults: () => "No se encontraron resultados"
-        },
-        templateResult: formatarEstadoCliente,
-        templateSelection: formatarEstadoCliente
-    });
-}
-
 /**
  * Inicializa los pickers de hora (inicio y fin) con Flatpickr.
- * @returns {{ timePickerInicio: object, timePickerFin: object }}
  */
 export function inicializarPickers() {
     const configBase = {
@@ -93,10 +45,7 @@ export function inicializarPickers() {
 }
 
 /**
- * Construye y renderiza el FullCalendar completo.
- * @param {HTMLElement} calendarEl - Elemento del DOM donde se montará el calendario.
- * @param {{ timePickerInicio: object, timePickerFin: object }} pickers
- * @returns {FullCalendar.Calendar} Instancia del calendario ya renderizada.
+ * Configura e inicializa FullCalendar.
  */
 export function inicializarCalendario(calendarEl, pickers) {
     const { timePickerInicio, timePickerFin } = pickers;
@@ -126,24 +75,24 @@ export function inicializarCalendario(calendarEl, pickers) {
         droppable: true,
         eventDisplay: 'block',
 
-        // Cargar eventos desde el servidor
-        events: function (fetchInfo, successCallback, failureCallback) {
+        events: async function (fetchInfo, successCallback, failureCallback) {
             const formData = new FormData();
             formData.append('peticion', 'listar');
             formData.append('start', fetchInfo.startStr.split('T')[0]);
             formData.append('end', fetchInfo.endStr.split('T')[0]);
 
-            enviaAjax(formData, BASE_URL + '?page=reservaciones')
-                .then(res => {
-                    if (res && res.resultado == 200) {
-                        successCallback(res.datos);
-                    } else {
-                        failureCallback();
-                    }
-                });
+            try {
+                const res = await AjaxHelper.enviaAjax(formData, '?page=reservaciones');
+                if (res && res.resultado == 200) {
+                    successCallback(res.datos);
+                } else {
+                    failureCallback();
+                }
+            } catch (e) {
+                failureCallback();
+            }
         },
 
-        // Click en día vacío → Abrir modal para crear
         select: function (info) {
             $('#formReservacion')[0].reset();
             $('#peticion').val('registrar');
@@ -165,7 +114,6 @@ export function inicializarCalendario(calendarEl, pickers) {
             $('#modalReservacion').modal('show');
         },
 
-        // Click en evento existente → Abrir modal para editar
         eventClick: function (info) {
             const event = info.event;
             const props = event.extendedProps;
@@ -175,7 +123,6 @@ export function inicializarCalendario(calendarEl, pickers) {
             $('#cedula_cliente').val(props.cedula).trigger('change');
             $('#fecha').val(event.startStr.split('T')[0]);
 
-            // Guard: extraerHora retorna null si no hay componente horario (eventos de día completo)
             const horaInicio = extraerHora(event.startStr);
             const horaFin = extraerHora(event.endStr);
 
@@ -190,14 +137,12 @@ export function inicializarCalendario(calendarEl, pickers) {
             $('#modalReservacion').modal('show');
         },
 
-        // Drag & Drop → delegar a moverEvento (DRY)
         eventDrop: function (info) {
-            moverEvento(info, calendar);
+            MoverEvento(info, calendar);
         },
 
-        // Redimensionar evento → delegar a moverEvento (DRY)
         eventResize: function (info) {
-            moverEvento(info, calendar, 'Duración actualizada con éxito');
+            MoverEvento(info, calendar, 'Duración actualizada con éxito');
         }
     });
 
@@ -206,12 +151,9 @@ export function inicializarCalendario(calendarEl, pickers) {
 }
 
 /**
- * Persiste el cambio de posición/duración de un evento (eventDrop + eventResize — DRY).
- * @param {object} info            - Objeto de evento de FullCalendar.
- * @param {object} calendar        - Instancia del calendario (para refetch si es necesario).
- * @param {string} mensajeExito    - Texto del toast de éxito.
+ * Persiste cambios de drag & drop o resize.
  */
-export async function moverEvento(info, calendar, mensajeExito = 'Reservación reprogramada con éxito') {
+export async function MoverEvento(info, calendar, mensajeExito = 'Reservación reprogramada con éxito') {
     const formData = new FormData();
     formData.append('peticion', 'mover');
     formData.append('id_reservacion', info.event.id);
@@ -220,13 +162,73 @@ export async function moverEvento(info, calendar, mensajeExito = 'Reservación r
     formData.append('hora_fin', extraerHora(info.event.endStr) ?? '');
 
     try {
-        const res = await enviaAjax(formData, BASE_URL + '?page=reservaciones');
+        const res = await AjaxHelper.enviaAjax(formData, '?page=reservaciones');
         if (res && res.resultado == 200) {
-            crearToast().fire({ icon: 'success', title: mensajeExito });
+            MensajeriaHelper.GenerarMensaje('success', 3000, '¡Éxito!', mensajeExito);
         } else {
             info.revert();
+            MensajeriaHelper.GenerarMensaje('error', 5000, 'Error', res?.mensaje || 'No se pudo mover');
         }
     } catch {
         info.revert();
+    }
+}
+
+/**
+ * Procesa el envío del formulario.
+ */
+export async function GestionarEnvio(form, calendar) {
+    const formData = new FormData(form);
+    
+    // Validación básica de tiempo
+    const horaInicio = $('#hora').val();
+    const horaFin = $('#hora_fin').val();
+    
+    if (horaInicio && horaFin && horaFin <= horaInicio) {
+        MensajeriaHelper.GenerarMensaje('warning', 5000, "Rango inválido", "La hora de fin debe ser posterior a la de inicio.");
+        return;
+    }
+
+    try {
+        const res = await AjaxHelper.enviaAjax(formData, '?page=reservaciones');
+        if (res && res.resultado == 200) {
+            $('#modalReservacion').modal('hide');
+            MensajeriaHelper.GenerarMensaje('success', 2000, "¡Éxito!", res.mensaje);
+            calendar.refetchEvents();
+        } else {
+            MensajeriaHelper.GenerarMensaje('error', 5000, "Error", res?.mensaje || "Error desconocido");
+        }
+    } catch (e) {
+        MensajeriaHelper.GenerarMensaje('error', 5000, "Error crítico", "No se pudo procesar la solicitud");
+    }
+}
+
+/**
+ * Elimina una reservación.
+ */
+export async function EliminarReservacion(id, calendar) {
+    const confirmado = await MensajeriaHelper.MostrarConfirmacion(
+        '¿Eliminar reservación?',
+        'Esta acción no se puede deshacer.',
+        'warning'
+    );
+
+    if (confirmado) {
+        const formData = new FormData();
+        formData.append('peticion', 'eliminar');
+        formData.append('id_reservacion', id);
+
+        try {
+            const res = await AjaxHelper.enviaAjax(formData, '?page=reservaciones');
+            if (res && res.resultado == 200) {
+                $('#modalReservacion').modal('hide');
+                MensajeriaHelper.GenerarMensaje('success', 2000, "Eliminado", "La reservación ha sido borrada.");
+                calendar.refetchEvents();
+            } else {
+                MensajeriaHelper.GenerarMensaje('error', 5000, "Error", res?.mensaje || "No se pudo eliminar");
+            }
+        } catch (e) {
+            MensajeriaHelper.GenerarMensaje('error', 5000, "Error", "Error al intentar eliminar");
+        }
     }
 }
