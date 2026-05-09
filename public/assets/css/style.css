@@ -321,3 +321,38 @@
         font-size: 1.1rem;
     }
 }
+
+/* ==========================================
+   FORZAR COLORES EN MODALES GLOBALES
+   (Para fondos amarillos/primarios)
+========================================== */
+.modal-header.bg-primary {
+    color: #1A1C20 !important;
+}
+
+.modal-header.bg-primary .modal-title,
+.modal-header.bg-primary .text-white {
+    color: #1A1C20 !important;
+}
+
+.modal-header .btn-close,
+.modal-header .btn-close-white,
+.btn-close-white {
+    filter: invert(0) brightness(0) !important;
+    opacity: 0.8 !important;
+}
+
+.modal-header .btn-close:hover,
+.modal-header .btn-close-white:hover,
+.btn-close-white:hover {
+    opacity: 1 !important;
+}
+
+/* ==========================================
+   FORZAR TEXTO NEGRO EN TABS ACTIVOS
+========================================== */
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-link.active span,
+.nav-tabs .nav-link.active i {
+    color: #1A1C20 !important;
+}
