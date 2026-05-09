@@ -8,7 +8,8 @@ $(document).ready(function () {
 });
 
 // EVENTOS CLICK DE LOS BOTONES DE LA INTERFAZ
-$('#btnNuevaNoticia').on('click', function () {
+$('#btnNuevaNoticia').on('click', function (e) {
+    e.preventDefault();
     noticias.LimpiarFormulario();
     noticias.EditarModal('registrar');
 });
@@ -22,7 +23,8 @@ $('#imagenes').on('change', function(e) {
     noticias.ManejarCambioImagenes(e);
 });
 
-$('#btnAbrirGaleria').on('click', function() {
+$('#btnAbrirGaleria').on('click', function(e) {
+    e.preventDefault();
     MediaPicker.open({
         onSelect: function(ruta) {
             noticias.AgregarImagenGaleria(ruta);
@@ -31,7 +33,8 @@ $('#btnAbrirGaleria').on('click', function() {
 });
 
 // Delegación de eventos para la tabla
-$(document).on('click', '.btn-editar', function () {
+$(document).on('click', '.btn-editar', function (e) {
+    e.preventDefault();
     const modulo = $(this).attr("data-modulo");
     if (modulo === 'Noticia') {
         const linea = $(this).closest('tr');
@@ -41,18 +44,21 @@ $(document).on('click', '.btn-editar', function () {
     }
 });
 
-$(document).on('click', '.btn-ver-publico', function () {
+$(document).on('click', '.btn-ver-publico', function (e) {
+    e.preventDefault();
     const id = $(this).attr("data-id");
     noticias.VerNoticiaPublica(id);
 });
 
-$(document).on('click', '.btn-eliminar', function () {
+$(document).on('click', '.btn-eliminar', function (e) {
+    e.preventDefault();
     const modulo = $(this).attr("data-modulo");
     if (modulo === 'Noticia') {
         const id = $(this).attr("data-id");
         noticias.EliminarNoticia(id);
     }
 });
+
 
 // Comportamiento de hover para el botón de acciones en la tabla
 $(document).on({
