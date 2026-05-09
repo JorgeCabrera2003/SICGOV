@@ -122,15 +122,17 @@ class ReservacionController
                 if ($e['extendedProps']['cedula'] === $cedula) {
                     return $e; // Es mío, lo veo normal
                 } else {
-                    // Es de otro, anonimizar
+                    // Es de otro, mostrar solo horas
+                    $hInicio = date("h:i A", strtotime($e['start']));
+                    $hFin = date("h:i A", strtotime($e['end']));
+                    
                     return [
                         'id' => 'occ_' . $e['id'],
-                        'title' => 'OCUPADO',
+                        'title' => "{$hInicio} - {$hFin} (Ocupado)",
                         'start' => $e['start'],
                         'end' => $e['end'],
                         'editable' => false,
                         'className' => 'status-ocupado-publico',
-                        'display' => 'background', // Ocupa el espacio visualmente
                         'extendedProps' => [
                             'ocupado' => true
                         ]
@@ -142,6 +144,7 @@ class ReservacionController
         }
         return $resp;
     }
+
 
 
     /**

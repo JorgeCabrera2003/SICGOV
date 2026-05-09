@@ -97,29 +97,143 @@
 .status-completada { background: linear-gradient(135deg, #4caf50, #388e3c) !important; border: none !important; }
 .status-cancelada { background: linear-gradient(135deg, #f44336, #d32f2f) !important; border: none !important; }
 
-/* Forzar color de texto blanco en los eventos para legibilidad */
-.fc-event-title, .fc-event-time {
-    color: #ffffff !important;
-    font-weight: 600 !important;
+/* Forzar color de texto blanco en los eventos con estado para legibilidad */
+.fc-event:not(.status-ocupado-publico) {
+    .fc-event-title, .fc-event-time {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
 }
 
-
-/* Estilo para bloques ocupados en vista pública (Rayado sutil) */
+/* Estilo para bloques ocupados en vista pública (Sólido y compatible) */
 .status-ocupado-publico {
-    background: repeating-linear-gradient(
+    background-color: #f8f9fa !important; /* Gris muy claro sólido */
+    background-image: repeating-linear-gradient(
         45deg,
-        rgba(255, 255, 255, 0.03),
-        rgba(255, 255, 255, 0.03) 5px,
-        rgba(255, 255, 255, 0.06) 5px,
-        rgba(255, 255, 255, 0.06) 10px
+        rgba(0, 0, 0, 0.02),
+        rgba(0, 0, 0, 0.02) 5px,
+        rgba(0, 0, 0, 0.05) 5px,
+        rgba(0, 0, 0, 0.05) 10px
     ) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    opacity: 0.8;
+    border: 1px solid #dee2e6 !important;
+    opacity: 1 !important;
     pointer-events: none;
+    
+    .fc-event-title, .fc-event-time {
+        color: #6c757d !important; /* Texto gris intermedio */
+        font-weight: 700 !important;
+    }
+
+    body.dark-mode & {
+        background-color: #2a2d34 !important; /* Gris oscuro sólido */
+        background-image: repeating-linear-gradient(
+            45deg,
+            rgba(255, 255, 255, 0.02),
+            rgba(255, 255, 255, 0.02) 5px,
+            rgba(255, 255, 255, 0.05) 5px,
+            rgba(255, 255, 255, 0.05) 10px
+        ) !important;
+        border-color: #3f444e !important;
+        
+        .fc-event-title, .fc-event-time {
+            color: #adb5bd !important;
+        }
+    }
 }
+
+
+
 
 /* Badges de estado */
 .status-badge-pendiente { background-color: #ff9800; color: white; }
 .status-badge-confirmada { background-color: #2196f3; color: white; }
 .status-badge-completada { background-color: #4caf50; color: white; }
 .status-badge-cancelada { background-color: #f44336; color: white; }
+
+/* Estilos Premium para Modales de Reservación */
+.modal-content {
+    border-radius: 24px !important;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    
+    body.dark-mode & {
+        background-color: #1A1C20 !important;
+        border-color: rgba(255, 255, 255, 0.05);
+    }
+}
+
+.user-info-card {
+    background: linear-gradient(135deg, rgba(255, 214, 0, 0.05), rgba(255, 214, 0, 0.1));
+    border: 1px solid rgba(255, 214, 0, 0.2);
+    border-radius: 20px;
+    padding: 1.25rem;
+    
+    .avatar-wrapper {
+        background: var(--color-acento);
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        box-shadow: 0 4px 12px rgba(255, 214, 0, 0.3);
+    }
+}
+
+.reservation-form-group {
+    label {
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        color: var(--color-sidebar);
+        opacity: 0.5;
+        margin-bottom: 0.6rem;
+        text-transform: uppercase;
+    }
+    
+    .form-control, .input-group-text {
+        border-radius: 14px !important;
+        padding: 0.75rem 1rem;
+        background-color: rgba(0, 0, 0, 0.03);
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        font-size: 0.95rem;
+        
+        body.dark-mode & {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: white;
+            &::placeholder { color: rgba(255,255,255,0.3); }
+        }
+
+        &:focus {
+            background-color: transparent;
+            border-color: var(--color-acento);
+            box-shadow: 0 0 0 4px rgba(255, 214, 0, 0.1);
+        }
+    }
+}
+
+.btn-confirmar-premium {
+    background: linear-gradient(135deg, #FFD600, #FFB800);
+    border: none;
+    border-radius: 16px;
+    color: #1A1C20 !important;
+    font-weight: 800;
+    padding: 1.1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 20px rgba(255, 214, 0, 0.2);
+    text-transform: none;
+    letter-spacing: 0.5px;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px rgba(255, 214, 0, 0.3);
+        background: linear-gradient(135deg, #FFB800, #FF9500);
+    }
+    
+    &:active {
+        transform: translateY(1px);
+    }
+}
+

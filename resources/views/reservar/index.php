@@ -39,9 +39,9 @@
                 <div class="modal-body p-4">
                     <input type="hidden" name="peticion" value="registrar">
                     
-                    <div class="d-flex align-items-center gap-3 p-3 bg-light rounded-4 mb-4 border border-white">
-                        <div class="bg-primary bg-opacity-10 p-3 rounded-circle">
-                             <i class="bi bi-person text-primary fs-4"></i>
+                    <div class="user-info-card d-flex align-items-center gap-3 mb-4">
+                        <div class="avatar-wrapper">
+                             <i class="bi bi-person text-dark fs-4"></i>
                         </div>
                         <div>
                             <h6 class="mb-0 fw-bold"><?= $datos['nombres'] ?></h6>
@@ -49,29 +49,34 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold text-uppercase opacity-50">Fecha de tu visita</label>
+                    <div class="reservation-form-group mb-4">
+                        <label>Fecha de tu visita</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-calendar3"></i></span>
-                            <input type="date" class="form-control border-start-0 ps-0 fw-bold" name="fecha" id="fechaPublica" required readonly>
+                            <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-calendar3"></i></span>
+                            <input type="date" class="form-control border-start-0 ps-0" name="fecha" id="fechaPublica" required readonly>
                         </div>
                     </div>
 
                     <div class="row g-3">
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-uppercase opacity-50">Desde las</label>
-                            <input type="text" class="form-control form-control-lg bg-light border-0 text-center fw-bold" name="hora" id="horaPublica" required>
+                            <div class="reservation-form-group">
+                                <label>Desde las</label>
+                                <input type="text" class="form-control text-center" name="hora" id="horaPublica" required>
+                            </div>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-uppercase opacity-50">Hasta las</label>
-                            <input type="text" class="form-control form-control-lg bg-light border-0 text-center fw-bold" name="hora_fin" id="hora_finPublica" required>
+                            <div class="reservation-form-group">
+                                <label>Hasta las</label>
+                                <input type="text" class="form-control text-center" name="hora_fin" id="hora_finPublica" required>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-0 p-4">
-                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-4 fw-bold py-3">Confirmar Solicitud</button>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="submit" class="btn btn-confirmar-premium w-100">Confirmar Solicitud</button>
                 </div>
             </form>
+
         </div>
     </div>
 </div>

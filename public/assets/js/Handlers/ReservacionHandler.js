@@ -106,7 +106,7 @@ export function inicializarCalendario(calendarEl, pickers) {
         },
 
         select: function (info) {
-            prepararNuevaReservacion(info, timePickerInicio, timePickerFin);
+            prepararNuevaReservacion(info, timePickerInicio, timePickerFin, calendar);
         },
 
         eventClick: function (info) {
@@ -116,8 +116,9 @@ export function inicializarCalendario(calendarEl, pickers) {
             // Si es público y el evento es de otro (OCUPADO), no hacer nada
             if (ES_PUBLICO && props.ocupado) return;
 
-            abrirDetalleReservacion(event, props, timePickerInicio, timePickerFin);
+            abrirDetalleReservacion(event, props, timePickerInicio, timePickerFin, calendar);
         },
+
 
         eventDrop: function (info) {
             if (!ES_PUBLICO) MoverEvento(info, calendar);
@@ -136,16 +137,45 @@ export function inicializarCalendario(calendarEl, pickers) {
  * Lógica Interna
  */
 
-function prepararNuevaReservacion(info, tpInicio, tpFin) {
+function obtenerRangosOcupados(fecha, calendar, idActual = null) {
+    return calendar.getEvents()
+        .filter(event => {
+            const esMismaFecha = event.startStr.startsWith(fecha);
+            const noEsMismaReservacion = event.id !== idActual;
+            const estaOcupado = event.extendedProps.estado !== 'CANCELADA';
+            return esMismaFecha && noEsMismaReservacion && estaOcupado;
+        })
+        .map(event => ({
+            from: extraerHora(event.startStr),
+            to: extraerHora(event.endStr)
+        }));
+}
+
+function actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, idActual = null) {
+    const rangos = obtenerRangosOcupados(fecha, calendar, idActual);
+    
+    // Configuración para deshabilitar rangos en Flatpickr
+    const configDisable = {
+        disable: rangos.map(r => ({ from: r.from, to: r.to }))
+    };
+
+    tpInicio.set("disable", rangos);
+    tpFin.set("disable", rangos);
+}
+
+function prepararNuevaReservacion(info, tpInicio, tpFin, calendar) {
     const $form = $(IDs.form);
     $form[0].reset();
     
-    // Resetear IDs y estados
+    const fecha = info.startStr.split('T')[0];
     $('#peticion').val('registrar');
     $('#id_reservacion').val('');
     if (!ES_PUBLICO) $('#cedula_cliente').val('').trigger('change');
     
-    $(IDs.fecha).val(info.startStr.split('T')[0]);
+    $(IDs.fecha).val(fecha);
+
+    // Actualizar bloqueos de tiempo para esta fecha
+    actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin);
 
     if (info.view.type !== 'dayGridMonth') {
         tpInicio.setDate(info.start.toTimeString().split(' ')[0].substring(0, 5));
@@ -155,22 +185,25 @@ function prepararNuevaReservacion(info, tpInicio, tpFin) {
         tpFin.clear();
     }
 
-    // Habilitar campos
     $(`${IDs.form} input, ${IDs.form} select`).prop('disabled', false);
     $(`${IDs.form} button[type="submit"]`).show();
     $('#btnEliminar').hide();
     $(IDs.modal).modal('show');
 }
 
-function abrirDetalleReservacion(event, props, tpInicio, tpFin) {
+function abrirDetalleReservacion(event, props, tpInicio, tpFin, calendar) {
     const esEditable = props.estado === 'PENDIENTE' && !ES_PUBLICO;
     const $form = $(IDs.form);
+    const fecha = event.startStr.split('T')[0];
 
     $('#peticion').val('modificar');
     $('#id_reservacion').val(event.id);
     if (!ES_PUBLICO) $('#cedula_cliente').val(props.cedula).trigger('change');
     
-    $(IDs.fecha).val(event.startStr.split('T')[0]);
+    $(IDs.fecha).val(fecha);
+
+    // Actualizar bloqueos de tiempo (excluyendo la actual)
+    actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, event.id);
 
     const hInicio = extraerHora(event.startStr);
     const hFin = extraerHora(event.endStr);
@@ -180,10 +213,8 @@ function abrirDetalleReservacion(event, props, tpInicio, tpFin) {
 
     if (!ES_PUBLICO) $('#estado').val(props.estado);
     
-    // Configurar permisos en el modal
     $(`${IDs.form} input, ${IDs.form} select`).prop('disabled', !esEditable && !ES_PUBLICO);
     
-    // En vista pública, las propias siempre son read-only si ya están creadas
     if (ES_PUBLICO) {
         $(`${IDs.form} input`).prop('disabled', true);
         $(`${IDs.form} button[type="submit"]`).hide();
@@ -196,6 +227,7 @@ function abrirDetalleReservacion(event, props, tpInicio, tpFin) {
 
     $(IDs.modal).modal('show');
 }
+
 
 export async function MoverEvento(info, calendar, mensaje = 'Reprogramado con éxito') {
     const formData = new FormData();
