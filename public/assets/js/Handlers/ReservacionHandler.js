@@ -61,14 +61,18 @@ export function inicializarCalendario(calendarEl, pickers) {
         eventTimeFormat: {
             hour: 'numeric',
             minute: '2-digit',
-            meridiem: 'short'
+            meridiem: 'short',
+            hour12: true
         },
+
         slotLabelFormat: {
             hour: 'numeric',
             minute: '2-digit',
             omitZeroMinute: false,
-            meridiem: 'short'
+            meridiem: 'short',
+            hour12: true
         },
+
         themeSystem: 'bootstrap5',
         editable: true,
         selectable: true,
