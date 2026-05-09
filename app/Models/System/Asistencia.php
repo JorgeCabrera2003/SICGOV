@@ -5,6 +5,7 @@ namespace App\Models\System;
 use App\Core\Database;
 use App\Helpers\Helper;
 use PDO;
+use Exception;
 
 class Asistencia extends Database {
 
@@ -117,18 +118,61 @@ class Asistencia extends Database {
 
     //OPERACIONES A LA BASE DE DATOS
     private function ValidarAsistencia() {
-       
+        $dato = [];
+        $dato['estado'] = 0;
+        $dato['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Función de validación no implementada'];
+        $dato['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Función no implementada'];
+        return $dato;
     }
 
     private function ConsultarAsistencia() {
-       
+        $dato = [];
+        $arreglo = [];
+
+        try {
+            $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
+
+            $sql = "SELECT * FROM asistencia ORDER BY fecha DESC, hora DESC";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->execute();
+
+            if ($stm->rowCount() > 0) {
+                $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
+            }
+
+            $this->LlamarConexion()->commit();
+            $stm = NULL;
+
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'mensaje' => 'OK', 'datos' => $arreglo];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+        } catch (PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde', 'datos' => []];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Error interno del servidor'];
+        }
+
+        $this->DestruirConexion();
+        return $dato;
     }
 
     private function RegistrarAsistencia() {
+        $dato = [];
+        $dato['estado'] = 0;
+        $dato['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Función de registro no implementada'];
+        $dato['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Función no implementada'];
+        return $dato;
     }
 
     private function ModificarAsistencia() {
-   
+        $dato = [];
+        $dato['estado'] = 0;
+        $dato['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Función de modificación no implementada'];
+        $dato['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Función no implementada'];
+        return $dato;
     }
     //FIN DE OPERACIONES A LA BASE DE DATOS
 

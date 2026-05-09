@@ -35,6 +35,7 @@
                             <th scope="col">Tipo de Marcación</th>
                             <th scope="col">Estado</th>
                             <th scope="col">Observación</th>
+                            <th scope="col">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
