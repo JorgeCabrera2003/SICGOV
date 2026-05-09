@@ -37,6 +37,7 @@ use App\Controllers\MediaController;
 use App\Controllers\ClienteController;
 use App\Controllers\ReservacionController;
 use App\Controllers\NotificationController;
+use App\Controllers\AsistenciaController;
 
 try {
     match ($page) {
@@ -51,6 +52,7 @@ try {
         'categoria-ingrediente' => (new IngredienteController())->indexCategoria(),
         'categorias' => (new CategoriaController())->index(),
         'bitacora' => (new BitacoraController())->index(),
+        'asistencia' => (new AsistenciaController())->index(),
         'noticias-admin' => (new NoticiaController())->indexAdmin(),
         'noticias' => (new NoticiaController())->indexPublico(),
         'noticias-detalle' => (new NoticiaController())->detallePublico(),

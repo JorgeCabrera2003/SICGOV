@@ -61,6 +61,13 @@
             <span class="flex-grow-1">Usuarios</span>
         </a>
 
+        <!-- Asistencia -->
+        <a href="<?php echo BASE_URL; ?>/?page=asistencia"
+            class="nav-link <?php echo ($page == 'asistencia') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+            <i class="fa-solid fa-users"></i>
+            <span class="flex-grow-1">Asistencia</span>
+        </a>
+
         <!-- Clientes -->
         <a href="<?php echo BASE_URL; ?>/?page=clientes"
             class="nav-link <?php echo ($page == 'clientes') ? 'active' : ''; ?> d-flex align-items-center gap-2">
