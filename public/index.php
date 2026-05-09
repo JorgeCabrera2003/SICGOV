@@ -48,6 +48,7 @@ try {
         'usuario', 'user' => (new UsuarioController())->index(),
         'productos' => (new ProductoController())->index(),
         'menu' => (new MenuController())->index(),
+        'nuestro-menu' => (new MenuController())->indexPublico(),
         'ingredientes' => (new IngredienteController())->index(),
         'categoria-ingrediente' => (new IngredienteController())->indexCategoria(),
         'categorias' => (new CategoriaController())->index(),

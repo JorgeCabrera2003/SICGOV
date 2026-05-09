@@ -23,13 +23,13 @@
                             
                             <!-- Imagen -->
                             <div class="mb-3">
-                                <label class="form-label fw-semibold">Imagen del Producto</label>
+                                <label class="form-label fw-semibold">Imagen del Producto <span class="text-danger">*</span></label>
                                 <div class="card border border-2 border-dashed rounded-3">
                                     <div class="card-body p-3 text-center">
                                         <div id="previewImagenContainer" style="display: none;" class="mb-2">
                                             <img id="previewImagen" src="#" alt="Vista previa" class="img-thumbnail" style="max-height: 120px;">
                                         </div>
-                                        <input class="form-control d-none" type="file" id="imagen" name="imagen" accept="image/*">
+                                        <input class="form-control d-none" type="file" id="imagen" name="imagen" accept=".jpg,.jpeg,.png,.webp">
                                         <input type="hidden" id="imagen_galeria" name="imagen_galeria">
                                         <div class="d-flex justify-content-center gap-2">
                                             <label for="imagen" class="btn btn-sm btn-outline-primary shadow-sm"><i class="fas fa-upload"></i> Subir</label>
@@ -44,6 +44,7 @@
                             <div class="mb-3">
                                 <label for="nombre" class="form-label fw-semibold">Nombre del Producto <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Ej: Hamburguesa Clásica" required>
+                                <div class="invalid-feedback fw-bold" id="errorNombre">Ya existe un producto registrado con este nombre.</div>
                             </div>
                             
                             <div class="row g-2 mb-3">
@@ -70,18 +71,20 @@
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+                                <div class="invalid-feedback fw-bold">El valor de categoría seleccionado no es válido o no existe.</div>
                             </div>
                             
                             <div class="mb-3">
-                                <label for="descripcion" class="form-label fw-semibold">Descripción</label>
-                                <textarea class="form-control" id="descripcion" name="descripcion" rows="2" placeholder="Breve descripción..."></textarea>
+                                <label for="descripcion" class="form-label fw-semibold">Descripción <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="descripcion" name="descripcion" rows="2" placeholder="Breve descripción..." required></textarea>
                             </div>
                             
                         </div>
 
                         <!-- COLUMNA DERECHA: RECETAS / INGREDIENTES -->
                         <div class="col-lg-7 p-4">
-                            <h6 class="fw-bold mb-3 text-primary"><i class="fas fa-list-check me-2"></i>Receta e Ingredientes</h6>
+                            <div id="seccionIngredientes">
+                                <h6 class="fw-bold mb-3 text-primary"><i class="fas fa-list-check me-2"></i>Receta e Ingredientes</h6>
                             <p class="text-muted small">Selecciona los ingredientes y define sus cantidades.</p>
                             
                             <!-- Buscador de ingredientes -->
@@ -159,7 +162,16 @@
                                     <div class="mt-2 text-muted small"><i class="fas fa-info-circle"></i> Los ingredientes adicionales normalmente pueden ser solicitados extra por el cliente.</div>
                                 </div>
                             </div>
-
+                            </div>
+                            
+                            <!-- MENSAJE DE SIN INGREDIENTES -->
+                            <div id="seccionSinIngredientes" class="h-100 flex-column justify-content-center align-items-center text-center p-5" style="display: none;">
+                                <div class="bg-light rounded-circle p-4 mb-4 shadow-sm border">
+                                    <i class="fas fa-glass-martini-alt fa-3x text-secondary"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark">No requiere ingredientes</h5>
+                                <p class="text-muted">Este tipo de producto se prepara o despacha directamente, por lo que no lleva un control estricto de receta o ingredientes desde este módulo.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -168,7 +180,7 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times me-2"></i>Cancelar
                     </button>
-                    <button type="submit" class="btn btn-primary px-4 fw-semibold text-white shadow-sm" id="btnGuardarMenu">
+                    <button type="submit" class="btn btn-primary px-4 fw-semibold text-white shadow-sm" id="btnGuardarMenu" disabled>
                         <i class="fas fa-save me-2"></i>Guardar Menú
                     </button>
                 </div>

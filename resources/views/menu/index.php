@@ -11,6 +11,9 @@
             Gestión de Productos del Menú
         </h1>
         <div class="btn-group shadow-sm" role="group" aria-label="Acciones de menú">
+            <a href="<?= BASE_URL ?>?page=nuestro-menu" target="_blank" class="btn btn-outline-primary fw-bold shadow-sm d-flex align-items-center">
+                <i class="fas fa-external-link-alt me-2"></i>Ver Menú Público
+            </a>
             <button class="btn btn-primary text-white fw-bold shadow-sm" id="btnNuevoMenu">
                 <i class="fas fa-plus me-2"></i>Nuevo Producto al Menú
             </button>

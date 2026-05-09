@@ -18,16 +18,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // Almacenará productos para filtro en cliente
     let productosActuales = [];
 
+    // Almacenará IDs de categorías válidas al cargar para evitar inyección
+    let validCategorias = [];
+
+    // Observador del DOM
+    let domObserver;
+
     init();
 
     function init() {
+        // Capturar categorías originales válidas
+        const catSelect = document.getElementById('id_categoria');
+        if (catSelect) {
+            Array.from(catSelect.options).forEach(opt => {
+                if (opt.value !== '') validCategorias.push(opt.value);
+            });
+        }
+
         renderCatalogoIngredientes();
         cargarMenu();
 
         // Listeners básicos
         document.getElementById('btnNuevoMenu').addEventListener('click', abrirModalNuevo);
         formMenu.addEventListener('submit', guardarMenu);
-        document.getElementById('imagen').addEventListener('change', handlePreviewImagen);
+        document.getElementById('imagen').addEventListener('change', (e) => {
+            handlePreviewImagen(e);
+            validateForm();
+        });
         document.getElementById('btnAbrirGaleria').addEventListener('click', handleAbrirGaleria);
 
         // Listeners Filtros
@@ -55,6 +72,282 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('principales-tab').addEventListener('shown.bs.tab', () => {
             document.getElementById('catalogoIngredientes').classList.remove('show');
         });
+
+        // Eventos de validación y sanitización en tiempo real
+        document.getElementById('nombre').addEventListener('input', function (e) {
+            this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+            validateForm();
+        });
+
+        document.getElementById('descripcion').addEventListener('input', function (e) {
+            this.value = this.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '');
+            validateForm();
+        });
+
+        document.getElementById('precio').addEventListener('input', validateForm);
+        document.getElementById('id_categoria').addEventListener('change', validateForm);
+
+        document.getElementById('tipo_producto').addEventListener('change', function (e) {
+            const seccionIngredientes = document.getElementById('seccionIngredientes');
+            const seccionSinIngredientes = document.getElementById('seccionSinIngredientes');
+            if (this.value === 'COCINA') {
+                seccionIngredientes.style.display = 'block';
+                seccionSinIngredientes.style.display = 'none';
+            } else {
+                seccionIngredientes.style.display = 'none';
+                seccionSinIngredientes.style.display = 'flex';
+            }
+            validateForm();
+        });
+
+        // Observador de mutaciones para validar si manipulan el DOM desde Inspect Element
+        domObserver = new MutationObserver((mutationsList) => {
+            let shouldValidate = false;
+            for (let mutation of mutationsList) {
+                if (mutation.type === 'attributes' && (mutation.attributeName === 'class' || mutation.attributeName === 'style')) {
+                    continue; // Evita bucle infinito cuando validateForm agrega clases o estilos
+                }
+                shouldValidate = true;
+                break;
+            }
+            if (shouldValidate) {
+                validateForm();
+                // Limpiar la cola de mutaciones generadas por validateForm para evitar bucle infinito
+                domObserver.takeRecords();
+            }
+        });
+
+        const catSelectObserver = document.getElementById('id_categoria');
+        if (catSelectObserver) {
+            domObserver.observe(catSelectObserver, { attributes: true, childList: true, subtree: true, characterData: true });
+        }
+
+        // Observar las tablas de recetas completas
+        const tbodyP = document.querySelector('#tablaPrincipales tbody');
+        if (tbodyP) domObserver.observe(tbodyP, { attributes: true, childList: true, subtree: true, characterData: true });
+
+        const tbodyA = document.querySelector('#tablaAdicionales tbody');
+        if (tbodyA) domObserver.observe(tbodyA, { attributes: true, childList: true, subtree: true, characterData: true });
+    }
+
+    function validateForm() {
+        const nombre = document.getElementById('nombre').value.trim();
+        const precio = document.getElementById('precio').value;
+        const tipo = document.getElementById('tipo_producto').value;
+        const categoria = document.getElementById('id_categoria').value;
+        const descripcion = document.getElementById('descripcion').value.trim();
+        const idProducto = document.getElementById('id_producto').value;
+
+        let isValid = true;
+
+        // Validación de nombre duplicado
+        const inputNombre = document.getElementById('nombre');
+        const errorNombre = document.getElementById('errorNombre');
+        
+        let isDuplicate = false;
+        if (nombre) {
+            const nombreLower = nombre.toLowerCase();
+            isDuplicate = productosActuales.some(p => 
+                p.nombre_producto.toLowerCase() === nombreLower && 
+                p.estatus == 1 && 
+                p.id_producto != idProducto
+            );
+        }
+
+        if (isDuplicate) {
+            isValid = false;
+            inputNombre.classList.add('is-invalid');
+            if (errorNombre) errorNombre.style.display = 'block';
+        } else {
+            inputNombre.classList.remove('is-invalid');
+            if (errorNombre) errorNombre.style.display = 'none';
+        }
+
+        // Validación de imagen
+        const imagenFile = document.getElementById('imagen').files[0];
+        const imagenGaleria = document.getElementById('imagen_galeria').value;
+
+        let hasImage = false;
+
+        if (imagenFile || imagenGaleria) {
+            hasImage = true;
+            if (imagenFile) {
+                const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+                const extension = imagenFile.name.split('.').pop().toLowerCase();
+                if (!allowedExtensions.includes(extension)) {
+                    isValid = false;
+                }
+            }
+        } else if (idProducto !== '') {
+            // Es edición, mantiene la imagen anterior
+            hasImage = true;
+        }
+
+        if (!hasImage) {
+            isValid = false;
+        }
+
+        if (!nombre || !precio || !tipo || !categoria || !descripcion) {
+            isValid = false;
+        }
+
+        if (parseFloat(precio) <= 0 || isNaN(parseFloat(precio))) {
+            isValid = false;
+        }
+
+        // Validación de categoría contra manipulación del DOM
+        const catSelect = document.getElementById('id_categoria');
+        const catError = catSelect ? catSelect.nextElementSibling : null;
+        if (categoria && validCategorias.length > 0 && !validCategorias.includes(categoria)) {
+            isValid = false;
+            catSelect.classList.add('is-invalid');
+            if (catError && catError.classList.contains('invalid-feedback')) catError.style.display = 'block';
+        } else {
+            if (catSelect) catSelect.classList.remove('is-invalid');
+            if (catError && catError.classList.contains('invalid-feedback')) catError.style.display = 'none';
+        }
+
+        if (tipo === 'COCINA') {
+            if (listPrincipales.length === 0) {
+                isValid = false;
+            } else {
+                const allValidQty = listPrincipales.every(i => parseFloat(i.cantidad) > 0);
+                if (!allValidQty) isValid = false;
+
+                // Validar DOM e ingredientes (Principales)
+                const rowsP = document.querySelectorAll('#tablaPrincipales tbody tr:not(.empty-row)');
+                rowsP.forEach(row => {
+                    const rowId = row.getAttribute('data-id');
+                    const ingMemoria = listPrincipales.find(item => item.id == rowId);
+
+                    const select = row.querySelector('.unit-select');
+                    const inputQty = row.querySelector('.qty-input');
+                    const spanNombre = row.querySelector('span.fw-semibold');
+                    const rowError = row.querySelector('.row-error');
+
+                    let isRowTampered = false;
+                    let errorMsg = "";
+
+                    if (!ingMemoria) {
+                        isRowTampered = true;
+                        errorMsg = "¡ID del ingrediente no existe!";
+                    } else if (!spanNombre || spanNombre.textContent !== ingMemoria.nombre) {
+                        isRowTampered = true;
+                        errorMsg = "¡Nombre del ingrediente no existe!";
+                    } else if (!select || select.getAttribute('data-id') != rowId) {
+                        isRowTampered = true;
+                        errorMsg = "¡ID de unidad no existe!";
+                    } else if (!inputQty || inputQty.getAttribute('data-id') != rowId) {
+                        isRowTampered = true;
+                        errorMsg = "¡ID del input de cantidad alterado!";
+                    }
+
+                    if (isRowTampered) {
+                        isValid = false;
+                        row.classList.add('table-danger');
+                        if (rowError) {
+                            rowError.textContent = errorMsg;
+                            rowError.style.display = 'block';
+                        }
+                    } else {
+                        row.classList.remove('table-danger');
+                        if (rowError) rowError.style.display = 'none';
+
+                        // Validar unidad
+                        const validUnit = unidadesDB.some(u => u.id_unidad == select.value);
+                        const errUnit = select.closest('td').querySelector('.invalid-feedback');
+                        if (!validUnit) {
+                            isValid = false;
+                            select.classList.add('is-invalid');
+                            if (errUnit) {
+                                errUnit.textContent = "Valor de la unidad no existe";
+                                errUnit.style.display = 'block';
+                            }
+                        } else {
+                            select.classList.remove('is-invalid');
+                            if (errUnit) errUnit.style.display = 'none';
+                        }
+                        ingMemoria.unidad = select.value; // Sincronizar
+                    }
+                });
+
+                // Si borraron filas completas del DOM
+                if (rowsP.length !== listPrincipales.length) isValid = false;
+            }
+
+            if (listAdicionales.length > 0) {
+                const allValidAdic = listAdicionales.every(i =>
+                    parseFloat(i.cantidad) > 0 &&
+                    !isNaN(parseFloat(i.precio)) &&
+                    parseFloat(i.precio) > 0
+                );
+                if (!allValidAdic) isValid = false;
+
+                // Validar DOM e ingredientes (Adicionales)
+                const rowsA = document.querySelectorAll('#tablaAdicionales tbody tr:not(.empty-row)');
+                rowsA.forEach(row => {
+                    const rowId = row.getAttribute('data-id');
+                    const ingMemoria = listAdicionales.find(item => item.id == rowId);
+
+                    const select = row.querySelector('.unit-select');
+                    const inputQty = row.querySelector('.qty-input');
+                    const inputPrice = row.querySelector('.price-input');
+                    const spanNombre = row.querySelector('span.fw-semibold');
+                    const rowError = row.querySelector('.row-error');
+
+                    let isRowTampered = false;
+                    let errorMsg = "";
+
+                    if (!ingMemoria) {
+                        isRowTampered = true;
+                        errorMsg = "¡Fila o ID del ingrediente alterado!";
+                    } else if (!spanNombre || spanNombre.textContent !== ingMemoria.nombre) {
+                        isRowTampered = true;
+                        errorMsg = "¡Nombre del ingrediente alterado!";
+                    } else if (!select || select.getAttribute('data-id') != rowId) {
+                        isRowTampered = true;
+                        errorMsg = "¡ID del selector de unidad alterado!";
+                    } else if (!inputQty || inputQty.getAttribute('data-id') != rowId) {
+                        isRowTampered = true;
+                        errorMsg = "¡ID del input de cantidad alterado!";
+                    } else if (!inputPrice || inputPrice.getAttribute('data-id') != rowId) {
+                        isRowTampered = true;
+                        errorMsg = "¡ID del input de precio alterado!";
+                    }
+
+                    if (isRowTampered) {
+                        isValid = false;
+                        row.classList.add('table-danger');
+                        if (rowError) {
+                            rowError.textContent = errorMsg;
+                            rowError.style.display = 'block';
+                        }
+                    } else {
+                        row.classList.remove('table-danger');
+                        if (rowError) rowError.style.display = 'none';
+
+                        const validUnit = unidadesDB.some(u => u.id_unidad == select.value);
+                        const errUnit = select.closest('td').querySelector('.invalid-feedback');
+                        if (!validUnit) {
+                            isValid = false;
+                            select.classList.add('is-invalid');
+                            if (errUnit) {
+                                errUnit.textContent = "Unidad no válida";
+                                errUnit.style.display = 'block';
+                            }
+                        } else {
+                            select.classList.remove('is-invalid');
+                            if (errUnit) errUnit.style.display = 'none';
+                        }
+                        ingMemoria.unidad = select.value;
+                    }
+                });
+
+                if (rowsA.length !== listAdicionales.length) isValid = false;
+            }
+        }
+
+        document.getElementById('btnGuardarMenu').disabled = !isValid;
     }
 
     // ==========================================
@@ -173,6 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('imagen').value = '';
                     document.getElementById('previewImagen').src = `${BASE_URL}${ruta}`;
                     document.getElementById('previewImagenContainer').style.display = 'block';
+                    validateForm();
                 }
             });
         } else {
@@ -190,6 +484,9 @@ document.addEventListener('DOMContentLoaded', () => {
         listPrincipales = [];
         listAdicionales = [];
         renderReceta();
+
+        document.getElementById('tipo_producto').dispatchEvent(new Event('change'));
+        validateForm();
 
         modalMenu.show();
     }
@@ -258,6 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
         new bootstrap.Tab(tabEl).show();
 
         renderReceta();
+        validateForm();
     }
 
     function removeIngrediente(id, isPrincipal) {
@@ -267,6 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
             listAdicionales = listAdicionales.filter(i => i.id !== id);
         }
         renderReceta();
+        validateForm();
     }
 
     function renderReceta() {
@@ -293,6 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         list.forEach((ing, index) => {
             const tr = document.createElement('tr');
+            tr.setAttribute('data-id', ing.id);
 
             let precioHtml = '';
             if (!isPrincipal) {
@@ -304,7 +604,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             tr.innerHTML = `
-                <td><span class="fw-semibold">${ing.nombre}</span></td>
+                <td>
+                    <span class="fw-semibold">${ing.nombre}</span>
+                    <div class="invalid-feedback fw-bold row-error" style="font-size: 0.75rem;"></div>
+                </td>
                 <td>
                     <input type="number" step="0.01" min="0.01" class="form-control form-control-sm qty-input" 
                         data-id="${ing.id}" data-type="${isPrincipal ? 'principal' : 'adicional'}" value="${ing.cantidad}" required>
@@ -313,6 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <select class="form-select form-select-sm unit-select" data-id="${ing.id}" data-type="${isPrincipal ? 'principal' : 'adicional'}">
                         ${unidadesHtml(ing.unidad)}
                     </select>
+                    <div class="invalid-feedback fw-bold" style="font-size: 0.75rem;">Valor no existe</div>
                 </td>
                 ${precioHtml}
                 <td class="text-end">
@@ -325,7 +629,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Listeners updates
             tr.querySelector('.btn-remove-ing').addEventListener('click', () => removeIngrediente(ing.id, isPrincipal));
             tr.querySelector('.qty-input').addEventListener('change', (e) => updateIngrediente(ing.id, isPrincipal, 'cantidad', e.target.value));
-            tr.querySelector('.unit-select').addEventListener('change', (e) => updateIngrediente(ing.id, isPrincipal, 'unidad', e.target.value));
+
+            const unitSelect = tr.querySelector('.unit-select');
+            unitSelect.addEventListener('change', (e) => updateIngrediente(ing.id, isPrincipal, 'unidad', e.target.value));
+
             if (!isPrincipal) {
                 tr.querySelector('.price-input').addEventListener('change', (e) => updateIngrediente(ing.id, isPrincipal, 'precio', e.target.value));
             }
@@ -338,6 +645,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let list = isPrincipal ? listPrincipales : listAdicionales;
         let item = list.find(i => i.id === id);
         if (item) item[field] = value;
+        validateForm();
     }
 
     // ==========================================
@@ -426,6 +734,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }));
 
                 renderReceta();
+
+                document.getElementById('tipo_producto').dispatchEvent(new Event('change'));
+                validateForm();
+
                 modalMenu.show();
             } else {
                 Swal.fire('Error', res.message, 'error');

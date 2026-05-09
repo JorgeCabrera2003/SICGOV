@@ -136,6 +136,36 @@ class MenuController
         });
     }
 
+    public function indexPublico()
+    {
+        $menuModel = new Menu();
+        // Usamos listarMenu() indirectamente a través de Transaccion(['peticion' => 'listar'])
+        $menus = $menuModel->Transaccion(['peticion' => 'listar']) ?: [];
+        $categorias = $menuModel->Transaccion(['peticion' => 'categorias']) ?: [];
+
+        $page = 'menu_publico';
+        $titulo = 'Nuestro Menú - Good Vibes';
+        
+        // Puedes agregar css extra si lo necesitas, por ahora lo dejamos vacío o usamos el de main
+        $extra_css = [BASE_URL . '/assets/css/main.css?v=' . time()];
+
+        require_once BASE_PATH . '/resources/views/layout/head.php';
+        
+        if (isset($_SESSION['user'])) {
+            require_once BASE_PATH . '/resources/views/layout/menu.php'; 
+        } else {
+            echo '<main class="w-100 min-vh-100" id="main-content"><div class="content-wrapper bg-body">';
+        }
+
+        require_once BASE_PATH . '/resources/views/menu/public.php';
+        
+        if (!isset($_SESSION['user'])) {
+            echo '</div></main>';
+        }
+        
+        require_once BASE_PATH . '/resources/views/layout/footer.php';
+    }
+
     /**
      * Helper para respuestas JSON uniformes
      */
@@ -149,7 +179,7 @@ class MenuController
         } catch (\Exception $e) {
             echo json_encode([
                 'success' => false,
-                'message' => 'Error interno: ' . $e->getMessage()
+                'message' => $e->getMessage()
             ]);
         }
         exit();
