@@ -37,6 +37,7 @@ use App\Controllers\MediaController;
 use App\Controllers\ClienteController;
 use App\Controllers\ReservacionController;
 use App\Controllers\NotificationController;
+use App\Controllers\PapeleraController;
 
 try {
     match ($page) {
@@ -58,8 +59,10 @@ try {
         'clientes' => (new ClienteController())->index(),
         'reservaciones' => (new ReservacionController())->index(),
         'notificaciones' => (new NotificationController())->index(),
+        'papelera' => (new PapeleraController())->index(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };
+
 } catch (Exception $e) {
     $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
     

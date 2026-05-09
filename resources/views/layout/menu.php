@@ -185,6 +185,14 @@
             <span class="flex-grow-1">Bitácora</span>
         </a>
 
+        <!-- Papelera de Reciclaje -->
+        <a href="?page=papelera"
+            class="nav-link <?php echo ($page == 'papelera') ? 'active' : ''; ?> d-flex align-items-center gap-2 text-danger">
+            <i class="fas fa-trash-restore fs-5"></i>
+            <span class="flex-grow-1">Papelera de Reciclaje</span>
+        </a>
+
+
         <!-- Ayuda -->
         <a href="<?php echo BASE_URL; ?>/?page=ayuda"
             class="nav-link <?php echo ($page == 'ayuda') ? 'active' : ''; ?> d-flex align-items-center gap-2">
