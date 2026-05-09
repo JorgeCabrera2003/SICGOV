@@ -97,7 +97,7 @@
                     <a href="<?php echo BASE_URL; ?>/?page=menu"
                         class="nav-link <?php echo ($page == 'menu') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
                         <i class="fas fa-hamburger fs-6"></i>
-                        <span>Platillos</span>
+                        <span>Productos</span>
                     </a>
                     <a href="<?php echo BASE_URL; ?>/?page=categorias"
                         class="nav-link <?php echo ($page == 'categorias') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
