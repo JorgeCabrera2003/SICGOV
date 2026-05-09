@@ -52,4 +52,4 @@
 
 <!-- Recursos específicos de la página -->
 <script src="<?= BASE_URL ?>/assets/js/media-picker.js" defer></script>
-<script src="<?= BASE_URL ?>/assets/js/noticias.js" defer></script>
+<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/NoticiasController.js" defer></script>
