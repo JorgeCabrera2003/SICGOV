@@ -362,13 +362,14 @@ class Usuario extends Database
         try {
             $this->LlamarConexion("security");
             $this->LlamarConexion()->beginTransaction();
-            $query = "SELECT * FROM usuario WHERE estatus = 1";
+            $query = "SELECT * FROM vw_perfil_usuario";
 
             $stm = $this->LlamarConexion()->prepare($query);
             $stm->execute();
             if ($stm->rowCount() > 0) {
                 $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
             }
+
             $this->LlamarConexion()->commit();
             $stm = NULL;
 
