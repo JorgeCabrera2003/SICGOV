@@ -50,87 +50,74 @@ class ReporteController
             'resumen' => $resumen
         ];
 
-        // Construir subtítulo con filtros si existen
         if ($fecha_inicio && $fecha_fin) {
             $info['subtitulo'] .= " | Periodo: " . date('d/m/Y', strtotime($fecha_inicio)) . " al " . date('d/m/Y', strtotime($fecha_fin));
         }
 
-        $columns = [];
-        $data = [];
-        $config = ['orientation' => $orientation, 'paper' => $paper];
-
-        $resultado = match ($tipo) {
-            'reservaciones' => (function() use ($info, $fecha_inicio, $fecha_fin) {
-                $model = new Reservacion();
-                $filtros = ($fecha_inicio && $fecha_fin) ? ['desde' => $fecha_inicio, 'hasta' => $fecha_fin] : [];
-                $res = $model->Transaccion(['peticion' => 'listar', 'filtros' => $filtros]);
-                
-                $info['titulo'] = 'Listado de Reservaciones';
-                $columns = ['Fecha', 'Hora Inicio', 'Hora Fin', 'Cliente', 'Estado'];
-                $data = [];
-
-                if ($res['estado'] == 1) {
-                    foreach ($res['response']['datos'] as $r) {
-                        $data[] = [
-                            date('d/m/Y', strtotime($r['start'])),
-                            date('h:i A', strtotime($r['start'])),
-                            date('h:i A', strtotime($r['end'])),
-                            $r['title'],
-                            $r['extendedProps']['estado'] ?? 'N/A'
-                        ];
-                    }
-                }
-                return [$info, $columns, $data];
-            })(),
-
-            'usuarios' => (function() use ($info) {
-                $model = new Usuario();
-                $res = $model->Transaccion(['peticion' => 'consultar']);
-                
-                $info['titulo'] = 'Reporte de Usuarios del Sistema';
-                $columns = ['Cédula', 'Username', 'Nombres', 'Apellidos', 'Rol'];
-                $data = [];
-
-                if ($res['estado'] == 1) {
-                    foreach ($res['response']['datos'] as $u) {
-                        $data[] = [$u['cedula'], $u['username'], $u['nombres'], $u['apellidos'], $u['rol']];
-                    }
-                }
-                return [$info, $columns, $data];
-            })(),
-
-            'productos' => (function() use ($info) {
-                $model = new Producto();
-                $res = $model->ConsultarTodos();
-                
-                $info['titulo'] = 'Inventario de Productos (Menú)';
-                $columns = ['ID', 'Nombre', 'Categoría', 'Precio'];
-                $data = [];
-
-                if ($res['estado'] == 1) {
-                    foreach ($res['response']['datos'] as $p) {
-                        $data[] = [
-                            $p['id_producto'],
-                            $p['nombre_producto'],
-                            $p['nombre_categoria'],
-                            'Bs. ' . number_format($p['precio_producto'], 2)
-                        ];
-                    }
-                }
-                return [$info, $columns, $data];
-            })(),
-
+        // Definición universal del reporte
+        $configReporte = match ($tipo) {
+            'reservaciones' => [
+                'titulo' => 'Listado de Reservaciones',
+                'columns' => ['Fecha', 'Hora Inicio', 'Hora Fin', 'Cliente', 'Estado'],
+                'fetch' => fn() => (new Reservacion())->Transaccion([
+                    'peticion' => 'listar', 
+                    'filtros' => ($fecha_inicio && $fecha_fin) ? ['desde' => $fecha_inicio, 'hasta' => $fecha_fin] : []
+                ]),
+                'map' => fn($r) => [
+                    date('d/m/Y', strtotime($r['start'])),
+                    date('h:i A', strtotime($r['start'])),
+                    date('h:i A', strtotime($r['end'])),
+                    $r['title'],
+                    $r['extendedProps']['estado'] ?? 'N/A'
+                ]
+            ],
+            'usuarios' => [
+                'titulo' => 'Reporte de Usuarios del Sistema',
+                'columns' => ['Cédula', 'Nombre Completo', 'Username', 'Rol', 'Último Acceso'],
+                'fetch' => fn() => (new Usuario())->Transaccion(['peticion' => 'consultar']),
+                'map' => fn($u) => [
+                    $u['cedula'],
+                    ($u['nombre'] ?? '') . ' ' . ($u['apellido'] ?? ''),
+                    $u['username'],
+                    $u['rol'] ?? 'N/A',
+                    $u['ultimo_acceso'] ? date('d/m/Y h:i A', strtotime($u['ultimo_acceso'])) : 'Nunca'
+                ]
+            ],
+            'productos' => [
+                'titulo' => 'Inventario de Productos (Menú)',
+                'columns' => ['ID', 'Nombre', 'Categoría', 'Precio'],
+                'fetch' => fn() => (new Producto())->ConsultarTodos(),
+                'map' => fn($p) => [
+                    $p['id_producto'],
+                    $p['nombre_producto'],
+                    $p['nombre_categoria'],
+                    'Bs. ' . number_format($p['precio_producto'], 2)
+                ]
+            ],
             default => null
         };
 
-        if (!$resultado) {
+        if (!$configReporte) {
             header("Location: " . BASE_URL . "/?page=reportes&error=tipo_invalido");
             return;
         }
 
-        [$info, $columns, $data] = $resultado;
-        $reportService->setup($info, $columns, $data, $config)->render("Reporte_{$tipo}_" . date('Ymd') . ".pdf");
+        // Ejecución Universal del Reporte (Principio de Eficiencia)
+        $res = $configReporte['fetch']();
+        $info['titulo'] = $configReporte['titulo'];
+        $data = [];
+
+        if ($res['estado'] == 1) {
+            $raw_data = $res['response']['datos'] ?? [];
+            foreach ($raw_data as $row) {
+                $data[] = $configReporte['map']($row);
+            }
+        }
+
+        $reportService->setup($info, $configReporte['columns'], $data, ['orientation' => $orientation, 'paper' => $paper])
+                      ->render("Reporte_{$tipo}_" . date('Ymd') . ".pdf");
     }
+
 
 
 }
