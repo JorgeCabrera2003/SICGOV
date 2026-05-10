@@ -41,10 +41,12 @@ use App\Controllers\MediaController;
 use App\Controllers\ClienteController;
 use App\Controllers\ReservacionController;
 use App\Controllers\NotificationController;
-use App\Controllers\PapeleraController;
+use App\Controllers\MesasController;
 use App\Controllers\ReporteController;
+use App\Controllers\PapeleraController;
 
 try {
+
     match ($page) {
         'login' => (new LoginController())->index(),
         'logout' => (new LogOutController())->index(),
@@ -55,6 +57,7 @@ try {
         'menu' => (new MenuController())->index(),
         'nuestro-menu' => (new MenuController())->indexPublico(),
         'ingredientes' => (new IngredienteController())->index(),
+        'mesas' => (new MesasController())->index(),
         'categoria-ingrediente' => (new IngredienteController())->indexCategoria(),
         'categorias' => (new CategoriaController())->index(),
         'bitacora' => (new BitacoraController())->index(),
@@ -66,6 +69,8 @@ try {
         'reservaciones' => (new ReservacionController())->index(),
         'reservar' => (new ReservacionController())->index(true),
         'reportes' => (new ReporteController())->index(),
+        'papelera' => (new PapeleraController())->index(),
+
 
 
         'notificaciones' => (new NotificationController())->index(),
