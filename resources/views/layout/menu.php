@@ -47,213 +47,178 @@
     <nav class="nav nav-pills flex-nowrap flex-column gap-1 px-2 py-3 flex-grow-1 overflow-auto" aria-label="Menú principal">
         <!-- Dashboard -->
         <a href="<?php echo BASE_URL; ?>/?page=home"
-            class="nav-link <?php echo ($page == 'home') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-            <i class="bi bi-speedometer2 fs-5"></i>
-            <span class="flex-grow-1">Dashboard</span>
-            <?php if ($page == 'home'): ?>
-                <span class="visually-hidden">(actual)</span>
-            <?php endif; ?>
+            class="nav-link <?php echo ($page == 'home') ? 'active' : ''; ?> d-flex align-items-center gap-2 mb-3">
+            <i class="bi bi-grid-1x2-fill fs-5"></i>
+            <span class="fw-bold">Dashboard Principal</span>
         </a>
 
-        <!-- Usuario -->
-        <a href="<?php echo BASE_URL; ?>/?page=usuario"
-            class="nav-link <?php echo ($page == 'usuario') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-            <i class="fa-solid fa-users"></i>
-            <span class="flex-grow-1">Usuarios</span>
-        </a>
-
-        <!-- Clientes -->
-        <a href="<?php echo BASE_URL; ?>/?page=clientes"
-            class="nav-link <?php echo ($page == 'clientes') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-            <i class="fas fa-users"></i>
-            <span class="flex-grow-1">Clientes</span>
-        </a>
-
-        <!-- Reservaciones (Colapsable) -->
-        <div class="nav-item w-100">
-            <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['reservaciones', 'reservar']) ? '' : 'collapsed'; ?>" 
-                data-bs-toggle="collapse" href="#reservas-submenu" role="button"
-                aria-expanded="<?php echo in_array($page, ['reservaciones', 'reservar']) ? 'true' : 'false'; ?>">
-                <i class="bi bi-calendar-check fs-5"></i>
-                <span class="flex-grow-1">Reservaciones</span>
+        <!-- CATEGORÍA: ATENCIÓN AL CLIENTE -->
+        <div class="nav-item w-100 mb-1">
+            <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block" style="font-size: 0.65rem; letter-spacing: 1px;">Atención al Cliente</small>
+            <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['clientes', 'pedidos', 'reservaciones', 'reservar']) ? '' : 'collapsed'; ?>" 
+                data-bs-toggle="collapse" href="#cliente-submenu" role="button">
+                <i class="bi bi-person-heart fs-5"></i>
+                <span class="flex-grow-1">Servicio y Citas</span>
                 <i class="bi bi-chevron-right transition-rotate"></i>
             </a>
-            <div class="collapse <?php echo in_array($page, ['reservaciones', 'reservar']) ? 'show' : ''; ?>" id="reservas-submenu">
+            <div class="collapse <?php echo in_array($page, ['clientes', 'pedidos', 'reservaciones', 'reservar']) ? 'show' : ''; ?>" id="cliente-submenu">
                 <div class="d-flex flex-column gap-1 ps-4 mt-1">
+                    <a href="?page=clientes" class="nav-link <?php echo ($page == 'clientes') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-people me-2"></i>Clientes
+                    </a>
+                    <a href="?page=pedidos" class="nav-link <?php echo ($page == 'pedidos') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-receipt me-2"></i>Pedidos
+                    </a>
                     <?php if (in_array($datos['rol'], ['ADMINISTRADOR', 'VENTAS'])): ?>
-                    <a href="<?php echo BASE_URL; ?>/?page=reservaciones"
-                        class="nav-link <?php echo ($page == 'reservaciones') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
-                        <i class="bi bi-calendar3 fs-6"></i>
-                        <span>Agenda Global</span>
+                    <a href="?page=reservaciones" class="nav-link <?php echo ($page == 'reservaciones') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-calendar-check me-2"></i>Agenda Global
                     </a>
                     <?php endif; ?>
-                    
-                    <a href="<?php echo BASE_URL; ?>/?page=reservar"
-                        class="nav-link <?php echo ($page == 'reservar') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
-                        <i class="bi bi-calendar-heart fs-6"></i>
-                        <span>Mis Citas</span>
+                    <a href="?page=reservar" class="nav-link <?php echo ($page == 'reservar') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-calendar-plus me-2"></i>Nueva Reserva
                     </a>
                 </div>
             </div>
         </div>
 
-
-        <!-- Pedidos / Mesas -->
-        <div class="nav-item w-100">
-            <a class="nav-link d-flex align-items-center gap-2 collapsed" data-bs-toggle="collapse"
-                href="#pedidos-mesas-submenu" role="button"
-                aria-expanded="<?php echo in_array($page, ['areas', 'mesas', 'pedidos']) ? 'true' : 'false'; ?>">
-                <i class="fas fa-clipboard-list fs-5"></i>
-                <span class="flex-grow-1">Pedidos / Mesas</span>
+        <!-- CATEGORÍA: GESTIÓN DEL SALÓN -->
+        <div class="nav-item w-100 mb-1">
+            <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block" style="font-size: 0.65rem; letter-spacing: 1px;">Gestión del Salón</small>
+            <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['areas', 'mesas']) ? '' : 'collapsed'; ?>" 
+                data-bs-toggle="collapse" href="#salon-submenu" role="button">
+                <i class="bi bi-houses fs-5"></i>
+                <span class="flex-grow-1">Áreas y Mesas</span>
                 <i class="bi bi-chevron-right transition-rotate"></i>
             </a>
-            <div class="collapse <?php echo in_array($page, ['areas', 'mesas', 'pedidos']) ? 'show' : ''; ?>"
-                id="pedidos-mesas-submenu">
+            <div class="collapse <?php echo in_array($page, ['areas', 'mesas']) ? 'show' : ''; ?>" id="salon-submenu">
                 <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                    <a href="<?php echo BASE_URL; ?>/?page=areas"
-                        class="nav-link <?php echo ($page == 'areas') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
-                        <i class="fas fa-building fs-6"></i>
-                        <span>Áreas</span>
+                    <a href="?page=areas" class="nav-link <?php echo ($page == 'areas') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-geo-alt me-2"></i>Áreas del Local
                     </a>
-                    <a href="<?php echo BASE_URL; ?>/?page=mesas"
-                        class="nav-link <?php echo ($page == 'mesas') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
-                        <i class="fas fa-chair fs-6"></i>
-                        <span>Mesas</span>
-                    </a>
-                    <a href="<?php echo BASE_URL; ?>/?page=pedidos"
-                        class="nav-link <?php echo ($page == 'pedidos') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
-                        <i class="fas fa-receipt fs-6"></i>
-                        <span>Pedidos</span>
+                    <a href="?page=mesas" class="nav-link <?php echo ($page == 'mesas') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-table me-2"></i>Control de Mesas
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Menú del Restaurante (colapsable) -->
-        <div class="nav-item w-100">
-            <a class="nav-link d-flex align-items-center gap-2 collapsed" data-bs-toggle="collapse"
-                href="#menu-submenu" role="button"
-                aria-expanded="<?php echo in_array($page, ['menu', 'categorias']) ? 'true' : 'false'; ?>">
-                <i class="fas fa-utensils fs-5"></i>
-                <span class="flex-grow-1">Menú del Restaurante</span>
+        <!-- CATEGORÍA: COCINA E INVENTARIO -->
+        <div class="nav-item w-100 mb-1">
+            <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block" style="font-size: 0.65rem; letter-spacing: 1px;">Cocina e Inventario</small>
+            <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['categorias', 'ingredientes', 'menu']) ? '' : 'collapsed'; ?>" 
+                data-bs-toggle="collapse" href="#cocina-submenu" role="button">
+                <i class="bi bi-egg-fried fs-5"></i>
+                <span class="flex-grow-1">Menú y Recetas</span>
                 <i class="bi bi-chevron-right transition-rotate"></i>
             </a>
-            <div class="collapse <?php echo in_array($page, ['menu', 'categorias']) ? 'show' : ''; ?>"
-                id="menu-submenu">
+            <div class="collapse <?php echo in_array($page, ['categorias', 'ingredientes', 'menu']) ? 'show' : ''; ?>" id="cocina-submenu">
                 <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                    <a href="<?php echo BASE_URL; ?>/?page=menu"
-                        class="nav-link <?php echo ($page == 'menu') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
-                        <i class="fas fa-hamburger fs-6"></i>
-                        <span>Productos</span>
+                    <a href="?page=categorias" class="nav-link <?php echo ($page == 'categorias') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-tags me-2"></i>Categorías
                     </a>
-                    <a href="<?php echo BASE_URL; ?>/?page=categorias"
-                        class="nav-link <?php echo ($page == 'categorias') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
-                        <i class="fas fa-tags fs-6"></i>
-                        <span>Categorías</span>
+                    <a href="?page=ingredientes" class="nav-link <?php echo ($page == 'ingredientes') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-droplet me-2"></i>Ingredientes
+                    </a>
+                    <a href="?page=menu" class="nav-link <?php echo ($page == 'menu') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-journal-text me-2"></i>Carta / Menú
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Productos -->
-        <a href="<?php echo BASE_URL; ?>/?page=productos"
-            class="nav-link <?php echo ($page == 'productos') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-            <i class="bi bi-box-seam fs-5"></i>
-            <span class="flex-grow-1">Productos Varios</span>
-        </a>
-
-        <!-- Ingredientes -->
-        <a href="?page=ingredientes"
-            class="nav-link <?php echo ($page == 'ingredientes') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-            <i class="fa-solid fa-jar"></i>
-            <span class="flex-grow-1">Ingredientes</span>
-        </a>
-
-        <!-- Noticias -->
-        <a href="?page=noticias-admin"
-            class="nav-link <?php echo ($page == 'noticias-admin' || $page == 'noticias' || $page == 'noticias-detalle') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-            <i class="fas fa-newspaper fs-5"></i>
-            <span class="flex-grow-1">Noticias</span>
-        </a>
-
-        <!-- Multimedia -->
-        <a href="?page=multimedia"
-            class="nav-link <?php echo ($page == 'multimedia') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-            <i class="fas fa-images fs-5"></i>
-            <span class="flex-grow-1">Multimedia</span>
-        </a>
-
-        <!-- Separador -->
-        <hr class="my-2 opacity-25">
-
-        <!-- Gestión de Equipos (colapsable) -->
-        <div class="nav-item w-100">
-            <a class="nav-link d-flex align-items-center gap-2 collapsed" data-bs-toggle="collapse"
-                href="#equipos-submenu" role="button"
-                aria-expanded="<?php echo in_array($page, ['bien', 'equipo', 'material']) ? 'true' : 'false'; ?>">
-                <i class="bi bi-pc-display fs-5"></i>
-                <span class="flex-grow-1">Gestión de Equipos</span>
+        <!-- CATEGORÍA: LOGÍSTICA Y ALMACÉN -->
+        <div class="nav-item w-100 mb-1">
+            <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block" style="font-size: 0.65rem; letter-spacing: 1px;">Logística y Almacén</small>
+            <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['bien', 'equipo', 'material', 'productos']) ? '' : 'collapsed'; ?>" 
+                data-bs-toggle="collapse" href="#logistica-submenu" role="button">
+                <i class="bi bi-truck fs-5"></i>
+                <span class="flex-grow-1">Suministros y Activos</span>
                 <i class="bi bi-chevron-right transition-rotate"></i>
             </a>
-            <div class="collapse <?php echo in_array($page, ['bien', 'equipo', 'material']) ? 'show' : ''; ?>"
-                id="equipos-submenu">
+            <div class="collapse <?php echo in_array($page, ['productos']) ? 'show' : ''; ?>" id="logistica-submenu">
                 <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                    <a href="<?php echo BASE_URL; ?>/?page=bien"
-                        class="nav-link <?php echo ($page == 'bien') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
-                        <i class="bi bi-box fs-6"></i>
-                        <span>Bienes</span>
-                    </a>
-                    <a href="<?php echo BASE_URL; ?>/?page=equipo"
-                        class="nav-link <?php echo ($page == 'equipo') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
-                        <i class="bi bi-cpu fs-6"></i>
-                        <span>Equipos</span>
-                    </a>
-                    <a href="<?php echo BASE_URL; ?>/?page=material"
-                        class="nav-link <?php echo ($page == 'material') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
-                        <i class="bi bi-tools fs-6"></i>
-                        <span>Materiales</span>
+                    <a href="?page=productos" class="nav-link <?php echo ($page == 'productos') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-box-seam me-2"></i>Otros Productos
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- Reportes -->
-        <a href="<?php echo BASE_URL; ?>/?page=reportes"
-            class="nav-link <?php echo ($page == 'reportes') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-            <i class="bi bi-file-earmark-bar-graph fs-5"></i>
-            <span class="flex-grow-1">Reportes</span>
-        </a>
+        <!-- CATEGORÍA: MARKETING Y CONTENIDO -->
+        <div class="nav-item w-100 mb-1">
+            <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block" style="font-size: 0.65rem; letter-spacing: 1px;">Marketing y Contenido</small>
+            <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['multimedia', 'noticias-admin']) ? '' : 'collapsed'; ?>" 
+                data-bs-toggle="collapse" href="#marketing-submenu" role="button">
+                <i class="bi bi-megaphone fs-5"></i>
+                <span class="flex-grow-1">Difusión Digital</span>
+                <i class="bi bi-chevron-right transition-rotate"></i>
+            </a>
+            <div class="collapse <?php echo in_array($page, ['multimedia', 'noticias-admin']) ? 'show' : ''; ?>" id="marketing-submenu">
+                <div class="d-flex flex-column gap-1 ps-4 mt-1">
+                    <a href="?page=multimedia" class="nav-link <?php echo ($page == 'multimedia') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-images me-2"></i>Galería Multimedia
+                    </a>
+                    <a href="?page=noticias-admin" class="nav-link <?php echo ($page == 'noticias-admin') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-newspaper me-2"></i>Blog / Noticias
+                    </a>
+                </div>
+            </div>
+        </div>
 
-        <!-- Estadísticas -->
+        <!-- CATEGORÍA: INTELIGENCIA DE NEGOCIO -->
+        <div class="nav-item w-100 mb-1">
+            <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block" style="font-size: 0.65rem; letter-spacing: 1px;">Inteligencia de Negocio</small>
+            <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['reportes', 'estadistica']) ? '' : 'collapsed'; ?>" 
+                data-bs-toggle="collapse" href="#reportes-submenu" role="button">
+                <i class="bi bi-graph-up-arrow fs-5"></i>
+                <span class="flex-grow-1">Análisis y PDF</span>
+                <i class="bi bi-chevron-right transition-rotate"></i>
+            </a>
+            <div class="collapse <?php echo in_array($page, ['reportes', 'estadistica']) ? 'show' : ''; ?>" id="reportes-submenu">
+                <div class="d-flex flex-column gap-1 ps-4 mt-1">
+                    <a href="?page=estadistica" class="nav-link <?php echo ($page == 'estadistica') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-pie-chart me-2"></i>Estadísticas Reales
+                    </a>
+                    <a href="?page=reportes" class="nav-link <?php echo ($page == 'reportes') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Centro de Reportes
+                    </a>
+                </div>
+            </div>
+        </div>
 
-        <a href="<?php echo BASE_URL; ?>/?page=estadistica"
-            class="nav-link <?php echo ($page == 'estadistica') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-            <i class="bi bi-bar-chart-steps fs-5"></i>
-            <span class="flex-grow-1">Estadísticas</span>
-        </a>
+        <hr class="my-3 opacity-25">
 
-        <!-- Bitácora -->
-        <a href="<?php echo BASE_URL; ?>/?page=bitacora"
-            class="nav-link <?php echo ($page == 'bitacora') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-            <i class="bi bi-journal-bookmark-fill fs-5"></i>
-            <span class="flex-grow-1">Bitácora</span>
-        </a>
+                <!-- CATEGORÍA: SEGURIDAD Y AUDITORÍA -->
+        <div class="nav-item w-100 mb-1">
+            <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block" style="font-size: 0.65rem; letter-spacing: 1px;">Seguridad y Auditoría</small>
+            <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['bitacora', 'papelera', 'usuario']) ? '' : 'collapsed'; ?>" 
+                data-bs-toggle="collapse" href="#seguridad-submenu" role="button">
+                <i class="bi bi-shield-lock fs-5"></i>
+                <span class="flex-grow-1">Control de Acceso</span>
+                <i class="bi bi-chevron-right transition-rotate"></i>
+            </a>
+            <div class="collapse <?php echo in_array($page, ['bitacora', 'papelera', 'usuario']) ? 'show' : ''; ?>" id="seguridad-submenu">
+                <div class="d-flex flex-column gap-1 ps-4 mt-1">
+                    <a href="?page=bitacora" class="nav-link <?php echo ($page == 'bitacora') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-shield-shaded me-2"></i>Bitácora de Acciones
+                    </a>
+                    <a href="?page=papelera" class="nav-link <?php echo ($page == 'papelera') ? 'active text-danger' : 'text-danger'; ?> py-1">
+                        <i class="bi bi-trash3 me-2"></i>Papelera (Recycle)
+                    </a>
+                    <a href="?page=usuario" class="nav-link <?php echo ($page == 'usuario') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-person-vcard me-2"></i>Gestión de Usuarios
+                    </a>
+                </div>
+            </div>
+        </div>
 
-        <!-- Papelera de Reciclaje -->
-        <a href="?page=papelera"
-            class="nav-link <?php echo ($page == 'papelera') ? 'active' : ''; ?> d-flex align-items-center gap-2 text-danger">
-            <i class="fas fa-trash-restore fs-5"></i>
-            <span class="flex-grow-1">Papelera de Reciclaje</span>
-        </a>
-
-
-        <!-- Ayuda -->
-        <a href="<?php echo BASE_URL; ?>/?page=ayuda"
-            class="nav-link <?php echo ($page == 'ayuda') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+        <!-- Soporte -->
+        <a href="?page=ayuda" class="nav-link <?php echo ($page == 'ayuda') ? 'active' : ''; ?> d-flex align-items-center gap-2">
             <i class="bi bi-question-circle fs-5"></i>
-            <span class="flex-grow-1">Ayuda</span>
+            <span>Centro de Ayuda</span>
         </a>
     </nav>
+
 
     <!-- Cerrar sesión (siempre visible) -->
     <div class="p-3 border-top">
