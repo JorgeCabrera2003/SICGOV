@@ -76,11 +76,35 @@
         </a>
 
         <!-- Pedidos / Mesas -->
-        <a href="<?php echo BASE_URL; ?>/?page=pedidos"
-            class="nav-link <?php echo ($page == 'pedidos') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-            <i class="bi bi-egg-fried fs-5"></i>
-            <span class="flex-grow-1">Pedidos / Mesas</span>
-        </a>
+        <div class="nav-item w-100">
+            <a class="nav-link d-flex align-items-center gap-2 collapsed" data-bs-toggle="collapse"
+                href="#pedidos-mesas-submenu" role="button"
+                aria-expanded="<?php echo in_array($page, ['areas', 'mesas', 'pedidos']) ? 'true' : 'false'; ?>">
+                <i class="fas fa-clipboard-list fs-5"></i>
+                <span class="flex-grow-1">Pedidos / Mesas</span>
+                <i class="bi bi-chevron-right transition-rotate"></i>
+            </a>
+            <div class="collapse <?php echo in_array($page, ['areas', 'mesas', 'pedidos']) ? 'show' : ''; ?>"
+                id="pedidos-mesas-submenu">
+                <div class="d-flex flex-column gap-1 ps-4 mt-1">
+                    <a href="<?php echo BASE_URL; ?>/?page=areas"
+                        class="nav-link <?php echo ($page == 'areas') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
+                        <i class="fas fa-building fs-6"></i>
+                        <span>Áreas</span>
+                    </a>
+                    <a href="<?php echo BASE_URL; ?>/?page=mesas"
+                        class="nav-link <?php echo ($page == 'mesas') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
+                        <i class="fas fa-chair fs-6"></i>
+                        <span>Mesas</span>
+                    </a>
+                    <a href="<?php echo BASE_URL; ?>/?page=pedidos"
+                        class="nav-link <?php echo ($page == 'pedidos') ? 'active' : ''; ?> d-flex align-items-center gap-2 py-1">
+                        <i class="fas fa-receipt fs-6"></i>
+                        <span>Pedidos</span>
+                    </a>
+                </div>
+            </div>
+        </div>
 
         <!-- Menú del Restaurante (colapsable) -->
         <div class="nav-item w-100">
