@@ -127,6 +127,12 @@
     <header>
         <table class="info-header">
             <tr>
+                <td style="width: 60px;">
+                    <?php if (!empty($info['logo'])): ?>
+                        <img src="<?= $info['logo'] ?>" alt="Logo" style="height: 50px;">
+                    <?php endif; ?>
+                </td>
+
                 <td>
                     <div class="title"><?= mb_strtoupper($info['titulo'] ?? 'REPORTE GENERAL') ?></div>
                     <div class="subtitle"><?= $info['subtitulo'] ?? 'Detalle informativo del sistema' ?></div>
@@ -138,6 +144,7 @@
             </tr>
         </table>
     </header>
+
 
     <footer>
         <div class="page-number"></div>

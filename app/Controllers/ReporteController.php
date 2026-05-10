@@ -43,12 +43,23 @@ class ReporteController
         $fecha_inicio = $_POST['fecha_inicio'] ?? null;
         $fecha_fin = $_POST['fecha_fin'] ?? null;
 
+        $logoPath = BASE_PATH . '/public/assets/img/logo.png';
+        $logoBase64 = '';
+        if (file_exists($logoPath)) {
+            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
+            $data = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        }
+
         $info = [
             'usuario' => $datosUsuario['nombres'] . ' ' . $datosUsuario['apellidos'],
             'titulo' => 'Reporte del Sistema',
             'subtitulo' => 'Información generada dinámicamente',
-            'resumen' => $resumen
+            'resumen' => $resumen,
+            'logo' => $logoBase64
         ];
+
+
 
         if ($fecha_inicio && $fecha_fin) {
             $info['subtitulo'] .= " | Periodo: " . date('d/m/Y', strtotime($fecha_inicio)) . " al " . date('d/m/Y', strtotime($fecha_fin));
