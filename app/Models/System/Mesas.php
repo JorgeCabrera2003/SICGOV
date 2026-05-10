@@ -252,10 +252,10 @@ private function EliminarMesa()
         $this->LlamarConexion()->beginTransaction();
 
         // Borrado físico
-        $sql = "DELETE FROM mesa WHERE id_mesa = :id_mesa";
+        // $sql = "DELETE FROM mesa WHERE id_mesa = :id_mesa";
         
         // O borrado lógico (recomendado):
-        // $sql = "UPDATE mesa SET estatus = 0 WHERE id_mesa = :id_mesa";
+        $sql = "UPDATE mesa SET estatus = 0 WHERE id_mesa = :id_mesa";
 
         $stm = $this->LlamarConexion()->prepare($sql);
         $stm->bindParam(':id_mesa', $this->id_mesa);
