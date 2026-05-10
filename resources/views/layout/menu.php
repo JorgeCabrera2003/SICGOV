@@ -193,7 +193,15 @@
             </div>
         </div>
 
+        <!-- Reportes -->
+        <a href="<?php echo BASE_URL; ?>/?page=reportes"
+            class="nav-link <?php echo ($page == 'reportes') ? 'active' : ''; ?> d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-bar-graph fs-5"></i>
+            <span class="flex-grow-1">Reportes</span>
+        </a>
+
         <!-- Estadísticas -->
+
         <a href="<?php echo BASE_URL; ?>/?page=estadistica"
             class="nav-link <?php echo ($page == 'estadistica') ? 'active' : ''; ?> d-flex align-items-center gap-2">
             <i class="bi bi-bar-chart-steps fs-5"></i>
