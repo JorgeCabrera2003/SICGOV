@@ -105,7 +105,19 @@ class ReporteController
                     'Bs. ' . number_format($p['precio_producto'], 2)
                 ]
             ],
+            'mesas' => [
+                'titulo' => 'Reporte de Distribución de Mesas',
+                'columns' => ['Número', 'Área / Ubicación', 'Capacidad', 'Estado Actual'],
+                'fetch' => fn() => (new \App\Models\System\Mesas())->Transaccion(['peticion' => 'consultar']),
+                'map' => fn($m) => [
+                    'Mesa #' . $m['numero_mesa'],
+                    $m['area_nombre'] ?? 'Sin área asignada',
+                    $m['capacidad'] . ' personas',
+                    $m['estado'] ?? 'DISPONIBLE'
+                ]
+            ],
             default => null
+
         };
 
         if (!$configReporte) {

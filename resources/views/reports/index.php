@@ -57,6 +57,23 @@
                 </div>
             </div>
         </div>
+
+        <!-- Reporte de Mesas -->
+        <div class="col-md-4 col-lg-3">
+            <div class="card h-100 border-0 shadow-lg hover-transform card-report">
+                <div class="card-body p-4 text-center">
+                    <div class="icon-shape bg-warning bg-opacity-10 text-warning mb-4 mx-auto" style="color: #fd7e14 !important; background-color: rgba(253, 126, 20, 0.1) !important;">
+                        <i class="bi bi-table fs-2"></i>
+                    </div>
+                    <h5 class="fw-bold">Mesas / Áreas</h5>
+                    <p class="text-muted small">Distribución de mesas por áreas, capacidad y estado de ocupación.</p>
+                    <button type="button" class="btn btn-warning w-100 rounded-pill fw-bold py-2 text-white btn-config-report" data-tipo="mesas" style="background-color: #fd7e14; border-color: #fd7e14;">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Generar Reporte
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div class="mt-5 pt-5 text-center">
