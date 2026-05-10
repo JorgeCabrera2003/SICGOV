@@ -111,10 +111,10 @@ $badgeArray = [
             </div>
             <div class="carousel-inner">
                 <?php foreach($topnoticias as $idx => $t): 
-                    $img = !empty($t['imagen_principal']) ? BASE_URL . $t['imagen_principal'] : BASE_URL . '/assets/img/default-product.png';
+                    $img = !empty($t['imagen_principal']) ? BASE_URL . $t['imagen_principal'] : BASE_URL . '/assets/img/noticia-default.png';
                 ?>
                 <div class="carousel-item <?= $idx==0?'active':'' ?>">
-                    <img src="<?= $img ?>" class="d-block w-100" alt="<?= htmlspecialchars($t['titulo']) ?>">
+                    <img src="<?= $img ?>" class="d-block w-100" alt="<?= htmlspecialchars($t['titulo']) ?>" onerror="this.src='<?= BASE_URL ?>/assets/img/logo.png'; this.style.objectFit='contain';">
                     <div class="news-carousel-caption">
                         <div class="container">
                             <span class="badge <?= $badgeArray[$t['tipo']]['bg'] ?? 'bg-primary' ?> mb-3 p-2 px-3 fw-bold">
@@ -233,7 +233,7 @@ $badgeArray = [
         <div class="row g-4 mt-2">
             <?php if (!empty($otrasnoticias)): ?>
                 <?php foreach ($otrasnoticias as $noti): 
-                    $img = !empty($noti['imagen_principal']) ? BASE_URL . $noti['imagen_principal'] : BASE_URL . '/assets/img/default-product.png';
+                    $img = !empty($noti['imagen_principal']) ? BASE_URL . $noti['imagen_principal'] : BASE_URL . '/assets/img/noticia-default.png';
                     $fecha = new DateTime($noti['fecha_publicacion']);
                     $badgeClass = $badgeArray[$noti['tipo']]['bg'] ?? 'bg-primary';
                     $badgeText  = $badgeArray[$noti['tipo']]['text'] ?? 'Nota';
@@ -243,7 +243,7 @@ $badgeArray = [
                     <article class="editorial-card h-100 bg-tarjetas shadow-sm border">
                         <div class="editorial-img-container">
                             <span class="badge <?= $badgeClass ?> editorial-badge shadow"><?= $badgeText ?></span>
-                            <img src="<?= $img ?>" alt="<?= htmlspecialchars($noti['titulo']) ?>">
+                            <img src="<?= $img ?>" alt="<?= htmlspecialchars($noti['titulo']) ?>" onerror="this.src='<?= BASE_URL ?>/assets/img/logo.png'; this.style.objectFit='contain'; this.style.padding='20px';">
                             <a href="<?= BASE_URL ?>?page=noticias-detalle&id=<?= $noti['id_noticia'] ?>" class="stretched-link"></a>
                         </div>
                         <div class="p-3">
