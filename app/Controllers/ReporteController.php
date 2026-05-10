@@ -22,37 +22,56 @@ class ReporteController
 
         Helper::cargarVista(
             'reports/index',
-            'Centro de Reportes - SICGOV'
+            'Centro de Reportes - SICGOV',
+            [
+                'extra_css' => [BASE_URL . '/assets/css/reportes.css'],
+                'extra_js_modules' => [BASE_URL . '/assets/js/Controllers/ReporteController.js']
+            ]
         );
     }
+
 
     private function generarReporte(string $tipo)
     {
         $reportService = new ReportService();
         $datosUsuario = Helper::getDatosUsuario();
         
+        // Parámetros de configuración
+        $paper = $_POST['paper'] ?? 'letter';
+        $orientation = $_POST['orientation'] ?? 'portrait';
+        $resumen = $_POST['resumen'] ?? '';
+        $fecha_inicio = $_POST['fecha_inicio'] ?? null;
+        $fecha_fin = $_POST['fecha_fin'] ?? null;
+
         $info = [
             'usuario' => $datosUsuario['nombres'] . ' ' . $datosUsuario['apellidos'],
             'titulo' => 'Reporte del Sistema',
-            'subtitulo' => 'Información generada dinámicamente'
+            'subtitulo' => 'Información generada dinámicamente',
+            'resumen' => $resumen
         ];
+
+        // Construir subtítulo con filtros si existen
+        if ($fecha_inicio && $fecha_fin) {
+            $info['subtitulo'] .= " | Periodo: " . date('d/m/Y', strtotime($fecha_inicio)) . " al " . date('d/m/Y', strtotime($fecha_fin));
+        }
 
         $columns = [];
         $data = [];
-        $config = ['orientation' => 'portrait', 'paper' => 'letter'];
+        $config = ['orientation' => $orientation, 'paper' => $paper];
 
-        switch ($tipo) {
-            case 'reservaciones':
+        $resultado = match ($tipo) {
+            'reservaciones' => (function() use ($info, $fecha_inicio, $fecha_fin) {
                 $model = new Reservacion();
-                $res = $model->Transaccion(['peticion' => 'listar']);
-                $info['titulo'] = 'Listado de Reservaciones';
-                $info['subtitulo'] = 'Historial completo de citas registradas';
-                $columns = ['ID', 'Fecha', 'Hora Inicio', 'Hora Fin', 'Cliente', 'Estado'];
+                $filtros = ($fecha_inicio && $fecha_fin) ? ['desde' => $fecha_inicio, 'hasta' => $fecha_fin] : [];
+                $res = $model->Transaccion(['peticion' => 'listar', 'filtros' => $filtros]);
                 
+                $info['titulo'] = 'Listado de Reservaciones';
+                $columns = ['Fecha', 'Hora Inicio', 'Hora Fin', 'Cliente', 'Estado'];
+                $data = [];
+
                 if ($res['estado'] == 1) {
                     foreach ($res['response']['datos'] as $r) {
                         $data[] = [
-                            $r['id'],
                             date('d/m/Y', strtotime($r['start'])),
                             date('h:i A', strtotime($r['start'])),
                             date('h:i A', strtotime($r['end'])),
@@ -61,35 +80,33 @@ class ReporteController
                         ];
                     }
                 }
-                break;
+                return [$info, $columns, $data];
+            })(),
 
-            case 'usuarios':
+            'usuarios' => (function() use ($info) {
                 $model = new Usuario();
                 $res = $model->Transaccion(['peticion' => 'consultar']);
-                $info['titulo'] = 'Reporte de Usuarios del Sistema';
-                $info['subtitulo'] = 'Personal con acceso administrativo';
-                $columns = ['Cédula', 'Username', 'Nombres', 'Apellidos', 'Rol'];
                 
+                $info['titulo'] = 'Reporte de Usuarios del Sistema';
+                $columns = ['Cédula', 'Username', 'Nombres', 'Apellidos', 'Rol'];
+                $data = [];
+
                 if ($res['estado'] == 1) {
                     foreach ($res['response']['datos'] as $u) {
-                        $data[] = [
-                            $u['cedula'],
-                            $u['username'],
-                            $u['nombres'],
-                            $u['apellidos'],
-                            $u['rol']
-                        ];
+                        $data[] = [$u['cedula'], $u['username'], $u['nombres'], $u['apellidos'], $u['rol']];
                     }
                 }
-                break;
+                return [$info, $columns, $data];
+            })(),
 
-            case 'productos':
+            'productos' => (function() use ($info) {
                 $model = new Producto();
                 $res = $model->ConsultarTodos();
-                $info['titulo'] = 'Inventario de Productos (Menú)';
-                $info['subtitulo'] = 'Listado de platos y productos disponibles';
-                $columns = ['ID', 'Nombre', 'Categoría', 'Precio'];
                 
+                $info['titulo'] = 'Inventario de Productos (Menú)';
+                $columns = ['ID', 'Nombre', 'Categoría', 'Precio'];
+                $data = [];
+
                 if ($res['estado'] == 1) {
                     foreach ($res['response']['datos'] as $p) {
                         $data[] = [
@@ -100,13 +117,20 @@ class ReporteController
                         ];
                     }
                 }
-                break;
+                return [$info, $columns, $data];
+            })(),
 
-            default:
-                header("Location: " . BASE_URL . "/?page=reportes&error=tipo_invalido");
-                return;
+            default => null
+        };
+
+        if (!$resultado) {
+            header("Location: " . BASE_URL . "/?page=reportes&error=tipo_invalido");
+            return;
         }
 
+        [$info, $columns, $data] = $resultado;
         $reportService->setup($info, $columns, $data, $config)->render("Reporte_{$tipo}_" . date('Ymd') . ".pdf");
     }
+
+
 }
