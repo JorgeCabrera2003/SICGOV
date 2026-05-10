@@ -38,6 +38,7 @@ use App\Controllers\ClienteController;
 use App\Controllers\ReservacionController;
 use App\Controllers\NotificationController;
 use App\Controllers\PapeleraController;
+use App\Controllers\ReporteController;
 
 try {
     match ($page) {
@@ -60,6 +61,8 @@ try {
         'clientes' => (new ClienteController())->index(),
         'reservaciones' => (new ReservacionController())->index(),
         'reservar' => (new ReservacionController())->index(true),
+        'reportes' => (new ReporteController())->index(),
+
 
         'notificaciones' => (new NotificationController())->index(),
 
