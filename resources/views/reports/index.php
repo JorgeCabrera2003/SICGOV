@@ -6,7 +6,7 @@
 <main class="container-fluid py-4">
     <header class="mb-5 text-center">
         <h1 class="display-5 fw-bold text-gradient">Centro de Reportes</h1>
-        <p class="text-muted fs-5">Genera documentos oficiales y análisis de datos en formato PDF.</p>
+        <p class="text-muted fs-5">Genera documentos oficiales.</p>
     </header>
 
     <div class="row g-4 justify-content-center">
@@ -74,13 +74,6 @@
             </div>
         </div>
 
-    </div>
-
-    <div class="mt-5 pt-5 text-center">
-        <div class="alert alert-light border-0 shadow-sm d-inline-block p-4 rounded-4">
-            <i class="bi bi-info-circle text-primary me-2 fs-5"></i>
-            Todos los reportes son generados bajo el estándar <strong>SICGOV-ECO</strong> para ahorro de tinta.
-        </div>
     </div>
 </main>
 
