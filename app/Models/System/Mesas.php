@@ -1,5 +1,5 @@
 <?php
-namespace App\Models\Security;
+namespace App\Models\System;
 
 use App\Core\Database;
 use App\Helpers\Helper;
@@ -26,7 +26,7 @@ public function __construct()
     $this->estatus = 1;
 }
 
-public function LlamarConexion($nombreBD = 'security', PDO &$pdo = NULL)
+public function LlamarConexion($nombreBD = 'system', PDO &$pdo = NULL)
 {
     return parent::LlamarConexion($nombreBD, $pdo);
 }
@@ -111,8 +111,6 @@ public function getEstatus() {
             $response = match ($peticion['peticion']) {
                 'registrar' => $this->RegistrarMesa(),
                 'consultar' => $this->ConsultarMesas(),
-                'consultar_una' => $this->ConsultarMesa($peticion['id_mesa'] ?? ''),
-                'consultar_por_area' => $this->ConsultarMesasPorArea($peticion['id_area'] ?? ''),
                 'actualizar', 'modificar' => $this->ModificarMesa(),
                 'eliminar' => $this->EliminarMesa(),
                 'cambiar_estado' => $this->CambiarEstadoMesa($peticion['estado'] ?? ''),
@@ -281,5 +279,4 @@ private function EliminarMesa()
 }
 
 }
-
 
