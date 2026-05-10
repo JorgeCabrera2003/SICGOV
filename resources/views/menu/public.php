@@ -12,7 +12,7 @@ foreach ($menus as $menuItem) {
 ?>
 
 <!-- 1. Top Bar (Fecha, Redes y Login) -->
-<div class="news-top-bar py-2 shadow-sm border-bottom bg-white">
+<div class="news-top-bar py-2 shadow-sm border-bottom bg-body-tertiary">
     <div class="container d-flex justify-content-between align-items-center">
         <div class="date-now small">
             <i class="far fa-calendar-alt me-2 text-primary"></i>
@@ -50,7 +50,7 @@ foreach ($menus as $menuItem) {
 </div>
 
 <!-- 3. Navegación por Categorías (Sticky) -->
-<nav class="sticky-top bg-white border-bottom shadow-sm py-3" style="z-index: 1020;">
+<nav class="sticky-top bg-body border-bottom shadow-sm py-3" style="z-index: 1020;">
     <div class="container">
         <ul class="nav nav-pills nav-fill gap-2 flex-nowrap overflow-auto hide-scrollbar" id="menu-categories-tab" role="tablist">
             <li class="nav-item" role="presentation">
@@ -78,7 +78,7 @@ foreach ($menus as $menuItem) {
                 <?php foreach ($categorias as $cat): ?>
                     <?php if (isset($menusPorCategoria[$cat['id_categoria']]) && count($menusPorCategoria[$cat['id_categoria']]) > 0): ?>
                         <div class="category-section mb-5">
-                            <h3 class="fw-bold mb-4 border-bottom border-primary border-3 pb-2 d-inline-block text-dark">
+                            <h3 class="fw-bold mb-4 border-bottom border-primary border-3 pb-2 d-inline-block">
                                 <?= htmlspecialchars($cat['nombre_categoria']) ?>
                             </h3>
                             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
@@ -86,12 +86,12 @@ foreach ($menus as $menuItem) {
                                     $imgUrl = ($p['imagen'] && $p['imagen'] !== 'default-product.png') ? BASE_URL . '/assets/img/productos/' . $p['imagen'] : BASE_URL . '/assets/img/placeholder.png';
                                 ?>
                                 <div class="col">
-                                    <div class="card h-100 shadow-sm border-0 bg-white rounded-4 overflow-hidden hover-lift transition-all">
-                                        <div class="ratio ratio-4x3 overflow-hidden bg-light">
+                                    <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden hover-lift transition-all">
+                                        <div class="ratio ratio-4x3 overflow-hidden bg-body-tertiary">
                                             <img src="<?= $imgUrl ?>" class="card-img-top object-fit-cover transition-scale" alt="<?= htmlspecialchars($p['nombre_producto']) ?>" onerror="this.onerror=null; this.src='<?= BASE_URL ?>/assets/img/placeholder.png'">
                                         </div>
                                         <div class="card-body d-flex flex-column">
-                                            <h5 class="card-title fw-bold text-dark mb-1"><?= htmlspecialchars($p['nombre_producto']) ?></h5>
+                                            <h5 class="card-title fw-bold mb-1"><?= htmlspecialchars($p['nombre_producto']) ?></h5>
                                             <p class="text-primary fw-bold fs-5 mb-2">$<?= number_format($p['precio'], 2) ?></p>
                                             <p class="card-text text-muted small flex-grow-1"><?= htmlspecialchars($p['descripcion'] ?: 'Sin descripción adicional') ?></p>
                                         </div>
@@ -108,7 +108,7 @@ foreach ($menus as $menuItem) {
             <?php foreach ($categorias as $cat): ?>
             <div class="tab-pane fade" id="cat-<?= $cat['id_categoria'] ?>" role="tabpanel">
                 <div class="category-section mb-5">
-                    <h3 class="fw-bold mb-4 border-bottom border-primary border-3 pb-2 d-inline-block text-dark">
+                    <h3 class="fw-bold mb-4 border-bottom border-primary border-3 pb-2 d-inline-block">
                         <?= htmlspecialchars($cat['nombre_categoria']) ?>
                     </h3>
                     
@@ -118,12 +118,12 @@ foreach ($menus as $menuItem) {
                             $imgUrl = ($p['imagen'] && $p['imagen'] !== 'default-product.png') ? BASE_URL . '/assets/img/productos/' . $p['imagen'] : BASE_URL . '/assets/img/placeholder.png';
                         ?>
                         <div class="col">
-                            <div class="card h-100 shadow-sm border-0 bg-white rounded-4 overflow-hidden hover-lift transition-all">
-                                <div class="ratio ratio-4x3 overflow-hidden bg-light">
+                            <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden hover-lift transition-all">
+                                <div class="ratio ratio-4x3 overflow-hidden bg-body-tertiary">
                                     <img src="<?= $imgUrl ?>" class="card-img-top object-fit-cover transition-scale" alt="<?= htmlspecialchars($p['nombre_producto']) ?>" onerror="this.onerror=null; this.src='<?= BASE_URL ?>/assets/img/placeholder.png'">
                                 </div>
                                 <div class="card-body d-flex flex-column">
-                                    <h5 class="card-title fw-bold text-dark mb-1"><?= htmlspecialchars($p['nombre_producto']) ?></h5>
+                                    <h5 class="card-title fw-bold mb-1"><?= htmlspecialchars($p['nombre_producto']) ?></h5>
                                     <p class="text-primary fw-bold fs-5 mb-2">$<?= number_format($p['precio'], 2) ?></p>
                                     <p class="card-text text-muted small flex-grow-1"><?= htmlspecialchars($p['descripcion'] ?: 'Sin descripción adicional') ?></p>
                                 </div>
