@@ -1,21 +1,111 @@
 $(document).ready(function () {
-
   crearDataTable();
-  //registrarEntrada();
-  
-
+  inicializarValidacionAsistencia();
 });
+
+function inicializarValidacionAsistencia() {
+  const $tipoDoc = $('#tipo_doc');
+  const $cedulaEmpleado = $('#cedula_empleado');
+  const $tipoMarcacion = $('#tipo_marcacion');
+
+  $tipoDoc.on('focus', function () {
+    $(this).data('touched', true);
+  });
+  $tipoDoc.on('change blur', validarTipoDoc);
+
+  $cedulaEmpleado.on('focus', function () {
+    $(this).data('touched', true);
+  });
+  $cedulaEmpleado.on('keypress', function (e) {
+    validarKeyPress(/\d/, e);
+  });
+  $cedulaEmpleado.on('keyup blur', validarCedulaEmpleado);
+
+  $tipoMarcacion.on('focus', function () {
+    $(this).data('touched', true);
+  });
+  $tipoMarcacion.on('change blur', validarTipoMarcacion);
+
+  $('#btnAsistenciaForm').on('click', async function () {
+    if (!validarFormularioAsistencia()) {
+      return;
+    }
+
+    const peticion = new FormData();
+    peticion.append('peticion', 'registrar');
+    peticion.append('tipo_doc', $('#tipo_doc').val());
+    peticion.append('cedula_empleado', $('#cedula_empleado').val().trim());
+    peticion.append('tipo_marcacion', $('#tipo_marcacion').val());
+    peticion.append('observacion', $('#observacion').val().trim());
+
+    const json = await enviaAjax(peticion, BASE_URL + '?page=asistencia');
+
+    if (json && json.resultado === 200) {
+      mensajes('success', 5000, json.mensaje || 'Asistencia registrada correctamente');
+      $('#modalAsistencia').modal('hide');
+      crearDataTable();
+    } else {
+      mensajes('error', 5000, (json && json.mensaje) ? json.mensaje : 'No se pudo registrar la asistencia');
+    }
+  });
+}
 
 $("#btnMarcarAsistencia").on("click", function () {
-    pendiente();
-  /*
-   limpia();
-   $('#modalTitleTextAsistencia').text('Marcar Asistencia');
-    $('#btnAsistenciaForm').text('Registrar');
-    $('#modalAsistencia').modal('show');
-    */
- 
+  limpia();
+  $('#modalTitleTextAsistencia').text('Marcar Asistencia');
+  $('#btnAsistenciaForm').text('Registrar');
+  $('#modalAsistencia').modal('show');
 });
+
+function validarTipoDoc() {
+  const $tipoDoc = $('#tipo_doc');
+  const valor = $tipoDoc.val();
+  const valido = valor && valor !== 'default';
+
+  if (valor !== 'default' || $tipoDoc.data('touched')) {
+    SistemaValidacion.aplicarEstilos($tipoDoc, valido, 'Selecciona el tipo de documento.');
+  } else {
+    SistemaValidacion.limpiarEstilosCampo($tipoDoc);
+  }
+
+  return valido;
+}
+
+function validarCedulaEmpleado() {
+  const $cedulaEmpleado = $('#cedula_empleado');
+  const valor = $cedulaEmpleado.val() ? $cedulaEmpleado.val().trim() : '';
+  const valido = /^\d{7,9}$/.test(valor);
+
+  if (valor !== '' || $cedulaEmpleado.data('touched')) {
+    SistemaValidacion.aplicarEstilos($cedulaEmpleado, valido, 'La cédula debe contener entre 7 y 9 dígitos.');
+  } else {
+    SistemaValidacion.limpiarEstilosCampo($cedulaEmpleado);
+  }
+
+  return valido;
+}
+
+function validarTipoMarcacion() {
+  const $tipoMarcacion = $('#tipo_marcacion');
+  const valor = $tipoMarcacion.val();
+  const valido = valor && valor !== 'default';
+
+  if (valor !== 'default' || $tipoMarcacion.data('touched')) {
+    SistemaValidacion.aplicarEstilos($tipoMarcacion, valido, 'Selecciona el tipo de marcación.');
+  } else {
+    SistemaValidacion.limpiarEstilosCampo($tipoMarcacion);
+  }
+
+  return valido;
+}
+
+function validarFormularioAsistencia() {
+  const validoTipoDoc = validarTipoDoc();
+  const validoCedula = validarCedulaEmpleado();
+  const validoTipoMarcacion = validarTipoMarcacion();
+
+  return validoTipoDoc && validoCedula && validoTipoMarcacion;
+}
 
 async function crearDataTable() {
 
@@ -106,4 +196,20 @@ function pendiente() {
     });
     
 
+}
+
+function limpia() {
+  // Limpiar campos específicos de asistencia
+  $('#tipo_doc').val("default").prop("disabled", false);
+  $('#cedula_empleado').val("").prop("readOnly", false);
+  $('#tipo_marcacion').val("default").prop("disabled", false);
+  $('#observacion').val("").prop("readOnly", false);
+
+  // Resetear estado visual de validación
+  SistemaValidacion.limpiarValidacion({
+    tipo_doc: $('#tipo_doc'),
+    cedula_empleado: $('#cedula_empleado'),
+    tipo_marcacion: $('#tipo_marcacion'),
+    observacion: $('#observacion')
+  });
 }
