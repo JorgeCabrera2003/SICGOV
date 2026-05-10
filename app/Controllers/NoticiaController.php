@@ -207,14 +207,14 @@ class NoticiaController
         
         require_once BASE_PATH . '/resources/views/layout/head.php';
         
-        if (isset($_SESSION['user'])) {
-            require_once BASE_PATH . '/resources/views/layout/menu.php'; 
-        } else {
-            // Estructura simplificada para visitantes (sin barra lateral)
-            echo '<main class="w-100 min-vh-100" id="main-content"><div class="content-wrapper">';
-        }
+        $hideSidebar = true;
+        $datos = $_SESSION['user'] ?? null;
+        require_once BASE_PATH . '/resources/views/layout/menu.php';
 
         require_once BASE_PATH . '/resources/views/noticias/public.php';
+
+        echo '</div></main>';
+
         require_once BASE_PATH . '/resources/views/layout/footer.php';
     }
 
@@ -240,8 +240,15 @@ class NoticiaController
         $extra_css = [BASE_URL . '/assets/css/noticias.css?v=' . time()];
         
         require_once BASE_PATH . '/resources/views/layout/head.php';
+        
+        $hideSidebar = true;
+        $datos = $_SESSION['user'] ?? null;
         require_once BASE_PATH . '/resources/views/layout/menu.php';
+
         require_once BASE_PATH . '/resources/views/noticias/show.php';
+
+        echo '</div></main>';
+
         require_once BASE_PATH . '/resources/views/layout/footer.php';
     }
 }

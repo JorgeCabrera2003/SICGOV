@@ -37,10 +37,11 @@
     <!-- Calendario Principal -->
     <div class="card border-0 shadow-sm">
         <div class="card-body p-4">
-            <div id="calendar" style="min-height: 700px;"></div>
+            <div id="calendarPublico" style="min-height: 700px;"></div>
         </div>
     </div>
 </div>
+
 
 <!-- Modal para Registro/Edición -->
 <div class="modal fade" id="modalReservacion" tabindex="-1" aria-labelledby="modalReservacionLabel" aria-hidden="true">
