@@ -36,15 +36,13 @@ class Areas extends Database
     }
 
     public function setNombre(string $nombre) { 
-        $nombre = trim($nombre);
-        if (empty($nombre) || strlen($nombre) < 3 || strlen($nombre) > 60) {
-            throw new Exception("El nombre del área debe tener entre 3 y 60 caracteres.");
-        }
-        if (RegexHelper::ValidarFormatos($nombre, 'Texto') == 0) {
-            throw new Exception("El nombre del área contiene caracteres no permitidos.");
-        }
-        $this->nombre = $nombre; 
+    $nombre = trim($nombre);
+    if (empty($nombre) || strlen($nombre) < 3 || strlen($nombre) > 60) {
+        throw new Exception("El nombre del área debe tener entre 3 y 60 caracteres.");
     }
+    // Eliminada la validación de caracteres especiales
+    $this->nombre = $nombre; 
+}
 
     public function setDescripcion(string $descripcion = null) { 
         if ($descripcion !== null) {
