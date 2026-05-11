@@ -38,6 +38,7 @@ use App\Controllers\ClienteController;
 use App\Controllers\ReservacionController;
 use App\Controllers\NotificationController;
 use App\Controllers\MesasController;
+use App\Controllers\AreasController;
 
 try {
     match ($page) {
@@ -50,6 +51,7 @@ try {
         'menu' => (new MenuController())->index(),
         'nuestro-menu' => (new MenuController())->indexPublico(),
         'ingredientes' => (new IngredienteController())->index(),
+        'areas' => (new AreasController())->index(),
         'mesas' => (new MesasController())->index(),
         'categoria-ingrediente' => (new IngredienteController())->indexCategoria(),
         'categorias' => (new CategoriaController())->index(),

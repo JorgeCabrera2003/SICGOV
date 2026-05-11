@@ -83,10 +83,10 @@ class BusinessSeeder
         $count = $this->db->query("SELECT COUNT(*) FROM area_mesa")->fetchColumn();
         if ($count == 0) {
             $sql = "INSERT INTO area_mesa (id_area, nombre, descripcion) VALUES 
-                ('AREA001', 'Salón Principal', 'Área principal del restaurante'),
-                ('AREA002', 'Terraza', 'Área al aire libre'),
-                ('AREA003', 'VIP', 'Área exclusiva para reservaciones especiales'),
-                ('AREA004', 'Barra', 'Área de barra')";
+                ('AREA00120260510', 'Salón Principal', 'Área principal del restaurante'),
+                ('AREA00220260510', 'Terraza', 'Área al aire libre'),
+                ('AREA00320260510', 'VIP', 'Área exclusiva para reservaciones especiales'),
+                ('AREA00420260510', 'Barra', 'Área de barra')";
             $this->db->exec($sql);
             echo "       Áreas de mesa creadas.\n";
         }
