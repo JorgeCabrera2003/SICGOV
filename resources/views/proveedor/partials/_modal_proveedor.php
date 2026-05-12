@@ -18,7 +18,7 @@
 
                     <!-- Fila: Nombre y Costo Unitario -->
                     <div class="row g-3 mb-3 justify-content-center">
-                        <div class="col-md-10">
+                        <div class="col-md-10 position-relative">
                             <label for="nombre" class="form-label fw-semibold">
                                 Nombre del Proveedor <span class="text-danger">*</span>
                             </label>
@@ -28,9 +28,9 @@
                     </div>
                     <!-- Fila: Documento Legal -->
                     <div class="row g-3 mb-3 justify-content-center">
-                        <div class="col-md-3">
+                        <div class="col-md-3 position-relative">
                             <label for="nombre" class="form-label fw-semibold">
-                                Tipo de Documento<span class="text-danger">*</span>
+                                Tipo de Documento <span class="text-danger">*</span>
                             </label>
                             <select class="form-select" id="tipo_doc" name="tipo_doc" required>
                                 <option value="default" selected disabled>Tipo</option>
@@ -40,9 +40,9 @@
                             </select>
                             <div class="form-label" id="stipo_doc"></div>
                         </div>
-                        <div class="col-md-7">
+                        <div class="col-md-7 position-relative">
                             <label for="nombre" class="form-label fw-semibold">
-                                Documento Legal<span class="text-danger">*</span>
+                                Documento Legal <span class="text-danger">*</span>
                             </label>
                             <input type="text" class="form-control" id="documento_legal" name="documento_legal"
                                 maxlength="65" required>
@@ -52,9 +52,9 @@
 
                     <!-- Fila: Costo Unidad de Medida y Categoría-->
                     <div class="row g-3 mb-3 justify-content-center">
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="telefono" class="form-label fw-semibold">
-                                Teléfono<span class="text-danger">*</span>
+                                Teléfono <span class="text-danger">*</span>
                             </label>
                             <div class="input-group">
                                 <select class="form-select" id="prefijo_telefono" name="prefijo_telefono">
@@ -71,9 +71,9 @@
                                 <div class="form-label" id="stelefono"></div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="correo" class="form-label fw-semibold">
-                                Correo Electrónico<span class="text-danger">*</span>
+                                Correo Electrónico <span class="text-danger">*</span>
                             </label>
                             <input type="text" class="form-control" id="correo" name="correo" maxlength="100" required>
                             <div class="form-label" id="scorreo"></div>
@@ -82,9 +82,9 @@
 
                     <div class="row g-3 mb-3 justify-content-center">
 
-                        <div class="col-md-12">
+                        <div class="col-md-12 position-relative">
                             <label for="direccion" class="form-label fw-semibold">
-                                Dirección
+                                Dirección <span class="text-danger">*</span>
                             </label>
                             <textarea class="form-control" id="direccion" rows="5"></textarea>
                             <div class="form-label" id="sdireccion"></div>
