@@ -1,7 +1,7 @@
 import * as proveedor from "../Handlers/ProveedorHandler.js"
 import * as AjaxHelper from "../Helpers/AjaxHelper.js"
 
-//MODULO DE INGREDIENTES
+//MODULO DE PROVEEDORES
 
 //-------INICIALIZACIÖN-------
 
@@ -25,8 +25,6 @@ $("#btnNuevoProveedor").on("click", function () {
 
 function iniciarValidaciones() {
   proveedor.CapaValidar();
-  categoriaIngrediente.KeyPressCategoria();
-  categoriaIngrediente.KeyUpCategoria();
 }
 
 async function crearDataTable(controlador = "") {
@@ -51,28 +49,12 @@ async function crearDataTable(controlador = "") {
   }
 }
 
-async function rellenar(pos, accion, modulo = "Ingrediente") {
+async function rellenar(pos, accion, modulo = "Proveedor") {
   let str_accion = "";
   const linea = $(pos).closest('tr');
   const tabla = $('#tabla' + modulo).DataTable();
   const datosFila = tabla.row(linea).data();
 
-  console.log(datosFila);
-  if (accion == 0) {
-    str_accion = "modificar";
-  }
-
-  if (accion == 1) {
-    str_accion = "eliminar";
-  }
-
-  if (modulo == "Ingrediente") {
-    await ingrediente.EditarFormIngrediente(datosFila, str_accion)
-  }
-
-  if (modulo == "Categoria") {
-    await categoriaIngrediente.EditarFormCategoria(datosFila, str_accion)
-  }
   // Habilitar el botón inmediatamente para Modificar/Eliminar ya que los datos vienen pre-validados
 }
 

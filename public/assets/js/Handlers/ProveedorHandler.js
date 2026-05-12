@@ -1,6 +1,7 @@
-import * as mensajeria from "../Helpers/MensajeriaHelper.js"
-import * as AjaxHelper from "../Helpers/AjaxHelper.js"
-import * as ValidarHelper from "../Helpers/ValidadorHelper.js"
+import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js";
+import * as AjaxHelper from "../Helpers/AjaxHelper.js";
+import * as ValidadorHelper from "../Helpers/ValidadorHelper.js";
+import * as SelectHelper from "../Helpers/SelectHelper.js";
 
 //MODULO DE PROVEEDORES
 
@@ -24,7 +25,6 @@ function EtiquetasFormulario(etiquetas) {
     tipo_documento: $('#stipo_doc'),
     documento_legal: $('#sdocumento_legal'),
     nombre: $('#snombre'),
-    prefijo_telefono: $('#sprefijo_telefono'),
     telefono: $('#stelefono'),
     correo: $('#scorreo'),
     direccion: $('#sdireccion')
@@ -88,7 +88,7 @@ export async function EnviarDatos(operacion) {
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
-  let modal = EtiquetasModal(modulo);
+  let modal = EtiquetasModal("Proveedor");
 
   let confirmacion = false;
   let str_acccion = "";
@@ -110,7 +110,6 @@ export async function EnviarDatos(operacion) {
     if (operacion == "modificar") {
       str_acccion = "actualizará";
       accion = "modificar";
-      peticion.append('id_ingrediente', input.id_ingrediente.val());
     }
 
     if (validarenvio()) {
@@ -119,13 +118,15 @@ export async function EnviarDatos(operacion) {
       if (confirmacion) {
         peticion.append('peticion', accion);
         peticion.append('nombre', input.nombre.val());
-        peticion.append('unidad_medida', input.unidad_medida.val());
-        peticion.append('costo_unitario', input.costo_unitario.val());
+        peticion.append('telefono', input.prefijo_telefono.val() + "-" + input.telefono.val());
+        peticion.append('correo', input.correo.val());
+        peticion.append('direccion', input.direccion.val());
+        peticion.append('documento_legal', input.tipo_documento.val() + "" + input.documento_legal.val());
         btn_formulario = true;
       }
     } else {
       btn_formulario = false;
-      mensajeria.GenerarMensaje("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.")
+      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.")
     }
   } //Fin del Registrar y Modificar
   //Eliminar
@@ -136,12 +137,12 @@ export async function EnviarDatos(operacion) {
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
-        peticion.append('id_ingrediente', input.id_ingrediente.val());
+        peticion.append('documento_legal', input.tipo_documento.val() + "" + input.documento_legal.val());
         btn_formulario = true;
       }
     } else {
       btn_formulario = false;
-      mensajeria.GenerarMensaje("error", 10000, "Error de Validación", "El ID del Proveedor no es válido.");
+      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "El ID del Proveedor no es válido.");
     }
   }//Fin del Eliminar
 
@@ -151,8 +152,7 @@ export async function EnviarDatos(operacion) {
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       modal.modal.modal("hide");
-      DataTablePrincipal();
-      mensajeria.GenerarMensaje(json.icon, 10000, json.mensaje, null);
+      MensajeriaHelper.GenerarMensaje(json.icon, 10000, json.mensaje, null);
     }
     modal.boton.prop('disabled', false);
   }
@@ -189,30 +189,115 @@ export async function EnviarFormulario(btn_string) {
 //CAPA DE VALIDACIÓN
 
 export function CapaValidar() {
+  KeyUpProveedor();
   KeyPressProveedor();
 }
 
 function KeyPressProveedor() {
-  let input = EtiquetasFormulario("input")
-  input.nombre.on("keypress", function (e) {
-    validarKeyPress(/^[0-9 a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ -.\b]*$/, e);
-  });
 
-  input.costo_unitario.on("keypress", function (e) {
-    validarKeyPress(/^[0-9.\b]*$/, e);
-  });
+  let input = EtiquetasFormulario("input");
 
-  // Aplicar capitalización en tiempo real para nombre y responsable
-  input.nombre.on("input", function () {
-    // Capitalizar mientras escribe (opcional)
-    const valor = $(this).val();
-    if (valor.length === 1) {
-      $(this).val(valor.toUpperCase());
-    }
-  });
+  $(input.documento_legal).on("keypress", function (e) { ValidadorHelper.ValidarTecla("Cedula", e); });
+  $(input.nombre).on("keypress", function (e) { ValidadorHelper.ValidarTecla("Titulo", e); });
+  $(input.telefono).on("keypress", function (e) { ValidadorHelper.ValidarTecla("Telefono", e); });
+  $(input.correo).on("keypress", function (e) { ValidadorHelper.ValidarTecla("Correo", e); });
+  $(input.direccion).on("keypress", function (e) { ValidadorHelper.ValidarTecla("NombreObjeto", e); });
 }
 
-function Validarenvio(modulo = "Proveedor") {
+
+function KeyUpProveedor() {
+  let input = EtiquetasFormulario("input");
+  let span = EtiquetasFormulario("span");
+
+  $(input.documento_legal).on("keyup", function () {
+    ValidadorHelper.ValidarCampo("DocumentoLegal", $(this), span.documento_legal);
+  })
+
+  $(input.nombre).on("keyup", function () {
+    ValidadorHelper.ValidarCampo("Titulo", $(this), span.nombre);
+  })
+
+  $(input.telefono).on("keyup", function () {
+    ValidadorHelper.ValidarCampo("Telefono-Segmento", $(this), span.telefono);
+  })
+
+  $(input.correo).on("keyup", function () {
+    ValidadorHelper.ValidarCampo("Correo", $(this), span.correo);
+  })
+
+  $(input.direccion).on("keyup", function () {
+    ValidadorHelper.ValidarCampo("Dirección", $(this), span.direccion);
+  })
+
+  $(input.prefijo_telefono).on("change", function () {
+
+    if ($(this).val() == "default") {
+      SelectHelper.FeedbackSelect($(this), span.telefono, "Debe selccionar un código", 0)
+    } else {
+      SelectHelper.FeedbackSelect($(this), span.telefono, "", 1)
+    }
+
+  })
+
+  $(input.tipo_documento).on("change", function () {
+    if ($(this).val() == "default") {
+      SelectHelper.FeedbackSelect($(this), span.telefono, "Debe selccionar un Tipo de Documento", 0)
+    } else {
+      SelectHelper.FeedbackSelect($(this), span.telefono, "", 1)
+    }
+  })
+
+}
+
+
+function Validarenvio() {
+
+  let input = EtiquetasFormulario("input");
+  let span = EtiquetasFormulario("span");
+  let bool = true;
+
+  input.tipo_documento.val("default").prop("disabled", false);
+  input.documento_legal.val("").prop("disabled", true);
+  input.nombre.val("").prop("disabled", false);
+  input.prefijo_telefono.val("default").prop("disabled", false);
+  input.correo.val("").prop("disabled", false);
+  input.direccion.val("").prop("disabled", false);
+
+  if ($(tipo_documento).val() == "default") {
+    SelectHelper.FeedbackSelect($(this), span.tipo_documento, "Debe selccionar un Tipo de Documento", 0);
+    bool = false;
+  }
+
+  if (!ValidadorHelper.ValidarCampo("NombreObjeto", input.documento_legal, span.documento_legal)) {
+    bool = false;
+  }
+
+  if (!ValidadorHelper.ValidarCampo("Titulo", input.nombre, span.nombre)) {
+    bool = false;
+  }
+
+  if (!ValidadorHelper.ValidarCampo("Dirección", input.direccion, span.direccion)) {
+    bool = false;
+  };
+
+  if ($(prefijo_telefono).val() == "default") {
+    SelectHelper.FeedbackSelect($(this), span.telefono, "Debe selccionar un código", 0);
+    bool = false;
+  }
+
+  if (!ValidarCodigoTelefono($(prefijo_telefono).val(), span.telefono)) {
+    bool = false;
+  }
+
+  if (!ValidadorHelper.ValidarCampo("Telefono-Segmento", input.telefono, span.telefono)) {
+    bool = false;
+  }
+
+  if (!ValidadorHelper.ValidarCampo("Correo", input.correo, span.correo)) {
+    bool = false;
+  };
+
+  return bool;
 
 }
 
@@ -283,21 +368,20 @@ export async function DataTablePrincipal(arreglo) {
 }
 
 export function LimpiarFormulario() {
-  SistemaValidacion.limpiarValidacion(EtiquetasFormulario('input'));
-
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
   let modal = EtiquetasModal('Proveedor');
 
   input.tipo_documento.val("default").prop("disabled", false);
-  input.documento_legal.val("").prop("disabled", true);
+  input.documento_legal.val("").prop("disabled", false);
   input.nombre.val("").prop("disabled", false);
   input.prefijo_telefono.val("default").prop("disabled", false);
+  input.telefono.val("").prop("disabled", false);
   input.correo.val("").prop("disabled", false);
   input.direccion.val("").prop("disabled", false);
-  
+
   // Deshabilitar el botón al limpiar (se habilitará automáticamente cuando los campos sean válidos)
-  modal.boton.prop('disabled', true);
+  modal.boton.prop('disabled', false);
   input = null;
   span = null;
   modal = null;
@@ -311,15 +395,14 @@ export async function EditarFormProveedor(datos, accion) {
 
   if (accion == "eliminar") { bool = true; }
 
-  input.id_ingrediente.val(datos.id_ingrediente).prop("disabled", true);
-  input.nombre.val(datos.nombre_ingrediente).prop("disabled", bool);
-  input.costo_unitario.val(datos.precio_unitario).prop("disabled", bool);
-  input.unidad_medida.prop("disabled", bool);
-  input.stock_inicial.val(datos.stock_actual).prop("disabled", true);
-  input.stock_maximo.val(datos.stock_maximo).prop("disabled", bool);
-  input.stock_minimo.val(datos.stock_minimo).prop("disabled", bool);
+  input.tipo_documento.val(datos.id_ingrediente).prop("disabled", true);
+  input.documento_legal.val(datos.nombre_ingrediente).prop("disabled", bool);
+  input.nombre.val(datos.precio_unitario).prop("disabled", bool);
+  input.prefijo_telefono.prop("disabled", bool);
+  input.telefono.val(datos.stock_actual).prop("disabled", true);
+  input.correo.val(datos.stock_maximo).prop("disabled", bool);
+  input.direccion.val(datos.stock_minimo).prop("disabled", bool);
 
-  fila_stock_inicial.addClass("d-none")
   modal.boton.prop('disabled', false);
   EditarModal(accion);
 };
