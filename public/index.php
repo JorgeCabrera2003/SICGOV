@@ -35,6 +35,7 @@ use App\Controllers\ProductoController;
 use App\Controllers\CategoriaController;
 use App\Controllers\BitacoraController;
 use App\Controllers\IngredienteController;
+use App\Controllers\ProveedorController;
 use App\Controllers\UsuarioController;
 use App\Controllers\NoticiaController;
 use App\Controllers\MediaController;
@@ -57,6 +58,7 @@ try {
         'menu' => (new MenuController())->index(),
         'nuestro-menu' => (new MenuController())->indexPublico(),
         'ingredientes' => (new IngredienteController())->index(),
+        'proveedores' => (new ProveedorController())->index(),
         'mesas' => (new MesasController())->index(),
         'categoria-ingrediente' => (new IngredienteController())->indexCategoria(),
         'categorias' => (new CategoriaController())->index(),
@@ -70,12 +72,7 @@ try {
         'reservar' => (new ReservacionController())->index(true),
         'reportes' => (new ReporteController())->index(),
         'papelera' => (new PapeleraController())->index(),
-
-
-
         'notificaciones' => (new NotificationController())->index(),
-
-        'papelera' => (new PapeleraController())->index(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };
 
