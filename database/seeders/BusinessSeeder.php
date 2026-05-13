@@ -214,9 +214,9 @@ class BusinessSeeder
         }
 
         $sql = "INSERT INTO producto 
-                (id_producto, id_categoria, nombre_producto, descripcion, precio, stock, stock_minimo, costo_preparacion, tiempo_preparacion, es_personalizable, tipo_producto, estatus) 
+                (id_producto, id_categoria, nombre_producto, descripcion, precio, es_personalizable, tipo_producto, estatus) 
                 VALUES 
-                (:id, :id_categoria, :nombre, :desc, :precio, :stock, :stock_minimo, :costo, :tiempo, :personalizable, :tipo, 1)";
+                (:id, :id_categoria, :nombre, :descripcion, :precio, :personalizable, :tipo, 1)";
 
         $stmt = $this->db->prepare($sql);
         $tipos = ['COCINA', 'BARRA', 'POSTRE', 'RETAIL'];
@@ -227,12 +227,8 @@ class BusinessSeeder
                 'id' => 'PROD-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT) . date('Ymd'),
                 'id_categoria' => $this->faker->randomElement($categorias),
                 'nombre' => ucfirst($this->faker->words(2, true)),
-                'desc' => $this->faker->sentence(6),
+                'descripcion' => $this->faker->sentence(6),
                 'precio' => $precio,
-                'costo' => $this->faker->randomFloat(2, 1, $precio * 0.6),
-                'stock' => $this->faker->numberBetween(10, 100),
-                'stock_minimo' => $this->faker->numberBetween(1, 10),
-                'tiempo' => $this->faker->numberBetween(5, 30),
                 'personalizable' => $this->faker->boolean(30) ? 1 : 0,
                 'tipo' => $this->faker->randomElement($tipos)
             ]);
