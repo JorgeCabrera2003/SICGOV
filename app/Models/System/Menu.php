@@ -197,30 +197,27 @@ class Menu
 
     public function Transaccion($peticion)
     {
-        try {
-            switch ($peticion['peticion']) {
-                case 'listar':
-                    return $this->listarMenu();
-                case 'registrar':
-                    return $this->registrarMenu();
-                case 'modificar':
-                    return $this->modificarMenu();
-                case 'buscar':
-                    return $this->buscarMenu();
-                case 'eliminar':
-                    return $this->eliminarMenu();
-                case 'categorias':
-                    return $this->listarCategorias();
-                case 'ingredientes':
-                    return $this->listarIngredientes();
-                case 'unidades':
-                    return $this->listarUnidades();
-                default:
-                    return ['success' => false, 'message' => 'Petición no válida'];
+        $response = ['success' => false, 'message' => 'Petición no válida'];
+
+        if (isset($peticion['peticion'])) {
+            try {
+                $response = match ($peticion['peticion']) {
+                    'listar'       => $this->listarMenu(),
+                    'registrar'    => $this->registrarMenu(),
+                    'modificar'    => $this->modificarMenu(),
+                    'buscar'       => $this->buscarMenu(),
+                    'eliminar'     => $this->eliminarMenu(),
+                    'categorias'   => $this->listarCategorias(),
+                    'ingredientes' => $this->listarIngredientes(),
+                    'unidades'     => $this->listarUnidades(),
+                    default        => ['success' => false, 'message' => 'Petición no válida']
+                };
+            } catch (Exception $e) {
+                $response = ['success' => false, 'message' => $e->getMessage()];
             }
-        } catch (Exception $e) {
-            return ['success' => false, 'message' => $e->getMessage()];
         }
+
+        return $response;
     }
 
 

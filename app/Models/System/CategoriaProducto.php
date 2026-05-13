@@ -108,28 +108,26 @@ class CategoriaProducto
 
     public function Transaccion($peticion)
     {
-        try {
-            switch ($peticion['peticion']) {
-                case 'listar':
-                    return $this->listarCategorias();
-                case 'consultar':
-                    return $this->listarTodasCategorias();
-                case 'guardar':
-                    return $this->guardarCategoria();
-                case 'actualizar':
-                    return $this->actualizarCategoria();
-                case 'eliminar':
-                    return $this->eliminarCategoria();
-                case 'buscar':
-                    return $this->buscarCategoria();
-                case 'verificar':
-                    return $this->verificarNombreExiste($peticion['id_excluir'] ?? null);
-                default:
-                    return ['success' => false, 'message' => 'Petición no válida'];
+        $response = ['success' => false, 'message' => 'Petición no válida'];
+
+        if (isset($peticion['peticion'])) {
+            try {
+                $response = match ($peticion['peticion']) {
+                    'listar'     => $this->listarCategorias(),
+                    'consultar'  => $this->listarTodasCategorias(),
+                    'guardar'    => $this->guardarCategoria(),
+                    'actualizar' => $this->actualizarCategoria(),
+                    'eliminar'   => $this->eliminarCategoria(),
+                    'buscar'     => $this->buscarCategoria(),
+                    'verificar'  => $this->verificarNombreExiste($peticion['id_excluir'] ?? null),
+                    default      => ['success' => false, 'message' => 'Petición no válida']
+                };
+            } catch (Exception $e) {
+                $response = ['success' => false, 'message' => $e->getMessage()];
             }
-        } catch (Exception $e) {
-            return ['success' => false, 'message' => $e->getMessage()];
         }
+
+        return $response;
     }
 
 
