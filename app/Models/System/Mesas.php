@@ -113,8 +113,8 @@ public function getEstatus() {
                 'consultar' => $this->ConsultarMesas(),
                 'actualizar', 'modificar' => $this->ModificarMesa(),
                 'eliminar' => $this->EliminarMesa(),
+                'consultar_area' => $this->ConsultarAreas(),
                 'cambiar_estado' => $this->CambiarEstadoMesa($peticion['estado'] ?? ''),
-                'cambiar_estatus' => $this->CambiarEstatusMesa($peticion['estatus'] ?? null),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
@@ -135,7 +135,7 @@ public function getEstatus() {
         $sql = "SELECT m.*, a.nombre as area_nombre 
                 FROM mesa m 
                 LEFT JOIN area_mesa a ON m.id_area = a.id_area
-                WHERE m.estatus = 1
+                -- WHERE m.estatus = 1
                 ORDER BY m.numero_mesa ASC";
         $stm = $this->LlamarConexion()->prepare($sql);
         $stm->execute();
@@ -202,7 +202,7 @@ public function getEstatus() {
     }
 
 // Modificar una mesa existente
-private function ModificarMesa()
+    private function ModificarMesa()
 {
     $dato = [];
     try {
@@ -241,10 +241,10 @@ private function ModificarMesa()
     }
     $this->DestruirConexion();
     return $dato;
-}
+    }
 
-// Eliminar una mesa (borrado lógico o físico)
-private function EliminarMesa()
+
+    private function EliminarMesa()
 {
     $dato = [];
     try {
@@ -276,7 +276,70 @@ private function EliminarMesa()
     }
     $this->DestruirConexion();
     return $dato;
-}
+    }
+
+    private function CambiarEstadoMesa()
+    {
+        $dato = [];
+        try {
+            $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
+
+            $sql = "UPDATE mesa SET estado = :estado WHERE id_mesa = :id_mesa";
+
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->bindParam(':estado', $this->estado);
+            $stm->bindParam(':id_mesa', $this->id_mesa);
+            $stm->execute();
+
+            $this->LlamarConexion()->commit();
+
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Estado de la mesa cambiado a {$this->estado}"];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+
+        } catch (\PDOException $e) {
+            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => "Error al cambiar el estado de la mesa"];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    private function ConsultarAreas()
+    {
+        $dato = [];
+        $arreglo = [];
+        try {
+            $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
+
+            $sql = "SELECT id_area, nombre FROM area_mesa WHERE estatus = 1 ORDER BY id_area ASC";
+            
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->execute();
+            
+            if ($stm->rowCount() > 0) {
+                $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
+            }
+            
+            $this->LlamarConexion()->commit();
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'mensaje' => "OK", 'datos' => $arreglo];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+            
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => "Error al listar las áreas", 'datos' => []];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
 
 }
-

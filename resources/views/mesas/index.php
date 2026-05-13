@@ -22,7 +22,6 @@
                 <table class="table table-hover align-middle" id="tablaMesas" style="width:100%">
                     <thead class="table-light">
                         <tr>
-                            <th scope="col">ID Mesa</th>
                             <th scope="col">N° Mesa</th>
                             <th scope="col">Área</th>
                             <th scope="col">Capacidad</th>

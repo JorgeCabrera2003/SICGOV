@@ -43,6 +43,7 @@ use App\Controllers\ClienteController;
 use App\Controllers\ReservacionController;
 use App\Controllers\NotificationController;
 use App\Controllers\MesasController;
+use App\Controllers\AreasController;
 use App\Controllers\ReporteController;
 use App\Controllers\PapeleraController;
 
@@ -58,6 +59,7 @@ try {
         'menu' => (new MenuController())->index(),
         'nuestro-menu' => (new MenuController())->indexPublico(),
         'ingredientes' => (new IngredienteController())->index(),
+        'areas' => (new AreasController())->index(),
         'proveedores' => (new ProveedorController())->index(),
         'mesas' => (new MesasController())->index(),
         'categoria-ingrediente' => (new IngredienteController())->indexCategoria(),

@@ -12,7 +12,7 @@ class MesasController
     {
         Helper::verificarSesion();
 
-        $mesaModel = new Mesas();  // <-- Usando la clase Mesas
+        $mesaModel = new Mesas();  
 
         if (isset($_POST["peticion"])) {
 
@@ -62,7 +62,7 @@ class MesasController
 
                         // Auditoría: Capturar estado previo
                         $datos_anteriores = null;
-                        $res_prev = $mesaModel->Transaccion(['peticion' => 'consultar_una', 'id_mesa' => $_POST["id_mesa"]]);
+                        $res_prev = $mesaModel->Transaccion(['peticion' => 'modificar', 'id_mesa' => $_POST["id_mesa"]]);
                         $datos_anteriores = $res_prev['response']['datos'] ?? null;
 
                         $json = $mesaModel->Transaccion(['peticion' => 'modificar']);
@@ -94,17 +94,8 @@ class MesasController
                 $json = $mesaModel->Transaccion(['peticion' => 'consultar']);
             }
 
-            // Consultar una mesa específica
-            if ($_POST["peticion"] == "consultar_una") {
-                try {
-                    if (empty($_POST["id_mesa"])) {
-                        throw new \Exception("ID de mesa no proporcionado");
-                    }
-                    $json = $mesaModel->Transaccion(['peticion' => 'consultar_una', 'id_mesa' => $_POST["id_mesa"]]);
-                } catch (\Exception $e) {
-                    $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Error en la consulta'];
-                    $json['response'] = ['resultado' => 400, 'mensaje' => $e->getMessage()];
-                }
+            if ($_POST["peticion"] == "consultar_area") {
+                $json = $mesaModel->Transaccion(['peticion' => 'consultar_area']);
             }
 
             // Consultar mesas por área
@@ -199,55 +190,4 @@ class MesasController
         );
     }
 
-    // Vista pública de mesas (opcional)
-    public function indexPublico()
-    {
-        $mesaModel = new Mesas();
-        
-        $res = $mesaModel->Transaccion(['peticion' => 'consultar']);
-        $mesas = $res['response']['datos'] ?? [];
-        
-        $page = 'mesas_publicas';
-        $titulo = 'Mesas - Good Vibes';
-        $extra_css = [BASE_URL . '/assets/css/mesas.css?v=' . time()];
-        
-        require_once BASE_PATH . '/resources/views/layout/head.php';
-        
-        if (isset($_SESSION['user'])) {
-            require_once BASE_PATH . '/resources/views/layout/menu.php';
-        } else {
-            echo '<main class="w-100 min-vh-100" id="main-content"><div class="content-wrapper">';
-        }
-
-        require_once BASE_PATH . '/resources/views/mesas/public.php';
-        require_once BASE_PATH . '/resources/views/layout/footer.php';
-    }
-
-    // Detalle público de una mesa específica
-    public function detallePublico()
-    {
-        if (!isset($_GET['id'])) {
-            header("Location: " . BASE_URL . "?page=mesas-publicas");
-            exit;
-        }
-
-        $mesaModel = new Mesas();
-        $res = $mesaModel->Transaccion(['peticion' => 'consultar_una', 'id_mesa' => $_GET['id']]);
-        
-        if ($res['response']['resultado'] != 200 || empty($res['response']['datos'])) {
-            require_once BASE_PATH . '/resources/views/errors/404.php';
-            exit;
-        }
-
-        $mesa = $res['response']['datos'];
-
-        $page = 'mesa_detalle';
-        $titulo = 'Mesa N° ' . $mesa['numero_mesa'] . ' - Good Vibes';
-        $extra_css = [BASE_URL . '/assets/css/mesas.css?v=' . time()];
-        
-        require_once BASE_PATH . '/resources/views/layout/head.php';
-        require_once BASE_PATH . '/resources/views/layout/menu.php';
-        require_once BASE_PATH . '/resources/views/mesas/show.php';
-        require_once BASE_PATH . '/resources/views/layout/footer.php';
-    }
 }
