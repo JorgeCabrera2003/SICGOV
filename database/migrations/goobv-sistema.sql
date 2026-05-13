@@ -152,6 +152,7 @@ CREATE TABLE `proveedor` (
   `telefono` varchar(20) DEFAULT NULL,
   `correo` varchar(100) DEFAULT NULL,
   `direccion` varchar(255) DEFAULT NULL,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`documento_legal`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
