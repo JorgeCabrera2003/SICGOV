@@ -19,6 +19,10 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// Configurar zona horaria de Venezuela
+date_default_timezone_set("America/Caracas");
+
+
 session_start();
 
 $page = $_GET['page'] ?? 'noticias';
@@ -31,6 +35,7 @@ use App\Controllers\ProductoController;
 use App\Controllers\CategoriaController;
 use App\Controllers\BitacoraController;
 use App\Controllers\IngredienteController;
+use App\Controllers\ProveedorController;
 use App\Controllers\UsuarioController;
 use App\Controllers\NoticiaController;
 use App\Controllers\MediaController;
@@ -39,8 +44,11 @@ use App\Controllers\ReservacionController;
 use App\Controllers\NotificationController;
 use App\Controllers\MesasController;
 use App\Controllers\AreasController;
+use App\Controllers\ReporteController;
+use App\Controllers\PapeleraController;
 
 try {
+
     match ($page) {
         'login' => (new LoginController())->index(),
         'logout' => (new LogOutController())->index(),
@@ -52,6 +60,7 @@ try {
         'nuestro-menu' => (new MenuController())->indexPublico(),
         'ingredientes' => (new IngredienteController())->index(),
         'areas' => (new AreasController())->index(),
+        'proveedores' => (new ProveedorController())->index(),
         'mesas' => (new MesasController())->index(),
         'categoria-ingrediente' => (new IngredienteController())->indexCategoria(),
         'categorias' => (new CategoriaController())->index(),
@@ -62,9 +71,13 @@ try {
         'multimedia' => (new MediaController())->index(),
         'clientes' => (new ClienteController())->index(),
         'reservaciones' => (new ReservacionController())->index(),
+        'reservar' => (new ReservacionController())->index(true),
+        'reportes' => (new ReporteController())->index(),
+        'papelera' => (new PapeleraController())->index(),
         'notificaciones' => (new NotificationController())->index(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };
+
 } catch (Exception $e) {
     $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
     

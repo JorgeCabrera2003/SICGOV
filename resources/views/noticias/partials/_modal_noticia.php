@@ -59,7 +59,7 @@
 
                         <!-- Subida de Múltiples Imágenes -->
                         <div class="col-12 mt-4">
-                            <div class="card border border-2 border-dashed rounded-3">
+                            <div class="card border border-2 dashed-border rounded-3">
                                 <div class="card-body p-4 text-center">
                                     <i class="fas fa-cloud-upload-alt text-primary mb-3" style="font-size: 3rem;"></i>
                                     <h5>Sube imágenes para tu galería</h5>
@@ -67,10 +67,11 @@
                                     <input class="form-control d-none" type="file" id="imagenes" name="imagenes[]" accept="image/*" multiple>
                                     <div class="d-flex justify-content-center gap-2">
                                         <label for="imagenes" class="btn btn-outline-primary shadow-sm"><i class="fas fa-image me-2"></i>Subir Imágenes</label>
-                                        <button type="button" class="btn btn-outline-warning text-dark shadow-sm" id="btnAbrirGaleria">
+                                        <button type="button" class="btn btn-outline-warning shadow-sm" id="btnAbrirGaleria">
                                             <i class="fas fa-th me-2"></i>Elegir de Galería
                                         </button>
                                     </div>
+
                                     <input type="hidden" id="imagenes_galeria" name="imagenes_galeria">
                                     
                                     <div id="previewContainer" class="d-flex flex-wrap gap-2 mt-3 justify-content-center">

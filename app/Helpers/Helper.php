@@ -200,4 +200,60 @@ class Helper
         require_once $vistaFile;
         require_once $footerFile;
     }
+    /**
+     * Convierte una imagen a formato WebP de forma universal
+     * Soporta JPG, PNG, GIF y WEBP (copia directa)
+     * 
+     * @param string $source Ruta absoluta del archivo origen
+     * @param string $destination Ruta absoluta del archivo .webp destino
+     * @param int $quality Calidad de compresión (0-100, default 80)
+     * @return bool Verdadero si la conversión fue exitosa
+     */
+    public static function convertirAWebP($source, $destination, $quality = 80)
+    {
+        if (!extension_loaded('gd')) {
+            self::ErrorLog("La extensión GD no está cargada. No se pudo convertir a WebP.");
+            return false;
+        }
+
+        $info = getimagesize($source);
+        if (!$info) return false;
+
+        $mime = $info['mime'];
+        $image = null;
+
+        try {
+            $image = match ($mime) {
+                'image/jpeg' => imagecreatefromjpeg($source),
+                'image/png'  => imagecreatefrompng($source),
+                'image/gif'  => imagecreatefromgif($source),
+                'image/webp' => 'SKIP',
+                default      => null
+            };
+
+            if ($image === 'SKIP') return copy($source, $destination);
+            if (!$image) return false;
+
+            // Post-procesamiento
+            if ($mime === 'image/png') {
+                imagepalettetotruecolor($image);
+                imagealphablending($image, true);
+                imagesavealpha($image, true);
+            }
+
+
+            if (!$image) return false;
+
+            // Asegurar que el directorio destino existe
+            $dir = dirname($destination);
+            if (!is_dir($dir)) mkdir($dir, 0777, true);
+
+            $res = imagewebp($image, $destination, $quality);
+            imagedestroy($image);
+            return $res;
+        } catch (\Exception $e) {
+            self::ErrorLog("Error convirtiendo imagen a WebP: " . $e->getMessage());
+            return false;
+        }
+    }
 }

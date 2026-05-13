@@ -7,7 +7,7 @@
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-primary border-bottom-0 text-white">
                 <h5 class="modal-title fw-bold" id="modalConsultarClienteLabel">
-                    <i class="fas fa-eye text-white me-2"></i>
+                    <i class="fas fa-eye me-2"></i>
                     Consulta de Cliente
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>

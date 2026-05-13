@@ -74,7 +74,6 @@ CREATE TABLE `categoria_producto` (
   `id_categoria` varchar(30) NOT NULL,
   `nombre_categoria` varchar(100) NOT NULL,
   `descripcion` text DEFAULT NULL,
-  `icono` varchar(255) DEFAULT 'default.png',
   `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_categoria`),
   UNIQUE KEY `idx_categoria_producto_nombre` (`nombre_categoria`)
@@ -142,6 +141,7 @@ CREATE TABLE `personal` (
 CREATE TABLE `cliente` (
   `cedula` varchar(15) NOT NULL,
   `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp(),
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`cedula`),
   CONSTRAINT `fk_cli_persona` FOREIGN KEY (`cedula`) REFERENCES `persona` (`cedula`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -152,6 +152,7 @@ CREATE TABLE `proveedor` (
   `telefono` varchar(20) DEFAULT NULL,
   `correo` varchar(100) DEFAULT NULL,
   `direccion` varchar(255) DEFAULT NULL,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`documento_legal`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -227,10 +228,6 @@ CREATE TABLE `producto` (
   `nombre_producto` varchar(100) NOT NULL,
   `descripcion` text DEFAULT NULL,
   `precio` decimal(10,2) NOT NULL CHECK (`precio` >= 0),
-  `costo_preparacion` decimal(10,2) NOT NULL DEFAULT 0.00,
-  `stock` int(11) NOT NULL DEFAULT 0,
-  `stock_minimo` int(11) NOT NULL DEFAULT 1,
-  `tiempo_preparacion` int(11) DEFAULT NULL,
   `imagen` varchar(255) DEFAULT 'default-product.png',
   `es_personalizable` tinyint(1) NOT NULL DEFAULT 0,
   `estatus` tinyint(1) NOT NULL DEFAULT 1,
@@ -248,6 +245,7 @@ CREATE TABLE `preparacion` (
   `prioridad_ingrediente` int(11) DEFAULT 1,
   `cantidad` decimal(10,3) NOT NULL CHECK (`cantidad` > 0),
   `id_unidad_medida` varchar(10) NOT NULL DEFAULT 'UN',
+  `precio_ingrediente` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`id_preparacion`),
   KEY `fk_prep_prod` (`id_producto`),
   KEY `fk_prep_ing` (`id_ingrediente`),
