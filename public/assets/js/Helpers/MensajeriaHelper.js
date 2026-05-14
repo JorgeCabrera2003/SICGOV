@@ -62,7 +62,7 @@ export function DiccionarioValidacion(termino){
         'Telefono-Segmento': "Error: el número debe tener 7 dígitos en este campo",
         'Correo': "Error: el formato del correo eléctronico es: usuario@servidor.com",
         'Titulo': "Error: contenido no válido",
-        'Dirección': "Error: dirección no válida",
+        'Direccion': "Error: dirección no válida",
     };
     const DEFAULT = '';
 

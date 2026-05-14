@@ -8,7 +8,7 @@ export function ValidarCampo(patron, etiqueta, span) {
 
     const REGEX = {
         'Cedula': /^[0-9]{7,15}$/,
-        'DocumentoLegal': /^[0-9]{7,15}$/,
+        'DocumentoLegal': /^[0-9]{7,12}$/,
         'ID': /^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/,
         'NombrePersona': /^[a-z A-ZáéíóúüñÑçÇ]{3,65}$/,
         'NombreUsuario': /^[0-9a-zA-Z_]{4,20}$/,
@@ -17,7 +17,7 @@ export function ValidarCampo(patron, etiqueta, span) {
         'Telefono-Segmento': /^[0-9]{7}$/,
         'Correo': /^[a-zA-Z0-9][a-zA-Z0-9._%+-]{1,63}@[a-zA-Z0-9][a-zA-Z0-9.-]{1,50}\.(com|es|mx|co\.uk|org|net)$/,
         'Titulo': /^[0-9a-zA-ZáéíóúüñÑçÇ\s\-.,()!?\"\'%:;]{3,150}$/,
-        'Dirección': /^[0-9a-zA-ZáéíóúüñÑçÇ\s\-.,()!?\"\'%:;\/]{10,200}$/,
+        'Direccion': /^[0-9a-zA-ZáéíóúüñÑçÇ\s\-.,()!?\"\'%:;\/]{10,200}$/
     };
     const DEFAULT = '';
     regex = REGEX[patron] || DEFAULT;
@@ -56,7 +56,8 @@ export function ValidarTecla(patron, etiqueta) {
         'NombreObjeto': /^[0-9a-zA-ZáéíóúüñÑçÇ\s\-.,()\-]*$/,
         'Telefono': /^[0-9]*$/,
         'Correo': /^[a-zA-Z0-9._%+-@]*$/,
-        'Titulo': /^[0-9a-zA-ZáéíóúüñÑçÇ\s\-.,()!?\"\'%:;]*$/
+        'Titulo': /^[0-9a-zA-ZáéíóúüñÑçÇ\s\-.,()!?\"\'%:;]*$/,
+        'Direccion': /^[0-9a-zA-ZáéíóúüñÑçÇ\s\-.,()!?\"\'%:;\/]*$/
     };
     const DEFAULT = '';
 
@@ -93,7 +94,7 @@ export function ValidarCodigoTelefono(etiqueta, span) {
     const DEFAULT = false;
 
     try {
-        bool = CODIGOS[patron] || DEFAULT;
+        bool = CODIGOS[etiqueta.val()] || DEFAULT;
 
         if(bool){
             bool = true;
