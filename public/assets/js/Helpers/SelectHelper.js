@@ -6,10 +6,12 @@ export async function BuscarValor(id_select, valor, opcion) {
     return false;
   }
 
+  const $select = $(id_select);
+
   if (opcion === 'text') {
     let bool = false;
 
-    $(`${id_select} option`).each(function () {
+    $select.find('option').each(function () {
       if ($(this).text().trim() === valor.trim()) {
         $(this).prop('selected', true);
         $(id_select).trigger('change');
@@ -22,14 +24,18 @@ export async function BuscarValor(id_select, valor, opcion) {
       return true;
     } else {
       console.error("El valor '" + valor + "' no se encuentra en el campo select.")
+      return false;
     }
 
   } else if (opcion === 'value') {
-    if ($(`${id_select} option[value="${valor}"]`).length > 0) {
-      $(`${id_select}`).val(`${valor}`).trigger('change');
+    const $option = $select.find(`option[value="${valor}"]`);
+    
+    if ($option.length) {
+      $select.val(valor).trigger('change');
       return true;
     } else {
-      console.error("El valor " + valor + " no se encuentra en el campo select.");
+      console.error(`El valor ${valor} no se encuentra en el campo select.`);
+      return false;
     }
 
   } else {
@@ -41,7 +47,7 @@ export async function BuscarValor(id_select, valor, opcion) {
 export function FeedbackSelect(input, span, mensaje, estado) {
   $(input).removeClass("is-valid is-invalid");
   $(span).removeClass("valid-feedback invalid-feedback");
-  
+
   if (estado === 1) {
     $(input).addClass("is-valid");
     $(span).text();
