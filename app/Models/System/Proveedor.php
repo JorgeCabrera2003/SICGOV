@@ -45,7 +45,7 @@ class Proveedor extends Database
     public function setDocumentoLegal(string $documento)
     {
         $documento = trim($documento);
-        if (RegexHelper::ValidarFormatos($documento, "Cedula") == 0) {
+        if (RegexHelper::ValidarFormatos($documento, "DocumentoLegal") == 0) {
             throw new Exception('El documento legal debe tener un prefijo válido (V, E, J, P, G) seguido de 7 a 12 dígitos.');
         }
         $this->documento_legal = strtoupper($documento[0]) . substr($documento, 1);
@@ -71,8 +71,6 @@ class Proveedor extends Database
 
     public function setCorreo(string $correo)
     {
-        $correo = trim($correo);
-
         if (RegexHelper::ValidarFormatos($correo, "Correo") == 0) {
             throw new Exception('El formato del correo electrónico no es válido.');
         }
@@ -82,12 +80,8 @@ class Proveedor extends Database
     /** Dirección: obligatoria, mínimo 3 caracteres. */
     public function setDireccion(string $direccion)
     {
-        $direccion = trim($direccion);
-        if (empty($direccion)) {
-            throw new Exception('La dirección es obligatoria.');
-        }
-        if (mb_strlen($direccion) < 3) {
-            throw new Exception('La dirección debe tener al menos 3 caracteres.');
+        if (RegexHelper::ValidarFormatos($direccion, "Direccion") == 0) {
+            throw new Exception('Dirección no válida');
         }
         $this->direccion = $direccion;
     }
@@ -189,9 +183,10 @@ class Proveedor extends Database
                 $stm->bindParam(':correo', $this->correo);
                 $stm->bindParam(':direccion', $this->direccion);
                 $stm->execute();
+                $this->LlamarConexion()->commit();
 
                 $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Proveedor actualizado exitosamente"];
+                $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Proveedor registrar exitosamente"];
                 $dato['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => "OK"];
 
             } catch (\PDOException $e) {
@@ -211,8 +206,8 @@ class Proveedor extends Database
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "UPDATE ingrediente SET nombre_ingrediente = :nombre_ingrediente, unidad_medida = :unidad_medida, 
-            precio_unitario = :precio_unitario WHERE documento_legal = :documento_legal";
+            $sql = "UPDATE proveedor SET nombre = :nombre, telefono = :telefono, 
+            correo = :correo, direccion = :direccion WHERE documento_legal = :documento_legal";
 
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':documento_legal', $this->documento_legal);
