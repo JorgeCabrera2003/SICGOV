@@ -46,7 +46,7 @@
                             <span class="invalid-feedback" id="scedula_empleado"></span>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-5">
                             <label for="tipo_marcacion" class="form-label fw-semibold">
                                 Tipo de Marcación <span class="text-danger">*</span>
                             </label>

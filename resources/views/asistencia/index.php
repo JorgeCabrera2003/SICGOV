@@ -21,6 +21,17 @@
 
     </header>
 
+    <div class="d-flex align-items-center gap-2 mb-3">
+        <div class="btn-group" role="group" aria-label="Filtros de asistencia">
+            <button type="button" class="btn btn-warning text-dark fw-semibold" id="btnHistorial">
+                <i class="fas fa-history me-2"></i>Historial
+            </button>
+            <button type="button" class="btn btn-outline-warning" id="btnMiAsistencia" onclick="pendiente()">
+                <i class="fas fa-user-clock me-2"></i>Mi Asistencia
+            </button>
+        </div>
+    </div>
+
     <!-- Tabla de productos (section semántica) -->
     <section class="card shadow-sm border-0">
 
@@ -31,7 +42,7 @@
                         <tr>
                             <th scope="col">Fecha</th>
                             <th scope="col">Hora</th>
-                            <th scope="col">Cédula</th>
+                            <th scope="col">Empleado</th>
                             <th scope="col">Tipo de Marcación</th>
                             <th scope="col">Estado</th>
                             <th scope="col">Observación</th>

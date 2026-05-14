@@ -107,6 +107,48 @@ function validarFormularioAsistencia() {
   return validoTipoDoc && validoCedula && validoTipoMarcacion;
 }
 
+function formatearHora(hora) {
+  if (!hora) return '';
+
+  const partes = hora.split(':');
+  if (partes.length < 2) return hora;
+
+  let horas = parseInt(partes[0], 10);
+  const minutos = partes[1].padStart(2, '0');
+  const ampm = horas >= 12 ? 'pm' : 'am';
+
+  if (horas === 0) {
+    horas = 12;
+  } else if (horas > 12) {
+    horas -= 12;
+  }
+
+  return `${horas.toString().padStart(2, '0')}:${minutos} ${ampm}`;
+}
+
+function formatoTipoMarcacion(tipo) {
+  const mapa = {
+    ENTRADA: { label: 'Entrada'},
+    DESCANSO_IN: { label: 'Descanso Iniciado'},
+    DESCANSO_OUT: { label: 'Descanso Terminado' },
+    SALIDA: { label: 'Salida'}
+  };
+
+  const item = mapa[tipo] || { label: tipo ? tipo.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) : ''};
+  return { label: item.label, style: item.style };
+}
+
+function formatoEstado(estado) {
+  const mapa = {
+    A_TIEMPO: { label: 'A Tiempo', style: 'bg-success text-white' },
+    TARDE: { label: 'Tarde', style: 'bg-warning text-dark' },
+    FALTA: { label: 'Falta', style: 'bg-danger text-white' }
+  };
+
+  const item = mapa[estado] || { label: estado ? estado.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) : '', style: 'bg-secondary text-white' };
+  return { label: item.label, style: item.style };
+}
+
 async function crearDataTable() {
 
   let peticion = new FormData();
@@ -131,29 +173,105 @@ async function crearDataTable() {
     processing: true,
     data: arreglo,
     columns: [
-      { data: 'fecha' },
-      { data: 'hora' },
-      { 
-        data: 'cedula_empleado',
+      {
+        data: 'fecha',
+        className: 'text-center',
         render: function (data, type) {
-          if (!data) return data;
-          const formatted = (data.length > 1) ? data.charAt(0) + '-' + data.slice(1) : data;
-          if (type === 'display') return formatted;
-          if (type === 'filter') return data + ' ' + formatted;
+          if (type === 'display' || type === 'filter') {
+            return formatearFecha(data);
+          }
           return data;
         }
       },
-      { data: 'tipo_marcacion' },
-      { data: 'estado' },
-      { data: 'observacion' },
-
+      {
+        data: 'hora',
+        className: 'text-center',
+        render: function (data, type) {
+          if (type === 'display' || type === 'filter') {
+            return formatearHora(data);
+          }
+          return data;
+        }
+      },
       {
         data: null,
+         className: 'text-center' ,
+        render: function (data, type, row) {
+          const cedula = row.cedula_empleado || data.cedula_empleado || '';
+          const formattedCedula = cedula.length > 1 ? cedula.charAt(0) + '-' + cedula.slice(1) : cedula;
+          const nombre = row.primer_nombre || '';
+          const apellido = row.primer_apellido || '';
+          const nombreCompleto = `${nombre}${nombre && apellido ? ' ' : ''}${apellido}`.trim();
+
+          if (type === 'display') {
+            if (nombreCompleto) {
+              return `
+                <div style="line-height:1.2;">
+                  <strong>${nombreCompleto}</strong><br>
+                  <small class="text-muted">(${formattedCedula})</small>
+                </div>
+              `;
+            }
+            return `<div>${formattedCedula}</div>`;
+          }
+
+          if (type === 'filter') {
+            return `${nombreCompleto} ${formattedCedula}`;
+          }
+
+          return cedula;
+        }
+      },
+      {
+        data: 'tipo_marcacion',
+        className: 'text-center',
+        render: function (data, type) {
+          const tipo = formatoTipoMarcacion(data);
+          if (type === 'display') {
+            return tipo.label;
+          }
+          if (type === 'filter') {
+            return tipo.label;
+          }
+          return data;
+        }
+      },
+      {
+        data: 'estado',
+        className: 'text-center',
+        render: function (data, type) {
+          const estado = formatoEstado(data);
+          if (type === 'display') {
+            return `<span class="badge rounded-pill ${estado.style}">${estado.label}</span>`;
+          }
+          if (type === 'filter') {
+            return estado.label;
+          }
+          return data;
+        }
+      },
+      {
+        data: 'observacion',
+        className: 'text-center',
+        render: function (data, type) {
+          if (type === 'display' || type === 'filter') {
+            const text = data || '';
+            const safeText = $('<div>').text(text).html();
+            return `<div style="white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; max-width: 340px;">${safeText}</div>`;
+          }
+          return data;
+        }
+      },
+      {
+        data: null,
+        className: 'text-center',
         render: function () {
           return botones;
         }
       }
     ],
+    responsive: true,
+    autoWidth: false,
     order: [[0, 'desc']],
     language: { url: idiomaTabla }
   });
@@ -183,9 +301,11 @@ async function botonAcciones() {
     return dropdown.prop('outerHTML');
 }
 
-function pendiente() {
+function pendiente(event) {
+    if (event && event.preventDefault) {
+        event.preventDefault();
+    }
 
-    event.preventDefault();
     Swal.fire({
         title: 'Funcionalidad Pendiente',
         text: 'El marcado de la asistencia aún no está disponible. Por favor, inténtelo más tarde.',
@@ -194,8 +314,6 @@ function pendiente() {
         timer: 5000,
         timerProgressBar: true,
     });
-    
-
 }
 
 function limpia() {

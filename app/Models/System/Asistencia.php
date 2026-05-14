@@ -132,7 +132,12 @@ class Asistencia extends Database {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
 
-            $sql = "SELECT * FROM asistencia ORDER BY fecha DESC, hora DESC";
+            $sql = "SELECT a.*, 
+                           SUBSTRING_INDEX(v.nombre, ' ', 1) AS primer_nombre, 
+                           SUBSTRING_INDEX(v.apellido, ' ', 1) AS primer_apellido 
+                    FROM asistencia a 
+                    LEFT JOIN vw_directorio_empleados v ON v.cedula = a.cedula_empleado 
+                    ORDER BY a.fecha DESC, a.hora DESC";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute();
 
