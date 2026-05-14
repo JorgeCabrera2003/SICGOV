@@ -69,13 +69,64 @@ class AsistenciaController {
 				}
 			}
 
-			if ($_POST["peticion"] == "consultar") {
-				$json = $AsistenciaModel->Transaccion(['peticion' => $_POST["peticion"]]);
-			}
-			//Fin del Consultar 
+			if ($_POST["peticion"] == "agregar_observacion") {
+				try {
+					$idAsistencia = trim($_POST['id_asistencia'] ?? '');
+					$observacion = trim($_POST['observacion'] ?? '');
 
-			//Enviar respuesta al navegador usando un encabezado HTTP
-			header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
+					if (empty($idAsistencia)) {
+						throw new Exception('Identificador de asistencia inválido.');
+					}
+					if ($observacion === '') {
+						throw new Exception('La observación no puede estar vacía.');
+					}
+
+					$AsistenciaModel->setIdAsistencia($idAsistencia);
+                    $AsistenciaModel->setObservacion('- ' . $observacion);
+
+                    $json = $AsistenciaModel->Transaccion(['peticion' => 'agregar_observacion']);
+                    if ($json['estado'] == 1) {
+                        Helper::Bitacora('ACTUALIZAR', 'ASISTENCIA', "Agregó observación a asistencia {$idAsistencia}");
+                    }
+                } catch (Exception $e) {
+                    $json = [
+                        'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Datos no válidos'],
+                        'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()]
+                    ];
+                }
+            }
+
+            if ($_POST["peticion"] == "eliminar_observacion") {
+                try {
+                    $idAsistencia = trim($_POST['id_asistencia'] ?? '');
+                    $indice = isset($_POST['indice']) ? (int)$_POST['indice'] : -1;
+
+                    if (empty($idAsistencia)) {
+                        throw new Exception('Identificador de asistencia inválido.');
+                    }
+                    if ($indice < 0) {
+                        throw new Exception('Índice de observación inválido.');
+                    }
+
+                    $AsistenciaModel->setIdAsistencia($idAsistencia);
+                    $AsistenciaModel->setIndiceObservacion($indice);
+
+                    $json = $AsistenciaModel->Transaccion(['peticion' => 'eliminar_observacion']);
+                    if ($json['estado'] == 1) {
+                        Helper::Bitacora('ACTUALIZAR', 'ASISTENCIA', "Eliminó observación de asistencia {$idAsistencia}");
+                    }
+                } catch (Exception $e) {
+                    $json = [
+                        'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Datos no válidos'],
+                        'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()]
+                    ];
+                }
+            }
+
+            if ($_POST["peticion"] == "consultar") {
+                $json = $AsistenciaModel->Transaccion(['peticion' => $_POST["peticion"]]);
+            }
+            //Fin del Consultar
 			echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
 			exit;
 			

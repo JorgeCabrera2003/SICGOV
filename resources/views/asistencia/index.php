@@ -61,6 +61,7 @@
 <!-- Modales (incluidos como partials) -->
 <?php
 include_once 'partials/_modal_asistencia.php';
+include_once 'partials/_modal_observacion.php';
 ?>
 
 <!-- Recursos específicos de la página -->

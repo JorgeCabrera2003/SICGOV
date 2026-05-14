@@ -1,7 +1,10 @@
 $(document).ready(function () {
   crearDataTable();
   inicializarValidacionAsistencia();
+  inicializarObservacionAsistencia();
 });
+
+let currentAsistenciaRow = null;
 
 function inicializarValidacionAsistencia() {
   const $tipoDoc = $('#tipo_doc');
@@ -56,6 +59,124 @@ $("#btnMarcarAsistencia").on("click", function () {
   $('#btnAsistenciaForm').text('Registrar');
   $('#modalAsistencia').modal('show');
 });
+function inicializarObservacionAsistencia() {
+  $('#btnAgregarObservacion').on('click', async function () {
+    const observacion = $('#observacionInput').val().trim();
+    if (!observacion) {
+      return mensajes('warning', 4000, 'Escribe una observación para continuar.');
+    }
+
+    if (!currentAsistenciaRow || !currentAsistenciaRow.id_asistencia) {
+      return mensajes('error', 5000, 'No se encontró la asistencia seleccionada.');
+    }
+
+    const peticion = new FormData();
+    peticion.append('peticion', 'agregar_observacion');
+    peticion.append('id_asistencia', currentAsistenciaRow.id_asistencia);
+    peticion.append('observacion', observacion);
+
+    const json = await enviaAjax(peticion, BASE_URL + '?page=asistencia');
+
+    if (json && json.resultado === 200) {
+      currentAsistenciaRow.observacion = json.datos.observacion;
+      renderObservacionesPrevias(currentAsistenciaRow.observacion);
+      $('#observacionInput').val('').focus();
+      mensajes('success', 4000, json.mensaje || 'Observación agregada correctamente');
+      if ($.fn.DataTable.isDataTable('#tablaAsistencia')) {
+        $('#tablaAsistencia').DataTable().row(function (idx, data, node) {
+          return data.id_asistencia === currentAsistenciaRow.id_asistencia;
+        }).data(currentAsistenciaRow).draw(false);
+      }
+    } else {
+      mensajes('error', 5000, (json && json.mensaje) ? json.mensaje : 'No se pudo agregar la observación');
+    }
+  });
+
+  $('#observacionActual').on('click', '.btn-eliminar-observacion', async function (event) {
+    event.preventDefault();
+
+    if (!currentAsistenciaRow || !currentAsistenciaRow.id_asistencia) {
+      return mensajes('error', 5000, 'No se encontró la asistencia seleccionada.');
+    }
+
+    const index = parseInt($(this).data('index'), 10);
+    if (isNaN(index) || index < 0) {
+      return mensajes('error', 5000, 'Índice de observación inválido.');
+    }
+
+    const confirmacion = await Swal.fire({
+      title: 'Eliminar observación',
+      text: '¿Deseas eliminar esta observación?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      reverseButtons: true
+    });
+
+    if (!confirmacion.isConfirmed) {
+      return;
+    }
+
+    await eliminarObservacion(index);
+  });
+}
+
+async function eliminarObservacion(index) {
+  const peticion = new FormData();
+  peticion.append('peticion', 'eliminar_observacion');
+  peticion.append('id_asistencia', currentAsistenciaRow.id_asistencia);
+  peticion.append('indice', index);
+
+  const json = await enviaAjax(peticion, BASE_URL + '?page=asistencia');
+
+  if (json && json.resultado === 200) {
+    currentAsistenciaRow.observacion = json.datos.observacion;
+    renderObservacionesPrevias(currentAsistenciaRow.observacion);
+    mensajes('success', 4000, json.mensaje || 'Observación eliminada correctamente');
+    if ($.fn.DataTable.isDataTable('#tablaAsistencia')) {
+      $('#tablaAsistencia').DataTable().row(function (idx, data, node) {
+        return data.id_asistencia === currentAsistenciaRow.id_asistencia;
+      }).data(currentAsistenciaRow).draw(false);
+    }
+  } else {
+    mensajes('error', 5000, (json && json.mensaje) ? json.mensaje : 'No se pudo eliminar la observación');
+  }
+}
+
+function renderObservacionesPrevias(observaciones) {
+  const $container = $('#observacionActual');
+  const lines = observaciones ? observaciones.split(/\r\n|\r|\n/) : [];
+  const filtered = lines
+    .map(line => line.trim())
+    .filter(line => line !== '')
+    .map(line => line.startsWith('- ') ? line.substring(2) : line); // Remover prefijo si existe
+
+  console.log('Líneas procesadas:', filtered);
+
+  if (filtered.length === 0) {
+    $container.text('Sin observaciones previas.');
+    return;
+  }
+
+  const $list = $('<ul>').addClass('list-group list-group-flush mb-0');
+
+  filtered.forEach((line, index) => {
+    console.log(`Procesando línea ${index}: "${line}"`);
+    const $item = $('<li>').addClass('list-group-item d-flex justify-content-between align-items-center py-2 px-3');
+    const $text = $('<span>').addClass('text-body').text(line);
+    const $button = $('<button>')
+      .attr('type', 'button')
+      .addClass('btn btn-sm btn-outline-danger btn-eliminar-observacion')
+      .attr('data-index', index)
+      .html('<i class="fas fa-trash-alt"></i>');
+
+    $item.append($text, $button);
+    $list.append($item);
+  });
+
+  $container.empty().append($list);
+}
 
 function validarTipoDoc() {
   const $tipoDoc = $('#tipo_doc');
@@ -154,8 +275,6 @@ async function crearDataTable() {
   let peticion = new FormData();
   let json = null;
   let arreglo = [];
-  let botones = '';
-  botones = await botonAcciones();
 
   try {
     peticion.append('peticion', 'consultar');
@@ -265,8 +384,21 @@ async function crearDataTable() {
       {
         data: null,
         className: 'text-center',
-        render: function () {
-          return botones;
+        render: function (data, type, row) {
+          return `
+            <div class="dropdown">
+              <button class="btn btn-sm bg-body text-body border dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-ellipsis-v me-2"></i>Acciones
+              </button>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item text-primary" href="#" onclick="event.preventDefault(); abrirModalObservacion(this)" data-id="${row.id_asistencia}">
+                    <i class="fa-solid fa-pen-to-square me-2"></i>Agregar Observaciones
+                  </a>
+                </li>
+              </ul>
+            </div>
+          `;
         }
       }
     ],
@@ -277,28 +409,26 @@ async function crearDataTable() {
   });
 }
 
-async function botonAcciones() {
-    
-    const dropdown = $('<div>').addClass('dropdown');
-    const boton = $('<button>').addClass('btn btn-sm bg-body text-body border dropdown-toggle')
-        .attr('type', 'button')
-        .attr('data-bs-toggle', 'dropdown')
-        .html('<i class="fas fa-ellipsis-v me-2"></i>Acciones');
+function abrirModalObservacion(button) {
+    const table = $('#tablaAsistencia').DataTable();
+    const row = table.row($(button).closest('tr')).data();
 
-    const menu = $('<ul>').addClass('dropdown-menu dropdown-menu-end');
+    if (!row || !row.id_asistencia) {
+        return mensajes('error', 5000, 'No se encontró la asistencia seleccionada.');
+    }
 
-    const itemEditar = $('<li>');
-    const linkEditar = $('<a>')
-        .addClass('dropdown-item text-primary')
-        .attr('href', '#')
-        .attr('onclick', 'pendiente()')
-        .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
-    itemEditar.append(linkEditar);
+    currentAsistenciaRow = row;
 
-    menu.append(itemEditar);
-    dropdown.append(boton, menu);
+    const estado = formatoEstado(row.estado);
+    const tipo = formatoTipoMarcacion(row.tipo_marcacion);
 
-    return dropdown.prop('outerHTML');
+    $('#observacionEmpleado').text(row.primer_nombre ? `${row.primer_nombre} ${row.primer_apellido || ''}`.trim() : row.cedula_empleado);
+    $('#observacionFechaHora').text(`${formatearFecha(row.fecha)} ${formatearHora(row.hora)}`);
+    $('#observacionTipo').text(tipo.label);
+    $('#observacionEstado').html(`<span class="badge rounded-pill ${estado.style}">${estado.label}</span>`);
+    renderObservacionesPrevias(row.observacion);
+    $('#observacionInput').val('').focus();
+    $('#modalObservacion').modal('show');
 }
 
 function pendiente(event) {
@@ -308,7 +438,7 @@ function pendiente(event) {
 
     Swal.fire({
         title: 'Funcionalidad Pendiente',
-        text: 'El marcado de la asistencia aún no está disponible. Por favor, inténtelo más tarde.',
+        text: 'Esta Función aún no está disponible. Por favor, inténtelo más tarde.',
         icon: 'info',
         confirmButtonText: 'Entendido',
         timer: 5000,

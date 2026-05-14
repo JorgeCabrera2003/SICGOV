@@ -16,6 +16,7 @@ class Asistencia extends Database {
     private $hora;
     private $estado;
     private $observacion;
+    private $indiceObservacion;
    
     public function __construct() {
 
@@ -26,6 +27,7 @@ class Asistencia extends Database {
         $this->hora = "";
         $this->estado = "";
         $this->observacion = "";
+        $this->indiceObservacion = -1;
 
     }
 
@@ -56,6 +58,10 @@ class Asistencia extends Database {
 
     public function setObservacion(string $observacion) {
         $this->observacion = $observacion;
+    }
+
+    public function setIndiceObservacion(int $indice) {
+        $this->indiceObservacion = $indice;
     }
     //FIN SETTERS
 
@@ -101,9 +107,11 @@ class Asistencia extends Database {
 
             $response = match ($peticion['peticion']) {
 
-                'validar' => $this->ValidarAsistencia(),
+                    'validar' => $this->ValidarAsistencia(),
                 'consultar' => $this->ConsultarAsistencia(),
                 'registrar' => $this->RegistrarAsistencia(),
+                'agregar_observacion' => $this->AgregarObservacion(),
+                'eliminar_observacion' => $this->EliminarObservacion(),
 
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
@@ -192,6 +200,127 @@ class Asistencia extends Database {
 
             $dato['estado'] = 1;
             $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Asistencia registrada correctamente'];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde'];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Error interno del servidor'];
+        } catch (Exception $e) {
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde'];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Error interno del servidor'];
+        }
+
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    private function AgregarObservacion() {
+        $dato = [];
+        $dato['estado'] = 0;
+        $dato['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Función de actualización no implementada'];
+        $dato['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Función no implementada'];
+
+        try {
+            $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
+
+            $sql = "UPDATE asistencia
+                    SET observacion = CONCAT(COALESCE(observacion, ''), CASE WHEN COALESCE(observacion, '') = '' THEN '' ELSE '\n' END, :observacion)
+                    WHERE id_asistencia = :id_asistencia";
+
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->execute([
+                ':id_asistencia' => $this->idAsistencia,
+                ':observacion' => $this->observacion
+            ]);
+
+            if ($stm->rowCount() === 0) {
+                throw new Exception('No se encontró el registro de asistencia para actualizar.');
+            }
+
+            $sql = "SELECT observacion FROM asistencia WHERE id_asistencia = :id_asistencia";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->execute([':id_asistencia' => $this->idAsistencia]);
+            $observacionActualizada = $stm->fetchColumn() ?: '';
+
+            $this->LlamarConexion()->commit();
+            $stm = NULL;
+
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Observación agregada correctamente', 'datos' => ['observacion' => $observacionActualizada]];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde'];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Error interno del servidor'];
+        } catch (Exception $e) {
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde'];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Error interno del servidor'];
+        }
+
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    private function EliminarObservacion() {
+        $dato = [];
+        $dato['estado'] = 0;
+        $dato['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Función de eliminación no implementada'];
+        $dato['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Función no implementada'];
+
+        try {
+            $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
+
+            $sql = "SELECT observacion FROM asistencia WHERE id_asistencia = :id_asistencia";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->execute([':id_asistencia' => $this->idAsistencia]);
+            $observacionActual = $stm->fetchColumn() ?: '';
+
+            $lines = preg_split('/\r\n|\r|\n/', $observacionActual);
+            $observacionesArray = array_filter($lines, function($line) {
+                return trim($line) !== '';
+            });
+
+            // Convertir a array indexado
+            $observacionesArray = array_values($observacionesArray);
+
+            if ($this->indiceObservacion >= count($observacionesArray) || $this->indiceObservacion < 0) {
+                throw new Exception('Índice de observación fuera de rango. Indice: ' . $this->indiceObservacion . ', Total: ' . count($observacionesArray));
+            }
+
+            // Eliminar la observación específica
+            array_splice($observacionesArray, $this->indiceObservacion, 1);
+
+            // Reconstruir el string de observaciones
+            $nuevaObservacion = implode("\n", $observacionesArray);
+
+            $sql = "UPDATE asistencia SET observacion = :observacion WHERE id_asistencia = :id_asistencia";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->execute([
+                ':observacion' => $nuevaObservacion,
+                ':id_asistencia' => $this->idAsistencia
+            ]);
+
+            if ($stm->rowCount() === 0) {
+                throw new Exception('No se encontró el registro de asistencia para actualizar.');
+            }
+
+            $this->LlamarConexion()->commit();
+            $stm = NULL;
+
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Observación eliminada correctamente', 'datos' => ['observacion' => $nuevaObservacion]];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
         } catch (\PDOException $e) {
             $this->LlamarConexion()->rollBack();
