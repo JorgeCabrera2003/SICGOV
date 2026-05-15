@@ -23,16 +23,22 @@ export function ValidarCampo(patron, etiqueta, span) {
     regex = REGEX[patron] || DEFAULT;
 
     try {
-        if (regex.test(etiqueta.val())) {
-            bool = true;
-            etiqueta.addClass("is-valid");
-            span.text("");
+        if (etiqueta.val() != "") {
+            if (regex.test(etiqueta.val())) {
+                bool = true;
+                etiqueta.addClass("is-valid");
+                span.text("");
+            } else {
+                etiqueta.addClass("is-invalid");
+                span.addClass("invalid-tooltip");
+                span.text(MensajeriaHelper.DiccionarioValidacion(patron));
+            }
         } else {
-            etiqueta.addClass("is-invalid");
-            span.addClass("invalid-tooltip");
-            span.text(MensajeriaHelper.DiccionarioValidacion(patron));
+            etiqueta.removeClass("is-valid is-invalid");
+            span.removeClass("valid-tooltip-tooltip invalid-tooltip");
+            span.text("");
         }
-        
+
     } catch (e) {
         console.error("Error en la validación: ", e)
         etiqueta.addClass("is-invalid");
@@ -96,7 +102,7 @@ export function ValidarCodigoTelefono(etiqueta, span) {
     try {
         bool = CODIGOS[etiqueta.val()] || DEFAULT;
 
-        if(bool){
+        if (bool) {
             bool = true;
             etiqueta.addClass("is-valid");
             span.text("");
