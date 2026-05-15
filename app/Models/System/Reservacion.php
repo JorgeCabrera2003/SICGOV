@@ -232,6 +232,7 @@ class Reservacion extends Database
                 'title' => $r['nombre'] . ' ' . $r['apellido'],
                 'start' => $r['fecha'] . 'T' . $r['hora'],
                 'end' => $r['fecha'] . 'T' . $r['hora_fin'],
+                'editable' => ($r['estado'] === 'PENDIENTE'), // Solo se mueven las pendientes
                 'extendedProps' => [
                     'cedula' => $r['cedula_cliente'],
                     'telefono' => $r['telefono'],
@@ -239,6 +240,7 @@ class Reservacion extends Database
                 ],
                 'className' => 'status-' . strtolower($r['estado'])
             ];
+
         }
 
         return ['estado' => 1, 'response' => ['resultado' => 200, 'datos' => $eventos]];

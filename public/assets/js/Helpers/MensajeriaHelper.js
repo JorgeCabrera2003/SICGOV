@@ -53,13 +53,16 @@ export function DiccionarioValidacion(termino){
     let mensaje = "";
         const RESPUESTAS = {
         'Cedula': "Error: el formato es 00000000",
+        'DocumentoLegal': "Error: el formato es 00000000",
         'ID': "Error: ID ingresado no válido",
         'NombrePersona': "El nombre debe tener 3 a 65 carácteres",
         'NombreUsuario': "El nombre de usuario debe tener 3 a 65 carácteres sin espacios",
         'NombreObjeto': "El nombre debe tener 3 a 65 carácteres",
         'Telefono': "Error: el formato para el número de telefono es: 0000-0000000",
+        'Telefono-Segmento': "Error: el número debe tener 7 dígitos en este campo",
         'Correo': "Error: el formato del correo eléctronico es: usuario@servidor.com",
-        'Titulo': /^[0-9a-zA-ZáéíóúüñÑçÇ\s\-.,()!?"\'%:;]{3,150}$/,
+        'Titulo': "Error: contenido no válido",
+        'Dirección': "Error: dirección no válida",
     };
     const DEFAULT = '';
 

@@ -433,10 +433,12 @@ class Noticia extends Database
                         if (!in_array($extension, $allowed)) continue;
                         if ($imagen['size'] > 5 * 1024 * 1024) continue;
 
-                        $nombre_archivo = uniqid('not_') . '.' . $extension;
+                        $nombre_base = uniqid('not_');
+                        $nombre_archivo = $nombre_base . '.webp';
                         $target_file = $target_dir . DS . $nombre_archivo;
 
-                        if (move_uploaded_file($imagen["tmp_name"], $target_file)) {
+                        // Convertir a WebP usando el nuevo Helper
+                        if (Helper::convertirAWebP($imagen["tmp_name"], $target_file)) {
                             $id_imagen = "IMG-" . date('YmdHis') . rand(100,999);
                             $direccion = '/assets/img/noticias/' . $nombre_archivo;
                             $es_principal = ($orden == 1) ? 1 : 0;
@@ -449,6 +451,7 @@ class Noticia extends Database
                             $stm->execute();
                             $orden++;
                         }
+
                     }
                 }
             }

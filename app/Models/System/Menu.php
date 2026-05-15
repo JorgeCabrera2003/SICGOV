@@ -32,29 +32,57 @@ class Menu
 
     public function setNombreProducto($nombre)
     {
+        $nombre = trim($nombre);
         if (empty($nombre)) {
-            throw new Exception("El nombre del producto es requerido.");
+            throw new Exception("El nombre del producto es obligatorio.");
+        }
+        if (!preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/', $nombre)) {
+            throw new Exception("El nombre del producto solo admite letras y espacios.");
         }
         $this->nombre_producto = $nombre;
     }
 
     public function setDescripcion($descripcion)
     {
+        $descripcion = trim($descripcion);
+        if (empty($descripcion)) {
+            throw new Exception("La descripción es obligatoria.");
+        }
+        if (!preg_match('/^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\.,]+$/', $descripcion)) {
+            throw new Exception("La descripción solo admite letras y números.");
+        }
         $this->descripcion = $descripcion;
     }
 
     public function setPrecio($precio)
     {
+        if (empty($precio) || !is_numeric($precio) || $precio <= 0) {
+            throw new Exception("El precio debe ser un número válido mayor a 0.");
+        }
         $this->precio = $precio;
     }
 
     public function setIdCategoria($id_categoria)
     {
+        if (empty($id_categoria)) {
+            throw new Exception("La categoría es obligatoria.");
+        }
+        
+        $stmt = $this->db->prepare("SELECT id_categoria FROM categoria_producto WHERE id_categoria = ?");
+        $stmt->execute([$id_categoria]);
+        if ($stmt->rowCount() === 0) {
+            throw new Exception("La categoría seleccionada no existe en la base de datos.");
+        }
+
         $this->id_categoria = $id_categoria;
     }
 
     public function setTipoProducto($tipo)
     {
+        $tipo = trim($tipo);
+        if (empty($tipo) || !in_array($tipo, ['COCINA', 'BARRA'])) {
+            throw new Exception("El tipo de producto es inválido.");
+        }
         $this->tipo_producto = $tipo;
     }
 
@@ -63,14 +91,56 @@ class Menu
         $this->imagen = $imagen;
     }
 
-    public function setIngredientesPrincipales($ingredientes)
+    public function setIngredientesPrincipales($ingredientes_json)
     {
-        $this->ingredientes_principales = $ingredientes;
+        if ($this->tipo_producto === 'COCINA') {
+            $ingredientes = is_string($ingredientes_json) ? json_decode($ingredientes_json, true) : $ingredientes_json;
+            if (empty($ingredientes) || !is_array($ingredientes)) {
+                throw new Exception("El producto de cocina debe tener al menos un ingrediente principal.");
+            }
+            foreach ($ingredientes as $ing) {
+                if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
+                    throw new Exception("Las cantidades de los ingredientes principales deben ser números mayores a 0.");
+                }
+                if (empty($ing['unidad'])) {
+                    throw new Exception("La unidad de medida es obligatoria para los ingredientes principales.");
+                }
+                
+                $stmt = $this->db->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
+                $stmt->execute([$ing['unidad']]);
+                if ($stmt->rowCount() === 0) {
+                    throw new Exception("La unidad de medida seleccionada para el ingrediente no existe en la base de datos.");
+                }
+            }
+        }
+        $this->ingredientes_principales = $ingredientes_json;
     }
 
-    public function setIngredientesAdicionales($ingredientes)
+    public function setIngredientesAdicionales($ingredientes_json)
     {
-        $this->ingredientes_adicionales = $ingredientes;
+        if ($this->tipo_producto === 'COCINA') {
+            $ingredientes = is_string($ingredientes_json) ? json_decode($ingredientes_json, true) : $ingredientes_json;
+            if (!empty($ingredientes) && is_array($ingredientes)) {
+                foreach ($ingredientes as $ing) {
+                    if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
+                        throw new Exception("Las cantidades de los ingredientes adicionales deben ser números mayores a 0.");
+                    }
+                    if (!isset($ing['precio']) || !is_numeric($ing['precio']) || $ing['precio'] <= 0) {
+                        throw new Exception("El precio de los ingredientes adicionales debe ser un número válido mayor a 0.");
+                    }
+                    if (empty($ing['unidad'])) {
+                        throw new Exception("La unidad de medida es obligatoria para los ingredientes adicionales.");
+                    }
+                    
+                    $stmt = $this->db->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
+                    $stmt->execute([$ing['unidad']]);
+                    if ($stmt->rowCount() === 0) {
+                        throw new Exception("La unidad de medida seleccionada para el ingrediente adicional no existe en la base de datos.");
+                    }
+                }
+            }
+        }
+        $this->ingredientes_adicionales = $ingredientes_json;
     }
 
 
@@ -127,30 +197,27 @@ class Menu
 
     public function Transaccion($peticion)
     {
-        try {
-            switch ($peticion['peticion']) {
-                case 'listar':
-                    return $this->listarMenu();
-                case 'registrar':
-                    return $this->registrarMenu();
-                case 'modificar':
-                    return $this->modificarMenu();
-                case 'buscar':
-                    return $this->buscarMenu();
-                case 'eliminar':
-                    return $this->eliminarMenu();
-                case 'categorias':
-                    return $this->listarCategorias();
-                case 'ingredientes':
-                    return $this->listarIngredientes();
-                case 'unidades':
-                    return $this->listarUnidades();
-                default:
-                    return ['success' => false, 'message' => 'Petición no válida'];
+        $response = ['success' => false, 'message' => 'Petición no válida'];
+
+        if (isset($peticion['peticion'])) {
+            try {
+                $response = match ($peticion['peticion']) {
+                    'listar'       => $this->listarMenu(),
+                    'registrar'    => $this->registrarMenu(),
+                    'modificar'    => $this->modificarMenu(),
+                    'buscar'       => $this->buscarMenu(),
+                    'eliminar'     => $this->eliminarMenu(),
+                    'categorias'   => $this->listarCategorias(),
+                    'ingredientes' => $this->listarIngredientes(),
+                    'unidades'     => $this->listarUnidades(),
+                    default        => ['success' => false, 'message' => 'Petición no válida']
+                };
+            } catch (Exception $e) {
+                $response = ['success' => false, 'message' => $e->getMessage()];
             }
-        } catch (Exception $e) {
-            return ['success' => false, 'message' => $e->getMessage()];
         }
+
+        return $response;
     }
 
 
