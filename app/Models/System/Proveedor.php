@@ -186,7 +186,7 @@ class Proveedor extends Database
                 $this->LlamarConexion()->commit();
 
                 $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Proveedor registrar exitosamente"];
+                $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Proveedor registrado exitosamente"];
                 $dato['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => "OK"];
 
             } catch (\PDOException $e) {

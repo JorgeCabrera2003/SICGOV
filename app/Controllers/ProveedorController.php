@@ -3,7 +3,6 @@
 namespace App\Controllers;
 
 use App\Helpers\Helper;
-use App\Helpers\RegexHelper;
 use App\Models\System\Proveedor;
 use Exception;
 
@@ -85,9 +84,9 @@ class ProveedorController
 							$json = $proveedorModel->Transaccion(['peticion' => $_POST["peticion"]]);
 
 							if ($json['estado'] == 1) {
-								$msg = "(" . $_SESSION['user']['cedula'] . "), Se eliminó un ingrediente con el id:" . $_POST["id_ingrediente"];
+								$msg = "(" . $_SESSION['user']['cedula'] . "), Se eliminó un proveedor con el Documento Legal: " . $_POST["documento_legal"];
 							} else {
-								$msg = "(" . $_SESSION['user']['cedula'] . "), error al eliminar un ingrediente";
+								$msg = "(" . $_SESSION['user']['cedula'] . "), error al eliminar un proveedor";
 							}
 						}
 					} catch (Exception $exception) {
@@ -96,7 +95,7 @@ class ProveedorController
 					}
 				} else {
 					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
-					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a un ente'];
+					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a un proveedor'];
 					$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
 				}
 			}
