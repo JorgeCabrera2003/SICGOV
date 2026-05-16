@@ -98,6 +98,7 @@ export async function EnviarDatos(operacion) {
   let mensajeConfirmacion = "¿Está seguro de realizar esta acción?";
   let endpoint = "";
   let peticion = new FormData();
+  let json;
 
   //Registrar y Modificar
   if (operacion == "registrar" || operacion == "modificar") {
@@ -121,7 +122,7 @@ export async function EnviarDatos(operacion) {
         peticion.append('telefono', input.prefijo_telefono.val() + "-" + input.telefono.val());
         peticion.append('correo', input.correo.val());
         peticion.append('direccion', input.direccion.val());
-        peticion.append('documento_legal', input.tipo_documento.val() + "" + input.documento_legal.val());
+        peticion.append('documento_legal', input.tipo_documento.val() + "-" + input.documento_legal.val());
         btn_formulario = true;
       }
     } else {
@@ -131,13 +132,22 @@ export async function EnviarDatos(operacion) {
   } //Fin del Registrar y Modificar
   //Eliminar
   if (operacion == "eliminar") {
+    let bool_eliminar = true;
 
-    if (validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_ingrediente, span.id_ingrediente, '')) {
+    if (input.tipo_documento.val() == "default") {
+      bool_eliminar = false
+    }
+
+    if (!ValidadorHelper.ValidarCampo("DocumentoLegal", input.documento_legal, span.documento_legal)) {
+      bool_eliminar = false;
+    }
+
+    if (bool_eliminar) {
       confirmacion = await confirmarAccion("Se eliminará un Proveedor", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
-        peticion.append('documento_legal', input.tipo_documento.val() + "" + input.documento_legal.val());
+        peticion.append('documento_legal', input.tipo_documento.val() + "-" + input.documento_legal.val());
         btn_formulario = true;
       }
     } else {
@@ -364,13 +374,26 @@ export function LimpiarFormulario() {
   let span = EtiquetasFormulario('span');
   let modal = EtiquetasModal('Proveedor');
 
-  input.tipo_documento.val("default").prop("disabled", false);
+
+  input.tipo_documento.val("default").removeClass("is-valid is-invalid").prop("disabled", false);
+  span.tipo_documento.text("").removeClass("");
+
   input.documento_legal.val("").prop("disabled", false);
+  span.documento_legal.text("").removeClass("");
+
   input.nombre.val("").prop("disabled", false);
+  span.nombre.text("").removeClass("valid-tooltip-tooltip invalid-tooltip");
+
   input.prefijo_telefono.val("default").prop("disabled", false);
   input.telefono.val("").prop("disabled", false);
+  span.telefono.text("").removeClass("valid-tooltip-tooltip invalid-tooltip");
+
   input.correo.val("").prop("disabled", false);
+  span.correo.text("").removeClass("valid-tooltip-tooltip invalid-tooltip");
+
   input.direccion.val("").prop("disabled", false);
+  span.correo.text("").removeClass("valid-tooltip-tooltip invalid-tooltip");
+
 
   // Deshabilitar el botón al limpiar (se habilitará automáticamente cuando los campos sean válidos)
   modal.boton.prop('disabled', false);
@@ -391,11 +414,11 @@ export async function EditarFormProveedor(datos, accion) {
   let numero_telefono = numeroStr.substring(5);
   if (accion == "eliminar") { bool = true; }
 
-  
+
   SelectHelper.BuscarValor(input.tipo_documento, tipo_documentoStr, "value");
   input.tipo_documento.prop("disabled", bool);
   input.documento_legal.val(digitos_documentoStr).prop("disabled", bool);
-  input.nombre.val(datos.nombre).prop("nombre", bool);
+  input.nombre.val(datos.nombre).prop("disabled", bool);
   input.prefijo_telefono.prop("disabled", bool);
   SelectHelper.BuscarValor(input.prefijo_telefono, codigo_telefono, "value");
   input.telefono.val(numero_telefono).prop("disabled", bool);

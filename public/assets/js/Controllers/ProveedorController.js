@@ -14,7 +14,7 @@ $(document).ready(function () {
 //EVENTOS CLICK DE LOS BOTONES DE LA INTERFAZ
 $("#btnProveedorForm").on("click", async function () {
   let respuesta = null;
-  respuesta = proveedor.EnviarFormulario($(this).text());
+  respuesta = await proveedor.EnviarFormulario($(this).text());
 
   console.log(respuesta);
 
