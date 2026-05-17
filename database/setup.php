@@ -37,8 +37,8 @@ class GoodVibesInstallerService
             $this->success("Variables cargadas correctamente.\n");
 
             // 2. Opciones Dinámicas
-            $resetDB   = $this->confirm("¿Deseas RESETEAR (Eliminar y Crear) las bases de datos?");
-            $runMig    = $this->confirm("¿Deseas ejecutar las MIGRACIONES (Estructura SQL)?");
+            $resetDB = $this->confirm("¿Deseas RESETEAR (Eliminar y Crear) las bases de datos?");
+            $runMig = $this->confirm("¿Deseas ejecutar las MIGRACIONES (Estructura SQL)?");
             $runSecSeed = $this->confirm("¿Deseas ejecutar el SEEDER DE SEGURIDAD (Roles y Admin)?");
             $runBizSeed = $this->confirm("¿Deseas ejecutar el SEEDER DE NEGOCIO (Faker: Mesas, Productos, etc.)?");
 
@@ -57,12 +57,12 @@ class GoodVibesInstallerService
                 $this->runMigrations();
             }
 
-            if ($runSecSeed) {
-                $this->runSecuritySeeder();
-            }
-
             if ($runBizSeed) {
                 $this->runBusinessSeeder();
+            }
+
+            if ($runSecSeed) {
+                $this->runSecuritySeeder();
             }
 
             $this->printFooter();
@@ -88,7 +88,7 @@ class GoodVibesInstallerService
     {
         $this->info("[1/4] Reseteando bases de datos en el servidor...");
         $this->rawDb = Database::getRawConnection();
-        
+
         $dbUsers = $_ENV['DB_NAME_USER'] ?? 'goobv-usuarios';
         $dbSystem = $_ENV['DB_NAME_SYSTEM'] ?? 'goobv-sistema';
 
@@ -96,7 +96,7 @@ class GoodVibesInstallerService
         $this->rawDb->exec("DROP DATABASE IF EXISTS `$dbSystem`;");
         $this->rawDb->exec("CREATE DATABASE `$dbUsers` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;");
         $this->rawDb->exec("CREATE DATABASE `$dbSystem` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;");
-        
+
         $this->success("      Bases de datos creadas desde cero.");
     }
 
@@ -108,25 +108,12 @@ class GoodVibesInstallerService
     private function runMigrations()
     {
         $this->info("\n[2/4] Ejecutando Migraciones (SQL)...");
-        
+
         $rutaMigracionSistema = __DIR__ . '/migrations/goobv-sistema.sql';
         $rutaMigracionUsuarios = __DIR__ . '/migrations/goobv-usuarios.sql';
 
         $this->executeSQLFile($this->dbBusiness, $rutaMigracionSistema, "Sistema");
         $this->executeSQLFile($this->dbSecurity, $rutaMigracionUsuarios, "Usuarios");
-    }
-
-    /**
-     * Ejecuta el seeder de seguridad para roles y usuario administrador.
-     *
-     * @return void
-     */
-    private function runSecuritySeeder()
-    {
-        $this->info("\n[3/4] Ejecutando Security Seeder...");
-        $securitySeeder = new SecuritySeeder($this->dbSecurity);
-        $securitySeeder->run();
-        $this->success("      Datos de seguridad inyectados.");
     }
 
     /**
@@ -136,7 +123,7 @@ class GoodVibesInstallerService
      */
     private function runBusinessSeeder()
     {
-        $this->info("\n[4/4] Ejecutando Business Seeder (Faker)...");
+        $this->info("\n[3/4] Ejecutando Business Seeder (Faker)...");
         $this->dbBusiness->beginTransaction(); // Optimización: Transacciones para inserciones masivas
         try {
             $businessSeeder = new BusinessSeeder($this->dbBusiness);
@@ -147,6 +134,19 @@ class GoodVibesInstallerService
             $this->dbBusiness->rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Ejecuta el seeder de seguridad para roles y usuario administrador.
+     *
+     * @return void
+     */
+    private function runSecuritySeeder()
+    {
+        $this->info("\n[4/4] Ejecutando Security Seeder...");
+        $securitySeeder = new SecuritySeeder($this->dbSecurity);
+        $securitySeeder->run();
+        $this->success("      Datos de seguridad inyectados.");
     }
 
     /**
@@ -166,7 +166,7 @@ class GoodVibesInstallerService
         }
 
         $sql = file_get_contents($archivo);
-        
+
         // --- DINAMISMO: Reemplazar Placeholders por nombres reales de .env ---
         $dbUsers = $_ENV['DB_NAME_USER'] ?? 'goobv-usuarios';
         $dbSystem = $_ENV['DB_NAME_SYSTEM'] ?? 'goobv-sistema';
@@ -311,7 +311,7 @@ class GoodVibesInstallerService
         echo " INSTALACIÓN COMPLETADA CON ÉXITO\n";
         echo "===========================================================\n";
         echo "\033[0m";
-        echo "\033[36m Usuario Admin:\033[0m V00000000\n";
+        echo "\033[36m Usuario Admin:\033[0m V-00000000\n";
         echo "\033[36m Clave:\033[0m 1234\n\n";
     }
 }
