@@ -12,8 +12,15 @@ $(document).ready(function () {
 });
 
 //EVENTOS CLICK DE LOS BOTONES DE LA INTERFAZ
-$("#btnIngredienteForm").on("click", async function () {
-  proveedor.EnviarFormulario($(this).text());
+$("#btnProveedorForm").on("click", async function () {
+  let respuesta = null;
+  respuesta = await proveedor.EnviarFormulario($(this).text());
+
+  console.log(respuesta);
+
+  if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
+    crearDataTable();
+  };
 });
 
 $("#btnNuevoProveedor").on("click", function () {
@@ -50,17 +57,14 @@ async function crearDataTable(controlador = "") {
 }
 
 async function rellenar(pos, accion, modulo = "Proveedor") {
-  let str_accion = "";
   const linea = $(pos).closest('tr');
   const tabla = $('#tabla' + modulo).DataTable();
   const datosFila = tabla.row(linea).data();
 
-  // Habilitar el botón inmediatamente para Modificar/Eliminar ya que los datos vienen pre-validados
+  proveedor.EditarFormProveedor(datosFila, accion)
 }
 
 $(document).on('click', '.btn-editar', function () {
-  console.log($(this));
-  console.log($(this).attr("data-modulo"));
   rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
 })
 
