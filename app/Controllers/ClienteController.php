@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Helpers\Helper;
+use App\Helpers\RegexHelper;
 use App\Models\System\Cliente;
 
 class ClienteController
@@ -21,27 +22,35 @@ class ClienteController
 			}
 
 			//Registrar y Modificar
-		if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
+		if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar" || $_POST["peticion"] == "eliminar") {
 			$accion_permiso = true;
 
 			if ($accion_permiso) {
 				try {
 					$clienteModel->setCedula($_POST["cedula"] ?? '');
-					$clienteModel->setNombre($_POST["nombre"] ?? '');
-					$clienteModel->setApellido($_POST["apellido"] ?? '');
-					$clienteModel->setFechaNacimiento($_POST["fecha_nacimiento"] ?? '');
-					$clienteModel->setTelefono($_POST["telefono"] ?? '');
-					$clienteModel->setCorreo($_POST["correo"] ?? '');
-					$clienteModel->setDireccion($_POST["direccion"] ?? '');
-					$clienteModel->setSexo($_POST["sexo"] ?? '');
+					if ($_POST["peticion"] != "eliminar") {
+						$clienteModel->setNombre($_POST["nombre"] ?? '');
+						$clienteModel->setApellido($_POST["apellido"] ?? '');
+						$clienteModel->setFechaNacimiento($_POST["fecha_nacimiento"] ?? '');
+						$clienteModel->setTelefono($_POST["telefono"] ?? '');
+						$clienteModel->setCorreo($_POST["correo"] ?? '');
+						$clienteModel->setDireccion($_POST["direccion"] ?? '');
+						$clienteModel->setSexo($_POST["sexo"] ?? '');
+					}
 
 					if ($_POST["peticion"] == "registrar") {
 						$msgN = "Se registró un nuevo cliente con la cédula " . ($_POST["cedula"] ?? '');
-					} else {
+					} else if ($_POST["peticion"] == "modificar") {
 						$msgN = "Se modificó el cliente con la cédula: " . ($_POST["cedula"] ?? '');
+					} else {
+						$msgN = "Se eliminó el cliente con la cédula: " . ($_POST["cedula"] ?? '');
 					}
 
 					$json = $clienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
+					
+					if (isset($json['estado']) && $json['estado'] == 1) {
+						Helper::Bitacora(strtoupper($_POST["peticion"]), "CLIENTES", $msgN);
+					}
 
 				} catch (\Exception $e) {
 					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
@@ -98,6 +107,10 @@ class ClienteController
 						$clienteModel->setCedula($_POST["cedula"]);
                         $clienteModel->setEstatus($_POST["estatus"]);
 						$json = $clienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
+						if (isset($json['estado']) && $json['estado'] == 1) {
+							$accion_texto = ($_POST["estatus"] == 1) ? "activó" : "desactivó";
+							Helper::Bitacora("CAMBIAR_ESTATUS", "CLIENTES", "Se {$accion_texto} al cliente con cédula: " . $_POST["cedula"]);
+						}
 					}
 				} else {
 					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];

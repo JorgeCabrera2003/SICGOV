@@ -30,6 +30,10 @@ class MenuController
         );
     }
 
+
+
+
+
     public function guardar()
     {
         $this->responderJson(function() {
@@ -75,15 +79,22 @@ class MenuController
             $result = $menu->Transaccion(['peticion' => $peticion]);
 
             if (isset($result['success']) && $result['success']) {
-                $accion = empty($_POST['id_producto']) ? 'Se creó' : 'Se actualizó';
+                $es_nuevo = empty($_POST['id_producto']);
+                $accion_bitacora = $es_nuevo ? 'REGISTRAR' : 'MODIFICAR';
+                $accion_detalle = $es_nuevo ? 'Se registró' : 'Se modificó';
                 $nombre_producto = $_POST['nombre'] ?? '';
-                $detalle = "$accion el producto del menú '{$nombre_producto}'";
-                Helper::Bitacora(strtoupper(explode(' ', $accion)[1]), "MENU", $detalle);
+                $detalle = "$accion_detalle el producto del menú '{$nombre_producto}'";
+                Helper::Bitacora($accion_bitacora, "MENU", $detalle);
             }
 
             return $result;
         });
     }
+
+
+
+
+
 
     public function buscar()
     {
@@ -103,6 +114,15 @@ class MenuController
                 : ['success' => false, 'message' => 'Producto no encontrado'];
         });
     }
+
+
+
+
+
+
+
+
+
 
     public function eliminar()
     {
@@ -126,6 +146,10 @@ class MenuController
     }
 
 
+
+
+
+
     public function listarJson()
     {
         $this->responderJson(function() {
@@ -136,6 +160,13 @@ class MenuController
         });
     }
 
+
+
+
+
+
+
+    
     public function indexPublico()
     {
         $menuModel = new Menu();
