@@ -15,9 +15,9 @@ class SecuritySeeder {
         
         if ($count == 0) {
             echo "       Roles no encontrados, insertando...\n";
-            $sqlRoles = "INSERT INTO rol (id_rol, nombre_rol, descripcion, estatus) VALUES 
-                ('ADMIN00120251001', 'ADMINISTRADOR', 'Acceso completo al sistema', 1),
-                ('GEREN00520251001', 'GERENTE', 'Supervisión y reportes', 1)";
+            $sqlRoles = "INSERT INTO rol (id_rol, nombre_rol, estatus) VALUES 
+                ('ADMIN00120251001', 'ADMINISTRADOR', 1),
+                ('GEREN00520251001', 'GERENTE', 1)";
             $this->db->exec($sqlRoles);
             echo "       Roles base creados.\n";
         }

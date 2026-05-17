@@ -14,7 +14,6 @@ SET time_zone = "-04:00"; -- Hora de Venezuela
 CREATE TABLE `rol` (
   `id_rol` varchar(30) NOT NULL,
   `nombre_rol` varchar(50) NOT NULL,
-  `descripcion` varchar(200) DEFAULT NULL,
   `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_rol`),
   UNIQUE KEY `idx_rol_nombre` (`nombre_rol`)
