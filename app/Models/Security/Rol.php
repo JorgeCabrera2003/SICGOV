@@ -11,7 +11,7 @@ OPERACIONES A BASE DE DATOS:
     VALIDAR
 */
 
-namespace App\Models\System;
+namespace App\Models\Security;
 
 use App\Core\Database;
 use App\Helpers\Helper;
@@ -88,7 +88,7 @@ class Rol extends Database
         $dato = [];
         $arreglo = [];
         try {
-            $this->LlamarConexion();
+            $this->LlamarConexion("security");
             $this->LlamarConexion()->beginTransaction();
             $sql = "SELECT * FROM rol WHERE estatus = 1";
             $stm = $this->LlamarConexion()->prepare($sql);
@@ -118,25 +118,31 @@ class Rol extends Database
         $dato = [];
         $validacion = [];
         $validacion = $this->ValidarRol();
+        $datos_nuevos = [];
         if ($validacion['bool'] == 0) {
             try {
-                $sql = "INSERT INTO rol (id_rol`, `nombre_rol`) VALUES (:id_rol, :nombre_rol)";
+                $sql = "INSERT INTO rol (id_rol, nombre_rol) VALUES (:id_rol, :nombre_rol)";
 
-                $this->LlamarConexion();
+                $this->LlamarConexion("security");
                 $this->LlamarConexion()->beginTransaction();
                 $stm = $this->LlamarConexion()->prepare($sql);
                 $stm->bindParam(':id_rol', $this->id);
                 $stm->bindParam(':nombre_rol', $this->nombre);
                 $stm->execute();
                 $this->LlamarConexion()->commit();
+                $datos_nuevos = $this->ValidarRol();
 
                 $dato['estado'] = 1;
+                $dato['datos_nuevos'] = $datos_nuevos['response']['registro'];
+                $dato['datos_anteriores'] = NULL;
                 $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Rol registrado exitosamente"];
                 $dato['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => "OK"];
 
             } catch (\PDOException $e) {
                 $this->LlamarConexion()->rollBack();
                 Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+                $dato['datos_nuevos'] = NULL;
+                $dato['datos_anteriores'] = NULL;
                 $dato['estado'] = -1;
                 $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
                 $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
@@ -148,25 +154,34 @@ class Rol extends Database
 
     private function ModificarRol()
     {
+        $dato = [];
+        $datos_nuevos = [];
+        $datos_anteriores = [];
         try {
-            $this->LlamarConexion();
+            $datos_anteriores = $this->ValidarRol();
+            $this->LlamarConexion("security");
             $this->LlamarConexion()->beginTransaction();
             $sql = "UPDATE rol SET nombre_rol = :nombre_rol WHERE id_rol = :id_rol";
 
             $stm = $this->LlamarConexion()->prepare($sql);
-            $stm->bindParam(':id', $this->id);
-            $stm->bindParam(':nombre', $this->nombre);
+            $stm->bindParam(':id_rol', $this->id);
+            $stm->bindParam(':nombre_rol', $this->nombre);
             $stm->execute();
             $this->LlamarConexion()->commit();
             $stm = NULL;
+            $datos_nuevos = $this->ValidarRol();
 
             $dato['estado'] = 1;
+            $dato['datos_nuevos'] = $datos_nuevos['response']['registro'];
+            $dato['datos_anteriores'] = $datos_anteriores['response']['registro'];
             $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Rol actualizado exitosamente"];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
 
         } catch (\PDOException $e) {
             $this->LlamarConexion()->rollBack();
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['datos_nuevos'] = NULL;
+            $dato['datos_anteriores'] = NULL;
             $dato['estado'] = -1;
             $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
             $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
@@ -182,21 +197,25 @@ class Rol extends Database
 
         if ($validacion['bool'] == 1) {
             try {
-                $this->LlamarConexion();
+                $this->LlamarConexion("security");
                 $this->LlamarConexion()->beginTransaction();
                 $sql = "UPDATE rol SET estatus = 0 WHERE id_rol = :id_rol";
                 $stm = $this->LlamarConexion()->prepare($sql);
-                $stm->bindParam(':id', $this->id);
+                $stm->bindParam(':id_rol', $this->id);
                 $stm->execute();
                 $this->LlamarConexion()->commit();
                 $stm = NULL;
 
                 $dato['estado'] = 1;
+                $dato['datos_nuevos'] = $validacion['response']['registro'];
+                $dato['datos_anteriores'] = NULL;
                 $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Rol eliminado exitosamente"];
                 $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
             } catch (\PDOException $e) {
                 Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
                 $dato['estado'] = -1;
+                $dato['datos_nuevos'] = NULL;
+                $dato['datos_anteriores'] = NULL;
                 $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor"];
                 $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
             }
@@ -214,7 +233,7 @@ class Rol extends Database
         $dato = [];
         $arreglo = [];
         try {
-            $this->LlamarConexion();
+            $this->LlamarConexion("security");
             $this->LlamarConexion()->beginTransaction();
             $sql = "SELECT * FROM rol WHERE id_rol = :id_rol";
             $stm = $this->LlamarConexion()->prepare($sql);
