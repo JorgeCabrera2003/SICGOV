@@ -18,19 +18,19 @@
 
                     <div class="row g-3">
                         <!-- Nombre de la Categoría -->
-                        <div class="col-12">
+                        <div class="col-12 position-relative">
                             <label for="nombre_categoria" class="form-label fw-medium text-secondary">
                                 Nombre de la Categoría <span class="text-danger">*</span>
                             </label>
                             <input type="text" class="form-control" id="nombre_categoria" name="nombre_categoria" placeholder="Ej. Bebidas Calientes" required>
-                            <div class="invalid-feedback" id="feedback_nombre_categoria">Por favor, ingresa el nombre de la categoría.</div>
+                            <span id="feedback_nombre_categoria" style="width: fit-content;"></span>
                         </div>
 
                         <!-- Descripción -->
-                        <div class="col-12">
+                        <div class="col-12 position-relative">
                             <label for="descripcion_categoria" class="form-label fw-medium text-secondary">Descripción</label>
                             <textarea class="form-control" id="descripcion_categoria" name="descripcion" rows="3" placeholder="Descripción opcional..."></textarea>
-                            <div class="invalid-feedback" id="feedback_descripcion_categoria">La descripción solo puede contener letras y espacios.</div>
+                            <span id="feedback_descripcion_categoria" style="width: fit-content;"></span>
                         </div>
 
 
