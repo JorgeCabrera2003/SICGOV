@@ -70,14 +70,14 @@ class SecuritySeeder {
         }
 
         // Crear usuario admin si no existe
-        $sqlCheck = "SELECT COUNT(*) FROM usuario WHERE cedula = 'V00000000'";
+        $sqlCheck = "SELECT COUNT(*) FROM usuario WHERE cedula = 'V-00000000'";
         $userExists = $this->db->query($sqlCheck)->fetchColumn();
 
         if (!$userExists) {
             $sqlAdmin = "INSERT INTO usuario
                         (cedula, id_rol, username, clave, tema, estatus)
                         VALUES 
-                        ('V00000000', 'ADMIN00120251001', 'admin_root', :clave, 'light', 1)";
+                        ('V-00000000', 'ADMIN00120251001', 'admin_root', :clave, 'light', 1)";
             try {
                 $stmt = $this->db->prepare($sqlAdmin);
                 $stmt->execute(['clave' => $hash]);
@@ -90,18 +90,18 @@ class SecuritySeeder {
         }
 
         // Crear usuario gerente de ejemplo
-        $sqlCheckGerente = "SELECT COUNT(*) FROM usuario WHERE cedula = 'V12345678'";
+        $sqlCheckGerente = "SELECT COUNT(*) FROM usuario WHERE cedula = 'V-12345678'";
         $gerenteExists = $this->db->query($sqlCheckGerente)->fetchColumn();
 
         if (!$gerenteExists) {
             $sqlGerente = "INSERT INTO usuario
                         (cedula, id_rol, username, clave, tema, estatus)
                         VALUES 
-                        ('V12345678', 'GEREN00520251001', 'gerente', :clave, 'light', 1)";
+                        ('V-12345678', 'GEREN00520251001', 'gerente', :clave, 'light', 1)";
             try {
                 $stmt = $this->db->prepare($sqlGerente);
                 $stmt->execute(['clave' => $hash]);
-                echo "       Usuario Gerente de ejemplo creado (cedula: V12345678).\n";
+                echo "       Usuario Gerente de ejemplo creado (cedula: V-12345678).\n";
             } catch (\PDOException $e) {
                 echo "       Aviso: No se pudo crear usuario gerente: " . $e->getMessage() . "\n";
             }

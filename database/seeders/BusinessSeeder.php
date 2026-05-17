@@ -144,7 +144,7 @@ class BusinessSeeder
         
         if (!$personaExists) {
             $sqlPersona = "INSERT INTO persona (cedula, nombre, apellido, telefono, correo, sexo) 
-                          VALUES ('V00000000', 'Admin', 'Principal', '04120000000', 'admin@goodvibes.com', 'M')";
+                          VALUES ('V-00000000', 'Admin', 'Principal', '04120000000', 'admin@goodvibes.com', 'M')";
             $this->db->exec($sqlPersona);
             echo "       Persona para Admin Root creada.\n";
         }
@@ -155,7 +155,7 @@ class BusinessSeeder
         
         if (!$gerenteExists) {
             $sqlPersona = "INSERT INTO persona (cedula, nombre, apellido, telefono, correo, sexo) 
-                          VALUES ('V12345678', 'Gerente', 'General', '04120000001', 'gerente@goodvibes.com', 'M')";
+                          VALUES ('V-12345678', 'Gerente', 'General', '04120000001', 'gerente@goodvibes.com', 'M')";
             $this->db->exec($sqlPersona);
             echo "       Persona para Gerente creada.\n";
         }
@@ -179,7 +179,7 @@ class BusinessSeeder
         $stmtEmpleado = $this->db->prepare($sqlEmpleado);
 
         for ($i = 0; $i < $cantidad; $i++) {
-            $cedula = 'V' . $this->faker->unique()->numberBetween(10000000, 99999999);
+            $cedula = 'V-' . $this->faker->unique()->numberBetween(10000000, 99999999);
             $fechaIngreso = $this->faker->dateTimeBetween('-2 years', 'now')->format('Y-m-d');
             
             try {
@@ -293,7 +293,7 @@ class BusinessSeeder
         $stmtCliente = $this->db->prepare($sqlCliente);
 
         for ($i = 0; $i < $cantidad; $i++) {
-            $cedula = 'V' . $this->faker->unique()->numberBetween(10000000, 99999999);
+            $cedula = 'V-' . $this->faker->unique()->numberBetween(10000000, 99999999);
             
             try {
                 $stmtPersona->execute([

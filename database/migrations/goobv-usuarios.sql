@@ -62,7 +62,8 @@ CREATE TABLE `usuario` (
   PRIMARY KEY (`cedula`),
   UNIQUE KEY `idx_usuario_username` (`username`),
   KEY `fk_usuario_rol` (`id_rol`),
-  CONSTRAINT `fk_usuario_rol` FOREIGN KEY (`id_rol`) REFERENCES `rol` (`id_rol`) ON UPDATE CASCADE
+  CONSTRAINT `fk_usuario_rol` FOREIGN KEY (`id_rol`) REFERENCES `rol` (`id_rol`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_usuario_cedula` FOREIGN KEY (`cedula`) REFERENCES `{{DB_SYSTEM}}`.persona (`cedula`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Usuarios del sistema - Datos de autenticación';
 
 CREATE TABLE `permiso` (
