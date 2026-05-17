@@ -149,13 +149,16 @@ function validarCamposCliente() {
             // Campo obligatorio vacío: mostrar error sólo si fue tocado
             if ($campo.data('touched')) {
                 $campo.addClass('is-invalid').removeClass('is-valid');
+                $span.addClass('invalid-tooltip d-inline-block');
                 $span.text(msg);
             } else {
                 $campo.removeClass('is-valid is-invalid');
+                $span.removeClass('invalid-tooltip d-inline-block');
                 $span.text('');
             }
         } else if (tieneValor && !valido) {
             $campo.addClass('is-invalid').removeClass('is-valid');
+            $span.addClass('invalid-tooltip d-inline-block');
             $span.text(msg);
         } else if (valido) {
             // Solo colorear verde si el campo tiene contenido; vacío = sin color
@@ -164,9 +167,11 @@ function validarCamposCliente() {
             } else {
                 $campo.removeClass('is-valid is-invalid');
             }
+            $span.removeClass('invalid-tooltip d-inline-block');
             $span.text('');
         } else {
             $campo.removeClass('is-valid is-invalid');
+            $span.removeClass('invalid-tooltip d-inline-block');
             $span.text('');
         }
 
@@ -201,9 +206,16 @@ function validarCamposCliente() {
         if (numCedula !== '' || input.cedula.data('touched')) {
             input.cedula.addClass(cedulaValida ? 'is-valid' : 'is-invalid')
                         .removeClass(cedulaValida ? 'is-invalid' : 'is-valid');
-            $spanCedula.text(cedulaValida ? '' : msgCedula);
+            if (cedulaValida) {
+                $spanCedula.removeClass('invalid-tooltip d-inline-block');
+                $spanCedula.text('');
+            } else {
+                $spanCedula.addClass('invalid-tooltip d-inline-block');
+                $spanCedula.text(msgCedula);
+            }
         } else {
             input.cedula.removeClass('is-valid is-invalid');
+            $spanCedula.removeClass('invalid-tooltip d-inline-block');
             $spanCedula.text('');
         }
     }
@@ -252,9 +264,16 @@ function validarCamposCliente() {
     if (numTel !== '' || (prefijo && prefijo !== 'default')) {
         input.telefono.addClass(telValido ? 'is-valid' : 'is-invalid')
                       .removeClass(telValido ? 'is-invalid' : 'is-valid');
-        $spanTel.text(telValido ? '' : msgTel);
+        if (telValido) {
+            $spanTel.removeClass('invalid-tooltip d-inline-block');
+            $spanTel.text('');
+        } else {
+            $spanTel.addClass('invalid-tooltip d-inline-block');
+            $spanTel.text(msgTel);
+        }
     } else {
         input.telefono.removeClass('is-valid is-invalid');
+        $spanTel.removeClass('invalid-tooltip d-inline-block');
         $spanTel.text('');
     }
     if (!telValido) formularioValido = false;
@@ -655,7 +674,9 @@ function limpia() {
       }
   });
   // Limpiar solo los spans de feedback del formulario de clientes
-  $('#scedula, #snombre, #sapellido, #sfecha_nacimiento, #stelefono, #ssexo, #scorreo, #sdireccion').text('');
+  $('#scedula, #snombre, #sapellido, #sfecha_nacimiento, #stelefono, #ssexo, #scorreo, #sdireccion')
+      .removeClass('invalid-tooltip d-inline-block')
+      .text('');
 
   // Deshabilitar el botón al limpiar
   $('#btnClienteForm').prop('disabled', true);
