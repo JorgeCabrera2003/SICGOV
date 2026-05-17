@@ -46,6 +46,7 @@ use App\Controllers\MesasController;
 use App\Controllers\AreasController;
 use App\Controllers\ReporteController;
 use App\Controllers\PapeleraController;
+use App\Controllers\RolController;
 
 try {
 
@@ -75,6 +76,7 @@ try {
         'reportes' => (new ReporteController())->index(),
         'papelera' => (new PapeleraController())->index(),
         'notificaciones' => (new NotificationController())->index(),
+        'rol' => (new RolController())->index(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };
 
