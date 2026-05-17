@@ -48,18 +48,18 @@
                                 </div>
                             </div>
                             
-                            <div class="mb-3">
+                            <div class="mb-3 position-relative">
                                 <label for="nombre" class="form-label fw-semibold">Nombre del Producto <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Ej: Hamburguesa Clásica" required>
-                                <div class="invalid-feedback fw-bold" id="errorNombre">Ya existe un producto registrado con este nombre.</div>
+                                <span id="errorNombre" style="width: fit-content;"></span>
                             </div>
                             
                             <div class="row g-2 mb-3">
-                                <div class="col-md-6">
+                                <div class="col-md-6 position-relative">
                                     <label for="precio" class="form-label fw-semibold">Precio ($) <span class="text-danger">*</span></label>
                                     <input type="number" class="form-control" id="precio" name="precio" step="0.01" min="0" required placeholder="0.00">
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-6 position-relative">
                                     <label for="tipo_producto" class="form-label fw-semibold">Tipo <span class="text-danger">*</span></label>
                                     <select class="form-select" id="tipo_producto" name="tipo_producto" required>
                                         <option value="COCINA">Cocina</option>
@@ -68,7 +68,7 @@
                                 </div>
                             </div>
                             
-                            <div class="mb-3">
+                            <div class="mb-3 position-relative">
                                 <label for="id_categoria" class="form-label fw-semibold">Categoría <span class="text-danger">*</span></label>
                                 <select class="form-select" id="id_categoria" name="id_categoria" required>
                                     <option value="" selected disabled>Seleccionar</option>
@@ -78,10 +78,10 @@
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
-                                <div class="invalid-feedback fw-bold">El valor de categoría seleccionado no es válido o no existe.</div>
+                                <span id="errorCategoria" style="width: fit-content;"></span>
                             </div>
                             
-                            <div class="mb-3">
+                            <div class="mb-3 position-relative">
                                 <label for="descripcion" class="form-label fw-semibold">Descripción <span class="text-danger">*</span></label>
                                 <textarea class="form-control" id="descripcion" name="descripcion" rows="2" placeholder="Breve descripción..." required></textarea>
                             </div>

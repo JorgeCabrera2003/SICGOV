@@ -1,105 +1,82 @@
 <?php
 
-/*
-MODELO DE PERSONAS
-
-OPERACIONES A BASE DE DATOS:
-    REGISTRAR
-    CONSULTAR
-    MODIFICAR
-    ELIMINAR
-    VALIDAR
-*/
-
 namespace App\Models\System;
 
-use App\Core\Database;
-use App\Helpers\Helper;
-use App\Helpers\RegexHelper;
-use PDO;
 use Exception;
 
-class Persona extends Database
+class Persona
 {
-    private $cedula;
-    private $documento;
-    private $nombre;
-    private $apellido;
-    private $fecha_nacimiento;
-    private $sexo;
-    private $telefono;
-    private $correo;
-    private $direccion;
+    protected $cedula;
+    protected $nombre;
+    protected $apellido;
+    protected $fecha_nacimiento;
+    protected $telefono;
+    protected $correo;
+    protected $direccion;
+    protected $sexo;
 
     public function __construct()
     {
         $this->cedula = "";
-        $this->documento = NULL;
         $this->nombre = "";
         $this->apellido = "";
-        $this->fecha_nacimiento = "";
-        $this->sexo = "";
-        $this->telefono = "";
-        $this->correo = "";
+        $this->fecha_nacimiento = null;
+        $this->telefono = null;
+        $this->correo = null;
         $this->direccion = "";
+        $this->sexo = "";
     }
 
     // Getters y Setters
 
-
+    /**
+     * Cédula: prefijo (V/E/J/P/G) + 7 a 9 dígitos.
+     */
     public function setCedula(string $cedula)
     {
         $cedula = trim($cedula);
-        if (RegexHelper::ValidarFormatos($cedula, "cedula") == 0) {
-            throw new Exception('La cédula debe tener un prefijo válido (V, E, J, P, G) seguido de 7 a 12 dígitos.');
+        if (!preg_match('/^[VEJPGvejpg]-\d{7,9}$/', $cedula)) {
+            throw new Exception('La cédula debe tener un prefijo válido (V, E, J, P, G), un guion y 7 a 9 dígitos.');
         }
-        $this->cedula = strtoupper($cedula[0]) . substr($cedula, 1);
+        
+        // Guardamos con el formato Prefijo-Numeros (ej: V-12345678)
+        $this->cedula = strtoupper($cedula);
     }
 
-    /**
-     * Documento: prefijo (V/E/J/P/G) + 7 a 9 dígitos.
-     * El frontend envía ya concatenado, ej. "V12345678".
-     */
-    public function setDocumento(string $documento)
-    {
-        $documento = trim($documento);
-        if (RegexHelper::ValidarFormatos($documento, "DocumentoLegal") == 0) {
-            throw new Exception('El documento legal debe tener un prefijo válido (V, E, J, P, G) seguido de 7 a 12 dígitos.');
-        }
-        $this->documento = strtoupper($documento[0]) . substr($documento, 1);
-    }
-
+    /** Nombre: obligatorio, mínimo 2 caracteres, solo letras y espacios. */
     public function setNombre(string $nombre)
     {
         $nombre = trim($nombre);
-        if (RegexHelper::ValidarFormatos($nombre, "NombrePersona") == 0) {
-            throw new Exception('Nombre no válido. Debe tener al menos entre 3 a 150 carácteres');
+        if (empty($nombre)) {
+            throw new Exception('El nombre es obligatoria.');
         }
-
+        if (mb_strlen($nombre) < 2) {
+            throw new Exception('El nombre debe tener al menos 2 caracteres.');
+        }
+        if (!preg_match('/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ][a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]*$/', $nombre)) {
+            throw new Exception('El nombre solo puede contener letras y espacios.');
+        }
         $this->nombre = $nombre;
     }
 
+    /** Apellido: obligatorio, mínimo 2 caracteres, solo letras y espacios. */
     public function setApellido(string $apellido)
     {
         $apellido = trim($apellido);
-        if (RegexHelper::ValidarFormatos($apellido, "NombrePersona") == 0) {
-            throw new Exception('Apellido no válido. Debe tener al menos entre 3 a 65 carácteres');
+        if (empty($apellido)) {
+            throw new Exception('El apellido es obligatorio.');
         }
-
+        if (mb_strlen($apellido) < 2) {
+            throw new Exception('El apellido debe tener al menos 2 caracteres.');
+        }
+        if (!preg_match('/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ][a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]*$/', $apellido)) {
+            throw new Exception('El apellido solo puede contener letras y espacios.');
+        }
         $this->apellido = $apellido;
     }
 
-    public function setSexo(string $sexo)
-    {
-        $sexo = trim($sexo);
-        if (RegexHelper::ValidarFormatos($sexo, "Sexo") == 0) {
-            throw new Exception('Sexo no válido. Debe ser Masculino (M) o Femenino (F)');
-        }
-
-        $this->sexo = $sexo;
-    }
-
-        public function setFechaNacimiento($fecha_nacimiento)
+    /** Fecha de nacimiento: obligatoria, formato YYYY-MM-DD, no puede ser hoy ni futura. */
+    public function setFechaNacimiento($fecha_nacimiento)
     {
         $fecha_nacimiento = trim($fecha_nacimiento ?? '');
         if (empty($fecha_nacimiento)) {
@@ -114,273 +91,89 @@ class Persona extends Database
         $this->fecha_nacimiento = $fecha_nacimiento;
     }
 
+    /**
+     * Teléfono: opcional.
+     * Si se ingresa, debe ser exactamente 11 dígitos (prefijo 4 + número 7).
+     */
     public function setTelefono(string $telefono)
     {
-        if (RegexHelper::ValidarFormatos($telefono, "Telefono") == 0) {
-            throw new Exception('Teléfono no válido. Debe tener el siguiente formato: 0424-1234567');
+        $telefono = trim($telefono);
+        if ($telefono === '') {
+            $this->telefono = null;
+            return;
+        }
+        if (!preg_match('/^\d{11}$/', $telefono)) {
+            throw new Exception('El teléfono debe incluir el prefijo (4 dígitos) más 7 dígitos de número (11 en total).');
         }
         $this->telefono = $telefono;
     }
 
+    /** Correo: opcional. Si se ingresa debe tener formato válido. */
     public function setCorreo(string $correo)
     {
-        if (RegexHelper::ValidarFormatos($correo, "Correo") == 0) {
+        $correo = trim($correo);
+        if ($correo === '') {
+            $this->correo = null;
+            return;
+        }
+        if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
             throw new Exception('El formato del correo electrónico no es válido.');
         }
         $this->correo = $correo;
     }
 
-    
     /** Dirección: obligatoria, mínimo 3 caracteres. */
     public function setDireccion(string $direccion)
     {
-        if (RegexHelper::ValidarFormatos($direccion, "Direccion") == 0) {
-            throw new Exception('Dirección no válida');
+        $direccion = trim($direccion);
+        if (empty($direccion)) {
+            throw new Exception('La dirección es obligatoria.');
+        }
+        if (mb_strlen($direccion) < 3) {
+            throw new Exception('La dirección debe tener al menos 3 caracteres.');
         }
         $this->direccion = $direccion;
     }
 
-    public function getDocumento()
+    /** Sexo: obligatorio, debe ser M o F. */
+    public function setSexo(string $sexo)
     {
-        return $this->documento;
-    }
-
-    public function getNombre()
-    {
-        return $this->nombre;
-    }
-
-    public function getApellido()
-    {
-        return $this->apellido;
-    }
-
-    public function getSexo()
-    {
-        return $this->sexo;
-    }
-
-    public function getFechaNacimiento()
-    {
-        return $this->sexo;
-    }
-
-    public function getTelefono()
-    {
-        return $this->telefono;
-    }
-
-    public function getCorreo()
-    {
-        return $this->correo;
-    }
-
-    public function getDireccion()
-    {
-        return $this->direccion;
-    }
-    public function Transaccion($peticion, )
-    {
-        $response = [];
-        $response['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"];
-        $response['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => "Solicitud no válida"];
-
-        if (isset($peticion['peticion'])) {
-            $response = match ($peticion['peticion']) {
-                'registrar' => $this->RegistrarPersona(),
-                'consultar' => $this->ConsultarPersona(),
-                'actualizar', 'modificar' => $this->ModificarPersona(),
-                'eliminar' => $this->EliminarPersona(),
-                'validar' => $this->ValidarPersona(),
-                default => [
-                    'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
-                    'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
-                ]
-            };
+        $sexo = trim($sexo);
+        if (!in_array($sexo, ['M', 'F'], true)) {
+            throw new Exception('El sexo debe ser M (Masculino) o F (Femenino).');
         }
-        return $response;
-    }
-    //FIN DE MANEJADOR DE OPERACIONES
-
-    //OPERACIONES A BASE DE DATOS
-    private function ConsultarPersona()
-    {
-        $dato = [];
-        $arreglo = [];
-        try {
-            $this->LlamarConexion();
-            $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM cedula WHERE estatus = 1";
-            $stm = $this->LlamarConexion()->prepare($sql);
-            $stm->execute();
-            if ($stm->rowCount() > 0) {
-                $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
-            }
-            $this->LlamarConexion()->commit();
-            $stm = NULL;
-
-            $dato['estado'] = 1;
-            $dato['response'] = ['resultado' => 200, 'mensaje' => "OK", 'datos' => $arreglo];
-            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
-        } catch (\PDOException $e) {
-            $this->LlamarConexion()->rollBack();
-            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
-            $dato['estado'] = -1;
-            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => "Ups, intente de nuevo más tarde", 'datos' => []];
-            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
-        }
-        $this->DestruirConexion();
-        return $dato;
+        $this->sexo = $sexo;
     }
 
-    private function RegistrarPersona()
-    {
-        $dato = [];
-        $validacion = [];
-        $validacion = $this->ValidarPersona();
-        if ($validacion['bool'] == 0) {
-            try {
-                $sql = "INSERT INTO persona (cedula, documento, nombre, apellido, fecha_nacimiento, 
-                telefono, correo, direccion, sexo)
-                VALUES (:cedula, :documento, :nombre, :apellido, :fecha_nacimiento, 
-                :telefono, :correo, :direccion, :sexo)";
-
-                $this->LlamarConexion();
-                $this->LlamarConexion()->beginTransaction();
-                $stm = $this->LlamarConexion()->prepare($sql);
-                $stm->bindParam(':cedula', $this->cedula);
-                $stm->bindParam(':documento', $this->documento);
-                $stm->bindParam(':nombre', $this->nombre);
-                $stm->bindParam(':apellido', $this->apellido);
-                $stm->bindParam(':fecha_nacimiento', $this->fecha_nacimiento);
-                $stm->bindParam(':telefono', $this->telefono);
-                $stm->bindParam(':correo', $this->correo);
-                $stm->bindParam(':direccion', $this->direccion);
-                $stm->bindParam(':sexo', $this->sexo);
-                $stm->execute();
-                $this->LlamarConexion()->commit();
-
-                $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Persona registrada exitosamente"];
-                $dato['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => "OK"];
-
-            } catch (\PDOException $e) {
-                $this->LlamarConexion()->rollBack();
-                Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
-                $dato['estado'] = -1;
-                $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
-                $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
-            }
-        }
-        $this->DestruirConexion();
-        return $dato;
+    public function getCedula() { 
+        return $this->cedula; 
     }
 
-    private function ModificarPersona()
-    {
-        try {
-            $this->LlamarConexion();
-            $this->LlamarConexion()->beginTransaction();
-            $sql = "UPDATE persona SET documento = :documento, 
-            nombre = :nombre, apellido = :apellido, fecha_nacimiento = :fecha_nacimiento, 
-            telefono = :telefono, correo = :correo, direccion = :direccion, sexo = :sexo WHERE cedula = :cedula,";
-
-            $stm = $this->LlamarConexion()->prepare($sql);
-                $stm->bindParam(':cedula', $this->cedula);
-                $stm->bindParam(':documento', $this->documento);
-                $stm->bindParam(':nombre', $this->nombre);
-                $stm->bindParam(':apellido', $this->apellido);
-                $stm->bindParam(':fecha_nacimiento', $this->fecha_nacimiento);
-                $stm->bindParam(':telefono', $this->telefono);
-                $stm->bindParam(':correo', $this->correo);
-                $stm->bindParam(':direccion', $this->direccion);
-                $stm->bindParam(':sexo', $this->sexo);
-            $stm->execute();
-            $this->LlamarConexion()->commit();
-            $stm = NULL;
-
-            $dato['estado'] = 1;
-            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Persona actualizada exitosamente"];
-            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
-
-        } catch (\PDOException $e) {
-            $this->LlamarConexion()->rollBack();
-            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
-            $dato['estado'] = -1;
-            $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
-            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
-        }
-        $this->DestruirConexion();
-        return $dato;
+    public function getNombre() { 
+        return $this->nombre; 
     }
 
-    private function EliminarPersona()
-    {
-        $dato = [];
-        $validacion = $this->ValidarPersona();
-
-        if ($validacion['bool'] == 1) {
-            try {
-                $this->LlamarConexion();
-                $this->LlamarConexion()->beginTransaction();
-                $sql = "UPDATE persona SET estatus = 0 WHERE cedula = :cedula";
-                $stm = $this->LlamarConexion()->prepare($sql);
-                $stm->bindParam(':cedula', $this->cedula);
-                $stm->execute();
-                $this->LlamarConexion()->commit();
-                $stm = NULL;
-
-                $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Persona eliminada exitosamente"];
-                $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
-            } catch (\PDOException $e) {
-                Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
-                $dato['estado'] = -1;
-                $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor"];
-                $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
-            }
-        } else {
-            $dato['estado'] = -1;
-            $dato['response'] = ['resultado' => 404, 'icon' => 'error', 'mensaje' => "Registro no encontrado"];
-            $dato['HTTP_STATUS'] = ['codigo' => 404, 'mensaje' => "No encontrado"];
-        }
-        $this->DestruirConexion();
-        return $dato;
+    public function getApellido() { 
+        return $this->apellido; 
     }
 
-    private function ValidarPersona()
-    {
-        $dato = [];
-        $arreglo = [];
-        try {
-            $this->LlamarConexion();
-            $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM persona WHERE cedula = :cedula";
-            $stm = $this->LlamarConexion()->prepare($sql);
-            $stm->bindParam(':cedula', $this->cedula);
-            $stm->execute();
-            if ($stm->rowCount() > 0) {
-                $arreglo = $stm->fetch(PDO::FETCH_ASSOC);
-                $dato['bool'] = 1;
+    public function getFechaNacimiento() {
+         return $this->fecha_nacimiento;
+    }
 
-            } else {
-                $dato['bool'] = 0;
-            }
-            $this->LlamarConexion()->commit();
-            $stm = NULL;
+    public function getTelefono() {
+         return $this->telefono; 
+    }
 
-            $dato['estado'] = 1;
-            $dato['response'] = ['resultado' => 200, 'registro' => $arreglo];
-            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
-        } catch (\PDOException $e) {
-            $this->LlamarConexion()->rollBack();
-            $dato['bool'] = -1;
-            $dato['estado'] = -1;
-            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
-            $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor", 'registro' => []];
-            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
-        }
-        $this->DestruirConexion();
-        return $dato;
+    public function getCorreo() {
+         return $this->correo; 
+    }
+
+    public function getDireccion() {
+         return $this->direccion; 
+    }
+    
+    public function getSexo() {
+         return $this->sexo; 
     }
 }
