@@ -28,44 +28,44 @@ class AsistenciaController {
 			}
 
 			if ($_POST["peticion"] == "registrar") {
-				try {
-					$tipoDoc = strtoupper(trim($_POST['tipo_doc'] ?? ''));
-					$cedulaNumero = trim($_POST['cedula_empleado'] ?? '');
-					$tipoMarcacion = strtoupper(trim($_POST['tipo_marcacion'] ?? ''));
-					$observacion = trim($_POST['observacion'] ?? '');
+				$accion_permiso = true;
 
-					if (empty($tipoDoc) || $tipoDoc === 'default' || !preg_match('/^[VE]$/i', $tipoDoc)) {
-						throw new Exception('Tipo de documento inválido.');
-					}
-					if (!preg_match('/^\d{7,9}$/', $cedulaNumero)) {
-						throw new Exception('Cédula inválida.');
-					}
-					if (!in_array($tipoMarcacion, ['ENTRADA', 'DESCANSO_IN', 'DESCANSO_OUT', 'SALIDA'])) {
-						throw new Exception('Tipo de marcación inválido.');
-					}
+				if ($accion_permiso) {
 
-					$idAsistencia = Helper::generarId('ASIS');
-					$horaActual = date('H:i:s');
-					$fechaHoy = date('Y-m-d');
-					$cedulaCompleta = $tipoDoc . $cedulaNumero;
+					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+					$msg = "(" . $_SESSION['user']['cedula'] . "), envió solicitud no válida";
 
-					$AsistenciaModel->setIdAsistencia($idAsistencia);
-					$AsistenciaModel->setCedulaEmpleado($cedulaCompleta);
-					$AsistenciaModel->setTipoMarcacion($tipoMarcacion);
-					$AsistenciaModel->setFecha($fechaHoy);
-					$AsistenciaModel->setHora($horaActual);
-					$AsistenciaModel->setEstado($AsistenciaModel->calcularEstadoAsistencia($tipoMarcacion, $horaActual));
-					$AsistenciaModel->setObservacion($observacion);
+					try {
 
-					$json = $AsistenciaModel->Transaccion(['peticion' => 'registrar']);
-					if ($json['estado'] == 1) {
-						Helper::Bitacora('REGISTRAR', 'ASISTENCIA', "Registro de asistencia {$idAsistencia} para {$cedulaCompleta} ({$tipoMarcacion})");
+						$idAsistencia = Helper::generarId('ASIS');
+						$horaActual = date('H:i:s');
+						$fechaHoy = date('Y-m-d');
+						$cedulaCompleta = $_POST['tipo_doc'] . $_POST['cedula_empleado'];
+
+						$AsistenciaModel->setIdAsistencia($idAsistencia);
+						$AsistenciaModel->setCedulaEmpleado($cedulaCompleta);
+						$AsistenciaModel->setTipoMarcacion($_POST['tipo_marcacion']);
+						$AsistenciaModel->setFecha($fechaHoy);
+						$AsistenciaModel->setHora($horaActual);
+						$AsistenciaModel->setEstado($AsistenciaModel->calcularEstadoAsistencia($_POST['tipo_marcacion'], $horaActual));
+						$AsistenciaModel->setObservacion($_POST['observacion']);
+
+						$json = $AsistenciaModel->Transaccion(['peticion' => $_POST["peticion"]]);
+
+						if ($json['estado'] == 1) {
+							Helper::Bitacora('REGISTRAR', 'ASISTENCIA', "Registro de asistencia {$idAsistencia} para {$cedulaCompleta} (Tipo de MArcación: {$_POST['tipo_marcacion']} - Observaciones: {$_POST['observacion']})");
+						}
+
+					} catch (Exception $e) {
+						$json = [
+							'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Datos no válidos'],
+							'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()]
+						];
 					}
-				} catch (Exception $e) {
-					$json = [
-						'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Datos no válidos'],
-						'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()]
-					];
+				} else {
+					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
+					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' una asistencia'];
+					$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
 				}
 			}
 

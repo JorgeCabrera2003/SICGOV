@@ -9,7 +9,7 @@
     <header class="d-flex justify-content-between align-items-center mb-4">
 
         <h1 class="h3 mb-0">
-            <i class="fas fa-box me-2 text-warning"></i>
+            <i class="fas bi-list-check me-2 text-warning"></i>
             Gestión de Asistencia
         </h1>
 
@@ -26,7 +26,7 @@
             <button type="button" class="btn btn-warning text-dark fw-semibold" id="btnHistorial">
                 <i class="fas fa-history me-2"></i>Historial
             </button>
-            <button type="button" class="btn btn-outline-warning" id="btnMiAsistencia" onclick="pendiente()">
+            <button type="button" class="btn btn-outline-warning" id="btnMiAsistencia">
                 <i class="fas fa-user-clock me-2"></i>Mi Asistencia
             </button>
         </div>
