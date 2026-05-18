@@ -1,4 +1,4 @@
-import * as proveedor from "../Handlers/ProveedorHandler.js"
+import * as rol from "../Handlers/RolHandler.js"
 import * as AjaxHelper from "../Helpers/AjaxHelper.js"
 
 //MODULO DE PROVEEDORES
@@ -12,9 +12,9 @@ $(document).ready(function () {
 });
 
 //EVENTOS CLICK DE LOS BOTONES DE LA INTERFAZ
-$("#btnProveedorForm").on("click", async function () {
+$("#btnRolForm").on("click", async function () {
   let respuesta = null;
-  respuesta = await proveedor.EnviarFormulario($(this).text());
+  respuesta = await rol.EnviarFormulario($(this).text());
 
   console.log(respuesta);
 
@@ -23,15 +23,15 @@ $("#btnProveedorForm").on("click", async function () {
   };
 });
 
-$("#btnNuevoProveedor").on("click", function () {
-  proveedor.LimpiarFormulario();
-  proveedor.EditarModal("registrar");
+$("#btnNuevoRol").on("click", function () {
+  rol.LimpiarFormulario();
+  rol.EditarModal("registrar");
 });
 
 //CAPA DE VALIDACIÓN
 
 function iniciarValidaciones() {
-  proveedor.CapaValidar();
+  rol.CapaValidar();
 }
 
 async function crearDataTable(controlador = "") {
@@ -49,19 +49,19 @@ async function crearDataTable(controlador = "") {
 
   if (Array.isArray(arreglo)) {
 
-    proveedor.DataTablePrincipal(arreglo);
+    rol.DataTablePrincipal(arreglo);
 
   } else {
     console.log("falso");
   }
 }
 
-async function rellenar(pos, accion, modulo = "Proveedor") {
+async function rellenar(pos, accion, modulo = "Rol") {
   const linea = $(pos).closest('tr');
   const tabla = $('#tabla' + modulo).DataTable();
   const datosFila = tabla.row(linea).data();
 
-  proveedor.EditarFormProveedor(datosFila, accion)
+  rol.EditarFormRol(datosFila, accion)
 }
 
 $(document).on('click', '.btn-editar', function () {

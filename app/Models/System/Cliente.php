@@ -19,29 +19,14 @@ use App\Helpers\RegexHelper;
 use PDO;
 use Exception;
 
-class Cliente
+class Cliente extends Persona
 {
-    private $cedula;
-    private $nombre;
-    private $apellido;
-    private $fecha_nacimiento;
-    private $telefono;
-    private $correo;
-    private $direccion;
-    private $sexo;
     private $estatus;
     private $db;
 
     public function __construct()
     {
-        $this->cedula = "";
-        $this->nombre = "";
-        $this->apellido = "";
-        $this->fecha_nacimiento = null;
-        $this->telefono = "";
-        $this->correo = "";
-        $this->direccion = "";
-        $this->sexo = "";
+        parent::__construct();
         $this->estatus = 1;
         $this->db = NULL;
     }
@@ -66,124 +51,8 @@ class Cliente
 
     // Getters y Setters
 
-    /**
-     * Cédula: prefijo (V/E/J/P/G) + 7 a 9 dígitos.
-     * El frontend envía ya concatenado, ej. "V12345678".
-     */
-    public function setCedula(string $cedula)
-    {
-        $cedula = trim($cedula);
-        if (empty($cedula)) {
-            throw new Exception('La cédula es obligatoria.');
-        }
-        if (!preg_match('/^[VEJPGvejpg]\d{7,9}$/', $cedula)) {
-            throw new Exception('La cédula debe tener un prefijo válido (V, E, J, P, G) seguido de 7 a 9 dígitos.');
-        }
-        $this->cedula = strtoupper($cedula[0]) . substr($cedula, 1);
-    }
-
-    /** Nombre: obligatorio, mínimo 2 caracteres, solo letras y espacios. */
-    public function setNombre(string $nombre)
-    {
-        $nombre = trim($nombre);
-        if (empty($nombre)) {
-            throw new Exception('El nombre es obligatorio.');
-        }
-        if (mb_strlen($nombre) < 2) {
-            throw new Exception('El nombre debe tener al menos 2 caracteres.');
-        }
-        if (!preg_match('/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ][a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]*$/', $nombre)) {
-            throw new Exception('El nombre solo puede contener letras y espacios.');
-        }
-        $this->nombre = $nombre;
-    }
-
-    /** Apellido: obligatorio, mínimo 2 caracteres, solo letras y espacios. */
-    public function setApellido(string $apellido)
-    {
-        $apellido = trim($apellido);
-        if (empty($apellido)) {
-            throw new Exception('El apellido es obligatorio.');
-        }
-        if (mb_strlen($apellido) < 2) {
-            throw new Exception('El apellido debe tener al menos 2 caracteres.');
-        }
-        if (!preg_match('/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ][a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]*$/', $apellido)) {
-            throw new Exception('El apellido solo puede contener letras y espacios.');
-        }
-        $this->apellido = $apellido;
-    }
-
-    /** Fecha de nacimiento: obligatoria, formato YYYY-MM-DD, no puede ser hoy ni futura. */
-    public function setFechaNacimiento($fecha_nacimiento)
-    {
-        $fecha_nacimiento = trim($fecha_nacimiento ?? '');
-        if (empty($fecha_nacimiento)) {
-            throw new Exception('La fecha de nacimiento es obligatoria.');
-        }
-        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_nacimiento)) {
-            throw new Exception('El formato de la fecha de nacimiento no es válido.');
-        }
-        if ($fecha_nacimiento >= date('Y-m-d')) {
-            throw new Exception('La fecha de nacimiento debe ser anterior a hoy.');
-        }
-        $this->fecha_nacimiento = $fecha_nacimiento;
-    }
-
-    /**
-     * Teléfono: opcional.
-     * Si se ingresa, debe ser exactamente 11 dígitos (prefijo 4 + número 7).
-     */
-    public function setTelefono(string $telefono)
-    {
-        $telefono = trim($telefono);
-        if ($telefono === '') {
-            $this->telefono = '';
-            return;
-        }
-        if (!preg_match('/^\d{11}$/', $telefono)) {
-            throw new Exception('El teléfono debe incluir el prefijo (4 dígitos) más 7 dígitos de número (11 en total).');
-        }
-        $this->telefono = $telefono;
-    }
-
-    /** Correo: opcional. Si se ingresa debe tener formato válido. */
-    public function setCorreo(string $correo)
-    {
-        $correo = trim($correo);
-        if ($correo === '') {
-            $this->correo = '';
-            return;
-        }
-        if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
-            throw new Exception('El formato del correo electrónico no es válido.');
-        }
-        $this->correo = $correo;
-    }
-
-    /** Dirección: obligatoria, mínimo 3 caracteres. */
-    public function setDireccion(string $direccion)
-    {
-        $direccion = trim($direccion);
-        if (empty($direccion)) {
-            throw new Exception('La dirección es obligatoria.');
-        }
-        if (mb_strlen($direccion) < 3) {
-            throw new Exception('La dirección debe tener al menos 3 caracteres.');
-        }
-        $this->direccion = $direccion;
-    }
-
-    /** Sexo: obligatorio, debe ser M o F. */
-    public function setSexo(string $sexo)
-    {
-        $sexo = trim($sexo);
-        if (!in_array($sexo, ['M', 'F'], true)) {
-            throw new Exception('El sexo debe ser M (Masculino) o F (Femenino).');
-        }
-        $this->sexo = $sexo;
-    }
-
+    // Getters y Setters heredados de Persona
+    
     /** Estatus: 0 (inactivo) o 1 (activo). */
     public function setEstatus(int $estatus)
     {
@@ -191,11 +60,6 @@ class Cliente
             throw new Exception('El estatus no es válido.');
         }
         $this->estatus = $estatus;
-    }
-
-    public function getCedula()
-    {
-        return $this->cedula;
     }
 
 

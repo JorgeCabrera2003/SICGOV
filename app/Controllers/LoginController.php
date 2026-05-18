@@ -83,7 +83,7 @@ class LoginController
 
                 $particle = $_POST['particle'] ?? 'V-';
                 $ci = $_POST['CI'] ?? '';
-                $cedula = $particle . $ci;
+                $cedula = $particle ."-". $ci;
                 $pass = $_POST['password'] ?? '';
 
                 $usuarioModel = new Usuario();

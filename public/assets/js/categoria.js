@@ -68,7 +68,7 @@ function limpiar() {
     // Resetear estado de duplicado
     _nombreDuplicado = false;
     $('#nombre_categoria').removeClass('is-invalid is-valid');
-    $('#feedback_nombre_categoria').text('Por favor, ingresa el nombre de la categoría.');
+    $('#feedback_nombre_categoria').removeClass('invalid-tooltip d-inline-block').text('');
 }
 
 /**
@@ -86,18 +86,18 @@ function aplicarEstilosCampo($campo, $feedback, esValido, mensaje, forzar = fals
     // No colorear si el campo está completamente vacío y no se fuerza
     if (!forzar && val === '') {
         $campo.removeClass('is-valid is-invalid');
-        $feedback.text('');
+        $feedback.removeClass('invalid-tooltip d-inline-block').text('');
         return;
     }
 
     if (esValido) {
         $campo.addClass('is-valid').removeClass('is-invalid');
         $campo[0].setCustomValidity('');
-        $feedback.text('');
+        $feedback.removeClass('invalid-tooltip d-inline-block').text('');
     } else {
         $campo.addClass('is-invalid').removeClass('is-valid');
         $campo[0].setCustomValidity(mensaje);
-        $feedback.text(mensaje);
+        $feedback.addClass('invalid-tooltip d-inline-block').text(mensaje);
     }
 }
 
@@ -218,11 +218,11 @@ function verificarNombreDuplicado() {
                 if (_nombreDuplicado) {
                     campo.addClass('is-invalid').removeClass('is-valid');
                     campo[0].setCustomValidity('Ya existe una categoría con ese nombre.');
-                    feedback.text('Ya existe una categoría con ese nombre.');
+                    feedback.addClass('invalid-tooltip d-inline-block').text('Ya existe una categoría con ese nombre.');
                 } else {
                     campo.addClass('is-valid').removeClass('is-invalid');
                     campo[0].setCustomValidity('');
-                    feedback.text('');
+                    feedback.removeClass('invalid-tooltip d-inline-block').text('');
                 }
             } else {
                 _nombreDuplicado = false;
@@ -305,26 +305,26 @@ function validarCamposCategoria(operacion) {
     // ---- Nombre de la Categoría ----
     const nombre = input.nombre_categoria.val().trim();
     const campoNombre = input.nombre_categoria[0];
-    const feedbackNombre = document.getElementById('feedback_nombre_categoria');
+    const feedbackNombre = $('#feedback_nombre_categoria');
 
     // Regex: solo letras (incluyendo tildes/ñ) y espacios, primera letra mayúscula
     const regexNombre = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñA-ZÁÉÍÓÚÑ\s]*$/;
 
     if (!nombre) {
         campoNombre.setCustomValidity('El nombre de la categoría es obligatorio.');
-        feedbackNombre.textContent = 'El nombre de la categoría es obligatorio.';
+        feedbackNombre.addClass('invalid-tooltip d-inline-block').text('El nombre de la categoría es obligatorio.');
         valido = false;
     } else if (nombre.length < 2) {
         campoNombre.setCustomValidity('El nombre debe tener al menos 2 caracteres.');
-        feedbackNombre.textContent = 'El nombre debe tener al menos 2 caracteres.';
+        feedbackNombre.addClass('invalid-tooltip d-inline-block').text('El nombre debe tener al menos 2 caracteres.');
         valido = false;
     } else if (!/^[A-ZÁÉÍÓÚÑ]/.test(nombre)) {
         campoNombre.setCustomValidity('El nombre debe comenzar con una letra mayúscula.');
-        feedbackNombre.textContent = 'El nombre debe comenzar con una letra mayúscula.';
+        feedbackNombre.addClass('invalid-tooltip d-inline-block').text('El nombre debe comenzar con una letra mayúscula.');
         valido = false;
     } else if (!regexNombre.test(nombre)) {
         campoNombre.setCustomValidity('El nombre solo puede contener letras (sin números ni caracteres especiales).');
-        feedbackNombre.textContent = 'El nombre solo puede contener letras (sin números ni caracteres especiales).';
+        feedbackNombre.addClass('invalid-tooltip d-inline-block').text('El nombre solo puede contener letras (sin números ni caracteres especiales).');
         valido = false;
     } else {
         campoNombre.setCustomValidity('');
@@ -333,7 +333,7 @@ function validarCamposCategoria(operacion) {
     // ---- Descripción (opcional) ----
     const descripcion = input.descripcion.val().trim();
     const campoDescripcion = input.descripcion[0];
-    const feedbackDescripcion = document.getElementById('feedback_descripcion_categoria');
+    const feedbackDescripcion = $('#feedback_descripcion_categoria');
 
     // Regex: solo letras y espacios, primera letra mayúscula (si se ingresó algo)
     const regexDescripcion = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñA-ZÁÉÍÓÚÑ\s]*$/;
@@ -341,15 +341,15 @@ function validarCamposCategoria(operacion) {
     if (descripcion !== '') {
         if (descripcion.length < 2) {
             campoDescripcion.setCustomValidity('La descripción debe tener al menos 2 caracteres.');
-            feedbackDescripcion.textContent = 'La descripción debe tener al menos 2 caracteres.';
+            feedbackDescripcion.addClass('invalid-tooltip d-inline-block').text('La descripción debe tener al menos 2 caracteres.');
             valido = false;
         } else if (!/^[A-ZÁÉÍÓÚÑ]/.test(descripcion)) {
             campoDescripcion.setCustomValidity('La descripción debe comenzar con una letra mayúscula.');
-            feedbackDescripcion.textContent = 'La descripción debe comenzar con una letra mayúscula.';
+            feedbackDescripcion.addClass('invalid-tooltip d-inline-block').text('La descripción debe comenzar con una letra mayúscula.');
             valido = false;
         } else if (!regexDescripcion.test(descripcion)) {
             campoDescripcion.setCustomValidity('La descripción solo puede contener letras (sin números ni caracteres especiales).');
-            feedbackDescripcion.textContent = 'La descripción solo puede contener letras (sin números ni caracteres especiales).';
+            feedbackDescripcion.addClass('invalid-tooltip d-inline-block').text('La descripción solo puede contener letras (sin números ni caracteres especiales).');
             valido = false;
         } else {
             campoDescripcion.setCustomValidity('');

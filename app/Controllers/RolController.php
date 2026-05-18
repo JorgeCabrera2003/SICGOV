@@ -3,16 +3,18 @@
 namespace App\Controllers;
 
 use App\Helpers\Helper;
-use App\Models\System\Proveedor;
+use App\Models\Security\Rol;
 use Exception;
 
-class ProveedorController
+class RolController
 {
 	public function index()
 	{
 		Helper::verificarSesion();
 
-		$proveedorModel = new Proveedor();
+		$rolModel = new Rol();
+		$json['datos_nuevos'] = NULL;
+		$json['datos_anteriores'] = NULL;
 		if (isset($_POST["peticion"])) {
 
 			//Entrada
@@ -33,25 +35,26 @@ class ProveedorController
 					try {
 						if ($bool_formulario) {
 							$str_mensaje = NULL;
-
+							$str_accion = "DESCONOCIDA";
 							if ($_POST["peticion"] == "registrar") {
+								$id = Helper::generarId("ROLS");
 								$str_mensaje = "registró";
+								$str_accion = "REGISTRAR";
 							}
 
 							if ($_POST["peticion"] == "modificar") {
+								$id = $_POST["id"];
 								$str_mensaje = "modificó";
+								$str_accion = "MODIFICAR";
 							}
 
-							$proveedorModel->setDocumentoLegal($_POST["documento_legal"]);
-							$proveedorModel->setNombre($_POST["nombre"]);
-							$proveedorModel->setDireccion($_POST["direccion"]);
-							$proveedorModel->setCorreo($_POST["correo"]);
-							$proveedorModel->setTelefono($_POST["telefono"]);
-							$json = $proveedorModel->Transaccion(['peticion' => $_POST["peticion"]]);
+							$rolModel->setId($id);
+							$rolModel->setNombre($_POST["nombre"]);
+							$json = $rolModel->Transaccion(['peticion' => $_POST["peticion"]]);
 							if ($json['estado'] == 1) {
-								$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un nuevo proveedor con el Documento Legal: " . $proveedorModel->getDocumentoLegal();
+								$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un rol con el ID: " . $rolModel->getId();
 							} else {
-								$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un proveedor";
+								$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un rol";
 							}
 						}
 					} catch (Exception $exception) {
@@ -60,14 +63,15 @@ class ProveedorController
 					}
 				} else {
 					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
-					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a un proveedor'];
+					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a un rol'];
 					$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
 				}
+				Helper::Bitacora($str_accion, 'ROL', $msg, $json['datos_anteriores'], $json['datos_nuevos']);
 			}
 			//Fin del Registrar o Modificar
 //Consultar
 			if ($_POST["peticion"] == "consultar") {
-				$json = $proveedorModel->Transaccion(['peticion' => $_POST["peticion"]]);
+				$json = $rolModel->Transaccion(['peticion' => $_POST["peticion"]]);
 			}
 			//Fin del Consultar 
 //Eliminar
@@ -80,13 +84,13 @@ class ProveedorController
 					$msg = "(" . $_SESSION['user']['cedula'] . "), envió solicitud no válida";
 					try {
 						if ($bool_formulario) {
-							$proveedorModel->setDocumentoLegal($_POST["documento_legal"]);
-							$json = $proveedorModel->Transaccion(['peticion' => $_POST["peticion"]]);
+							$rolModel->setId($_POST["id"]);
+							$json = $rolModel->Transaccion(['peticion' => $_POST["peticion"]]);
 
 							if ($json['estado'] == 1) {
-								$msg = "(" . $_SESSION['user']['cedula'] . "), Se eliminó un proveedor con el Documento Legal: " . $_POST["documento_legal"];
+								$msg = "(" . $_SESSION['user']['cedula'] . "), Se eliminó un rol con el ID: " . $rolModel->getId();
 							} else {
-								$msg = "(" . $_SESSION['user']['cedula'] . "), error al eliminar un proveedor";
+								$msg = "(" . $_SESSION['user']['cedula'] . "), error al eliminar un rol";
 							}
 						}
 					} catch (Exception $exception) {
@@ -95,21 +99,22 @@ class ProveedorController
 					}
 				} else {
 					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
-					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a un proveedor'];
+					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a un rol'];
 					$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
 				}
+				Helper::Bitacora('ELIMINAR', 'ROL', $msg, $json['datos_anteriores'], $json['datos_nuevos']);
 			}
 			//Fin del Eliminar
-
 			//Enviar respuesta al navegador usando un encabezado HTTP
+
 			header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
 			echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
 			exit;
 		} //Fin de Operaciones
 
 		Helper::cargarVista(
-			'proveedor/index',
-			'Proveedores - Good Vibes'
+			'rol/index',
+			'Roles - Good Vibes'
 		);
 	}
 }
