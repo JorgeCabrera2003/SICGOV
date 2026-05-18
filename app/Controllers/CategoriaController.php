@@ -97,11 +97,26 @@ class CategoriaController
 
         if (isset($_POST["peticion"])) {
 
+
             // Entrada
             if ($_POST["peticion"] == "entrada") {
                 $json['HTTP_STATUS'] = ['codigo' => 204, 'mensaje' => ''];
                 $json['response'] = ['resultado' => 204, 'mensaje' => 'No hay contenido'];
             }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             // Registrar y Modificar
             if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
@@ -111,6 +126,8 @@ class CategoriaController
                     try {
                         $categoriaModel->setNombreCategoria($_POST["nombre_categoria"] ?? '');
                         $categoriaModel->setDescripcion($_POST["descripcion"] ?? '');
+
+
                         
                         if ($_POST["peticion"] == "modificar") {
                             // En actualizar
@@ -121,8 +138,15 @@ class CategoriaController
                             $categoriaModel->setEstatus(1);
                             $jsonResult = $categoriaModel->Transaccion(['peticion' => 'guardar']);
                         }
+
                         
                         if ($jsonResult && isset($jsonResult['success']) && $jsonResult['success']) {
+                            
+                            if ($_POST["peticion"] == "modificar") {
+                                Helper::Bitacora("MODIFICAR", "CATEGORIAS", "Se modificó la categoría ID: " . $_POST['id_categoria']);
+                            } else {
+                                Helper::Bitacora("REGISTRAR", "CATEGORIAS", "Se registró la categoría: " . $_POST['nombre_categoria']);
+                            }
                             $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
                             $json['response'] = ['resultado' => 200, 'mensaje' => $jsonResult['message']];
                         } else {
@@ -138,6 +162,18 @@ class CategoriaController
                     $json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para esto'];
                 }
             }
+
+
+
+
+
+
+
+
+
+
+
+
             
             // Verificar nombre duplicado (llamada asíncrona del frontend)
             if ($_POST["peticion"] == "verificar") {
@@ -168,22 +204,45 @@ class CategoriaController
                 }
             }
 
+
+
+
+
+
+
+
+
+
+
             // Consultar
             if ($_POST["peticion"] == "consultar") {
                 $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => ''];
                 $json['response'] = $categoriaModel->Transaccion(['peticion' => 'consultar']);
             }
             
+
+
+
+
+
+
+
+
+
+
+
             // Eliminado Lógico
             if ($_POST["peticion"] == "eliminar") {
                 $accion_permiso = true;
 
                 if ($accion_permiso) {
                     try {
-                        $categoriaModel->setIdCategoria($_POST["id_categoria"] ?? $_POST["id"] ?? '');
+                        $id_categoria = $_POST["id_categoria"] ?? $_POST["id"] ?? '';
+                        $categoriaModel->setIdCategoria($id_categoria);
                         $jsonResult = $categoriaModel->Transaccion(['peticion' => 'eliminar']);
                         
                         if ($jsonResult && isset($jsonResult['success']) && $jsonResult['success']) {
+                            Helper::Bitacora("ELIMINAR", "CATEGORIAS", "Se eliminó la categoría con ID: " . $id_categoria);
                             $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
                             $json['response'] = ['resultado' => 200, 'mensaje' => $jsonResult['message']];
                         } else {

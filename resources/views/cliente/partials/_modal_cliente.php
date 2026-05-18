@@ -18,7 +18,7 @@
 
                     <!-- Fila: Cédula y Fecha de Nacimiento -->
                     <div class="row g-3 mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="cedula" class="form-label fw-semibold">
                                 Cédula <span class="text-danger">*</span>
                             </label>
@@ -31,36 +31,36 @@
                                 </select>
                                 <input type="text" class="form-control" id="cedula" name="cedula" maxlength="9" style="width: 70%;" required placeholder="12345678">
                             </div>
-                            <span class="text-danger small" id="scedula" style="min-height:1.2em; display:block;"></span>
+                            <span id="scedula" style="width: fit-content;"></span>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="fecha_nacimiento" class="form-label fw-semibold">Fecha de Nacimiento <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" max="<?= date('Y-m-d', strtotime('-1 day')) ?>">
-                            <span class="form-label text-danger" id="sfecha_nacimiento"></span>
+                            <span id="sfecha_nacimiento" style="width: fit-content;"></span>
                         </div>
                     </div>
 
                     <!-- Fila: Nombre y Apellido -->
                     <div class="row g-3 mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="nombre" class="form-label fw-semibold">
                                 Nombre <span class="text-danger">*</span>
                             </label>
                             <input type="text" class="form-control" id="nombre" name="nombre" maxlength="80" required>
-                            <span class="form-label text-danger" id="snombre"></span>
+                            <span id="snombre" style="width: fit-content;"></span>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="apellido" class="form-label fw-semibold">
                                 Apellido <span class="text-danger">*</span>
                             </label>
                             <input type="text" class="form-control" id="apellido" name="apellido" maxlength="80" required>
-                            <span class="form-label text-danger" id="sapellido"></span>
+                            <span id="sapellido" style="width: fit-content;"></span>
                         </div>
                     </div>
 
                     <!-- Fila: Teléfono y Sexo -->
                     <div class="row g-3 mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="telefono" class="form-label fw-semibold">Teléfono</label>
                             <div class="input-group">
                                 <select class="form-select" id="prefijo_telefono" name="prefijo_telefono" style="width: 33%;">
@@ -74,30 +74,30 @@
                                 </select>
                                 <input type="text" class="form-control" id="telefono" name="telefono" maxlength="7" style="width: 67%;" placeholder="5539261">
                             </div>
-                            <span class="text-danger small" id="stelefono" style="min-height:1.2em; display:block;"></span>
+                            <span id="stelefono" style="width: fit-content;"></span>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="sexo" class="form-label fw-semibold">Sexo <span class="text-danger">*</span></label>
                             <select class="form-select" id="sexo" name="sexo">
                                 <option value="default" selected disabled>Seleccionar</option>
                                 <option value="M">Masculino</option>
                                 <option value="F">Femenino</option>
                             </select>
-                            <span class="form-label text-danger" id="ssexo"></span>
+                            <span id="ssexo" style="width: fit-content;"></span>
                         </div>
                     </div>
 
                     <!-- Fila: Correo y Dirección -->
                     <div class="row g-3 mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="correo" class="form-label fw-semibold">Correo</label>
                             <input type="email" class="form-control" id="correo" name="correo" maxlength="100" placeholder="cliente@correo.com">
-                            <span class="form-label text-danger" id="scorreo"></span>
+                            <span id="scorreo" style="width: fit-content;"></span>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="direccion" class="form-label fw-semibold">Dirección <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="direccion" name="direccion" maxlength="255">
-                            <span class="form-label text-danger" id="sdireccion"></span>
+                            <span id="sdireccion" style="width: fit-content;"></span>
                         </div>
                     </div>
 

@@ -83,10 +83,10 @@ class BusinessSeeder
         $count = $this->db->query("SELECT COUNT(*) FROM area_mesa")->fetchColumn();
         if ($count == 0) {
             $sql = "INSERT INTO area_mesa (id_area, nombre, descripcion) VALUES 
-                ('AREA001', 'Salón Principal', 'Área principal del restaurante'),
-                ('AREA002', 'Terraza', 'Área al aire libre'),
-                ('AREA003', 'VIP', 'Área exclusiva para reservaciones especiales'),
-                ('AREA004', 'Barra', 'Área de barra')";
+                ('AREA00120260510', 'Salón Principal', 'Área principal del restaurante'),
+                ('AREA00220260510', 'Terraza', 'Área al aire libre'),
+                ('AREA00320260510', 'VIP', 'Área exclusiva para reservaciones especiales'),
+                ('AREA00420260510', 'Barra', 'Área de barra')";
             $this->db->exec($sql);
             echo "       Áreas de mesa creadas.\n";
         }
@@ -144,7 +144,7 @@ class BusinessSeeder
         
         if (!$personaExists) {
             $sqlPersona = "INSERT INTO persona (cedula, nombre, apellido, telefono, correo, sexo) 
-                          VALUES ('V00000000', 'Admin', 'Principal', '04120000000', 'admin@goodvibes.com', 'M')";
+                          VALUES ('V-00000000', 'Admin', 'Principal', '04120000000', 'admin@goodvibes.com', 'M')";
             $this->db->exec($sqlPersona);
             echo "       Persona para Admin Root creada.\n";
         }
@@ -155,7 +155,7 @@ class BusinessSeeder
         
         if (!$gerenteExists) {
             $sqlPersona = "INSERT INTO persona (cedula, nombre, apellido, telefono, correo, sexo) 
-                          VALUES ('V12345678', 'Gerente', 'General', '04120000001', 'gerente@goodvibes.com', 'M')";
+                          VALUES ('V-12345678', 'Gerente', 'General', '04120000001', 'gerente@goodvibes.com', 'M')";
             $this->db->exec($sqlPersona);
             echo "       Persona para Gerente creada.\n";
         }
@@ -179,7 +179,7 @@ class BusinessSeeder
         $stmtEmpleado = $this->db->prepare($sqlEmpleado);
 
         for ($i = 0; $i < $cantidad; $i++) {
-            $cedula = 'V' . $this->faker->unique()->numberBetween(10000000, 99999999);
+            $cedula = 'V-' . $this->faker->unique()->numberBetween(10000000, 99999999);
             $fechaIngreso = $this->faker->dateTimeBetween('-2 years', 'now')->format('Y-m-d');
             
             try {
@@ -214,9 +214,9 @@ class BusinessSeeder
         }
 
         $sql = "INSERT INTO producto 
-                (id_producto, id_categoria, nombre_producto, descripcion, precio, stock, stock_minimo, costo_preparacion, tiempo_preparacion, es_personalizable, tipo_producto, estatus) 
+                (id_producto, id_categoria, nombre_producto, descripcion, precio, es_personalizable, tipo_producto, estatus) 
                 VALUES 
-                (:id, :id_categoria, :nombre, :desc, :precio, :stock, :stock_minimo, :costo, :tiempo, :personalizable, :tipo, 1)";
+                (:id, :id_categoria, :nombre, :descripcion, :precio, :personalizable, :tipo, 1)";
 
         $stmt = $this->db->prepare($sql);
         $tipos = ['COCINA', 'BARRA', 'POSTRE', 'RETAIL'];
@@ -227,12 +227,8 @@ class BusinessSeeder
                 'id' => 'PROD-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT) . date('Ymd'),
                 'id_categoria' => $this->faker->randomElement($categorias),
                 'nombre' => ucfirst($this->faker->words(2, true)),
-                'desc' => $this->faker->sentence(6),
+                'descripcion' => $this->faker->sentence(6),
                 'precio' => $precio,
-                'costo' => $this->faker->randomFloat(2, 1, $precio * 0.6),
-                'stock' => $this->faker->numberBetween(10, 100),
-                'stock_minimo' => $this->faker->numberBetween(1, 10),
-                'tiempo' => $this->faker->numberBetween(5, 30),
                 'personalizable' => $this->faker->boolean(30) ? 1 : 0,
                 'tipo' => $this->faker->randomElement($tipos)
             ]);
@@ -297,7 +293,7 @@ class BusinessSeeder
         $stmtCliente = $this->db->prepare($sqlCliente);
 
         for ($i = 0; $i < $cantidad; $i++) {
-            $cedula = 'V' . $this->faker->unique()->numberBetween(10000000, 99999999);
+            $cedula = 'V-' . $this->faker->unique()->numberBetween(10000000, 99999999);
             
             try {
                 $stmtPersona->execute([

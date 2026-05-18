@@ -89,7 +89,6 @@ if (typeof window.mesasScriptLoaded === 'undefined') {
             }
         } catch (e) {
             console.error("Error inicializando modales:", e);
-            // Crear objetos dummy para evitar errores
             modalMesa = { show: () => console.warn("modalMesa.show() llamado pero no inicializado"), hide: () => {} };
             modalCambiarEstado = { show: () => console.warn("modalCambiarEstado.show() llamado pero no inicializado"), hide: () => {} };
             modalEliminarMesa = { show: () => console.warn("modalEliminarMesa.show() llamado pero no inicializado"), hide: () => {} };
@@ -102,6 +101,9 @@ if (typeof window.mesasScriptLoaded === 'undefined') {
         } else {
             console.log("Formulario encontrado");
         }
+
+        // Variable para almacenar temporalmente los datos de la mesa en edición
+        let mesaEnEdicion = null;
 
         // Cargar mesas al iniciar
         console.log("Llamando a cargarMesas()");
@@ -150,13 +152,11 @@ if (typeof window.mesasScriptLoaded === 'undefined') {
                 return;
             }
             
-            // Verificar si DataTable está disponible
             if (typeof $.fn.DataTable === 'undefined') {
                 console.error("ERROR CRÍTICO: DataTable no está cargado");
                 return;
             }
             
-            // Destruir DataTable existente
             if ($.fn.DataTable.isDataTable('#tablaMesas')) {
                 console.log("DataTable ya existente, destruyendo...");
                 $('#tablaMesas').DataTable().destroy();
@@ -168,10 +168,9 @@ if (typeof window.mesasScriptLoaded === 'undefined') {
                 tablaMesas = $('#tablaMesas').DataTable({
                     responsive: true,
                     data: datos,
-                    order: [[1, 'asc']],
+                    order: [[0, 'asc']],
                     language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' },
                     columns: [
-                        { data: 'id_mesa', defaultContent: 'N/A' },
                         { data: 'numero_mesa', defaultContent: 'N/A' },
                         { data: 'area_nombre', defaultContent: 'Sin área' },
                         { data: 'capacidad', defaultContent: '0' },
@@ -213,6 +212,12 @@ if (typeof window.mesasScriptLoaded === 'undefined') {
                                         </button>
                                         <button class="btn btn-outline-primary btn-editar" 
                                                 data-id="${data.id_mesa || ''}"
+                                                data-numero="${data.numero_mesa || ''}"
+                                                data-area-id="${data.id_area || ''}"
+                                                data-area-nombre="${data.area_nombre || ''}"
+                                                data-capacidad="${data.capacidad || ''}"
+                                                data-estado="${data.estado || ''}"
+                                                data-estatus="${data.estatus || ''}"
                                                 title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -247,10 +252,9 @@ if (typeof window.mesasScriptLoaded === 'undefined') {
             console.log("=== cargarAreas() iniciado ===");
             try {
                 const peticion = new FormData();
-                peticion.append('peticion', 'consultar_areas');
-                console.log("Solicitando áreas a:", BASE_URL + '?page=areas');
+                peticion.append('peticion', 'consultar_area');
                 
-                const json = await enviaAjax(peticion, BASE_URL + '?page=areas');
+                const json = await enviaAjax(peticion, BASE_URL + '?page=mesas');
                 console.log("Respuesta de áreas:", json);
                 
                 if (json && json.resultado === 200 && json.datos) {
@@ -284,7 +288,7 @@ if (typeof window.mesasScriptLoaded === 'undefined') {
             modalMesa.show();
         });
 
-        // Guardar Mesa
+        // Guardar Mesa (Registrar o Modificar)
         $('#btnGuardarMesa').on('click', async function () {
             console.log("Click en btnGuardarMesa");
             
@@ -302,6 +306,9 @@ if (typeof window.mesasScriptLoaded === 'undefined') {
             const fd = new FormData($formMesa[0]);
             fd.append('estatus', $('#estatus').is(':checked') ? 1 : 0);
             
+            const peticionActual = $('#peticion').val();
+            console.log("Petición actual:", peticionActual);
+            
             try {
                 console.log("Enviando petición a:", BASE_URL + '?page=mesas');
                 const res = await enviaAjax(fd, BASE_URL + '?page=mesas');
@@ -310,6 +317,7 @@ if (typeof window.mesasScriptLoaded === 'undefined') {
                 if (res && res.resultado === 200) {
                     Swal.fire('Éxito', res.mensaje, 'success');
                     modalMesa.hide();
+                    mesaEnEdicion = null;
                     cargarMesas();
                 } else {
                     Swal.fire('Error', res?.mensaje || 'Error en respuesta', 'error');
@@ -322,40 +330,47 @@ if (typeof window.mesasScriptLoaded === 'undefined') {
             }
         });
 
-        // Editar Mesa
+        // Editar Mesa - Usando los datos del botón (sin consultar_una)
         $(document).on('click', '#tablaMesas tbody .btn-editar', async function (e) {
             e.preventDefault();
-            const idMesa = $(this).data('id');
-            console.log("Click en editar mesa ID:", idMesa);
             
-            const fd = new FormData();
-            fd.append('peticion', 'consultar_una');
-            fd.append('id_mesa', idMesa);
-
-            try {
-                const res = await enviaAjax(fd, BASE_URL + '?page=mesas');
-                console.log("Respuesta de consultar_una:", res);
-                
-                if (res && res.resultado === 200 && res.datos) {
-                    const mesa = res.datos;
-                    $('#peticion').val('modificar');
-                    $('#id_mesa').val(mesa.id_mesa);
-                    $('#id_area').val(mesa.id_area);
-                    $('#numero_mesa').val(mesa.numero_mesa);
-                    $('#capacidad').val(mesa.capacidad);
-                    $('#estado').val(mesa.estado);
-                    $('#estatus').prop('checked', mesa.estatus == 1);
-                    $('#modalTitle').text('Editar Mesa');
-                    await cargarAreas();
-                    $('#id_area').val(mesa.id_area);
-                    modalMesa.show();
-                } else {
-                    Swal.fire('Error', 'No se encontró la mesa', 'error');
-                }
-            } catch (error) {
-                console.error("Error en editar:", error);
-                Swal.fire('Error', 'Error al cargar los datos de la mesa', 'error');
-            }
+            // Obtener los datos directamente del botón
+            const idMesa = $(this).data('id');
+            const numeroMesa = $(this).data('numero');
+            const idArea = $(this).data('area-id');
+            const capacidad = $(this).data('capacidad');
+            const estado = $(this).data('estado');
+            const estatus = $(this).data('estatus');
+            
+            console.log("Editando mesa con datos del botón:", {
+                idMesa, numeroMesa, idArea, capacidad, estado, estatus
+            });
+            
+            // Guardar referencia de la mesa en edición
+            mesaEnEdicion = {
+                id_mesa: idMesa,
+                numero_mesa: numeroMesa,
+                id_area: idArea,
+                capacidad: capacidad,
+                estado: estado,
+                estatus: estatus
+            };
+            
+            // Llenar el formulario
+            $('#peticion').val('modificar');
+            $('#id_mesa').val(idMesa);
+            $('#numero_mesa').val(numeroMesa);
+            $('#capacidad').val(capacidad);
+            $('#estado').val(estado);
+            $('#estatus').prop('checked', estatus == 1);
+            $('#modalTitle').text('Editar Mesa');
+            
+            // Cargar áreas y luego seleccionar la del área actual
+            await cargarAreas();
+            $('#id_area').val(idArea);
+            
+            // Mostrar el modal
+            modalMesa.show();
         });
 
         // Cambiar Estado - Abrir modal

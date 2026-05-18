@@ -106,7 +106,7 @@ const verificarCedulaDuplicada = debounce(async function (tipoCedula, numCedula)
     if (!tipoCedula || tipoCedula === 'default') return;
     if (!numCedula || numCedula.length < 7 || numCedula.length > 9) return;
 
-    const cedulaCompleta = tipoCedula + numCedula;
+    const cedulaCompleta = tipoCedula + '-' + numCedula;
 
     try {
         const fd = new FormData();
@@ -149,13 +149,16 @@ function validarCamposCliente() {
             // Campo obligatorio vacío: mostrar error sólo si fue tocado
             if ($campo.data('touched')) {
                 $campo.addClass('is-invalid').removeClass('is-valid');
+                $span.addClass('invalid-tooltip d-inline-block');
                 $span.text(msg);
             } else {
                 $campo.removeClass('is-valid is-invalid');
+                $span.removeClass('invalid-tooltip d-inline-block');
                 $span.text('');
             }
         } else if (tieneValor && !valido) {
             $campo.addClass('is-invalid').removeClass('is-valid');
+            $span.addClass('invalid-tooltip d-inline-block');
             $span.text(msg);
         } else if (valido) {
             // Solo colorear verde si el campo tiene contenido; vacío = sin color
@@ -164,9 +167,11 @@ function validarCamposCliente() {
             } else {
                 $campo.removeClass('is-valid is-invalid');
             }
+            $span.removeClass('invalid-tooltip d-inline-block');
             $span.text('');
         } else {
             $campo.removeClass('is-valid is-invalid');
+            $span.removeClass('invalid-tooltip d-inline-block');
             $span.text('');
         }
 
@@ -201,9 +206,16 @@ function validarCamposCliente() {
         if (numCedula !== '' || input.cedula.data('touched')) {
             input.cedula.addClass(cedulaValida ? 'is-valid' : 'is-invalid')
                         .removeClass(cedulaValida ? 'is-invalid' : 'is-valid');
-            $spanCedula.text(cedulaValida ? '' : msgCedula);
+            if (cedulaValida) {
+                $spanCedula.removeClass('invalid-tooltip d-inline-block');
+                $spanCedula.text('');
+            } else {
+                $spanCedula.addClass('invalid-tooltip d-inline-block');
+                $spanCedula.text(msgCedula);
+            }
         } else {
             input.cedula.removeClass('is-valid is-invalid');
+            $spanCedula.removeClass('invalid-tooltip d-inline-block');
             $spanCedula.text('');
         }
     }
@@ -252,9 +264,16 @@ function validarCamposCliente() {
     if (numTel !== '' || (prefijo && prefijo !== 'default')) {
         input.telefono.addClass(telValido ? 'is-valid' : 'is-invalid')
                       .removeClass(telValido ? 'is-invalid' : 'is-valid');
-        $spanTel.text(telValido ? '' : msgTel);
+        if (telValido) {
+            $spanTel.removeClass('invalid-tooltip d-inline-block');
+            $spanTel.text('');
+        } else {
+            $spanTel.addClass('invalid-tooltip d-inline-block');
+            $spanTel.text(msgTel);
+        }
     } else {
         input.telefono.removeClass('is-valid is-invalid');
+        $spanTel.removeClass('invalid-tooltip d-inline-block');
         $spanTel.text('');
     }
     if (!telValido) formularioValido = false;
@@ -331,7 +350,7 @@ async function enviarDatos(operacion) {
 
       if (confirmacion) {
         peticion.append('peticion', accion);
-        peticion.append('cedula', input.tipo_doc.val() + input.cedula.val());
+        peticion.append('cedula', input.tipo_doc.val() + '-' + input.cedula.val());
         peticion.append('nombre', input.nombre.val());
         peticion.append('apellido', input.apellido.val());
         peticion.append('fecha_nacimiento', input.fecha_nacimiento.val());
@@ -361,7 +380,7 @@ async function enviarDatos(operacion) {
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
-        peticion.append('cedula', input.tipo_doc.val() + input.cedula.val());
+        peticion.append('cedula', input.tipo_doc.val() + '-' + input.cedula.val());
         btn_formulario = true;
       }
     } else {
@@ -510,7 +529,13 @@ function capaValidar() {
       verificarCedulaDuplicada(tipo, $(this).val().trim());
   });
   input.fecha_nacimiento.on('change', marcarYValidar);
-  input.telefono.on('input', marcarYValidar);
+  input.telefono.on('input', function() {
+      if ($(this).val().trim() === '') {
+          input.prefijo_telefono.val('default');
+          input.prefijo_telefono.removeClass('is-valid is-invalid');
+      }
+      marcarYValidar.call(this);
+  });
   input.correo.on('input', marcarYValidar);
   input.direccion.on('input', marcarYValidar);
 
@@ -567,7 +592,10 @@ async function crearDataTable() {
         data: 'cedula',
         render: function (data, type) {
           if (!data) return data;
-          const formatted = (data.length > 1) ? data.charAt(0) + '-' + data.slice(1) : data;
+          let formatted = data;
+          if (data.indexOf('-') === -1 && data.length > 1) {
+              formatted = data.charAt(0) + '-' + data.slice(1);
+          }
           if (type === 'display') return formatted;
           if (type === 'filter') return data + ' ' + formatted;
           return data;
@@ -646,7 +674,9 @@ function limpia() {
       }
   });
   // Limpiar solo los spans de feedback del formulario de clientes
-  $('#scedula, #snombre, #sapellido, #sfecha_nacimiento, #stelefono, #ssexo, #scorreo, #sdireccion').text('');
+  $('#scedula, #snombre, #sapellido, #sfecha_nacimiento, #stelefono, #ssexo, #scorreo, #sdireccion')
+      .removeClass('invalid-tooltip d-inline-block')
+      .text('');
 
   // Deshabilitar el botón al limpiar
   $('#btnClienteForm').prop('disabled', true);
@@ -663,7 +693,7 @@ function rellenar(pos, accion) {
   // Usar los datos directamente de DataTable
   let cedulaFull = datosFila.cedula;
   let tipo = cedulaFull.charAt(0);
-  let numero = cedulaFull.slice(1);
+  let numero = cedulaFull.includes('-') ? cedulaFull.split('-')[1] : cedulaFull.slice(1);
   buscarSelect(input.tipo_doc, tipo, "value");
   input.cedula.val(numero);
   input.nombre.val(capitalizarTexto(datosFila.nombre));
@@ -756,7 +786,7 @@ function consultarFila(pos) {
   }
 
   let cedulaFormateada = datosFila.cedula;
-  if(cedulaFormateada && cedulaFormateada.length > 1) {
+  if(cedulaFormateada && cedulaFormateada.indexOf('-') === -1 && cedulaFormateada.length > 1) {
      cedulaFormateada = cedulaFormateada.charAt(0) + '-' + cedulaFormateada.slice(1);
   }
   

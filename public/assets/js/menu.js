@@ -143,24 +143,37 @@ document.addEventListener('DOMContentLoaded', () => {
         // Validación de nombre duplicado
         const inputNombre = document.getElementById('nombre');
         const errorNombre = document.getElementById('errorNombre');
-        
+
         let isDuplicate = false;
         if (nombre) {
             const nombreLower = nombre.toLowerCase();
-            isDuplicate = productosActuales.some(p => 
-                p.nombre_producto.toLowerCase() === nombreLower && 
-                p.estatus == 1 && 
+            isDuplicate = productosActuales.some(p =>
+                p.nombre_producto.toLowerCase() === nombreLower &&
+                p.estatus == 1 &&
                 p.id_producto != idProducto
             );
         }
 
-        if (isDuplicate) {
+        if (nombre.length > 0 && nombre.length < 3) {
             isValid = false;
             inputNombre.classList.add('is-invalid');
-            if (errorNombre) errorNombre.style.display = 'block';
+            if (errorNombre) {
+                errorNombre.classList.add('invalid-tooltip', 'd-inline-block');
+                errorNombre.textContent = 'El nombre debe tener al menos 3 caracteres.';
+            }
+        } else if (isDuplicate) {
+            isValid = false;
+            inputNombre.classList.add('is-invalid');
+            if (errorNombre) {
+                errorNombre.classList.add('invalid-tooltip', 'd-inline-block');
+                errorNombre.textContent = 'Ya existe un producto registrado con este nombre.';
+            }
         } else {
             inputNombre.classList.remove('is-invalid');
-            if (errorNombre) errorNombre.style.display = 'none';
+            if (errorNombre) {
+                errorNombre.classList.remove('invalid-tooltip', 'd-inline-block');
+                errorNombre.textContent = '';
+            }
         }
 
         // Validación de imagen
@@ -201,10 +214,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (categoria && validCategorias.length > 0 && !validCategorias.includes(categoria)) {
             isValid = false;
             catSelect.classList.add('is-invalid');
-            if (catError && catError.classList.contains('invalid-feedback')) catError.style.display = 'block';
+            if (catError) {
+                catError.classList.add('invalid-tooltip', 'd-inline-block');
+                catError.textContent = 'El valor de categoría seleccionado no existe.';
+            }
         } else {
             if (catSelect) catSelect.classList.remove('is-invalid');
-            if (catError && catError.classList.contains('invalid-feedback')) catError.style.display = 'none';
+            if (catError) {
+                catError.classList.remove('invalid-tooltip', 'd-inline-block');
+                catError.textContent = '';
+            }
         }
 
         if (tipo === 'COCINA') {
@@ -246,26 +265,32 @@ document.addEventListener('DOMContentLoaded', () => {
                         isValid = false;
                         row.classList.add('table-danger');
                         if (rowError) {
+                            rowError.classList.add('invalid-tooltip', 'd-inline-block');
                             rowError.textContent = errorMsg;
-                            rowError.style.display = 'block';
                         }
                     } else {
                         row.classList.remove('table-danger');
-                        if (rowError) rowError.style.display = 'none';
+                        if (rowError) {
+                            rowError.classList.remove('invalid-tooltip', 'd-inline-block');
+                            rowError.textContent = '';
+                        }
 
                         // Validar unidad
                         const validUnit = unidadesDB.some(u => u.id_unidad == select.value);
-                        const errUnit = select.closest('td').querySelector('.invalid-feedback');
+                        const errUnit = select.closest('td').querySelector('.invalid-tooltip');
                         if (!validUnit) {
                             isValid = false;
                             select.classList.add('is-invalid');
                             if (errUnit) {
+                                errUnit.classList.add('invalid-tooltip', 'd-inline-block');
                                 errUnit.textContent = "Valor de la unidad no existe";
-                                errUnit.style.display = 'block';
                             }
                         } else {
                             select.classList.remove('is-invalid');
-                            if (errUnit) errUnit.style.display = 'none';
+                            if (errUnit) {
+                                errUnit.classList.remove('invalid-tooltip', 'd-inline-block');
+                                errUnit.textContent = '';
+                            }
                         }
                         ingMemoria.unidad = select.value; // Sincronizar
                     }
@@ -319,25 +344,31 @@ document.addEventListener('DOMContentLoaded', () => {
                         isValid = false;
                         row.classList.add('table-danger');
                         if (rowError) {
+                            rowError.classList.add('invalid-tooltip', 'd-inline-block');
                             rowError.textContent = errorMsg;
-                            rowError.style.display = 'block';
                         }
                     } else {
                         row.classList.remove('table-danger');
-                        if (rowError) rowError.style.display = 'none';
+                        if (rowError) {
+                            rowError.classList.remove('invalid-tooltip', 'd-inline-block');
+                            rowError.textContent = '';
+                        }
 
                         const validUnit = unidadesDB.some(u => u.id_unidad == select.value);
-                        const errUnit = select.closest('td').querySelector('.invalid-feedback');
+                        const errUnit = select.closest('td').querySelector('.invalid-tooltip');
                         if (!validUnit) {
                             isValid = false;
                             select.classList.add('is-invalid');
                             if (errUnit) {
+                                errUnit.classList.add('invalid-tooltip', 'd-inline-block');
                                 errUnit.textContent = "Unidad no válida";
-                                errUnit.style.display = 'block';
                             }
                         } else {
                             select.classList.remove('is-invalid');
-                            if (errUnit) errUnit.style.display = 'none';
+                            if (errUnit) {
+                                errUnit.classList.remove('invalid-tooltip', 'd-inline-block');
+                                errUnit.textContent = '';
+                            }
                         }
                         ingMemoria.unidad = select.value;
                     }
@@ -604,19 +635,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             tr.innerHTML = `
-                <td>
+                <td class="position-relative">
                     <span class="fw-semibold">${ing.nombre}</span>
-                    <div class="invalid-feedback fw-bold row-error" style="font-size: 0.75rem;"></div>
+                    <span class="invalid-tooltip fw-bold row-error" style="font-size: 0.75rem; width: fit-content;"></span>
                 </td>
                 <td>
                     <input type="number" step="0.01" min="0.01" class="form-control form-control-sm qty-input" 
                         data-id="${ing.id}" data-type="${isPrincipal ? 'principal' : 'adicional'}" value="${ing.cantidad}" required>
                 </td>
-                <td>
+                <td class="position-relative">
                     <select class="form-select form-select-sm unit-select" data-id="${ing.id}" data-type="${isPrincipal ? 'principal' : 'adicional'}">
                         ${unidadesHtml(ing.unidad)}
                     </select>
-                    <div class="invalid-feedback fw-bold" style="font-size: 0.75rem;">Valor no existe</div>
+                    <span class="invalid-tooltip fw-bold" style="font-size: 0.75rem; width: fit-content;">Valor no existe</span>
                 </td>
                 ${precioHtml}
                 <td class="text-end">
