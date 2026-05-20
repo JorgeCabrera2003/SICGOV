@@ -48,6 +48,7 @@ use App\Controllers\ReporteController;
 use App\Controllers\PapeleraController;
 use App\Controllers\RolController;
 use App\Controllers\AsistenciaController;
+use App\Controllers\PerfilController;
 
 try {
 
@@ -79,6 +80,7 @@ try {
         'papelera' => (new PapeleraController())->index(),
         'notificaciones' => (new NotificationController())->index(),
         'rol' => (new RolController())->index(),
+        'perfil' => (new PerfilController())->index(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };
 

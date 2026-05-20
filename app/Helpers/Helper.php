@@ -142,13 +142,27 @@ class Helper
         self::verificarSesion();
 
         $user = $_SESSION['user'];
+        $foto = BASE_URL . '/assets/img/default.jpg';
+
+        try {
+            $db = \App\Core\Database::getConnection('security');
+            $sql = "SELECT direccion FROM imagen WHERE entidad_tipo = 'USUARIO' AND entidad_id = :cedula AND es_principal = 1 LIMIT 1";
+            $stmt = $db->prepare($sql);
+            $stmt->execute(['cedula' => $user['cedula'] ?? '']);
+            $img = $stmt->fetch();
+            if ($img && !empty($img['direccion'])) {
+                $foto = BASE_URL . $img['direccion'];
+            }
+        } catch (\Exception $e) {
+            // Fail silently and use default
+        }
 
         return [
             'nombres' => $user['nombres'] ?? $user['username'] ?? 'Usuario',
             'apellidos' => $user['apellidos'] ?? '',
             'cedula' => $user['cedula'] ?? '',
             'rol' => $user['rol'] ?? 'Usuario',
-            'foto' => BASE_URL . '/assets/img/default.jpg',
+            'foto' => $foto,
             'username' => $user['username'] ?? ''
         ];
     }
