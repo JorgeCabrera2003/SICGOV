@@ -5,8 +5,7 @@ function etiquetasFormulario() {
     return {
         peticion: $('#peticionCategoria'),
         id_categoria: $('#id_categoria'),
-        nombre_categoria: $('#nombre_categoria'),
-        descripcion: $('#descripcion_categoria')
+        nombre_categoria: $('#nombre_categoria')
     };
 }
 
@@ -56,11 +55,9 @@ function limpiar() {
 
     eti.formulario.removeClass('was-validated');
     input.nombre_categoria.prop("readOnly", false).removeClass('is-valid is-invalid');
-    input.descripcion.prop("readOnly", false).removeClass('is-valid is-invalid');
 
     // Limpiar validaciones personalizadas residuales
     input.nombre_categoria[0].setCustomValidity('');
-    input.descripcion[0].setCustomValidity('');
 
     // Deshabilitar botón al limpiar (formulario vacío = inválido)
     etiquetasModal().boton.prop('disabled', true);
@@ -110,7 +107,6 @@ function verificarEstadoBoton() {
     const boton = etiquetasModal().boton;
 
     const nombre = input.nombre_categoria.val().trim();
-    const descripcion = input.descripcion.val().trim();
 
     const regexSoloLetras = /^[A-ZÁÉÍÓÚÑa-záéíóúñ\s]+$/;
     const regexPrimeraMayus = /^[A-ZÁÉÍÓÚÑ]/;
@@ -146,31 +142,7 @@ function verificarEstadoBoton() {
         );
     }
 
-    // ── Evaluar Descripción ──────────────────────────────────
-    let descValida = true;
-    let mensajeDesc = '';
-
-    if (descripcion !== '') {
-        if (descripcion.length < 2) {
-            descValida = false;
-            mensajeDesc = 'La descripción debe tener al menos 2 caracteres.';
-        } else if (!regexPrimeraMayus.test(descripcion)) {
-            descValida = false;
-            mensajeDesc = 'La descripción debe comenzar con una letra mayúscula.';
-        } else if (!regexSoloLetras.test(descripcion)) {
-            descValida = false;
-            mensajeDesc = 'La descripción solo puede contener letras y espacios.';
-        }
-    }
-
-    aplicarEstilosCampo(
-        input.descripcion,
-        $('#feedback_descripcion_categoria'),
-        descValida,
-        mensajeDesc
-    );
-
-    boton.prop('disabled', !(nombreValido && descValida));
+    boton.prop('disabled', !nombreValido);
 }
 
 /**
@@ -270,29 +242,6 @@ function inicializarInputListeners() {
         verificarEstadoBoton();
         verificarNombreDuplicado(); // Dispara verificación asíncrona con debounce
     });
-
-    // ── Descripción ─────────────────────────────────────────
-    // Bloquear números y caracteres especiales al teclear
-    input.descripcion.on('keypress', function (e) {
-        const char = String.fromCharCode(e.which);
-        if (!/[a-zA-ZÁÉÍÓÚáéíóúÑñ ]/.test(char)) {
-            e.preventDefault();
-        }
-    });
-
-    // Capitalizar primera letra en tiempo real
-    input.descripcion.on('input', function () {
-        const pos = this.selectionStart;
-        const val = $(this).val();
-        if (val.length > 0) {
-            const capitalizado = val.charAt(0).toUpperCase() + val.slice(1);
-            if (val !== capitalizado) {
-                $(this).val(capitalizado);
-                this.setSelectionRange(pos, pos);
-            }
-        }
-        verificarEstadoBoton();
-    });
 }
 
 // Validaciones personalizadas de los campos de categoría
@@ -328,34 +277,6 @@ function validarCamposCategoria(operacion) {
         valido = false;
     } else {
         campoNombre.setCustomValidity('');
-    }
-
-    // ---- Descripción (opcional) ----
-    const descripcion = input.descripcion.val().trim();
-    const campoDescripcion = input.descripcion[0];
-    const feedbackDescripcion = $('#feedback_descripcion_categoria');
-
-    // Regex: solo letras y espacios, primera letra mayúscula (si se ingresó algo)
-    const regexDescripcion = /^[A-ZÁÉÍÓÚÑ][a-záéíóúñA-ZÁÉÍÓÚÑ\s]*$/;
-
-    if (descripcion !== '') {
-        if (descripcion.length < 2) {
-            campoDescripcion.setCustomValidity('La descripción debe tener al menos 2 caracteres.');
-            feedbackDescripcion.addClass('invalid-tooltip d-inline-block').text('La descripción debe tener al menos 2 caracteres.');
-            valido = false;
-        } else if (!/^[A-ZÁÉÍÓÚÑ]/.test(descripcion)) {
-            campoDescripcion.setCustomValidity('La descripción debe comenzar con una letra mayúscula.');
-            feedbackDescripcion.addClass('invalid-tooltip d-inline-block').text('La descripción debe comenzar con una letra mayúscula.');
-            valido = false;
-        } else if (!regexDescripcion.test(descripcion)) {
-            campoDescripcion.setCustomValidity('La descripción solo puede contener letras (sin números ni caracteres especiales).');
-            feedbackDescripcion.addClass('invalid-tooltip d-inline-block').text('La descripción solo puede contener letras (sin números ni caracteres especiales).');
-            valido = false;
-        } else {
-            campoDescripcion.setCustomValidity('');
-        }
-    } else {
-        campoDescripcion.setCustomValidity('');
     }
 
     return valido;
@@ -421,7 +342,6 @@ function rellenar(pos, accion) {
 
     input.id_categoria.val(datosFila.id_categoria);
     input.nombre_categoria.val(datosFila.nombre_categoria);
-    input.descripcion.val(datosFila.descripcion || '');
 
     if (accion === 0) { // Editar
         input.peticion.val("modificar");
@@ -523,16 +443,6 @@ async function crearDataTable() {
                 render: function (data) {
                     return `<strong>${data}</strong>`;
                 }
-            },
-            {
-                data: 'descripcion',
-                render: function (data) {
-                    return data ? data : '<span class="text-muted">Sin descripción</span>';
-                }
-            },
-            {
-                data: 'estatus',
-                visible: false // Ocultamos el estatus ya que solo mostraremos activos
             },
             {
                 data: null,
