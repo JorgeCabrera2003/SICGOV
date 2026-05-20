@@ -3,6 +3,12 @@
     HTML Semántico + Bootstrap 5.3
 ========================================== -->
 
+<?php
+    $dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    $meses = ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    $hoy = $dias[date('w')] . ", " . date('d') . " de " . $meses[date('n')] . " de " . date('Y');
+?>
+
 <main class="container-fluid py-4">
 
     <!-- Encabezado semántico con header -->
@@ -24,19 +30,43 @@
 
     </header>
 
-    <div class="d-flex align-items-center gap-2 mb-3">
+    <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
         <div class="btn-group" role="group" aria-label="Filtros de asistencia">
             <button type="button" class="btn btn-warning text-dark fw-semibold" id="btnHistorial">
                 <i class="fas fa-history me-2"></i>Histórico
             </button>
-            <button type="button" class="btn btn-outline-warning" id="btnMiAsistencia">
-                <i class="fas fa-user-clock me-2"></i>Mi Asistencia
+            <button type="button" class="btn btn-outline-warning" id="btnAsistenciaHoy">
+                <i class="fas fa-calendar-day me-2"></i>Asistencia Hoy
             </button>
+        </div>
+        <div class="text-muted small">
+            <i class="far fa-calendar-alt me-2 text-primary"></i><?= $hoy ?>
+        </div>
+    </div>
+
+    <div id="asistenciaHoyContainer" class="card shadow-sm border-0 mb-4 d-none">
+        <div class="card-body p-4">
+            
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle" id="tablaAsistenciaHoy" style="width:100%">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Empleado</th>
+                            <th>Entrada</th>
+                            <th>Inicio del Descanso</th>
+                            <th>Fin del Descanso</th>
+                            <th>Salida</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="asistenciaHoyEmpty" class="small text-muted d-none">No hay registros para hoy.</div>
         </div>
     </div>
 
     <!-- Tabla de productos (section semántica) -->
-    <section class="card shadow-sm border-0">
+    <section id="historicoAsistenciaSection" class="card shadow-sm border-0">
 
         <div class="card-body">
             <div class="table-responsive">

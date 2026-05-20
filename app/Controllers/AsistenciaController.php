@@ -127,6 +127,10 @@ class AsistenciaController {
             if ($_POST["peticion"] == "consultar") {
                 $json = $AsistenciaModel->Transaccion(['peticion' => $_POST["peticion"]]);
             }
+
+            if ($_POST["peticion"] == "consultar_hoy") {
+                $json = $AsistenciaModel->Transaccion(['peticion' => $_POST["peticion"]]);
+            }
             //Fin del Consultar
 			echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
 			exit;

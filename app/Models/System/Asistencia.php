@@ -142,6 +142,7 @@ class Asistencia extends Database {
 
                     'validar' => $this->ValidarAsistencia(),
                 'consultar' => $this->ConsultarAsistencia(),
+                'consultar_hoy' => $this->ConsultarAsistenciaHoy(),
                 'registrar' => $this->RegistrarAsistencia(),
                 'agregar_observacion' => $this->AgregarObservacion(),
                 'eliminar_observacion' => $this->EliminarObservacion(),
@@ -192,7 +193,50 @@ class Asistencia extends Database {
             $dato['estado'] = 1;
             $dato['response'] = ['resultado' => 200, 'mensaje' => 'OK', 'datos' => $arreglo];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
-        } catch (PDOException $e) {
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde', 'datos' => []];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Error interno del servidor'];
+        }
+
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    private function ConsultarAsistenciaHoy() {
+        $dato = [];
+        $arreglo = [];
+
+        try {
+            $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
+
+            $sql = "SELECT v.cedula AS cedula_empleado,
+                           CONCAT(v.nombre, ' ', v.apellido) AS nombre_empleado,
+                           MAX(CASE WHEN a.tipo_marcacion = 'ENTRADA' THEN a.hora END) AS hora_entrada,
+                           MAX(CASE WHEN a.tipo_marcacion = 'DESCANSO_IN' THEN a.hora END) AS hora_descanso_in,
+                           MAX(CASE WHEN a.tipo_marcacion = 'DESCANSO_OUT' THEN a.hora END) AS hora_descanso_out,
+                           MAX(CASE WHEN a.tipo_marcacion = 'SALIDA' THEN a.hora END) AS hora_salida
+                    FROM vw_directorio_empleados v
+                    LEFT JOIN asistencia a ON a.cedula_empleado = v.cedula AND a.fecha = CURDATE()
+                    GROUP BY v.cedula, v.nombre, v.apellido
+                    ORDER BY v.nombre, v.apellido";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->execute();
+
+            if ($stm->rowCount() > 0) {
+                $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
+            }
+
+            $this->LlamarConexion()->commit();
+            $stm = NULL;
+
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'mensaje' => 'OK', 'datos' => $arreglo];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+        } catch (\PDOException $e) {
             $this->LlamarConexion()->rollBack();
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             $dato['estado'] = -1;
