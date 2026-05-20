@@ -35,13 +35,13 @@ class BusinessSeeder
     {
         $count = $this->db->query("SELECT COUNT(*) FROM cargo")->fetchColumn();
         if ($count == 0) {
-            $sql = "INSERT INTO cargo (id_cargo, nombre_cargo, descripcion, estatus) VALUES 
-                ('CARGO001', 'Mesero', 'Atención al cliente en mesas', 1),
-                ('CARGO002', 'Cocinero', 'Preparación de alimentos', 1),
-                ('CARGO003', 'Cajero', 'Manejo de caja y cobros', 1),
-                ('CARGO004', 'Bartender', 'Preparación de bebidas', 1),
-                ('CARGO005', 'Gerente', 'Administración del local', 1),
-                ('CARGO006', 'Supervisor', 'Supervisión de operaciones', 1)";
+            $sql = "INSERT INTO cargo (id_cargo, nombre_cargo, estatus) VALUES 
+                ('CARGO001', 'Mesero', 1),
+                ('CARGO002', 'Cocinero', 1),
+                ('CARGO003', 'Cajero', 1),
+                ('CARGO004', 'Bartender', 1),
+                ('CARGO005', 'Gerente', 1),
+                ('CARGO006', 'Supervisor', 1)";
             $this->db->exec($sql);
             echo "       Cargos base creados.\n";
         }
@@ -52,12 +52,12 @@ class BusinessSeeder
         // Categorías de productos
         $count = $this->db->query("SELECT COUNT(*) FROM categoria_producto")->fetchColumn();
         if ($count == 0) {
-            $sql = "INSERT INTO categoria_producto (id_categoria, nombre_categoria, descripcion, estatus) VALUES 
-                ('CATPROD001', 'Platos Principales', 'Platos fuertes del menú', 1),
-                ('CATPROD002', 'Entradas', 'Aperitivos y entradas', 1),
-                ('CATPROD003', 'Bebidas', 'Bebidas alcohólicas y no alcohólicas', 1),
-                ('CATPROD004', 'Postres', 'Postres y dulces', 1),
-                ('CATPROD005', 'Ensaladas', 'Ensaladas frescas', 1)";
+            $sql = "INSERT INTO categoria_producto (id_categoria, nombre_categoria, estatus) VALUES 
+                ('CATPROD001', 'Platos Principales', 1),
+                ('CATPROD002', 'Entradas', 1),
+                ('CATPROD003', 'Bebidas', 1),
+                ('CATPROD004', 'Postres', 1),
+                ('CATPROD005', 'Ensaladas', 1)";
             $this->db->exec($sql);
             echo "       Categorías de productos creadas.\n";
         }
@@ -65,14 +65,14 @@ class BusinessSeeder
         // Categorías de ingredientes
         $countIng = $this->db->query("SELECT COUNT(*) FROM categoria_ingrediente")->fetchColumn();
         if ($countIng == 0) {
-            $sql = "INSERT INTO categoria_ingrediente (id_categoria, nombre, descripcion) VALUES 
-                ('CATING001', 'Carnes', 'Carnes rojas y blancas'),
-                ('CATING002', 'Verduras', 'Vegetales y hortalizas'),
-                ('CATING003', 'Lácteos', 'Productos lácteos y huevos'),
-                ('CATING004', 'Granos', 'Granos, harinas y cereales'),
-                ('CATING005', 'Condimentos', 'Especias, salsas y condimentos'),
-                ('CATING006', 'Bebidas', 'Ingredientes para bebidas'),
-                ('CATING007', 'Frutas', 'Frutas frescas')";
+            $sql = "INSERT INTO categoria_ingrediente (id_categoria, nombre) VALUES 
+                ('CATING001', 'Carnes'),
+                ('CATING002', 'Verduras'),
+                ('CATING003', 'Lácteos'),
+                ('CATING004', 'Granos'),
+                ('CATING005', 'Condimentos'),
+                ('CATING006', 'Bebidas'),
+                ('CATING007', 'Frutas')";
             $this->db->exec($sql);
             echo "       Categorías de ingredientes creadas.\n";
         }
@@ -82,11 +82,11 @@ class BusinessSeeder
     {
         $count = $this->db->query("SELECT COUNT(*) FROM area_mesa")->fetchColumn();
         if ($count == 0) {
-            $sql = "INSERT INTO area_mesa (id_area, nombre, descripcion) VALUES 
-                ('AREA00120260510', 'Salón Principal', 'Área principal del restaurante'),
-                ('AREA00220260510', 'Terraza', 'Área al aire libre'),
-                ('AREA00320260510', 'VIP', 'Área exclusiva para reservaciones especiales'),
-                ('AREA00420260510', 'Barra', 'Área de barra')";
+            $sql = "INSERT INTO area_mesa (id_area, nombre) VALUES 
+                ('AREA00120260510', 'Salón Principal'),
+                ('AREA00220260510', 'Terraza'),
+                ('AREA00320260510', 'VIP'),
+                ('AREA00420260510', 'Barra')";
             $this->db->exec($sql);
             echo "       Áreas de mesa creadas.\n";
         }
