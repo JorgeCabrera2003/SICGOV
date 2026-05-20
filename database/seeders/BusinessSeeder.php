@@ -139,7 +139,7 @@ class BusinessSeeder
     private function crearPersonasYUsuarios()
     {
         // Crear persona para admin root
-        $sqlCheckPersona = "SELECT COUNT(*) FROM persona WHERE cedula = 'V00000000'";
+        $sqlCheckPersona = "SELECT COUNT(*) FROM persona WHERE cedula = 'V-00000000'";
         $personaExists = $this->db->query($sqlCheckPersona)->fetchColumn();
         
         if (!$personaExists) {
@@ -150,7 +150,7 @@ class BusinessSeeder
         }
 
         // Crear persona para gerente
-        $sqlCheckGerente = "SELECT COUNT(*) FROM persona WHERE cedula = 'V12345678'";
+        $sqlCheckGerente = "SELECT COUNT(*) FROM persona WHERE cedula = 'V-12345678'";
         $gerenteExists = $this->db->query($sqlCheckGerente)->fetchColumn();
         
         if (!$gerenteExists) {

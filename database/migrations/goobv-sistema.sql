@@ -24,24 +24,23 @@ CREATE TABLE `unidad_medida` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Catálogo de unidades de medida estandarizadas';
 
 INSERT INTO `unidad_medida` (`id_unidad`, `nombre`, `abreviatura`, `tipo`, `factor_conversion`, `unidad_base`) VALUES
-('KG', 'kilogramo', 'kg', 'PESO', 1.000000, NULL),
-('G', 'gramo', 'g', 'PESO', 0.001000, 'KG'),
-('LB', 'libra', 'lb', 'PESO', 0.453592, 'KG'),
-('OZ', 'onza', 'oz', 'PESO', 0.028350, 'KG'),
-('L', 'litro', 'L', 'VOLUMEN', 1.000000, NULL),
-('ML', 'mililitro', 'ml', 'VOLUMEN', 0.001000, 'L'),
-('GAL', 'galón', 'gal', 'VOLUMEN', 3.785410, 'L'),
-('UN', 'unidad', 'und', 'UNIDAD', 1.000000, NULL),
-('DOC', 'docena', 'doc', 'UNIDAD', 12.000000, 'UN'),
-('M', 'metro', 'm', 'LONGITUD', 1.000000, NULL),
-('CM', 'centímetro', 'cm', 'LONGITUD', 0.010000, 'M'),
-('PQT', 'paquete', 'pqt', 'UNIDAD', 1.000000, NULL),
-('CJA', 'caja', 'caja', 'UNIDAD', 1.000000, NULL);
+('MEDIAKG23220260519200547232', 'Kilogramo', 'Kg', 'PESO', 1.000000, NULL),
+('MEDIAGR23220260519200547232', 'Gramo', 'g', 'PESO', 0.001000, 'Kg'),
+('MEDIALB23220260519200547232', 'Libra', 'lb', 'PESO', 0.453592, 'Kg'),
+('MEDIAOZ23220260519200547232', 'Onza', 'oz', 'PESO', 0.028350, 'Kg'),
+('MEDIALL23220260519200547232', 'Litro', 'L', 'VOLUMEN', 1.000000, NULL),
+('MEDIAML23220260519200547232', 'Mililitro', 'ml', 'VOLUMEN', 0.001000, 'L'),
+('MEDIAGA23220260519200547232', 'Galón', 'gal', 'VOLUMEN', 3.785410, 'L'),
+('MEDIAUN23220260519200547232', 'Unidad', 'U', 'UNIDAD', 1.000000, NULL),
+('MEDIADO23220260519200547232', 'Docena', 'doz', 'UNIDAD', 12.000000, 'UN'),
+('MEDIAMT23220260519200547232', 'Metro', 'm', 'LONGITUD', 1.000000, 'm'),
+('MEDIACE23220260519200547232', 'Centímetro', 'cm', 'LONGITUD', 0.010000, 'm'),
+('MEDIAPA23220260519200547232', 'Paquete', 'pqt', 'UNIDAD', 1.000000, NULL),
+('MEDIACA23220260519200547232', 'Caja', 'cj', 'UNIDAD', 1.000000, NULL);
 
 CREATE TABLE `cargo` (
   `id_cargo` varchar(30) NOT NULL,
   `nombre_cargo` varchar(60) NOT NULL,
-  `descripcion` varchar(200) DEFAULT NULL,
   `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_cargo`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -65,7 +64,6 @@ CREATE TABLE `turno` (
 CREATE TABLE `categoria_ingrediente` (
   `id_categoria` varchar(30) NOT NULL,
   `nombre` varchar(60) NOT NULL,
-  `descripcion` varchar(200) DEFAULT NULL,
   `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_categoria`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -73,7 +71,6 @@ CREATE TABLE `categoria_ingrediente` (
 CREATE TABLE `categoria_producto` (
   `id_categoria` varchar(30) NOT NULL,
   `nombre_categoria` varchar(100) NOT NULL,
-  `descripcion` text DEFAULT NULL,
   `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_categoria`),
   UNIQUE KEY `idx_categoria_producto_nombre` (`nombre_categoria`)
