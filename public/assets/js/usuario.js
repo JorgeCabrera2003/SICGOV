@@ -3,6 +3,14 @@
 // JS / AJAX & DATATABLE LOGIC
 // ==========================================
 
+// Listas de control anti-hackeo (pobladas desde el servidor al cargar)
+let rolesValidosList = [];
+let empleadosValidosList = [];
+let cedulaEdicionOriginal = '';
+
+// Observador del DOM (anti-hackeo via Inspect Element)
+let domObserver;
+
 // Interfaz de Acceso a Elementos del Formulario
 function etiquetasFormulario() {
     return {
@@ -56,7 +64,7 @@ function limpiar() {
     input.peticion.val("registrar");
 
     eti.formulario.removeClass('was-validated');
-    
+
     // Resetear estilos de validación
     input.cedula.val("").prop("disabled", false).removeClass('is-valid is-invalid');
     input.username.val("").removeClass('is-valid is-invalid');
@@ -78,17 +86,22 @@ function limpiar() {
     input.clave.attr('required', true);
     input.rclave.attr('required', true);
 
-    // Limpiar feedbacks
-    $('#feedback_username').removeClass('invalid-feedback d-inline-block text-danger').text('');
-    $('#feedback_clave').removeClass('invalid-feedback d-inline-block text-danger').text('');
-    $('#feedback_rclave').removeClass('invalid-feedback d-inline-block text-danger').text('');
+    // Limpiar feedbacks flotantes
+    $('#feedback_cedula').removeClass('invalid-tooltip d-inline-block').text('');
+    $('#feedback_cedula_editar').removeClass('invalid-tooltip d-inline-block').text('');
+    $('#feedback_rol').removeClass('invalid-tooltip d-inline-block').text('');
+    $('#feedback_username').removeClass('invalid-tooltip d-inline-block').text('');
+    $('#feedback_clave').removeClass('invalid-tooltip d-inline-block').text('');
+    $('#feedback_rclave').removeClass('invalid-tooltip d-inline-block').text('');
+
+    // Resetear variable de control anti-hackeo para cédula
+    cedulaEdicionOriginal = '';
 
     // Deshabilitar botón (formulario vacío = inválido)
     eti.boton.prop('disabled', true);
 
-    // Cargar listas desplegables dinámicas
+    // Cargar listas desplegables dinámicas (roles se cargan una única vez al iniciar)
     cargarEmpleadosSinUsuario();
-    cargarRolesActivos();
 }
 
 /**
@@ -98,18 +111,18 @@ function aplicarEstilosCampo($campo, $feedback, esValido, mensaje, forzar = fals
     const val = $campo.val() ? $campo.val().trim() : '';
     if (!forzar && val === '') {
         $campo.removeClass('is-valid is-invalid');
-        $feedback.removeClass('invalid-feedback d-inline-block text-danger').text('');
+        $feedback.removeClass('invalid-tooltip d-inline-block').text('');
         return;
     }
 
     if (esValido) {
         $campo.addClass('is-valid').removeClass('is-invalid');
         $campo[0].setCustomValidity('');
-        $feedback.removeClass('invalid-feedback d-inline-block text-danger').text('');
+        $feedback.removeClass('invalid-tooltip d-inline-block').text('');
     } else {
         $campo.addClass('is-invalid').removeClass('is-valid');
         $campo[0].setCustomValidity(mensaje);
-        $feedback.addClass('invalid-feedback d-inline-block text-danger').text(mensaje);
+        $feedback.addClass('invalid-tooltip d-inline-block').text(mensaje);
     }
 }
 
@@ -123,15 +136,32 @@ function verificarEstadoBoton() {
 
     // ── 1. Evaluar Empleado/Cédula ───────────────────────────
     let cedulaValida = true;
+    let mensajeCedula = '';
     if (peticion === 'registrar') {
         const ced = input.cedula.val();
         if (!ced || ced === "") {
+            // Sin selección: deshabilita el botón sin mostrar tooltip (campo virgen)
             cedulaValida = false;
+            aplicarEstilosCampo(input.cedula, $('#feedback_cedula'), false, '', false);
+        } else if (empleadosValidosList.length > 0 && !empleadosValidosList.includes(String(ced))) {
+            // Valor manipulado con Inspeccionar: mostrar tooltip de inmediato
+            cedulaValida = false;
+            mensajeCedula = 'El valor del empleado seleccionado no existe.';
+            aplicarEstilosCampo(input.cedula, $('#feedback_cedula'), false, mensajeCedula, true);
+        } else {
+            // Válido
+            aplicarEstilosCampo(input.cedula, $('#feedback_cedula'), true, '', false);
         }
     } else {
-        const cedEd = input.cedula_editar.val();
-        if (!cedEd || cedEd === "") {
+        // En modo modificar, verificar que cedula_editar no haya sido alterada
+        const cedulaActual = input.cedula_editar.val();
+        if (cedulaEdicionOriginal && cedulaActual !== cedulaEdicionOriginal) {
             cedulaValida = false;
+            mensajeCedula = 'El valor del empleado seleccionado no existe.';
+            // Mostrar el mensaje en el área visible del detalle de empleado
+            $('#feedback_cedula_editar').addClass('invalid-tooltip d-inline-block').text(mensajeCedula);
+        } else {
+            $('#feedback_cedula_editar').removeClass('invalid-tooltip d-inline-block').text('');
         }
     }
 
@@ -140,29 +170,44 @@ function verificarEstadoBoton() {
     let usernameValido = true;
     let mensajeUsername = '';
 
-    const regexAlfanumerico = /^[a-zA-Z0-9_]+$/;
+    const regexSoloLetras = /^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ]+$/;
 
     if (!username) {
         usernameValido = false;
         mensajeUsername = 'El nombre de usuario es obligatorio.';
-    } else if (username.length < 4) {
+    } else if (username.length < 3) {
         usernameValido = false;
-        mensajeUsername = 'Debe tener al menos 4 caracteres.';
-    } else if (!regexAlfanumerico.test(username)) {
+        mensajeUsername = 'Debe tener al menos 3 letras.';
+    } else if (!regexSoloLetras.test(username)) {
         usernameValido = false;
-        mensajeUsername = 'Solo letras, números y guión bajo (_).';
+        mensajeUsername = 'Debe contener solamente letras.';
     }
 
     aplicarEstilosCampo(input.username, $('#feedback_username'), usernameValido, mensajeUsername);
 
     // ── 3. Evaluar Rol del Sistema ───────────────────────────
     const rol = input.rol.val();
-    let rolValido = !!rol;
+    let rolValido = true;
+    let mensajeRol = '';
+
+    if (!rol) {
+        // Sin selección: deshabilita el botón sin mostrar tooltip (campo virgen)
+        rolValido = false;
+        aplicarEstilosCampo(input.rol, $('#feedback_rol'), false, '', false);
+    } else if (rolesValidosList.length > 0 && !rolesValidosList.includes(String(rol))) {
+        // Valor manipulado con Inspeccionar: mostrar tooltip de inmediato
+        rolValido = false;
+        mensajeRol = 'El rol seleccionado no es válido.';
+        aplicarEstilosCampo(input.rol, $('#feedback_rol'), false, mensajeRol, true);
+    } else {
+        // Válido
+        aplicarEstilosCampo(input.rol, $('#feedback_rol'), true, '', false);
+    }
 
     // ── 4. Evaluar Contraseña ────────────────────────────────
     const clave = input.clave.val() || '';
     const rclave = input.rclave.val() || '';
-    
+
     let claveValida = true;
     let mensajeClave = '';
     let rclaveValida = true;
@@ -221,14 +266,18 @@ async function cargarRolesActivos() {
         let peticion = new FormData();
         peticion.append('peticion', 'roles-activos');
         let json = await enviaAjax(peticion);
-        
+
         let $rolSelect = $('#rol');
         $rolSelect.empty();
         $rolSelect.append('<option value="" selected disabled>Seleccione un rol...</option>');
-        
+
+        // Resetear lista de control anti-hackeo
+        rolesValidosList = [];
+
         if (json && json.datos) {
             json.datos.forEach(rol => {
                 $rolSelect.append(`<option value="${rol.id_rol}">${rol.nombre_rol}</option>`);
+                rolesValidosList.push(String(rol.id_rol));
             });
         }
     } catch (e) {
@@ -242,14 +291,18 @@ async function cargarEmpleadosSinUsuario() {
         let peticion = new FormData();
         peticion.append('peticion', 'empleados-sin-usuario');
         let json = await enviaAjax(peticion);
-        
+
         let $cedulaSelect = $('#cedula');
         $cedulaSelect.empty();
         $cedulaSelect.append('<option value="" selected disabled>Seleccione un empleado...</option>');
-        
+
+        // Resetear lista de control anti-hackeo
+        empleadosValidosList = [];
+
         if (json && json.datos && json.datos.length > 0) {
             json.datos.forEach(emp => {
                 $cedulaSelect.append(`<option value="${emp.cedula}">${emp.nombre} ${emp.apellido} (Cédula: ${emp.cedula})</option>`);
+                empleadosValidosList.push(String(emp.cedula));
             });
         } else {
             $cedulaSelect.append('<option value="" disabled>No hay empleados disponibles sin usuario</option>');
@@ -266,9 +319,12 @@ function inicializarInputListeners() {
     input.cedula.on('change', verificarEstadoBoton);
     input.rol.on('change', verificarEstadoBoton);
 
+    // Detectar si el campo oculto cedula_editar es alterado desde Inspeccionar
+    input.cedula_editar.on('input change', verificarEstadoBoton);
+
     input.username.on('keypress', function (e) {
         const char = String.fromCharCode(e.which);
-        if (!/[a-zA-Z0-9_]/.test(char)) {
+        if (!/[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ]/.test(char)) {
             e.preventDefault();
         }
     });
@@ -353,13 +409,16 @@ function rellenar(pos, accion) {
     // Rellenar datos clave
     input.cedula_editar.val(datosFila.cedula);
     input.username.val(datosFila.username);
-    
+
+    // Guardar la cédula original para detectar manipulaciones en modo editar
+    cedulaEdicionOriginal = String(datosFila.cedula);
+
     // Asignar el rol usando helper del sistema
     buscarSelect(input.rol, datosFila.id_rol, "value");
 
     // Configurar modo de Modificación
     input.peticion.val("modificar");
-    
+
     // Intercambiar visibilidades de sección empleado
     $('#grupo-seleccion-empleado').addClass('d-none');
     $('#grupo-detalle-empleado').removeClass('d-none');
@@ -388,8 +447,8 @@ async function toggleEstatus(pos, targetEstatus) {
     const datosFila = tabla.row(linea).data();
 
     const nombreCompleto = `${datosFila.nombre} ${datosFila.apellido}`;
-    const textoConfirmacion = targetEstatus == 1 
-        ? `¿Está seguro de activar al usuario ${nombreCompleto}?` 
+    const textoConfirmacion = targetEstatus == 1
+        ? `¿Está seguro de activar al usuario ${nombreCompleto}?`
         : `¿Está seguro de inactivar al usuario ${nombreCompleto}?`;
 
     let confirmacion = await confirmarAccion(
@@ -518,6 +577,8 @@ async function crearDataTable() {
 $(document).ready(function () {
     crearDataTable();
     inicializarInputListeners();
+    inicializarObservadorDOM(); // Observador de mutaciones anti-hackeo
+    cargarRolesActivos(); // Carga de roles de forma segura una única vez al iniciar
 
     // Evento Click para botón de Registro
     $("#btn-nuevo").on("click", function () {
@@ -539,4 +600,82 @@ $(document).ready(function () {
             $('#btnUsuarioForm').prop('disabled', true);
         }
     });
+
+    // Reconectar el observador al mostrar el modal (los selects pueden haber cambiado)
+    $('#modalUsuario').on('shown.bs.modal', function () {
+        reconectarObservadorDOM();
+    });
+
+    // Desconectar el observador al cerrar el modal (limpieza)
+    $('#modalUsuario').on('hidden.bs.modal', function () {
+        if (domObserver) {
+            domObserver.disconnect();
+        }
+    });
 });
+
+/**
+ * Inicializa el MutationObserver para detectar manipulaciones del DOM
+ * en los selects de rol y cédula (incluso desde Inspeccionar del navegador).
+ * Mismo patrón que el módulo de Menú.
+ */
+function inicializarObservadorDOM() {
+    domObserver = new MutationObserver((mutationsList) => {
+        let shouldValidate = false;
+        for (let mutation of mutationsList) {
+            // Ignorar cambios de class/style para evitar bucle infinito
+            // (verificarEstadoBoton agrega/quita is-valid, is-invalid, etc.)
+            if (
+                mutation.type === 'attributes' &&
+                (mutation.attributeName === 'class' || mutation.attributeName === 'style')
+            ) {
+                continue;
+            }
+            shouldValidate = true;
+            break;
+        }
+        if (shouldValidate) {
+            verificarEstadoBoton();
+            // Limpiar la cola de mutaciones generadas por verificarEstadoBoton
+            // para evitar un bucle infinito
+            domObserver.takeRecords();
+        }
+    });
+
+    reconectarObservadorDOM();
+}
+
+/**
+ * Reconecta el observador a los elementos del formulario.
+ * Se llama al inicializar y cada vez que se abre el modal.
+ */
+function reconectarObservadorDOM() {
+    if (!domObserver) return;
+
+    domObserver.disconnect();
+
+    const opcionesObserver = {
+        attributes: true,
+        childList: true,
+        subtree: true,
+        characterData: true
+    };
+
+    // Observar el select de empleado (cedula) — solo visible al registrar
+    const selectCedula = document.getElementById('cedula');
+    if (selectCedula) {
+        domObserver.observe(selectCedula, opcionesObserver);
+    }
+
+    // Observar el select de rol
+    const selectRol = document.getElementById('rol');
+    if (selectRol) {
+        domObserver.observe(selectRol, opcionesObserver);
+    }
+
+    // Observar el campo oculto cedula_editar — visible en modo modificar
+    const inputCedulaEditar = document.getElementById('cedula_editar');
+    if (inputCedulaEditar) {
+        domObserver.observe(inputCedulaEditar, opcionesObserver);
+    }
+}

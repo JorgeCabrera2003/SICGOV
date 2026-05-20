@@ -61,35 +61,99 @@ class UsuarioController
             // ── PETICIÓN: REGISTRAR Y MODIFICAR ──────────────────
             if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
                 $bool_formulario = true;
-                
-                // Cédula validation
+                $peticion = $_POST["peticion"];
+
+                // 1. Cédula validation format
                 if (!isset($_POST["cedula"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'Cedula') == 0) {
                     $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Cédula no válida'];
                     $bool_formulario = false;
                 }
-                
-                // Username validation (Al menos 4 caracteres alfanuméricos)
-                if ($bool_formulario && (!isset($_POST["username"]) || strlen(trim($_POST["username"])) < 4)) {
-                    $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Nombre de usuario debe tener al menos 4 caracteres'];
-                    $bool_formulario = false;
-                }
 
-                // Rol validation
-                if ($bool_formulario && (!isset($_POST["rol"]) || empty(trim($_POST["rol"])))) {
-                    $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El rol es obligatorio'];
-                    $bool_formulario = false;
-                }
-
-                // Clave validation (Registrar requiere clave de min 4 caracteres; Modificar es opcional)
+                // 2. Anti-Hacking validation for Employee Cédula
                 if ($bool_formulario) {
-                    if ($_POST["peticion"] == "registrar") {
-                        if (!isset($_POST["clave"]) || strlen($_POST["clave"]) < 4) {
-                            $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'La contraseña debe tener al menos 4 caracteres'];
+                    if ($peticion === 'registrar') {
+                        // Must be a valid employee without a user
+                        $empResult = $usuarioModel->Transaccion(['peticion' => 'empleados-sin-usuario']);
+                        $validSinUsuarioCedulas = [];
+                        if (isset($empResult['response']['datos']) && is_array($empResult['response']['datos'])) {
+                            foreach ($empResult['response']['datos'] as $emp) {
+                                if (isset($emp['cedula'])) {
+                                    $validSinUsuarioCedulas[] = (string)$emp['cedula'];
+                                }
+                            }
+                        }
+                        if (!in_array((string)$_POST["cedula"], $validSinUsuarioCedulas, true)) {
+                            $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => '¡Modificación detectada! El empleado seleccionado no es válido.'];
+                            $bool_formulario = false;
+                        }
+                    } else {
+                        // Must be an existing registered user
+                        $usersList = $usuarioModel->Transaccion(['peticion' => 'consultar']);
+                        $validCedulas = [];
+                        if (isset($usersList['response']['datos']) && is_array($usersList['response']['datos'])) {
+                            foreach ($usersList['response']['datos'] as $u) {
+                                if (isset($u['cedula'])) {
+                                    $validCedulas[] = (string)$u['cedula'];
+                                }
+                            }
+                        }
+                        if (!in_array((string)$_POST["cedula"], $validCedulas, true)) {
+                            $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => '¡Modificación detectada! El usuario a modificar no existe.'];
+                            $bool_formulario = false;
+                        }
+                    }
+                }
+                
+                // 3. Username validation (Strictly letters, min 3 chars, mandatory)
+                $username = isset($_POST["username"]) ? trim($_POST["username"]) : '';
+                if ($bool_formulario) {
+                    if (empty($username)) {
+                        $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El nombre de usuario es obligatorio.'];
+                        $bool_formulario = false;
+                    } elseif (mb_strlen($username) < 3) {
+                        $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El nombre de usuario debe tener al menos 3 letras.'];
+                        $bool_formulario = false;
+                    } elseif (!preg_match('/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ]+$/u', $username)) {
+                        $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El nombre de usuario debe contener solamente letras.'];
+                        $bool_formulario = false;
+                    }
+                }
+
+                // 4. Rol validation & Anti-Hacking validation
+                if ($bool_formulario) {
+                    if (!isset($_POST["rol"]) || empty(trim($_POST["rol"]))) {
+                        $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El rol es obligatorio.'];
+                        $bool_formulario = false;
+                    } else {
+                        // Fetch active roles to prevent Inspect Element spoofing
+                        $rolModel = new Rol();
+                        $rolesResult = $rolModel->Transaccion(['peticion' => 'consultar']);
+                        $validRoles = [];
+                        if (isset($rolesResult['response']['datos']) && is_array($rolesResult['response']['datos'])) {
+                            foreach ($rolesResult['response']['datos'] as $r) {
+                                if (isset($r['id_rol'])) {
+                                    $validRoles[] = (string)$r['id_rol'];
+                                }
+                            }
+                        }
+                        if (!in_array((string)$_POST["rol"], $validRoles, true)) {
+                            $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => '¡Modificación detectada! El rol seleccionado no es válido o está inactivo.'];
+                            $bool_formulario = false;
+                        }
+                    }
+                }
+
+                // 5. Clave validation (Registrar: obligatorio min 4 chars; Modificar: opcional min 4 chars)
+                if ($bool_formulario) {
+                    $clave = isset($_POST["clave"]) ? $_POST["clave"] : '';
+                    if ($peticion == "registrar") {
+                        if (empty($clave) || strlen($clave) < 4) {
+                            $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'La contraseña es obligatoria y debe tener al menos 4 caracteres.'];
                             $bool_formulario = false;
                         }
                     } else { // Modificar
-                        if (isset($_POST["clave"]) && !empty($_POST["clave"]) && strlen($_POST["clave"]) < 4) {
-                            $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'La nueva contraseña debe tener al menos 4 caracteres'];
+                        if (!empty($clave) && strlen($clave) < 4) {
+                            $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'La nueva contraseña debe tener al menos 4 caracteres.'];
                             $bool_formulario = false;
                         }
                     }

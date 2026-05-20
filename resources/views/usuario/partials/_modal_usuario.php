@@ -20,18 +20,18 @@
 
                     <div class="row g-3">
                         <!-- SECCIÓN SELECCIÓN EMPLEADO (Solo visible al Registrar) -->
-                        <div class="col-md-12" id="grupo-seleccion-empleado">
+                        <div class="col-md-12 position-relative" id="grupo-seleccion-empleado">
                             <label for="cedula" class="form-label fw-semibold text-secondary">
                                 Seleccionar Empleado <span class="text-danger">*</span>
                             </label>
                             <select class="form-select" id="cedula" name="cedula" required>
                                 <option value="" selected disabled>Cargando empleados...</option>
                             </select>
-                            <div class="invalid-feedback">Por favor seleccione un empleado.</div>
+                            <span id="feedback_cedula" style="width: fit-content;"></span>
                         </div>
 
                         <!-- SECCIÓN DETALLES EMPLEADO (Solo visible al Modificar, solo lectura) -->
-                        <div class="col-md-12 d-none" id="grupo-detalle-empleado">
+                        <div class="col-md-12 d-none position-relative" id="grupo-detalle-empleado">
                             <label class="form-label fw-semibold text-secondary">Empleado Relacionado</label>
                             <div class="p-3 bg-light border rounded d-flex align-items-center gap-3">
                                 <div class="bg-primary-subtle text-primary p-2.5 rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
@@ -44,6 +44,8 @@
                             </div>
                             <!-- Campo oculto para enviar la cédula al actualizar -->
                             <input type="hidden" id="cedula_editar" name="cedula_editar">
+                            <!-- Feedback anti-hackeo para cédula en modo editar -->
+                            <span id="feedback_cedula_editar" style="width: fit-content;"></span>
                         </div>
 
                         <!-- Nombre de Usuario -->
@@ -59,7 +61,7 @@
                         </div>
 
                         <!-- Rol del Sistema -->
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="rol" class="form-label fw-semibold text-secondary">
                                 Rol del Sistema <span class="text-danger">*</span>
                             </label>
@@ -69,11 +71,11 @@
                                     <option value="" selected disabled>Cargando roles...</option>
                                 </select>
                             </div>
-                            <div class="invalid-feedback">Por favor seleccione un rol.</div>
+                            <span id="feedback_rol" style="width: fit-content;"></span>
                         </div>
 
                         <!-- Contraseña -->
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="clave" class="form-label fw-semibold text-secondary">
                                 Contraseña <span class="text-danger" id="req-clave">*</span>
                             </label>
@@ -89,7 +91,7 @@
                         </div>
 
                         <!-- Confirmar Contraseña -->
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="rclave" class="form-label fw-semibold text-secondary">
                                 Confirmar Contraseña <span class="text-danger" id="req-rclave">*</span>
                             </label>
