@@ -29,6 +29,7 @@
     
     <!-- Estilos personalizados (después de Bootstrap) -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/main.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/notificaciones.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/temas/default.css?v=<?php echo time(); ?>" id="theme-stylesheet">
     
     <!-- Temas dinámicos -->
