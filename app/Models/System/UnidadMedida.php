@@ -127,7 +127,7 @@ class UnidadMedida extends Database
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM unidad_medida WHERE estatus = 1";
+            $sql = "SELECT * FROM unidad_medida ORDER BY tipo ASC";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute();
             if ($stm->rowCount() > 0) {
