@@ -68,6 +68,7 @@ try {
         'categorias' => (new CategoriaController())->index(),
         'bitacora' => (new BitacoraController())->index(),
         'asistencia' => (new AsistenciaController())->index(),
+        'asistencia-publica' => (new AsistenciaController())->indexPublico(),
         'noticias-admin' => (new NoticiaController())->indexAdmin(),
         'noticias' => (new NoticiaController())->indexPublico(),
         'noticias-detalle' => (new NoticiaController())->detallePublico(),

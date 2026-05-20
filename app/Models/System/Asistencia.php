@@ -44,25 +44,7 @@ class Asistencia extends Database {
         $this->indiceObservacion = -1;
 
     }
-/*
- $bool = match ($config) {
-            "Cedula" => preg_match('/^[VEJPGvejpg]{1}[0-9]{7,15}$/', $valor),
-            "ID" => preg_match('/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/', $valor),
-            "NombrePersona", "Persona" => preg_match('/^[a-z A-ZáéíóúüñÑçÇ]{3,65}$/', $valor),
-            "NombreUsuario", "Usuario" => preg_match('/^[0-9a-zA-Z_]{4,20}$/', $valor),
-            "NombreObjeto", "Objeto" => preg_match('/^[0-9 a-zA-ZáéíóúüñÑçÇ]{3,65}$/', $valor),
-            "NombreObjetoLargo", "ObjetoLargo" => preg_match('/^[0-9 a-zA-ZáéíóúüñÑçÇ\s\-.,()!?]{3,200}$/', $valor),
-            "Titulo" => preg_match('/^[0-9a-zA-ZÁÉÍÓÚÜáéíóúüñÑçÇ\s\-.,()!?"\'%:;\/]{3,150}$/', $valor),
-            "Telefono" => preg_match('/^[0-9]{4}[-][0-9]{3}[-][0-9]{4}$/', $valor),
-            "Correo" => preg_match('/^[a-zA-Z0-9][a-zA-Z0-9._%+-]{1,63}@[a-zA-Z0-9][a-zA-Z0-9.-]{1,50}\.(com|es|mx|co\.uk|org|net)$/', $valor),
-            "Sexo" => preg_match('/^[MF]{1}$/', $valor),
-            // Solo letras (incluyendo tildes y ñ) y espacios, mínimo 2 caracteres, máximo 65
-            "CategoriaMenu" => preg_match('/^[A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{1,64}$/', $valor),
-            // Igual que CategoriaMenu pero hasta 200 chars (descripción opcional)
-            "CategoriaMenuDesc" => preg_match('/^[A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{1,199}$/', $valor),
-            default => 0
-        };
-*/
+
     //SETTERS
     public function setIdAsistencia(string $id) {
         $this->idAsistencia = $id;
@@ -70,10 +52,25 @@ class Asistencia extends Database {
 
     public function setCedulaEmpleado(string $cedulaEmpleado) {
         $cedulaEmpleado = trim($cedulaEmpleado);
-        if (RegexHelper::ValidarFormatos($cedulaEmpleado, "Cedula") == 0) {
-            throw new Exception('La Cédula debe tener un prefijo válido (V, E) seguido de 7 a 8 dígitos.');
+
+        // Normalizar: aceptar formatos 'V12345678' o 'V-12345678' y convertir a 'V-12345678'
+        $cedulaEmpleado = str_replace(' ', '', $cedulaEmpleado);
+        $cedulaEmpleado = strtoupper($cedulaEmpleado);
+
+        // Si no contiene guion, insertarlo después del prefijo
+        if (!str_contains($cedulaEmpleado, '-')) {
+            if (strlen($cedulaEmpleado) >= 2) {
+                $prefijo = $cedulaEmpleado[0];
+                $numeros = substr($cedulaEmpleado, 1);
+                $cedulaEmpleado = $prefijo . '-' . $numeros;
+            }
         }
-        $this->cedulaEmpleado = strtoupper($cedulaEmpleado[0]) . substr($cedulaEmpleado, 1);
+
+        if (RegexHelper::ValidarFormatos($cedulaEmpleado, "Cedula") == 0) {
+            throw new Exception('La cédula debe tener un prefijo válido (V, E, J, P, G), un guion y 7 a 9 dígitos.');
+        }
+
+        $this->cedulaEmpleado = $cedulaEmpleado;
     }
 
     public function setTipoMarcacion(string $tipoMarcacion) {

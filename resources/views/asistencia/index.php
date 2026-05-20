@@ -17,6 +17,9 @@
             <button class="btn btn-warning text-dark fw-semibold" id="btnMarcarAsistencia">
                 <i class="fas fa-plus me-2"></i>Marcar Asistencia
             </button>
+            <a href="<?= BASE_URL ?>?page=asistencia-publica" target="_blank" class="btn btn-outline-warning text-dark fw-semibold shadow-sm">
+                <i class="fas fa-external-link-alt me-2"></i>Ver Página Pública
+            </a>
         </div>
 
     </header>
@@ -24,7 +27,7 @@
     <div class="d-flex align-items-center gap-2 mb-3">
         <div class="btn-group" role="group" aria-label="Filtros de asistencia">
             <button type="button" class="btn btn-warning text-dark fw-semibold" id="btnHistorial">
-                <i class="fas fa-history me-2"></i>Historial
+                <i class="fas fa-history me-2"></i>Histórico
             </button>
             <button type="button" class="btn btn-outline-warning" id="btnMiAsistencia">
                 <i class="fas fa-user-clock me-2"></i>Mi Asistencia

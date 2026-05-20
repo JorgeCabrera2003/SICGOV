@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Helpers\Helper;
 use App\Helpers\RegexHelper;
 use App\Models\System\Asistencia;
+use App\Models\System\Empleado;
 use Exception;
 
 class AsistenciaController {
@@ -136,6 +137,102 @@ class AsistenciaController {
 			'asistencia/index',
 			'Asistencia - Good Vibes'
 		);
+	}
+
+	public function indexPublico() {
+		$AsistenciaModel = new Asistencia();
+		if (isset($_POST['peticion'])) {
+			$json = [
+				'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Solicitud no válida'],
+				'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Solicitud no válida']
+			];
+
+			if ($_POST['peticion'] === 'registrar') {
+				try {
+					$idAsistencia = Helper::generarId('ASIS');
+					$horaActual = date('H:i:s');
+					$fechaHoy = date('Y-m-d');
+					$cedulaCompleta = trim(($_POST['tipo_doc'] ?? '') . ($_POST['cedula_empleado'] ?? ''));
+
+					// Antes de intentar crear la asistencia, verificar que el empleado exista
+					$empleadoModel = new Empleado();
+					$empleadoModel->set_cedula($cedulaCompleta);
+					$empleado = $empleadoModel->obtenerDatos();
+
+					if (!$empleado) {
+						$json = [
+							'HTTP_STATUS' => ['codigo' => 404, 'mensaje' => 'No encontrado'],
+							'response' => ['resultado' => 404, 'icon' => 'error', 'mensaje' => 'Empleado no encontrado.']
+						];
+					} else {
+						$AsistenciaModel->setIdAsistencia($idAsistencia);
+						$AsistenciaModel->setCedulaEmpleado($cedulaCompleta);
+						$AsistenciaModel->setTipoMarcacion($_POST['tipo_marcacion'] ?? '');
+						$AsistenciaModel->setFecha($fechaHoy);
+						$AsistenciaModel->setHora($horaActual);
+						$AsistenciaModel->setEstado($AsistenciaModel->calcularEstadoAsistencia($_POST['tipo_marcacion'] ?? '', $horaActual));
+						$AsistenciaModel->setObservacion($_POST['observacion'] ?? '');
+
+						$json = $AsistenciaModel->Transaccion(['peticion' => 'registrar']);
+					}
+				} catch (Exception $e) {
+					$json = [
+						'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Datos no válidos'],
+						'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()]
+					];
+				}
+			}
+
+			if ($_POST['peticion'] === 'verificar_empleado') {
+				try {
+					$tipoDoc = trim($_POST['tipo_doc'] ?? '');
+					$cedula = trim($_POST['cedula_empleado'] ?? '');
+					if (empty($tipoDoc) || $tipoDoc === 'default' || empty($cedula)) {
+						throw new Exception('Cédula de empleado inválida.');
+					}
+					$cedulaCompleta = $tipoDoc . $cedula;
+
+					$empleadoModel = new Empleado();
+					$empleadoModel->set_cedula($cedulaCompleta);
+					$empleado = $empleadoModel->obtenerDatos();
+
+					if (!$empleado) {
+						throw new Exception('Empleado no encontrado.');
+					}
+
+					$json = [
+						'HTTP_STATUS' => ['codigo' => 200, 'mensaje' => 'OK'],
+						'response' => ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Empleado encontrado.', 'datos' => $empleado]
+					];
+				} catch (Exception $e) {
+					$json = [
+						'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Error'],
+						'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()]
+					];
+				}
+			}
+
+			header('Content-Type: application/json');
+			echo json_encode($json['response']);
+			exit;
+		}
+
+		$page = 'asistencia-publica';
+		$titulo = 'Asistencia Pública - Good Vibes';
+		$extra_css = [];
+		$extra_js_modules = [BASE_URL . '/assets/js/Controllers/AsistenciaPublicController.js'];
+
+		require_once BASE_PATH . '/resources/views/layout/head.php';
+
+		$hideSidebar = true;
+		$datos = $_SESSION['user'] ?? null;
+		require_once BASE_PATH . '/resources/views/layout/menu.php';
+
+		require_once BASE_PATH . '/resources/views/asistencia/public.php';
+
+		echo '</div></main>';
+
+		require_once BASE_PATH . '/resources/views/layout/footer.php';
 	}
 
 }
