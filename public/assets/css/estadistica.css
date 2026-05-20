@@ -1,85 +1,206 @@
-/* ==========================================
-   COMPONENTE: Estadísticas y Dashboard (Puertos)
-   Metodología: BEM + Anidamiento Nativo
-========================================== */
+/* ==============================================================================
+   MÓDULO: Reportes Estadísticos y Analytics Dashboard (SICGOV)
+   Estilos Ultra-Premium: Glassmorphism, Micro-Interacciones y Temas Dinámicos
+============================================================================== */
 
-.stats-dashboard {
-    /* Elemento: Grid de puertos interactivos */
-    &__grid {
-        display: grid;
-        grid-template-columns: repeat(8, 1fr);
-        gap: 0.5rem;
+/* Icono de acento flotante en el título */
+.icon-title-accent {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    background: rgba(253, 126, 20, 0.1);
+    color: #fd7e14;
+    border: 1px solid rgba(253, 126, 20, 0.25);
+    border-radius: 14px;
+    font-size: 1.4rem;
+    animation: accentFloat 3s ease-in-out infinite;
+    box-shadow: 0 8px 20px -6px rgba(253, 126, 20, 0.3);
+    vertical-align: middle;
+}
 
-        @media (max-width: 768px) {
-            grid-template-columns: repeat(6, 1fr);
-        }
+@keyframes accentFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(4deg); }
+}
 
-        @media (max-width: 576px) {
-            grid-template-columns: repeat(4, 1fr);
-        }
+body.dark-mode .icon-title-accent {
+    background: rgba(253, 126, 20, 0.15);
+    border-color: rgba(253, 126, 20, 0.35);
+    box-shadow: 0 8px 25px -5px rgba(253, 126, 20, 0.45);
+}
+
+/* Contenedor Principal con animación de entrada suave */
+main.container-fluid {
+    animation: dashboardFadeIn 0.8s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+/* Animación de entrada de tarjetas y elementos */
+@keyframes dashboardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
-
-    /* Elemento: Botón interactivo de puerto */
-    &__port-btn {
-        width: 100%;
-        aspect-ratio: 1 / 1;
-        max-width: 50px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 0.2rem;
-        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s ease;
-        background-color: var(--bg-tarjetas);
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-base);
-        transition: transform 0.3s ease;
-        color: var(--color-sidebar);
-        cursor: pointer;
-        margin: 0 auto;
-
-        &:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
-            border-color: var(--color-acento);
-            background-color: var(--bg-principal);
-            /* Animación de pulso continuo al hacer hover */
-            animation: pulse-border 1.5s infinite;
-        }
-
-        & i {
-            font-size: 1.2rem;
-            margin-bottom: 2px;
-            color: inherit;
-        }
-
-        & small {
-            font-size: 0.65rem;
-            line-height: 1;
-            font-weight: 700;
-        }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-/* Animaciones */
-@keyframes pulse-border {
-    0% { box-shadow: 0 0 0 0 rgba(255, 214, 0, 0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(255, 214, 0, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 214, 0, 0); }
+/* Tarjetas Analíticas Modernas - Glassmorphism Base */
+.card-report {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    border-radius: 24px !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04) !important;
 }
 
-/* Tooltips globales estilizados */
-.tooltip-inner {
-    background-color: var(--color-sidebar);
-    color: var(--bg-tarjetas);
-    border-radius: var(--border-radius-base);
-    padding: 0.5rem 0.75rem;
-    font-weight: 500;
-    font-size: 0.8rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+/* Hover de Tarjetas con Elevación y Resplandor */
+.hover-transform:hover {
+    transform: translateY(-8px) scale(1.02) !important;
+    box-shadow: 0 20px 40px -15px rgba(9, 132, 227, 0.15) !important;
+    border-color: rgba(9, 132, 227, 0.3) !important;
 }
 
-.bs-tooltip-top .tooltip-arrow::before,
-.bs-tooltip-auto[data-popper-placement^="top"] .tooltip-arrow::before {
-    border-top-color: var(--color-sidebar);
+/* Ajustes especiales para KPIs individuales */
+.card-report h3 {
+    font-size: 0.85rem;
+    letter-spacing: 0.8px;
+    color: #636e72;
+}
+
+.kpi-value {
+    letter-spacing: -1px;
+}
+
+/* Gradientes específicos para KPIs de negocio adaptativos */
+.card-kpi-ganancias {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(46, 213, 115, 0.08)) !important;
+}
+.card-kpi-estrella {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 71, 87, 0.08)) !important;
+}
+.card-kpi-top-client {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(108, 92, 231, 0.08)) !important;
+}
+.card-kpi-ocupacion {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(253, 126, 20, 0.08)) !important;
+}
+
+/* Iconos circulares con gradientes tenues de fondo */
+.icon-shape {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    transition: transform 0.3s ease;
+}
+
+.card-report:hover .icon-shape {
+    transform: rotate(8deg) scale(1.1);
+}
+
+/* Overlay de Carga Glassmorphic */
+.chart-loading-overlay {
+    background-color: rgba(255, 255, 255, 0.75) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+    border-radius: 24px;
+    opacity: 1;
+    visibility: visible;
+}
+
+.chart-loading-overlay.loaded {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Cabeceras de Gráficos */
+.card-header h3 {
+    letter-spacing: -0.3px;
+    font-size: 1.15rem;
+    color: #2d3436;
+}
+
+/* ==============================================================================
+   ESTILOS COMPLEMENTARIOS PARA MODO OSCURO (DARK MODE)
+============================================================================== */
+body.dark-mode {
+    /* Fondo semi-transparente oscuro con desenfoque para tarjetas */
+    & .card-report {
+        background: rgba(26, 28, 32, 0.8) !important;
+        backdrop-filter: blur(20px) saturate(140%);
+        -webkit-backdrop-filter: blur(20px) saturate(140%);
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 15px 35px -15px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    & .card-report h3 {
+        color: #b2bec3 !important;
+    }
+
+    & .card-header h3 {
+        color: #ffffff !important;
+    }
+
+    & .text-muted {
+        color: #a4b0be !important;
+    }
+
+    /* Resplandor especial en Hover para Modo Oscuro */
+    & .hover-transform:hover {
+        box-shadow: 0 25px 50px -15px rgba(9, 132, 227, 0.3) !important;
+        border-color: rgba(9, 132, 227, 0.4) !important;
+        background: rgba(26, 28, 32, 0.95) !important;
+    }
+
+    /* Carga en Modo Oscuro */
+    & .chart-loading-overlay {
+        background-color: rgba(21, 23, 26, 0.8) !important;
+    }
+
+    /* Fondos oscuros adaptativos premium para KPIs de negocio */
+    & .card-kpi-ganancias {
+        background: linear-gradient(135deg, rgba(26, 28, 32, 0.8), rgba(46, 213, 115, 0.12)) !important;
+    }
+    & .card-kpi-estrella {
+        background: linear-gradient(135deg, rgba(26, 28, 32, 0.8), rgba(255, 71, 87, 0.12)) !important;
+    }
+    & .card-kpi-top-client {
+        background: linear-gradient(135deg, rgba(26, 28, 32, 0.8), rgba(108, 92, 231, 0.12)) !important;
+    }
+    & .card-kpi-ocupacion {
+        background: linear-gradient(135deg, rgba(26, 28, 32, 0.8), rgba(253, 126, 20, 0.12)) !important;
+    }
+}
+
+/* ==============================================================================
+   AJUSTES RESPONSIVOS DE EXCELENCIA
+============================================================================== */
+@media (max-width: 991px) {
+    .card-report {
+        padding: 1.5rem !important;
+    }
+    
+    .chart-container {
+        height: 280px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    header h1 {
+        font-size: 2rem !important;
+    }
+    
+    .card-report {
+        padding: 1.25rem !important;
+    }
 }
