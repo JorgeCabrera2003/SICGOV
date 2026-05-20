@@ -357,12 +357,14 @@
                         <li>
                             <hr class="dropdown-divider">
                         </li>
+                        <?php if (($datos['cedula'] ?? '') !== 'V-00000000'): ?>
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2"
                                 href="<?php echo BASE_URL; ?>/?page=perfil">
                                 <i class="bi bi-person"></i> Mi Perfil
                             </a>
                         </li>
+                        <?php endif; ?>
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2"
                                 href="<?php echo BASE_URL; ?>/?page=configuracion">

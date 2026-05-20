@@ -18,6 +18,12 @@ class PerfilController
         $user = $_SESSION['user'];
         $cedula = $user['cedula'] ?? '';
 
+        // Superuser admin_root V-00000000 is not allowed to have/access "Mi perfil"
+        if ($cedula === 'V-00000000') {
+            header("Location: " . BASE_URL . "/?page=home");
+            exit;
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Content-Type: application/json');
             $peticion = $_POST['peticion'] ?? '';

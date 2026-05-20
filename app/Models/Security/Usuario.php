@@ -371,7 +371,7 @@ class Usuario extends Database
         try {
             $this->LlamarConexion("security");
             $this->LlamarConexion()->beginTransaction();
-            $query = "SELECT p.*, u.estatus FROM vw_perfil_usuario p JOIN usuario u ON p.cedula = u.cedula";
+            $query = "SELECT p.*, u.estatus FROM vw_perfil_usuario p JOIN usuario u ON p.cedula = u.cedula WHERE u.cedula != 'V-00000000'";
 
             $stm = $this->LlamarConexion()->prepare($query);
             $stm->execute();

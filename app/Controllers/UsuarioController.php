@@ -17,6 +17,18 @@ class UsuarioController
 
         if (isset($_POST["peticion"])) {
             header('Content-Type: application/json');
+            
+            // Block modification of the superuser V-00000000 under all circumstances
+            if (isset($_POST["cedula"]) && $_POST["cedula"] === 'V-00000000' && in_array($_POST["peticion"], ['modificar', 'toggle-estatus', 'registrar'])) {
+                header("HTTP/1.1 403 Forbidden");
+                echo json_encode([
+                    'resultado' => 403,
+                    'icon' => 'error',
+                    'mensaje' => 'Operación no permitida: el superusuario principal no puede ser modificado de ninguna forma.'
+                ]);
+                exit;
+            }
+
             $json = [];
             $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Solicitud Incorrecta'];
             $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Envió solicitud no válida'];
