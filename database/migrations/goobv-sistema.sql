@@ -12,7 +12,7 @@ SET time_zone = "-04:00";
 -- --------------------------------------------------------
 
 CREATE TABLE `unidad_medida` (
-  `id_unidad` varchar(10) NOT NULL,
+  `id_unidad` varchar(30) NOT NULL,
   `nombre` varchar(30) NOT NULL COMMENT 'kg, g, litros, ml, unidades, etc.',
   `abreviatura` varchar(10) NOT NULL,
   `tipo` enum('PESO','VOLUMEN','UNIDAD','LONGITUD') NOT NULL DEFAULT 'UNIDAD',
@@ -205,7 +205,7 @@ CREATE TABLE `ingrediente` (
   `id_ingrediente` varchar(30) NOT NULL,
   `id_categoria` varchar(30) NOT NULL,
   `nombre_ingrediente` varchar(100) NOT NULL,
-  `id_unidad_medida` varchar(10) NOT NULL DEFAULT 'UN',
+  `id_unidad_medida` varchar(30) NOT NULL DEFAULT 'MEDIAUN23220260519200547232',
   `precio_unitario` decimal(10,2) DEFAULT 0.00,
   `stock_actual` decimal(10,3) NOT NULL DEFAULT 0.000,
   `stock_minimo` decimal(10,3) NOT NULL DEFAULT 0.000,
@@ -240,7 +240,7 @@ CREATE TABLE `preparacion` (
   `id_ingrediente` varchar(30) NOT NULL,
   `prioridad_ingrediente` int(11) DEFAULT 1,
   `cantidad` decimal(10,3) NOT NULL CHECK (`cantidad` > 0),
-  `id_unidad_medida` varchar(10) NOT NULL DEFAULT 'UN',
+  `id_unidad_medida` varchar(30) NOT NULL DEFAULT 'MEDIAUN23220260519200547232',
   `precio_ingrediente` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`id_preparacion`),
   KEY `fk_prep_prod` (`id_producto`),
@@ -385,7 +385,7 @@ CREATE TABLE `movimiento_ingrediente` (
   `id_ingrediente` varchar(30) NOT NULL,
   `id_detalle` varchar(30) DEFAULT NULL COMMENT 'Vinculado a la venta si es una salida automática',
   `cantidad` decimal(10,3) NOT NULL,
-  `id_unidad_medida` varchar(10) NOT NULL DEFAULT 'UN',
+  `id_unidad_medida` varchar(30) NOT NULL DEFAULT 'MEDIAUN23220260519200547232',
   `tipo` enum('ENTRADA','SALIDA','AJUSTE','MERMA') NOT NULL,
   `descripcion` varchar(255) DEFAULT NULL,
   `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
