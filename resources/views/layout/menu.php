@@ -122,7 +122,11 @@
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
                         <a href="?page=categorias"
                             class="nav-link <?php echo ($page == 'categorias') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-tags me-2"></i>Categorías
+                            <i class="bi bi-tags me-2"></i>Categorías del Menú
+                        </a>
+                        <a href="?page=categoria-ingrediente-module"
+                            class="nav-link <?php echo ($page == 'categoria-ingrediente-module') ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-tags me-2"></i>Categorías de Ingredientes
                         </a>
                         <a href="?page=ingredientes"
                             class="nav-link <?php echo ($page == 'ingredientes') ? 'active' : ''; ?> py-1">
@@ -197,8 +201,7 @@
                     <span class="flex-grow-1">Equipo y Horario</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['asistencia']) ? 'show' : ''; ?>"
-                    id="personal-submenu">
+                <div class="collapse <?php echo in_array($page, ['asistencia']) ? 'show' : ''; ?>" id="personal-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
                         <a href="?page=asistencia"
                             class="nav-link <?php echo ($page == 'asistencia') ? 'active' : ''; ?> py-1">
