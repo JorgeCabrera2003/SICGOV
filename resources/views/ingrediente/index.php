@@ -48,7 +48,7 @@
 <?php
 include_once 'partials/_modal_ingrediente.php';
 include_once 'partials/_modal_categoria_ingrediente.php';
-include_once 'partials/_modal_categoria_ingrediente_form.php';
+include_once $basePath. '/resources/views/categoria_ingrediente/partials/_modal_categoria_ingrediente_form.php';
 ?>
 
 <!-- Recursos específicos de la página -->
