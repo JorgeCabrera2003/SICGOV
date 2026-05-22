@@ -26,10 +26,6 @@
                         <tr>
                             <th scope="col">Usuario</th>
                             <th scope="col">Rol</th>
-                            <th scope="col">Cédula</th>
-                            <th scope="col">Nombre Completo</th>
-                            <th scope="col">Correo</th>
-                            <th scope="col">Teléfono</th>
                             <th scope="col">Estatus</th>
                             <th scope="col" class="text-end">Acciones</th>
                         </tr>

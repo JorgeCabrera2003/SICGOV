@@ -11,6 +11,67 @@ use PDO;
 
 class PerfilController
 {
+    public function forzarCambioClave()
+    {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        if (!isset($_SESSION['user'])) {
+            header("Location: " . BASE_URL . "/?page=login");
+            exit;
+        }
+
+        $user = $_SESSION['user'];
+        $cedula = $user['cedula'] ?? '';
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            header('Content-Type: application/json');
+            $peticion = $_POST['peticion'] ?? '';
+
+            if ($peticion === 'forzar-cambiar-clave') {
+                $clave_nueva = $_POST['clave_nueva'] ?? '';
+                $clave_confirmar = $_POST['clave_confirmar'] ?? '';
+
+                if (empty($clave_nueva) || empty($clave_confirmar)) {
+                    echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Ambos campos son obligatorios']);
+                    exit;
+                }
+
+                if (strlen($clave_nueva) < 8 || 
+                    !preg_match('/[A-Z]/', $clave_nueva) || 
+                    !preg_match('/[0-9]/', $clave_nueva) || 
+                    !preg_match('/[\W_]/', $clave_nueva)) {
+                    echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'La contraseña no cumple con los requisitos de seguridad']);
+                    exit;
+                }
+
+                if ($clave_nueva !== $clave_confirmar) {
+                    echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Las contraseñas no coinciden']);
+                    exit;
+                }
+
+                try {
+                    $db = Database::getConnection('security');
+                    $hashed_clave = password_hash($clave_nueva, PASSWORD_DEFAULT);
+                    // Actualizar clave y cambiar estatus_clave a 1
+                    $stmtUpdate = $db->prepare("UPDATE usuario SET clave = :clave, estatus_clave = 1 WHERE cedula = :cedula");
+                    $stmtUpdate->execute(['clave' => $hashed_clave, 'cedula' => $cedula]);
+
+                    $_SESSION['user']['estatus_clave'] = 1;
+
+                    Helper::Bitacora('Modificar', 'Seguridad', 'Usuario realizó el cambio obligatorio de contraseña');
+
+                    echo json_encode(['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Contraseña cambiada exitosamente']);
+                } catch (Exception $e) {
+                    Helper::ErrorLog("Error forzando cambio de clave: " . $e->getMessage());
+                    echo json_encode(['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Error interno al cambiar la contraseña']);
+                }
+                exit;
+            }
+        }
+
+        $titulo = 'Cambio de Contraseña Requerido';
+        require_once BASE_PATH . '/resources/views/auth/forzar_cambio_clave.php';
+    }
+
     public function index()
     {
         Helper::verificarSesion();

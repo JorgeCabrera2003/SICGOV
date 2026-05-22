@@ -95,6 +95,17 @@ class LoginController
                     $datos = $usuarioModel->Transaccion(['peticion' => 'perfil']);
                     if ($datos && isset($datos['response']['datos'])) {
                         $_SESSION['user'] = $datos['response']['datos'];
+                        
+                        // Asegurar que tenemos el estatus_clave actualizado
+                        try {
+                            $dbSec = \App\Core\Database::getConnection('security');
+                            $stmtSt = $dbSec->prepare("SELECT estatus_clave FROM usuario WHERE cedula = ?");
+                            $stmtSt->execute([$cedula]);
+                            if ($resSt = $stmtSt->fetch(\PDO::FETCH_ASSOC)) {
+                                $_SESSION['user']['estatus_clave'] = $resSt['estatus_clave'];
+                            }
+                        } catch (\Exception $e) { }
+
                         unset($_SESSION['error_login']);
                         header('Location: ' . BASE_URL . '/?page=home');
                     } else {

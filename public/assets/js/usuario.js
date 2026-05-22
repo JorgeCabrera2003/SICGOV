@@ -496,6 +496,7 @@ async function crearDataTable() {
     }
 
     $('#tabla-usuario').DataTable({
+        responsive: true,
         processing: true,
         data: arreglo,
         columns: [
@@ -506,15 +507,6 @@ async function crearDataTable() {
                 }
             },
             { data: 'rol' },
-            { data: 'cedula' },
-            {
-                data: null,
-                render: function (data, type, row) {
-                    return `${row.nombre} ${row.apellido}`;
-                }
-            },
-            { data: 'correo' },
-            { data: 'telefono' },
             {
                 data: 'estatus',
                 render: function (data) {

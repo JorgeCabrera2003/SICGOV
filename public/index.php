@@ -81,6 +81,7 @@ try {
         'notificaciones' => (new NotificationController())->index(),
         'rol' => (new RolController())->index(),
         'perfil' => (new PerfilController())->index(),
+        'forzar-cambiar-clave' => (new PerfilController())->forzarCambioClave(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };
 
