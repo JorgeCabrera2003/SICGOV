@@ -84,7 +84,7 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                                                     </button>
                                                 </div>
                                                 <div class="text-end mt-2">
-                                                    <a href="?page=recuperar" class="text-decoration-none small text-white-50 hover-white">¿Olvidaste tu contraseña?</a>
+                                                    <a href="?page=recuperar-password" class="text-decoration-none small text-white-50 hover-white">¿Olvidaste tu contraseña?</a>
                                                 </div>
                                             </div>
 

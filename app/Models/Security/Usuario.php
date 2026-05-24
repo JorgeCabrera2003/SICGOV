@@ -224,6 +224,7 @@ class Usuario extends Database
                 'perfil' => $this->TraerPerfilUsuario(),
                 'empleados-sin-usuario' => $this->empleadosSinUsuario(),
                 'actualizar', 'modificar' => $this->actualizarUsuario(),
+                'actualizar-clave' => $this->actualizarSoloClave(),
                 'toggle-estatus' => $this->toggleEstatus(),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'danger', 'mensaje' => "Envió solicitud no válida"],
@@ -460,6 +461,36 @@ class Usuario extends Database
 
             $dato['estado'] = 1;
             $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Usuario actualizado exitosamente"];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "Se actualizó exitosamente"];
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            $dato['estado'] = -1;
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor"];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    public function actualizarSoloClave()
+    {
+        $dato = [];
+        try {
+            $this->LlamarConexion("security");
+            $this->LlamarConexion()->beginTransaction();
+
+            $hashed_clave = password_hash($this->clave, PASSWORD_DEFAULT);
+            $sql = "UPDATE usuario SET clave = :clave WHERE cedula = :cedula";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->bindParam(':clave', $hashed_clave);
+            $stm->bindParam(':cedula', $this->cedula);
+            $stm->execute();
+            $stm = NULL;
+            $this->LlamarConexion()->commit();
+
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Contraseña actualizada exitosamente"];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "Se actualizó exitosamente"];
         } catch (\PDOException $e) {
             $this->LlamarConexion()->rollBack();

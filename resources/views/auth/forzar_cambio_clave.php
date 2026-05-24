@@ -92,11 +92,6 @@ require_once __DIR__ . '/../layout/head.php';
     </div>
 </main>
 
-<style>
-    .hover-white:hover { color: #fff !important; }
-    .req-met { color: #198754 !important; list-style-type: '✓ '; }
-    .req-unmet { color: var(--bs-danger) !important; list-style-type: '× '; }
-</style>
 
 <script src="<?php echo BASE_URL; ?>/assets/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

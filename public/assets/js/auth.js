@@ -120,4 +120,82 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // Validación en tiempo real para recuperación de contraseña
+    const claveInput = document.getElementById('clave');
+    const rclaveInput = document.getElementById('rclave');
+    const btnSubmit = document.getElementById('btn-submit');
+    const matchError = document.getElementById('match-error');
+
+    const reqLength = document.getElementById('req-length');
+    const reqUpper = document.getElementById('req-upper');
+    const reqNumber = document.getElementById('req-number');
+    const reqSpecial = document.getElementById('req-special');
+
+    if (claveInput && rclaveInput && reqLength) {
+        function validatePassword() {
+            const val = claveInput.value;
+            let isValid = true;
+
+            // Longitud
+            if (val.length >= 8) {
+                reqLength.classList.remove('req-unmet');
+                reqLength.classList.add('req-met');
+            } else {
+                reqLength.classList.remove('req-met');
+                reqLength.classList.add('req-unmet');
+                isValid = false;
+            }
+
+            // Mayúscula
+            if (/[A-Z]/.test(val)) {
+                reqUpper.classList.remove('req-unmet');
+                reqUpper.classList.add('req-met');
+            } else {
+                reqUpper.classList.remove('req-met');
+                reqUpper.classList.add('req-unmet');
+                isValid = false;
+            }
+
+            // Número
+            if (/[0-9]/.test(val)) {
+                reqNumber.classList.remove('req-unmet');
+                reqNumber.classList.add('req-met');
+            } else {
+                reqNumber.classList.remove('req-met');
+                reqNumber.classList.add('req-unmet');
+                isValid = false;
+            }
+
+            // Carácter Especial
+            if (/[\W_]/.test(val)) {
+                reqSpecial.classList.remove('req-unmet');
+                reqSpecial.classList.add('req-met');
+            } else {
+                reqSpecial.classList.remove('req-met');
+                reqSpecial.classList.add('req-unmet');
+                isValid = false;
+            }
+
+            // Confirmar coincidencia
+            const confirmVal = rclaveInput.value;
+            if (confirmVal.length > 0 && val !== confirmVal) {
+                if (matchError) matchError.classList.remove('d-none');
+                isValid = false;
+            } else {
+                if (matchError) matchError.classList.add('d-none');
+                if (confirmVal.length === 0) {
+                    isValid = false;
+                }
+            }
+
+            if (btnSubmit) {
+                btnSubmit.disabled = !isValid;
+            }
+            return isValid;
+        }
+
+        claveInput.addEventListener('input', validatePassword);
+        rclaveInput.addEventListener('input', validatePassword);
+    }
 });
