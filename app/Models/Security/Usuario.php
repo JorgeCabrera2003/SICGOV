@@ -39,6 +39,7 @@ class Usuario extends Database
     private $ultimo_acceso;
     private $fecha_registro;
     private $estatus;
+    private $estatus_clave;
 
     public function __construct()
     {
@@ -57,6 +58,7 @@ class Usuario extends Database
         $this->ultimo_acceso = "";
         $this->fecha_nacimiento = "";
         $this->estatus = 1;
+        $this->estatus_clave = 0;
     }
 
     //SETTERS
@@ -130,6 +132,11 @@ class Usuario extends Database
     public function setEstatus($estatus)
     {
         $this->estatus = $estatus;
+    }
+
+    public function setEstatusClave(int $estatus_clave)
+    {
+        $this->estatus_clave = $estatus_clave;
     }
     //FIN DE SETTERS
 
@@ -335,14 +342,15 @@ class Usuario extends Database
 
                 $hashed_clave = password_hash($this->clave, PASSWORD_DEFAULT);
 
-                $sql = "INSERT INTO usuario(cedula, id_rol, username, clave, estatus) 
-        VALUES (:cedula, :id_rol, :username, :clave, 1)";
+                $sql = "INSERT INTO usuario(cedula, id_rol, username, clave, estatus, estatus_clave) 
+        VALUES (:cedula, :id_rol, :username, :clave, 1, :estatus_clave)";
 
                 $stm = $this->LlamarConexion()->prepare($sql);
                 $stm->bindParam(':cedula', $this->cedula);
                 $stm->bindParam(':id_rol', $this->id_rol);
                 $stm->bindParam(':username', $this->username);
                 $stm->bindParam(':clave', $hashed_clave);
+                $stm->bindParam(':estatus_clave', $this->estatus_clave);
                 $stm->execute();
                 $stm = NULL;
                 $this->LlamarConexion()->commit();

@@ -132,7 +132,11 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                                                 <?php $formContext = 'auth'; include __DIR__ . '/../partials/_user_form.php'; ?>
                                             </div>
 
-                                            <div class="d-grid gap-3 mt-4">
+                                            <div class="d-flex justify-content-center mt-4 mb-2">
+                                                <div class="g-recaptcha" data-sitekey="<?php echo $siteKey; ?>" data-theme="dark"></div>
+                                            </div>
+
+                                            <div class="d-grid gap-3">
                                                 <button type="submit" class="btn btn-primary btn-lg">
                                                     Registrarse ahora <i class="fa-solid fa-user-plus ms-2"></i>
                                                 </button>

@@ -36,6 +36,20 @@ $showConfirmPassword = $showConfirmPassword ?? true;
     </div>
 
     <div class="col-md-6">
+        <label for="fecha_nacimiento" class="form-label fw-semibold">Fecha de Nacimiento <span class="text-danger">*</span></label>
+        <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" max="<?= date('Y-m-d', strtotime('-1 day')) ?>" required>
+    </div>
+
+    <div class="col-md-6">
+        <label for="sexo" class="form-label fw-semibold">Sexo <span class="text-danger">*</span></label>
+        <select class="form-select" id="sexo" name="sexo" required>
+            <option value="" selected disabled>Seleccionar</option>
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+        </select>
+    </div>
+
+    <div class="col-md-6">
         <label for="correo" class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label>
         <input type="email" class="form-control" id="correo" name="correo" maxlength="100" required>
     </div>
@@ -43,6 +57,11 @@ $showConfirmPassword = $showConfirmPassword ?? true;
     <div class="col-md-6">
         <label for="telefono" class="form-label fw-semibold">Teléfono</label>
         <input type="text" class="form-control" id="telefono" name="telefono" maxlength="20" placeholder="Ej: 04121234567">
+    </div>
+
+    <div class="col-md-12">
+        <label for="direccion" class="form-label fw-semibold">Dirección <span class="text-danger">*</span></label>
+        <input type="text" class="form-control" id="direccion" name="direccion" maxlength="255" required>
     </div>
 
     <div class="col-md-12">
@@ -58,6 +77,14 @@ $showConfirmPassword = $showConfirmPassword ?? true;
                 <i class="fa fa-eye"></i>
             </button>
         </div>
+        <div class="mt-2 small" id="password-requirements">
+            <ul class="text-white-50 mb-0 ps-3">
+                <li id="req-length">Al menos 8 caracteres</li>
+                <li id="req-upper">Al menos una letra mayúscula</li>
+                <li id="req-number">Al menos un número</li>
+                <li id="req-special">Al menos un carácter especial (!@#$%^&*)</li>
+            </ul>
+        </div>
     </div>
 
     <?php if ($showConfirmPassword): ?>
@@ -68,6 +95,9 @@ $showConfirmPassword = $showConfirmPassword ?? true;
                 <button type="button" class="btn btn-outline-secondary" data-password-toggle="#rclave" aria-label="Mostrar contraseña">
                     <i class="fa fa-eye"></i>
                 </button>
+            </div>
+            <div class="mt-2 small text-danger d-none" id="match-error">
+                <i class="fas fa-times-circle me-1"></i> Las contraseñas no coinciden.
             </div>
         </div>
     <?php endif; ?>
