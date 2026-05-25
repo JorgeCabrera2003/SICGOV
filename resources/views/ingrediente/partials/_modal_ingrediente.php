@@ -18,7 +18,7 @@
 
                     <!-- Fila: ID -->
                     <div class="row g-3 mb-3 justify-content-center d-none">
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <input type="hidden" name="id_ingrediente" id="id_ingrediente">
                             <span class="form-label" id="sid_ingrediente"></span>
                         </div>
@@ -26,122 +26,83 @@
 
                     <!-- Fila: Nombre y Costo Unitario -->
                     <div class="row g-3 mb-3">
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="nombre" class="form-label fw-semibold">
                                 Nombre del Ingrediente <span class="text-danger">*</span>
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fas fa-font"></i></span>
                                 <input type="text" class="form-control" id="nombre" name="nombre" maxlength="100"
                                     required>
                                 <div class="form-label" id="snombre"></div>
-                            </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="costo_unitario" class="form-label fw-semibold">
                                 Costo Unitario ($) <span class="text-danger">*</span>
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light">
-                                    <i class="fa-solid fa-dollar-sign"></i>
-                                </span>
-                                <input type="number" class="form-control" id="costo_unitario" name="costo_unitario"
-                                    step="0.01" min="0" required placeholder="0.00">
-                                <div class="form-label" id="scosto_unitario"></div>
-                            </div>
+                            <input type="number" class="form-control" id="costo_unitario" name="costo_unitario"
+                                step="0.01" min="0" required placeholder="0,00">
+                            <div class="form-label" id="scosto_unitario"></div>
                         </div>
                     </div>
 
                     <!-- Fila: Costo Unidad de Medida y Categoría-->
                     <div class="row g-3 mb-3 justify-content-center">
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="clave_categoria" class="form-label fw-semibold">
                                 Categoría del Ingrediente <span class="text-danger">*</span>
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light">
-                                    <i class="fas fa-tags fs-6"></i>
-                                </span>
-                                <select class="form-select" id="clave_categoria" name="clave_categoria">
-                                    <!--Contenido Dinámico -->
-                                </select>
-                                <div class="form-label" id="sclave_categoria"></div>
-                            </div>
+                            <select class="form-select" id="clave_categoria" name="clave_categoria">
+                                <!--Contenido Dinámico -->
+                            </select>
+                            <div class="form-label" id="sclave_categoria"></div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="unidad_medida" class="form-label fw-semibold">
                                 Unidad de Medida <span class="text-danger">*</span>
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light">
-                                    <i class="fa-solid fa-weight-hanging"></i>
-                                </span>
-                                <select class="form-select" id="unidad_medida" name="unidad_medida">
-                                    <!--Contenido Dinámico -->
-                                </select>
-                                <div class="form-label" id="sunidad_medida"></div>
-                            </div>
-
+                            <select class="form-select" id="unidad_medida" name="unidad_medida">
+                                <!--Contenido Dinámico -->
+                            </select>
+                            <div class="form-label" id="sunidad_medida"></div>
                         </div>
                     </div>
 
                     <div class="row g-3 mb-3 justify-content-center">
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="id_proveedor" class="form-label fw-semibold">
                                 Proveedor<span class="text-danger"></span>
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light">
-                                    <i class="fa-regular fa-address-book"></i>
-                                </span>
-                                <select class="form-select" id="id_proveedor" name="id_proveedor">
-                                    <!--Contenido Dinámico -->
-                                </select>
-                                <div class="form-label" id="sid_proveedor"></div>
-                            </div>
+                            <select class="form-select" id="id_proveedor" name="id_proveedor">
+                                <!--Contenido Dinámico -->
+                            </select>
+                            <div class="form-label" id="sid_proveedor"></div>
                         </div>
-                        <div class="col-md-6" id="fila-stock-inicial">
+                        <div class="col-md-6 position-relative" id="fila-stock-inicial">
                             <label for="stock_inicial" class="form-label fw-semibold">
                                 Stock Inicial <span class="text-danger">*</span>
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light fw-bold">
-                                    Inicial
-                                </span>
-                                <input type="number" class="form-control" id="stock_inicial" name="stock_inicial"
-                                    step="0.01" min="0" required placeholder="0.00">
-                                <div class="form-label" id="sstock_inicial"></div>
-                            </div>
+                            <input type="number" class="form-control" id="stock_inicial" name="stock_inicial"
+                                step="0.01" min="0" required placeholder="0,00">
+                            <div class="form-label" id="sstock_inicial"></div>
                         </div>
                     </div>
                     <!-- Fila: Stock Inicial, Stock Máximo, Stock Mínimo-->
                     <div class="row g-3 mb-3 justify-content-center">
 
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="stock_minimo" class="form-label fw-semibold">
                                 Stock Mínimo <span class="text-danger">*</span>
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light fw-bold">
-                                    Min
-                                </span>
-                                <input type="number" class="form-control" id="stock_minimo" name="stock_minimo"
-                                    step="0.01" min="0" required placeholder="0.00">
-                                <div class="form-label" id="sstock_minimo"></div>
-                            </div>
+                            <input type="number" class="form-control" id="stock_minimo" name="stock_minimo" step="0.01"
+                                min="0" required placeholder="0,00">
+                            <div class="form-label" id="sstock_minimo"></div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 position-relative">
                             <label for="stock_maximo" class="form-label fw-semibold">
                                 Stock Máximo <span class="text-black"></span>
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light fw-bold">
-                                    Max
-                                </span>
-                                <input type="number" class="form-control" id="stock_maximo" name="stock_maximo"
-                                    step="0.01" min="0" required placeholder="0.00">
-                                <div class="form-label" id="sstock_maximo"></div>
-                            </div>
+                            <input type="number" class="form-control" id="stock_maximo" name="stock_maximo" step="0.01"
+                                min="0" required placeholder="0,00">
+                            <div class="form-label" id="sstock_maximo"></div>
                         </div>
                     </div>
                 </div>

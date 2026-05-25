@@ -36,12 +36,12 @@ class BusinessSeeder
         $count = $this->db->query("SELECT COUNT(*) FROM cargo")->fetchColumn();
         if ($count == 0) {
             $sql = "INSERT INTO cargo (id_cargo, nombre_cargo, estatus) VALUES 
-                ('CARGO001', 'Mesero', 1),
-                ('CARGO002', 'Cocinero', 1),
-                ('CARGO003', 'Cajero', 1),
-                ('CARGO004', 'Bartender', 1),
-                ('CARGO005', 'Gerente', 1),
-                ('CARGO006', 'Supervisor', 1)";
+                ('CARGO00120260519200547232', 'Mesero', 1),
+                ('CARGO00220260519200547232', 'Cocinero', 1),
+                ('CARGO00320260519200547232', 'Cajero', 1),
+                ('CARGO00420260519200547232', 'Bartender', 1),
+                ('CARGO00520260519200547232', 'Gerente', 1),
+                ('CARGO00620260519200547232', 'Supervisor', 1)";
             $this->db->exec($sql);
             echo "       Cargos base creados.\n";
         }
@@ -53,11 +53,11 @@ class BusinessSeeder
         $count = $this->db->query("SELECT COUNT(*) FROM categoria_producto")->fetchColumn();
         if ($count == 0) {
             $sql = "INSERT INTO categoria_producto (id_categoria, nombre_categoria, estatus) VALUES 
-                ('CATPROD001', 'Platos Principales', 1),
-                ('CATPROD002', 'Entradas', 1),
-                ('CATPROD003', 'Bebidas', 1),
-                ('CATPROD004', 'Postres', 1),
-                ('CATPROD005', 'Ensaladas', 1)";
+                ('CATPROD00120260519200547232', 'Platos Principales', 1),
+                ('CATPROD00220260519200547232', 'Entradas', 1),
+                ('CATPROD00320260519200547232', 'Bebidas', 1),
+                ('CATPROD00420260519200547232', 'Postres', 1),
+                ('CATPROD00520260519200547232', 'Ensaladas', 1)";
             $this->db->exec($sql);
             echo "       Categorías de productos creadas.\n";
         }
@@ -66,13 +66,13 @@ class BusinessSeeder
         $countIng = $this->db->query("SELECT COUNT(*) FROM categoria_ingrediente")->fetchColumn();
         if ($countIng == 0) {
             $sql = "INSERT INTO categoria_ingrediente (id_categoria, nombre) VALUES 
-                ('CATING001', 'Carnes'),
-                ('CATING002', 'Verduras'),
-                ('CATING003', 'Lácteos'),
-                ('CATING004', 'Granos'),
-                ('CATING005', 'Condimentos'),
-                ('CATING006', 'Bebidas'),
-                ('CATING007', 'Frutas')";
+                ('CATEGIN00120260519200547232', 'Carnes'),
+                ('CATEGIN00220260519200547232', 'Verduras'),
+                ('CATEGIN00320260519200547232', 'Lácteos'),
+                ('CATEGIN00420260519200547232', 'Granos'),
+                ('CATEGIN00520260519200547232', 'Condimentos'),
+                ('CATEGIN00620260519200547232', 'Bebidas'),
+                ('CATEGIN00720260519200547232', 'Frutas')";
             $this->db->exec($sql);
             echo "       Categorías de ingredientes creadas.\n";
         }
@@ -83,10 +83,10 @@ class BusinessSeeder
         $count = $this->db->query("SELECT COUNT(*) FROM area_mesa")->fetchColumn();
         if ($count == 0) {
             $sql = "INSERT INTO area_mesa (id_area, nombre) VALUES 
-                ('AREA00120260510', 'Salón Principal'),
-                ('AREA00220260510', 'Terraza'),
-                ('AREA00320260510', 'VIP'),
-                ('AREA00420260510', 'Barra')";
+                ('AREA00120260519200547232', 'Salón Principal'),
+                ('AREA00220260519200547232', 'Terraza'),
+                ('AREA00320260519200547232', 'VIP'),
+                ('AREA00420260519200547232', 'Barra')";
             $this->db->exec($sql);
             echo "       Áreas de mesa creadas.\n";
         }
@@ -97,11 +97,11 @@ class BusinessSeeder
         $count = $this->db->query("SELECT COUNT(*) FROM metodo_pago")->fetchColumn();
         if ($count == 0) {
             $sql = "INSERT INTO metodo_pago (id_metodo_pago, nombre) VALUES 
-                ('MET001', 'Efectivo'),
-                ('MET002', 'Tarjeta de Crédito'),
-                ('MET003', 'Tarjeta de Débito'),
-                ('MET004', 'Pago Móvil'),
-                ('MET005', 'Transferencia')";
+                ('METOD00120260519200547232', 'Efectivo'),
+                ('METOD00220260519200547232', 'Tarjeta de Crédito'),
+                ('METOD00320260519200547232', 'Tarjeta de Débito'),
+                ('METOD00420260519200547232', 'Pago Móvil'),
+                ('METOD00520260519200547232', 'Transferencia')";
             $this->db->exec($sql);
             echo "       Métodos de pago creados.\n";
         }
@@ -168,7 +168,7 @@ class BusinessSeeder
     {
         $cargos = $this->db->query("SELECT id_cargo FROM cargo")->fetchAll(\PDO::FETCH_COLUMN);
         if (empty($cargos)) {
-            $cargos = ['CARGO001'];
+            $cargos = ['CARGO00120260519200547232'];
         }
 
         $sqlPersona = "INSERT INTO persona (cedula, nombre, apellido, fecha_nacimiento, telefono, correo, direccion, sexo) 
@@ -210,7 +210,7 @@ class BusinessSeeder
     {
         $categorias = $this->db->query("SELECT id_categoria FROM categoria_producto")->fetchAll(\PDO::FETCH_COLUMN);
         if (empty($categorias)) {
-            $categorias = ['CATPROD001'];
+            $categorias = ['CATPROD00120260519200547232'];
         }
 
         $sql = "INSERT INTO producto 

@@ -14,7 +14,12 @@ $(document).ready(function () {
 
 //EVENTOS CLICK DE LOS BOTONES DE LA INTERFAZ
 $("#btnIngredienteForm").on("click", async function () {
-  ingrediente.EnviarFormulario($(this).text());
+  let respuesta = null;
+  respuesta = await ingrediente.EnviarFormulario($(this).text());
+
+  if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
+    await crearDataTable("ingredientes");
+  };
 });
 
 $("#btnNuevoIngrediente").on("click", function () {

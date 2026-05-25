@@ -57,3 +57,22 @@ export function FeedbackSelect(input, span, mensaje, estado) {
     $(span).text(mensaje);
   }
 }
+
+export function RenderizarSelect(etiqueta, arreglo, mensajes) {
+    etiqueta.empty();
+    if (Array.isArray(arreglo) && arreglo.length > 0) {
+        // Agregar opción placeholder no seleccionable
+        const placeholder = new Option(mensajes, "default");
+        $(placeholder).prop('disabled', true).prop('selected', true).attr('hidden', true);
+        etiqueta.append(placeholder);
+        arreglo.forEach(item => {
+            etiqueta.append(
+                new Option(item.nombre, item.valor)
+            );
+        });
+    } else {
+        const noHay = new Option('Sin datos', "default");
+        $(noHay).prop('disabled', true).prop('selected', true);
+        etiqueta.append(noHay);
+    }
+}

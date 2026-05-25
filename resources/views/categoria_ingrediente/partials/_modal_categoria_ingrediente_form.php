@@ -27,36 +27,15 @@
 
                     <!-- Fila: Nombre-->
                     <div class="row g-3 mb-3 justify-content-center">
-                        <div class="col-md-7">
+                        <div class="col-md-7 position-relative">
                             <label for="categoria-nombre" class="form-label fw-semibold">
                                 Nombre de la Categoría<span class="text-danger">*</span>
                             </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light">
-                                    <i class="fas fa-font"></i>
-                                </span>
-                                <input type="text" class="form-control" id="categoria-nombre" name="categoria-nombre"
-                                    maxlength="100" required>
-                                <div class="form-label" id="scategoria-nombre"></div>
-                            </div>
-                        </div>
-
-                    </div>
-                    <!-- Fila: Descripción-->
-                    <div class="row g-3 mb-3 justify-content-center">
-                        <div class="col-md-7">
-                            <label for="categoria-descripcion" class="form-label fw-semibold">Descripción de la
-                                Categoría</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light">
-                                    <i class="fas fa-align-left"></i>
-                                </span>
-                                <textarea class="form-control" id="categoria-descripcion" rows="5"></textarea>
-                                <div class="form-label" id="scategoria-descripcion"></div>
-                            </div>
+                            <input type="text" class="form-control" id="categoria-nombre" name="categoria-nombre"
+                                maxlength="100" required>
+                            <div class="form-label" id="scategoria-nombre"></div>
                         </div>
                     </div>
-
                     <div class="modal-footer border-top-0">
                         <button type="button" class="btn btn-secondary" id="btn-CategoriaCancel">
                             Cancelar
