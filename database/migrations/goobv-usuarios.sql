@@ -79,6 +79,15 @@ CREATE TABLE `permiso` (
   CONSTRAINT `fk_permiso_rol` FOREIGN KEY (`id_rol`) REFERENCES `rol` (`id_rol`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE `recuperacion_clave` (
+  `id` int(11) NOT NULL,
+  `correo` varchar(255) NOT NULL,
+  `codigo` varchar(10) NOT NULL,
+  `fecha_expiracion` datetime NOT NULL,
+  `usado` tinyint(1) DEFAULT 0,
+  `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 CREATE TABLE `sesion` (
   `id_sesion` varchar(50) NOT NULL,
   `cedula` varchar(15) NOT NULL,

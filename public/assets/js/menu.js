@@ -616,20 +616,30 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Crear options para unidades basado en unidadesDB
-        const unidadesHtml = (selectedId) => unidadesDB.map(u =>
-            `<option value="${u.id_unidad}" ${u.id_unidad == selectedId ? 'selected' : ''}>${u.abreviatura}</option>`
-        ).join('');
-
         list.forEach((ing, index) => {
             const tr = document.createElement('tr');
             tr.setAttribute('data-id', ing.id);
+
+            // Obtener el ingrediente correspondiente de ingredientesDB para saber su unidad base/tipo
+            const ingredienteInfo = ingredientesDB.find(i => i.id_ingrediente === ing.id);
+            const idUnidadMedida = ingredienteInfo ? ingredienteInfo.id_unidad_medida : null;
+            const unidadBase = unidadesDB.find(u => u.id_unidad === idUnidadMedida);
+            const tipoUnidad = unidadBase ? unidadBase.tipo : null;
+
+            // Filtrar unidadesDB para que solo muestre las del mismo tipo
+            const unidadesFiltradas = tipoUnidad 
+                ? unidadesDB.filter(u => u.tipo === tipoUnidad)
+                : unidadesDB;
+
+            const unidadesHtml = unidadesFiltradas.map(u =>
+                `<option value="${u.id_unidad}" ${u.id_unidad == ing.unidad ? 'selected' : ''}>${u.abreviatura}</option>`
+            ).join('');
 
             let precioHtml = '';
             if (!isPrincipal) {
                 precioHtml = `
                 <td>
-                    <input type="number" step="0.01" min="0" class="form-control form-control-sm price-input" 
+                     <input type="number" step="0.01" min="0" class="form-control form-control-sm price-input" 
                         data-id="${ing.id}" data-type="adicional" value="${ing.precio || 0}" required>
                 </td>`;
             }
@@ -645,7 +655,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td class="position-relative">
                     <select class="form-select form-select-sm unit-select" data-id="${ing.id}" data-type="${isPrincipal ? 'principal' : 'adicional'}">
-                        ${unidadesHtml(ing.unidad)}
+                        ${unidadesHtml}
                     </select>
                     <span class="invalid-tooltip fw-bold" style="font-size: 0.75rem; width: fit-content;">Valor no existe</span>
                 </td>

@@ -38,6 +38,8 @@ class Usuario extends Database
     private $tema_oscuro;
     private $ultimo_acceso;
     private $fecha_registro;
+    private $estatus;
+    private $estatus_clave;
 
     public function __construct()
     {
@@ -55,6 +57,8 @@ class Usuario extends Database
         $this->tema_oscuro = 0;
         $this->ultimo_acceso = "";
         $this->fecha_nacimiento = "";
+        $this->estatus = 1;
+        $this->estatus_clave = 0;
     }
 
     //SETTERS
@@ -124,6 +128,15 @@ class Usuario extends Database
     public function setFechaRegistro(DateTime $fecha_registro)
     {
         $this->fecha_registro = $fecha_registro;
+    }
+    public function setEstatus($estatus)
+    {
+        $this->estatus = $estatus;
+    }
+
+    public function setEstatusClave(int $estatus_clave)
+    {
+        $this->estatus_clave = $estatus_clave;
     }
     //FIN DE SETTERS
 
@@ -196,6 +209,10 @@ class Usuario extends Database
     {
         return $this->fecha_registro;
     }
+    public function getEstatus()
+    {
+        return $this->estatus;
+    }
     //FIN DE GETTERS
 
     //MANEJADOR DE OPERACIONES
@@ -212,6 +229,10 @@ class Usuario extends Database
                 'validar' => $this->ValidarUsuario(),
                 'sesion' => $this->IniciarSesion(),
                 'perfil' => $this->TraerPerfilUsuario(),
+                'empleados-sin-usuario' => $this->empleadosSinUsuario(),
+                'actualizar', 'modificar' => $this->actualizarUsuario(),
+                'actualizar-clave' => $this->actualizarSoloClave(),
+                'toggle-estatus' => $this->toggleEstatus(),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'danger', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
@@ -321,18 +342,15 @@ class Usuario extends Database
 
                 $hashed_clave = password_hash($this->clave, PASSWORD_DEFAULT);
 
-                $sql = "INSERT INTO usuario(cedula, id_rol, username, nombres, apellidos, telefono, correo, clave) 
-        VALUES (:cedula, :id_rol, :username, :nombres, :apellidos, :telefono, :correo, :clave)";
+                $sql = "INSERT INTO usuario(cedula, id_rol, username, clave, estatus, estatus_clave) 
+        VALUES (:cedula, :id_rol, :username, :clave, 1, :estatus_clave)";
 
                 $stm = $this->LlamarConexion()->prepare($sql);
                 $stm->bindParam(':cedula', $this->cedula);
                 $stm->bindParam(':id_rol', $this->id_rol);
                 $stm->bindParam(':username', $this->username);
-                $stm->bindParam(':nombres', $this->nombres);
-                $stm->bindParam(':apellidos', $this->apellidos);
-                $stm->bindParam(':telefono', $this->telefono);
-                $stm->bindParam(':correo', $this->correo);
                 $stm->bindParam(':clave', $hashed_clave);
+                $stm->bindParam(':estatus_clave', $this->estatus_clave);
                 $stm->execute();
                 $stm = NULL;
                 $this->LlamarConexion()->commit();
@@ -362,7 +380,7 @@ class Usuario extends Database
         try {
             $this->LlamarConexion("security");
             $this->LlamarConexion()->beginTransaction();
-            $query = "SELECT * FROM vw_perfil_usuario";
+            $query = "SELECT p.*, u.estatus FROM vw_perfil_usuario p JOIN usuario u ON p.cedula = u.cedula WHERE u.cedula != 'V-00000000'";
 
             $stm = $this->LlamarConexion()->prepare($query);
             $stm->execute();
@@ -381,6 +399,141 @@ class Usuario extends Database
             $dato['estado'] = -1;
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor", 'registro' => []];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    private function empleadosSinUsuario()
+    {
+        $dato = [];
+        $arreglo = [];
+        try {
+            $systemDb = Database::getSystemDb();
+            $securityDb = Database::getSecurityDb();
+            
+            $sql = "SELECT e.cedula, p.nombre, p.apellido 
+                    FROM `{$systemDb}`.empleado e 
+                    INNER JOIN `{$systemDb}`.persona p ON e.cedula = p.cedula 
+                    LEFT JOIN `{$securityDb}`.usuario u ON e.cedula = u.cedula 
+                    WHERE u.cedula IS NULL";
+            
+            $this->LlamarConexion("security");
+            $this->LlamarConexion()->beginTransaction();
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->execute();
+            if ($stm->rowCount() > 0) {
+                $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
+            }
+            $this->LlamarConexion()->commit();
+            $stm = NULL;
+            
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'mensaje' => "OK", 'datos' => $arreglo];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor", 'datos' => []];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    private function actualizarUsuario()
+    {
+        $dato = [];
+        try {
+            $this->LlamarConexion("security");
+            $this->LlamarConexion()->beginTransaction();
+
+            if (!empty($this->clave)) {
+                $hashed_clave = password_hash($this->clave, PASSWORD_DEFAULT);
+                $sql = "UPDATE usuario SET id_rol = :id_rol, username = :username, clave = :clave WHERE cedula = :cedula";
+                $stm = $this->LlamarConexion()->prepare($sql);
+                $stm->bindParam(':clave', $hashed_clave);
+            } else {
+                $sql = "UPDATE usuario SET id_rol = :id_rol, username = :username WHERE cedula = :cedula";
+                $stm = $this->LlamarConexion()->prepare($sql);
+            }
+
+            $stm->bindParam(':id_rol', $this->id_rol);
+            $stm->bindParam(':username', $this->username);
+            $stm->bindParam(':cedula', $this->cedula);
+            $stm->execute();
+            $stm = NULL;
+            $this->LlamarConexion()->commit();
+
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Usuario actualizado exitosamente"];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "Se actualizó exitosamente"];
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            $dato['estado'] = -1;
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor"];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    public function actualizarSoloClave()
+    {
+        $dato = [];
+        try {
+            $this->LlamarConexion("security");
+            $this->LlamarConexion()->beginTransaction();
+
+            $hashed_clave = password_hash($this->clave, PASSWORD_DEFAULT);
+            $sql = "UPDATE usuario SET clave = :clave WHERE cedula = :cedula";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->bindParam(':clave', $hashed_clave);
+            $stm->bindParam(':cedula', $this->cedula);
+            $stm->execute();
+            $stm = NULL;
+            $this->LlamarConexion()->commit();
+
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Contraseña actualizada exitosamente"];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "Se actualizó exitosamente"];
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            $dato['estado'] = -1;
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor"];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    private function toggleEstatus()
+    {
+        $dato = [];
+        try {
+            $this->LlamarConexion("security");
+            $this->LlamarConexion()->beginTransaction();
+
+            $sql = "UPDATE usuario SET estatus = :estatus WHERE cedula = :cedula";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->bindParam(':estatus', $this->estatus);
+            $stm->bindParam(':cedula', $this->cedula);
+            $stm->execute();
+            $stm = NULL;
+            $this->LlamarConexion()->commit();
+
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Estado de usuario cambiado exitosamente"];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "Se cambió de estado exitosamente"];
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            $dato['estado'] = -1;
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor"];
             $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
         }
         $this->DestruirConexion();
