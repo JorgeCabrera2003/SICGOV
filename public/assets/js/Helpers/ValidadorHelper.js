@@ -4,13 +4,14 @@ export function ValidarCampo(patron, etiqueta, span) {
     let regex = null;
     let bool = false;
     etiqueta.removeClass("is-valid is-invalid");
-    span.removeClass("valid-tooltip-tooltip invalid-tooltip")
+    span.removeClass("valid-tooltip invalid-tooltip")
 
     const REGEX = {
         'Cedula': /^[0-9]{7,15}$/,
         'DocumentoLegal': /^[0-9]{7,12}$/,
         'FormatoDocumentoLegal': /^[VEJPGvejpg]{1}[-][0-9]{7,15}$/,
-        'ID': /^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/,
+        'FormatoCedula': /^[VEJPGvejpg]{1}[-][0-9]{7,15}$/,
+        'ID': /^[A-Z0-9]{3,5}[A-Z0-9]{3,5}[0-9]{8}[0-9]{0,6}[0-9]{0,6}$/,
         'NombrePersona': /^[a-z A-ZÁÉÍÓÚÜáéíóúüñÑçÇ]{3,65}$/,
         'NombreUsuario': /^[0-9a-zA-Z_]{4,20}$/,
         'NombreObjeto': /^[0-9 a-zA-ZÁÉÍÓÚÜáéíóúüñÑçÇ]{3,65}$/,
