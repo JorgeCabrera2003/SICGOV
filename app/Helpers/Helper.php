@@ -134,6 +134,31 @@ class Helper
             }
         }
 
+        $currentPage = $_GET['page'] ?? 'home';
+        $estatusClave = $_SESSION['user']['estatus_clave'] ?? 1;
+
+        if ($estatusClave == 0 && !in_array($currentPage, ['forzar-cambiar-clave', 'logout'])) {
+            if (
+                isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'
+            ) {
+                $peticion = $_POST['peticion'] ?? '';
+                if ($peticion !== 'forzar-cambiar-clave') {
+                    header('Content-Type: application/json');
+                    echo json_encode([
+                        'resultado' => 403, 
+                        'icon' => 'warning', 
+                        'mensaje' => 'Por razones de seguridad, debe cambiar su contraseña antes de continuar.', 
+                        'redirect' => BASE_URL . '/?page=forzar-cambiar-clave'
+                    ]);
+                    exit();
+                }
+            } else {
+                header("Location: " . BASE_URL . "/?page=forzar-cambiar-clave");
+                exit();
+            }
+        }
+
         return true;
     }
 
@@ -142,13 +167,27 @@ class Helper
         self::verificarSesion();
 
         $user = $_SESSION['user'];
+        $foto = BASE_URL . '/assets/img/default.jpg';
+
+        try {
+            $db = \App\Core\Database::getConnection('security');
+            $sql = "SELECT direccion FROM imagen WHERE entidad_tipo = 'USUARIO' AND entidad_id = :cedula AND es_principal = 1 LIMIT 1";
+            $stmt = $db->prepare($sql);
+            $stmt->execute(['cedula' => $user['cedula'] ?? '']);
+            $img = $stmt->fetch();
+            if ($img && !empty($img['direccion'])) {
+                $foto = BASE_URL . $img['direccion'];
+            }
+        } catch (\Exception $e) {
+            // Fail silently and use default
+        }
 
         return [
             'nombres' => $user['nombres'] ?? $user['username'] ?? 'Usuario',
             'apellidos' => $user['apellidos'] ?? '',
             'cedula' => $user['cedula'] ?? '',
             'rol' => $user['rol'] ?? 'Usuario',
-            'foto' => BASE_URL . '/assets/img/default.jpg',
+            'foto' => $foto,
             'username' => $user['username'] ?? ''
         ];
     }

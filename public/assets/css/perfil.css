@@ -1,0 +1,516 @@
+/* ==========================================================================
+   MY PROFILE MODULE (FACEBOOK-STYLE LAYOUT) - SICGOV
+   ========================================================================== */
+
+/* 1. Header & Cover Photo */
+.profile-header-container {
+    position: relative;
+    border-radius: var(--border-radius-base);
+    background-color: var(--bg-tarjetas);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.profile-cover {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    background: linear-gradient(135deg, hsla(280, 85%, 65%, 1) 0%, hsla(220, 90%, 55%, 1) 100%);
+    overflow: hidden;
+}
+
+.profile-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.profile-cover:hover .profile-cover-img {
+    transform: scale(1.02);
+}
+
+.profile-cover-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.65));
+    pointer-events: none;
+}
+
+.btn-edit-cover {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgba(26, 28, 32, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #FFFFFF !important;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition-base);
+    z-index: 10;
+}
+
+.btn-edit-cover:hover {
+    background-color: rgba(26, 28, 32, 0.95);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* 2. Avatar & Overlap */
+.profile-avatar-container {
+    position: absolute;
+    bottom: -60px;
+    left: 45px;
+    width: 168px;
+    height: 168px;
+    z-index: 20;
+}
+
+.profile-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 6px solid var(--bg-tarjetas);
+    background-color: var(--bg-tarjetas);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    object-fit: cover;
+}
+
+.avatar-edit-overlay {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: calc(100% - 12px);
+    height: calc(100% - 12px);
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #FFFFFF;
+    font-size: 0.8rem;
+    font-weight: 600;
+    opacity: 0;
+    cursor: pointer;
+    transition: var(--transition-base);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.profile-avatar-container:hover .avatar-edit-overlay {
+    opacity: 1;
+}
+
+.avatar-edit-overlay i {
+    font-size: 1.8rem;
+    margin-bottom: 4px;
+    transition: transform 0.3s ease;
+}
+
+.profile-avatar-container:hover .avatar-edit-overlay i {
+    transform: scale(1.1);
+}
+
+/* 3. Header Info Section */
+.profile-header-info {
+    margin-top: 10px;
+    padding-left: 230px;
+    padding-right: 40px;
+    padding-bottom: 25px;
+    min-height: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.profile-user-details {
+    flex-grow: 1;
+}
+
+.profile-name {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 2px;
+}
+
+.profile-username {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--color-placeholder);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-role-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background-color: rgba(255, 214, 0, 0.15) !important;
+    border: 1px solid var(--color-acento) !important;
+    color: var(--color-sidebar) !important;
+    border-radius: 50px;
+    padding: 4px 12px;
+}
+
+/* 4. Custom Responsive Layout for Mobile */
+@media (max-width: 767.98px) {
+    .profile-cover {
+        height: 200px;
+    }
+    
+    .profile-avatar-container {
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: -75px;
+        width: 140px;
+        height: 140px;
+    }
+
+    .profile-header-info {
+        margin-top: 85px;
+        padding-left: 20px;
+        padding-right: 20px;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 15px;
+    }
+}
+
+/* 5. Modern Glassmorphic Nav Tabs */
+.profile-tabs-wrapper {
+    background-color: var(--bg-tarjetas);
+    border-top: 1px solid var(--color-border);
+    padding: 0 45px;
+}
+
+.profile-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    border: none;
+    margin-bottom: 0;
+    padding: 0;
+}
+
+.profile-tab-btn {
+    border: none !important;
+    background: transparent !important;
+    color: var(--color-sidebar) !important;
+    opacity: 0.65;
+    font-weight: 600;
+    padding: 18px 20px;
+    font-size: 0.98rem;
+    position: relative;
+    transition: var(--transition-base);
+    border-bottom: 3px solid transparent !important;
+    border-radius: 0 !important;
+}
+
+.profile-tab-btn:hover {
+    opacity: 1;
+    color: var(--color-acento) !important;
+}
+
+.profile-tab-btn.active {
+    opacity: 1;
+    color: var(--color-sidebar) !important;
+    font-weight: 700;
+    border-bottom: 3px solid var(--color-acento) !important;
+}
+
+@media (max-width: 767.98px) {
+    .profile-tabs-wrapper {
+        padding: 0 10px;
+    }
+    .profile-tab-btn {
+        padding: 12px 10px;
+        font-size: 0.85rem;
+        flex-grow: 1;
+        text-align: center;
+    }
+}
+
+/* 6. General Info Tab - Harmonious HSL Details Grid */
+.profile-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 16px 20px;
+    border-radius: var(--border-radius-base);
+    background-color: var(--color-bg-muted);
+    border: 1px solid transparent;
+    transition: var(--transition-base);
+}
+
+.info-item:hover {
+    background-color: var(--bg-tarjetas);
+    border-color: var(--color-border);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.04);
+}
+
+.info-item-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background-color: var(--bg-tarjetas);
+    border: 1px solid var(--color-border);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--color-acento);
+    font-size: 1.3rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+    transition: var(--transition-base);
+}
+
+.info-item:hover .info-item-icon {
+    background-color: var(--color-acento);
+    color: #1A1C20;
+    transform: scale(1.05);
+}
+
+.info-item-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-item-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-placeholder);
+    margin-bottom: 2px;
+}
+
+.info-item-value {
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: var(--color-sidebar);
+}
+
+/* 7. Premium Activity Timeline */
+.timeline {
+    position: relative;
+    padding-left: 25px;
+    margin-left: 10px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 6px;
+    width: 2px;
+    height: calc(100% - 15px);
+    background-color: var(--color-border);
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    top: 6px;
+    left: -24px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 3px solid var(--bg-principal);
+    background-color: var(--color-placeholder);
+    box-shadow: 0 0 0 1px var(--color-border);
+    transition: var(--transition-base);
+}
+
+/* Timeline specific coloring per action */
+.timeline-item.Modificar .timeline-marker {
+    background-color: #3b82f6 !important; /* Blue for modifying */
+}
+
+.timeline-item.Registrar .timeline-marker {
+    background-color: #10b981 !important; /* Green for additions */
+}
+
+.timeline-item.Eliminar .timeline-marker {
+    background-color: #ef4444 !important; /* Red for deletion/warning */
+}
+
+.timeline-item.Sesion .timeline-marker {
+    background-color: #f59e0b !important; /* Yellow for logins */
+}
+
+.timeline-content {
+    background-color: var(--bg-tarjetas);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-base);
+    padding: 18px 22px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    transition: var(--transition-base);
+}
+
+.timeline-content:hover {
+    transform: translateX(6px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+    border-color: var(--color-acento);
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.timeline-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.timeline-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--color-sidebar);
+    margin: 0;
+}
+
+.timeline-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+.timeline-item.Modificar .timeline-badge {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #2563eb;
+}
+
+.timeline-item.Registrar .timeline-badge {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #059669;
+}
+
+.timeline-item.Eliminar .timeline-badge {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+}
+
+.timeline-item.Sesion .timeline-badge {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: #d97706;
+}
+
+.timeline-date {
+    font-size: 0.8rem;
+    color: var(--color-placeholder);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.timeline-detail {
+    font-size: 0.92rem;
+    color: var(--color-sidebar);
+    opacity: 0.85;
+    margin-bottom: 0;
+}
+
+.timeline-ip {
+    font-size: 0.72rem;
+    color: var(--color-placeholder);
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Timeline Loader & Empty State */
+.timeline-empty, .timeline-loader {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--color-placeholder);
+    background-color: var(--bg-tarjetas);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-base);
+}
+
+.timeline-empty i, .timeline-loader i {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    display: block;
+    color: var(--color-acento);
+}
+
+/* 8. Interactive Form Enhancements */
+.form-section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--color-border);
+    color: var(--color-sidebar);
+}
+
+.password-requirements {
+    background-color: var(--color-bg-muted);
+    border-radius: 8px;
+    padding: 15px;
+    border-left: 4px solid var(--color-acento);
+}
+
+.password-requirements h6 {
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.password-requirements ul {
+    margin-bottom: 0;
+    padding-left: 18px;
+    font-size: 0.82rem;
+    color: var(--color-placeholder);
+}
+
+/* Glassmorphism Tab Content Transition Effect */
+.tab-pane {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.tab-pane.show {
+    opacity: 1;
+    transform: translateY(0);
+}

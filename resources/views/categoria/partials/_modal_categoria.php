@@ -26,14 +26,6 @@
                             <span id="feedback_nombre_categoria" style="width: fit-content;"></span>
                         </div>
 
-                        <!-- Descripción -->
-                        <div class="col-12 position-relative">
-                            <label for="descripcion_categoria" class="form-label fw-medium text-secondary">Descripción</label>
-                            <textarea class="form-control" id="descripcion_categoria" name="descripcion" rows="3" placeholder="Descripción opcional..."></textarea>
-                            <span id="feedback_descripcion_categoria" style="width: fit-content;"></span>
-                        </div>
-
-
                     </div>
                 </form>
             </div>

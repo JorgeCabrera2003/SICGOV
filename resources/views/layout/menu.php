@@ -34,8 +34,8 @@
 
         <!-- Perfil de usuario -->
         <div class="user-profile d-flex align-items-center gap-3 px-3 py-2 border-bottom">
-            <div class="user-avatar">
-                <i class="bi bi-person-circle fs-4"></i>
+            <div class="user-avatar" style="width: 36px; height: 36px;">
+                <img src="<?php echo $datos['foto']; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
             </div>
             <div class="user-info">
                 <div class="user-name fw-semibold"><?php echo $datos['nombres'] ?? 'Usuario'; ?></div>
@@ -340,7 +340,7 @@
                 <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                     <div class="user-avatar" style="width: 36px; height: 36px;">
-                        <i class="bi bi-person-circle fs-5"></i>
+                        <img src="<?php echo $datos['foto']; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
                     </div>
                     <span class="d-none d-lg-inline"><?php echo $datos['nombres'] ?? 'Invitado'; ?></span>
                 </button>
@@ -357,12 +357,14 @@
                         <li>
                             <hr class="dropdown-divider">
                         </li>
+                        <?php if (($datos['cedula'] ?? '') !== 'V-00000000'): ?>
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2"
                                 href="<?php echo BASE_URL; ?>/?page=perfil">
                                 <i class="bi bi-person"></i> Mi Perfil
                             </a>
                         </li>
+                        <?php endif; ?>
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2"
                                 href="<?php echo BASE_URL; ?>/?page=configuracion">

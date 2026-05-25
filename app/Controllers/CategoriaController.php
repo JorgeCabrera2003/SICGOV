@@ -41,7 +41,6 @@ class CategoriaController
 
             $categoria = new CategoriaProducto();
             $categoria->setNombreCategoria($_POST['nombre'] ?? '');
-            $categoria->setDescripcion($_POST['descripcion'] ?? '');
             
             $result = $categoria->Transaccion(['peticion' => 'guardar']);
 
@@ -125,7 +124,6 @@ class CategoriaController
                 if ($accion_permiso) {
                     try {
                         $categoriaModel->setNombreCategoria($_POST["nombre_categoria"] ?? '');
-                        $categoriaModel->setDescripcion($_POST["descripcion"] ?? '');
 
 
                         

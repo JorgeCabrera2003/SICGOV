@@ -339,7 +339,7 @@ class Menu
     private function listarUnidades()
     {
         try {
-            $sql = "SELECT id_unidad, nombre, abreviatura FROM unidad_medida ORDER BY nombre";
+            $sql = "SELECT id_unidad, nombre, abreviatura, tipo FROM unidad_medida ORDER BY nombre";
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
