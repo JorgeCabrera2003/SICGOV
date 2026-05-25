@@ -44,25 +44,7 @@ class Asistencia extends Database {
         $this->indiceObservacion = -1;
 
     }
-/*
- $bool = match ($config) {
-            "Cedula" => preg_match('/^[VEJPGvejpg]{1}[0-9]{7,15}$/', $valor),
-            "ID" => preg_match('/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/', $valor),
-            "NombrePersona", "Persona" => preg_match('/^[a-z A-ZáéíóúüñÑçÇ]{3,65}$/', $valor),
-            "NombreUsuario", "Usuario" => preg_match('/^[0-9a-zA-Z_]{4,20}$/', $valor),
-            "NombreObjeto", "Objeto" => preg_match('/^[0-9 a-zA-ZáéíóúüñÑçÇ]{3,65}$/', $valor),
-            "NombreObjetoLargo", "ObjetoLargo" => preg_match('/^[0-9 a-zA-ZáéíóúüñÑçÇ\s\-.,()!?]{3,200}$/', $valor),
-            "Titulo" => preg_match('/^[0-9a-zA-ZÁÉÍÓÚÜáéíóúüñÑçÇ\s\-.,()!?"\'%:;\/]{3,150}$/', $valor),
-            "Telefono" => preg_match('/^[0-9]{4}[-][0-9]{3}[-][0-9]{4}$/', $valor),
-            "Correo" => preg_match('/^[a-zA-Z0-9][a-zA-Z0-9._%+-]{1,63}@[a-zA-Z0-9][a-zA-Z0-9.-]{1,50}\.(com|es|mx|co\.uk|org|net)$/', $valor),
-            "Sexo" => preg_match('/^[MF]{1}$/', $valor),
-            // Solo letras (incluyendo tildes y ñ) y espacios, mínimo 2 caracteres, máximo 65
-            "CategoriaMenu" => preg_match('/^[A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{1,64}$/', $valor),
-            // Igual que CategoriaMenu pero hasta 200 chars (descripción opcional)
-            "CategoriaMenuDesc" => preg_match('/^[A-ZÁÉÍÓÚÑa-záéíóúñ][A-ZÁÉÍÓÚÑa-záéíóúñ\s]{1,199}$/', $valor),
-            default => 0
-        };
-*/
+
     //SETTERS
     public function setIdAsistencia(string $id) {
         $this->idAsistencia = $id;
@@ -70,10 +52,25 @@ class Asistencia extends Database {
 
     public function setCedulaEmpleado(string $cedulaEmpleado) {
         $cedulaEmpleado = trim($cedulaEmpleado);
-        if (RegexHelper::ValidarFormatos($cedulaEmpleado, "Cedula") == 0) {
-            throw new Exception('La Cédula debe tener un prefijo válido (V, E) seguido de 7 a 8 dígitos.');
+
+        // Normalizar: aceptar formatos 'V12345678' o 'V-12345678' y convertir a 'V-12345678'
+        $cedulaEmpleado = str_replace(' ', '', $cedulaEmpleado);
+        $cedulaEmpleado = strtoupper($cedulaEmpleado);
+
+        // Si no contiene guion, insertarlo después del prefijo
+        if (!str_contains($cedulaEmpleado, '-')) {
+            if (strlen($cedulaEmpleado) >= 2) {
+                $prefijo = $cedulaEmpleado[0];
+                $numeros = substr($cedulaEmpleado, 1);
+                $cedulaEmpleado = $prefijo . '-' . $numeros;
+            }
         }
-        $this->cedulaEmpleado = strtoupper($cedulaEmpleado[0]) . substr($cedulaEmpleado, 1);
+
+        if (RegexHelper::ValidarFormatos($cedulaEmpleado, "Cedula") == 0) {
+            throw new Exception('La cédula debe tener un prefijo válido (V, E, J, P, G), un guion y 7 a 9 dígitos.');
+        }
+
+        $this->cedulaEmpleado = $cedulaEmpleado;
     }
 
     public function setTipoMarcacion(string $tipoMarcacion) {
@@ -145,6 +142,7 @@ class Asistencia extends Database {
 
                     'validar' => $this->ValidarAsistencia(),
                 'consultar' => $this->ConsultarAsistencia(),
+                'consultar_hoy' => $this->ConsultarAsistenciaHoy(),
                 'registrar' => $this->RegistrarAsistencia(),
                 'agregar_observacion' => $this->AgregarObservacion(),
                 'eliminar_observacion' => $this->EliminarObservacion(),
@@ -195,7 +193,50 @@ class Asistencia extends Database {
             $dato['estado'] = 1;
             $dato['response'] = ['resultado' => 200, 'mensaje' => 'OK', 'datos' => $arreglo];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
-        } catch (PDOException $e) {
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde', 'datos' => []];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Error interno del servidor'];
+        }
+
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    private function ConsultarAsistenciaHoy() {
+        $dato = [];
+        $arreglo = [];
+
+        try {
+            $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
+
+            $sql = "SELECT v.cedula AS cedula_empleado,
+                           CONCAT(v.nombre, ' ', v.apellido) AS nombre_empleado,
+                           MAX(CASE WHEN a.tipo_marcacion = 'ENTRADA' THEN a.hora END) AS hora_entrada,
+                           MAX(CASE WHEN a.tipo_marcacion = 'DESCANSO_IN' THEN a.hora END) AS hora_descanso_in,
+                           MAX(CASE WHEN a.tipo_marcacion = 'DESCANSO_OUT' THEN a.hora END) AS hora_descanso_out,
+                           MAX(CASE WHEN a.tipo_marcacion = 'SALIDA' THEN a.hora END) AS hora_salida
+                    FROM vw_directorio_empleados v
+                    LEFT JOIN asistencia a ON a.cedula_empleado = v.cedula AND a.fecha = CURDATE()
+                    GROUP BY v.cedula, v.nombre, v.apellido
+                    ORDER BY v.nombre, v.apellido";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->execute();
+
+            if ($stm->rowCount() > 0) {
+                $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
+            }
+
+            $this->LlamarConexion()->commit();
+            $stm = NULL;
+
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'mensaje' => 'OK', 'datos' => $arreglo];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+        } catch (\PDOException $e) {
             $this->LlamarConexion()->rollBack();
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             $dato['estado'] = -1;

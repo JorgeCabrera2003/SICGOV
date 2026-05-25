@@ -138,7 +138,7 @@ export function renderDataTable(arreglo) {
               <ul class="dropdown-menu dropdown-menu-end">
                 <li>
                   <button type="button" class="dropdown-item btn-observacion text-primary" data-id="${row.id_asistencia}">
-                    <i class="fa-solid fa-pen-to-square me-2"></i>Agregar Observaciones
+                    <i class="fa-solid fa-pen-to-square me-2"></i>Gestionar Observaciones
                   </button>
                 </li>
               </ul>
