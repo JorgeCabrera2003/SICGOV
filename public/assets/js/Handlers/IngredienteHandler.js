@@ -123,13 +123,20 @@ export async function EnviarDatos(operacion) {
   let mensajeConfirmacion = "¿Está seguro de realizar esta acción?";
   let endpoint = "";
   let peticion = new FormData();
+  let json = null;
 
   //Registrar y Modificar
   if (operacion == "registrar" || operacion == "modificar") {
-
+    let bool_peticion = true;
     if (operacion == "registrar") {
       str_acccion = "registrará";
       accion = "registrar"
+      if (input.stock_inicial.val() == "" || input.stock_inicial.val() == null) {
+        MensajeriaHelper.FeedbackToltipInput(input.stock_inicial, span.stock_inicial,
+          "El Stock Inicial no puede estar vacío", 0)
+        bool_peticion = false;
+      }
+      peticion.append('stock_inicial', input.stock_inicial.val());
     }
 
     if (operacion == "modificar") {
@@ -138,7 +145,7 @@ export async function EnviarDatos(operacion) {
       peticion.append('id_ingrediente', input.id_ingrediente.val());
     }
 
-    if (Validarenvio()) {
+    if (Validarenvio() && bool_peticion) {
       confirmacion = await confirmarAccion(`Se ${str_acccion} un Ingrediente`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
@@ -148,9 +155,8 @@ export async function EnviarDatos(operacion) {
         peticion.append('costo_unitario', input.costo_unitario.val());
         peticion.append('stock_maximo', input.stock_maximo.val());
         peticion.append('stock_minimo', input.stock_minimo.val());
-        peticion.append('stock_inicial', input.stock_inicial.val());
-        peticion.append('clave_categoria', input.clave_categoria.val());
-        peticion.append('id_proveedor', input.id_proveedor.val());
+        peticion.append('id_categoria', input.categoria_id.val());
+        peticion.append('id_proveedor', input.proveedor.val());
         btn_formulario = true;
       }
     } else {
@@ -177,11 +183,10 @@ export async function EnviarDatos(operacion) {
 
   if (btn_formulario) {
     modal.boton.prop('disabled', true);
-    json = await enviaAjax(peticion, endpoint);
+    json = await AjaxHelper.enviaAjax(peticion, endpoint);
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       modal.modal.modal("hide");
-      DataTablePrincipal();
       MensajeriaHelper.GenerarMensaje(json.icon, 10000, json.mensaje, null);
     }
     modal.boton.prop('disabled', false);
@@ -193,11 +198,13 @@ export async function EnviarDatos(operacion) {
 
   input = null;
   modal = null;
+  return json;
 }
 
 //Manejo de envio de datos desde el modal
 export async function EnviarFormulario(btn_string) {
   let accion = null;
+  let respuesta = null;
   const MANEJADOR = {
     'Nuevo': 'registrar',
     'Actualizar': 'modificar',
@@ -208,10 +215,12 @@ export async function EnviarFormulario(btn_string) {
   accion = MANEJADOR[btn_string] || DEFAULT
 
   if (accion != null) {
-    EnviarDatos(accion)
+    respuesta = await EnviarDatos(accion)
   } else {
-    console.log("Error, acción no válida")
+    respuesta = { resultado: 0 }
+    MensajeriaHelper.GenerarMensaje("danger", 10000, "Error, acción no válida", "")
   }
+  return respuesta;
 };
 
 //CAPA DE VALIDACIÓN
@@ -267,7 +276,7 @@ export async function CrearSelectUnidadMedida() {
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       const arrayUnidad = json.datos.map(item => ({
         nombre: item.nombre + " - " + item.abreviatura,
-        valor: item.id
+        valor: item.id_unidad
       }));
       console.log(arrayUnidad);
       SelectHelper.RenderizarSelect(input.unidad_medida, arrayUnidad, mensaje);
@@ -381,18 +390,6 @@ function Validarenvio() {
   let span = EtiquetasFormulario("span");
   let bool = true;
 
-  const inputIngrediente = {
-    nombre: $('#nombre'),
-    costo_unitario: $('#costo_unitario'),
-    categoria_id: $('#clave_categoria'),
-    unidad_medida: $('#unidad_medida'),
-    proveedor: $('#id_proveedor'),
-    stock_inicial: $('#stock_inicial'),
-    stock_minimo: $('#stock_minimo'),
-    stock_maximo: $('#stock_maximo'),
-    id_ingrediente: $('#id_ingrediente')
-  }
-
   if (input.proveedor.val() == "default") {
     SelectHelper.FeedbackSelect($(this), span.proveedor, "Debe selccionar un Tipo de Documento", 0);
     bool = false;
@@ -414,9 +411,10 @@ function Validarenvio() {
     bool = false;
   };
 
-  if (!ValidadorHelper.ValidarCampo("DocumentoLegal", input.costo_unitario, span.costo_unitario)) {
+  if (input.costo_unitario.val() == '' || input.costo_unitario.val() == null) {
+    MensajeriaHelper.FeedbackToltipInput(input.costo_unitario, span.costo_unitario, "El Costo Unitario no puede estar vacío", 0)
     bool = false;
-  };
+  }
 
   if (input.proveedor.val() == "default") {
     SelectHelper.FeedbackSelect(input.proveedor, span.proveedor, "Debe Seleccionar a un Proveedor", 0);
@@ -424,13 +422,34 @@ function Validarenvio() {
   }
 
   if (input.unidad_medida.val() == "default") {
-    SelectHelper.FeedbackSelect(input.unidad_medida, span.unidad_medida, "Debe Seleccionar a una Unidad de Medida", 0);
+    SelectHelper.FeedbackSelect(input.unidad_medida, span.unidad_medida, "Debe Seleccionar una Unidad de Medida", 0);
     bool = false;
   }
 
   if (input.categoria_id.val() == "default") {
-    SelectHelper.FeedbackSelect(input.categoria_id, span.categoria_id, "Debe Seleccionar a una Categoría de Medida", 0);
+    SelectHelper.FeedbackSelect(input.categoria_id, span.categoria_id, "Debe Seleccionar una Categoría", 0);
     bool = false;
+  }
+
+  if (input.stock_minimo.val() == '' || input.stock_minimo.val() == null) {
+    MensajeriaHelper.FeedbackToltipInput(input.stock_minimo, span.stock_minimo, "El Stock Mínimo no puede estar vacío", 0)
+    bool = false;
+  }
+
+  if (input.stock_maximo.val() != '') {
+    let stockMinimo = parseFloat(input.stock_minimo.val());
+    let stockMaximo = parseFloat(input.stock_maximo.val());
+    if (isNaN(stockMinimo)) stockMinimo = 0;
+    if (isNaN(stockMaximo)) stockMaximo = 0;
+
+    if (stockMinimo >= stockMaximo) {
+      MensajeriaHelper.FeedbackToltipInput(input.stock_minimo, span.stock_minimo, "El Stock Mínimo debe ser menor al Stock Máximo", 0);
+      MensajeriaHelper.FeedbackToltipInput(input.stock_maximo, span.stock_maximo, "El Stock Máximo no puede ser menor al Stock Mínimo", 0);
+      bool = false;
+    } else {
+      MensajeriaHelper.FeedbackToltipInput(input.stock_minimo, span.stock_minimo, "", 1);
+      MensajeriaHelper.FeedbackToltipInput(input.stock_maximo, span.stock_maximo, "", 1);
+    }
   }
 
   return bool
@@ -481,7 +500,7 @@ function RenderConfigStock(stockMinimo, abreviatura, stockMaximo) {
   const div = $('<div>');
   let abreviaturaMax = null;
 
-  if (stockMaximo != null && !isNaN(parseFloat(valor)) && isFinite(valor)) {
+  if (stockMaximo != null && !isNaN(parseFloat(stockMaximo)) && isFinite(stockMaximo)) {
     textMax.text(stockMaximo + " " + abreviatura).addClass('text-success me-1');
     abreviaturaMax = abreviatura;
   } else {
@@ -513,7 +532,7 @@ function RenderColorearStock(stockActual, stockMinimo, stockMaximo = null, abrev
     color = "text-success";
   }
 
-  if (stockMaximo != null && !isNaN(parseFloat(valor)) && isFinite(valor)) {
+  if (stockMaximo != null && !isNaN(parseFloat(stockMaximo)) && isFinite(stockMaximo)) {
     if (stockActual == stockMaximo) {
       color = "text-success";
     }

@@ -39,7 +39,7 @@
                                 Costo Unitario ($) <span class="text-danger">*</span>
                             </label>
                             <input type="number" class="form-control" id="costo_unitario" name="costo_unitario"
-                                step="0.01" min="0" required placeholder="0.00">
+                                step="0.01" min="0" required placeholder="0,00">
                             <div class="form-label" id="scosto_unitario"></div>
                         </div>
                     </div>
@@ -81,7 +81,7 @@
                                 Stock Inicial <span class="text-danger">*</span>
                             </label>
                             <input type="number" class="form-control" id="stock_inicial" name="stock_inicial"
-                                step="0.01" min="0" required placeholder="0.00">
+                                step="0.01" min="0" required placeholder="0,00">
                             <div class="form-label" id="sstock_inicial"></div>
                         </div>
                     </div>
@@ -93,7 +93,7 @@
                                 Stock Mínimo <span class="text-danger">*</span>
                             </label>
                             <input type="number" class="form-control" id="stock_minimo" name="stock_minimo" step="0.01"
-                                min="0" required placeholder="0.00">
+                                min="0" required placeholder="0,00">
                             <div class="form-label" id="sstock_minimo"></div>
                         </div>
                         <div class="col-md-6 position-relative">
@@ -101,7 +101,7 @@
                                 Stock Máximo <span class="text-black"></span>
                             </label>
                             <input type="number" class="form-control" id="stock_maximo" name="stock_maximo" step="0.01"
-                                min="0" required placeholder="0.00">
+                                min="0" required placeholder="0,00">
                             <div class="form-label" id="sstock_maximo"></div>
                         </div>
                     </div>
