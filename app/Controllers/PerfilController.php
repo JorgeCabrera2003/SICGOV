@@ -180,6 +180,42 @@ class PerfilController
                 exit;
             }
 
+            if ($peticion === 'actualizar-username') {
+                $username = trim($_POST['username'] ?? '');
+
+                if (empty($username) || strlen($username) < 3) {
+                    echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El nombre de usuario debe tener al menos 3 caracteres']);
+                    exit;
+                }
+
+                try {
+                    $db = Database::getConnection('security');
+                    
+                    // Verificar si el username ya existe en otro usuario
+                    $stmtCheck = $db->prepare("SELECT cedula FROM usuario WHERE username = :username AND cedula != :cedula");
+                    $stmtCheck->execute(['username' => $username, 'cedula' => $cedula]);
+                    if ($stmtCheck->rowCount() > 0) {
+                        echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El nombre de usuario ya está en uso']);
+                        exit;
+                    }
+
+                    // Actualizar username
+                    $stmtUpdate = $db->prepare("UPDATE usuario SET username = :username WHERE cedula = :cedula");
+                    $stmtUpdate->execute(['username' => $username, 'cedula' => $cedula]);
+
+                    $_SESSION['user']['username'] = $username;
+
+                    // Bitacora
+                    Helper::Bitacora('Modificar', 'Usuario', 'Usuario cambió su nombre de usuario');
+
+                    echo json_encode(['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Nombre de usuario actualizado exitosamente']);
+                } catch (Exception $e) {
+                    Helper::ErrorLog("Error cambiando nombre de usuario: " . $e->getMessage());
+                    echo json_encode(['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Error interno al actualizar el nombre de usuario']);
+                }
+                exit;
+            }
+
             if ($peticion === 'cambiar-clave') {
                 $clave_actual = $_POST['clave_actual'] ?? '';
                 $clave_nueva = $_POST['clave_nueva'] ?? '';
@@ -312,7 +348,7 @@ class PerfilController
                         $label = ($peticion === 'subir-avatar') ? 'foto de perfil' : 'foto de portada';
                         Helper::Bitacora('Modificar', 'Perfil', "Usuario actualizó su {$label}");
 
-                        $img_full_url = BASE_URL . $direccion_db;
+                        $img_full_url = rtrim(BASE_URL, '/') . $direccion_db;
 
                         echo json_encode([
                             'resultado' => 200, 

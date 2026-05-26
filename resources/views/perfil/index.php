@@ -3,50 +3,34 @@
      ========================================================================== -->
 
 <main class="container-fluid py-4">
-    <!-- Header de Perfil Estilo Facebook -->
-    <section class="profile-header-container">
-        <!-- Foto de Portada (Banner) -->
-        <div class="profile-cover">
-            <?php if (!empty($portada)): ?>
-                <img src="<?= $portada ?>" alt="Foto de portada" class="profile-cover-img" id="imgPortada">
-            <?php else: ?>
-                <div class="profile-cover-img" id="imgPortada" style="background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); width: 100%; height: 100%;"></div>
-            <?php endif; ?>
-            
-            <div class="profile-cover-overlay"></div>
-            
-            <!-- Botón para Editar Portada -->
-            <button class="btn btn-edit-cover fw-bold" id="btnEditarPortada" aria-label="Cambiar foto de portada">
-                <i class="bi bi-camera-fill me-2"></i>Editar foto de portada
-            </button>
-            <input type="file" id="inputPortada" class="d-none" accept="image/*">
-        </div>
-
+    <!-- Header de Perfil -->
+    <section class="profile-header-container p-4 pb-0">
         <!-- Información Básica & Avatar Overlap -->
-        <div class="position-relative">
+        <div class="d-flex align-items-center flex-column flex-md-row gap-4 mb-4">
             <!-- Foto de Perfil (Avatar) -->
-            <div class="profile-avatar-container">
-                <img src="<?= $datos['foto'] ?>" alt="Foto de perfil" class="profile-avatar" id="imgAvatar">
-                <div class="avatar-edit-overlay" id="btnEditarAvatar" role="button" aria-label="Cambiar foto de perfil">
-                    <i class="bi bi-camera-fill"></i>
-                    <span>Actualizar</span>
+            <div class="position-relative" style="width: 140px; height: 140px;">
+                <img src="<?= $datos['foto'] ?>" alt="Foto de perfil" id="imgAvatar" class="rounded-circle shadow-sm" style="width: 100%; height: 100%; object-fit: cover; border: 4px solid var(--color-border);">
+                <div class="position-absolute d-flex justify-content-center align-items-center rounded-circle" id="btnEditarAvatar" role="button" aria-label="Cambiar foto de perfil" style="top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); color: white; opacity: 0; transition: opacity 0.3s; cursor: pointer;">
+                    <i class="bi bi-camera-fill fs-3"></i>
                 </div>
                 <input type="file" id="inputAvatar" class="d-none" accept="image/*">
             </div>
 
             <!-- Nombres, Apellidos y Rol -->
-            <div class="profile-header-info">
-                <div class="profile-user-details">
-                    <h1 class="profile-name text-body">
-                        <?= htmlspecialchars(($perfil['nombre'] ?? $perfil['nombres'] ?? 'Usuario') . ' ' . ($perfil['apellido'] ?? $perfil['apellidos'] ?? '')) ?>
-                    </h1>
-                    <div class="profile-username">
-                        <span>@<?= htmlspecialchars($perfil['username'] ?? 'usuario') ?></span>
-                        <span class="profile-role-badge bg-primary text-dark"><?= htmlspecialchars($perfil['rol'] ?? 'Personal') ?></span>
-                    </div>
+            <div class="profile-user-details text-center text-md-start">
+                <h1 class="profile-name text-body mb-2" style="font-size: 2rem; font-weight: 800;">
+                    <?= htmlspecialchars(($perfil['nombre'] ?? $perfil['nombres'] ?? 'Usuario') . ' ' . ($perfil['apellido'] ?? $perfil['apellidos'] ?? '')) ?>
+                </h1>
+                <div class="profile-username justify-content-center justify-content-md-start">
+                    <span>@<?= htmlspecialchars($perfil['username'] ?? 'usuario') ?></span>
+                    <span class="profile-role-badge bg-primary text-dark"><?= htmlspecialchars($perfil['rol'] ?? 'Personal') ?></span>
                 </div>
             </div>
         </div>
+        
+        <style>
+            #btnEditarAvatar:hover { opacity: 1 !important; }
+        </style>
 
         <!-- Navegación de Pestañas (Tabs) -->
         <div class="profile-tabs-wrapper">
@@ -58,10 +42,7 @@
                     <i class="bi bi-pencil-square me-2"></i>Editar Perfil
                 </button>
                 <button class="nav-link profile-tab-btn" id="tab-seguridad" data-bs-toggle="tab" data-bs-target="#content-seguridad" type="button" role="tab" aria-controls="content-seguridad" aria-selected="false">
-                    <i class="bi bi-shield-lock-fill me-2"></i>Seguridad
-                </button>
-                <button class="nav-link profile-tab-btn" id="tab-actividad" data-bs-toggle="tab" data-bs-target="#content-actividad" type="button" role="tab" aria-controls="content-actividad" aria-selected="false">
-                    <i class="bi bi-clock-history me-2"></i>Mi Actividad
+                    <i class="bi bi-person-fill-gear me-2"></i>Usuario
                 </button>
             </nav>
         </div>
@@ -268,11 +249,39 @@
             </div>
         </div>
 
-        <!-- PESTAÑA: SEGURIDAD -->
+        <!-- PESTAÑA: USUARIO (Seguridad y Username) -->
         <div class="tab-pane fade" id="content-seguridad" role="tabpanel" aria-labelledby="tab-seguridad">
             <div class="row">
-                <!-- Formulario Cambio Contraseña -->
+                <!-- Columna Izquierda: Formularios -->
                 <div class="col-lg-7 mb-4 mb-lg-0">
+                    
+                    <!-- Formulario Nombre de Usuario -->
+                    <div class="card border-0 shadow-sm p-4 mb-4">
+                        <h2 class="h5 fw-bold mb-4">
+                            <i class="bi bi-person-badge-fill text-primary me-2"></i>Nombre de Usuario
+                        </h2>
+                        <form id="formActualizarUsername" novalidate>
+                            <input type="hidden" name="peticion" value="actualizar-username">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-8">
+                                    <label for="username_input" class="form-label fw-bold">Nombre de Usuario Actual</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">@</span>
+                                        <input type="text" class="form-control" id="username_input" name="username" 
+                                               value="<?= htmlspecialchars($perfil['username'] ?? '') ?>" 
+                                               placeholder="Escriba su nuevo nombre de usuario" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <button type="submit" class="btn btn-primary w-100" id="btnGuardarUsername">
+                                        <i class="bi bi-save me-2"></i>Actualizar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Formulario Cambio Contraseña -->
                     <div class="card border-0 shadow-sm p-4">
                         <h2 class="h5 fw-bold mb-4">
                             <i class="bi bi-shield-lock-fill text-primary me-2"></i>Cambiar Contraseña de Acceso
@@ -352,34 +361,8 @@
             </div>
         </div>
 
-        <!-- PESTAÑA: MI ACTIVIDAD (TIMELINE) -->
-        <div class="tab-pane fade" id="content-actividad" role="tabpanel" aria-labelledby="tab-actividad">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card border-0 shadow-sm p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-                            <h2 class="h5 fw-bold mb-0">
-                                <i class="bi bi-clock-history text-primary me-2"></i>Historial de Actividad (Últimas 15 Acciones)
-                            </h2>
-                            <button class="btn btn-outline-primary btn-sm" id="btnRecargarActividad" title="Recargar actividad">
-                                <i class="bi bi-arrow-clockwise me-1"></i>Actualizar
-                            </button>
-                        </div>
-                        
-                        <!-- Timeline Container -->
-                        <div class="timeline" id="timelineContainer">
-                            <!-- AJAX cargará el contenido dinámicamente aquí -->
-                            <div class="timeline-loader">
-                                <i class="bi bi-arrow-repeat spin"></i>
-                                <span>Cargando su historial de movimientos...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </section>
 </main>
 
-<!-- Recurso JavaScript específico para el Perfil -->
-<script src="<?= BASE_URL ?>/assets/js/perfil.js" defer></script>

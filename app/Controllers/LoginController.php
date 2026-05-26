@@ -59,7 +59,7 @@ class LoginController
                         $usuarioModel->setIdRol('ROLS25820260524110506258');
                         $usuarioModel->setUsername($_POST['username']);
                         $usuarioModel->setClave($_POST['clave']);
-                        $usuarioModel->setEstatusClave(1);
+                        $usuarioModel->setEstatusClave(0);
 
                         $registroUsuario = $usuarioModel->Transaccion(['peticion' => 'registrar']);
 
@@ -68,6 +68,7 @@ class LoginController
                             if (isset($validacion['response']['verificacion']) && $validacion['response']['verificacion']) {
                                 $datos = $usuarioModel->Transaccion(['peticion' => 'perfil']);
                                 if ($datos && isset($datos['response']['datos'])) {
+                                    
                                     $_SESSION['user'] = $datos['response']['datos'];
                                     
                                     // Set estatus_clave for the session correctly

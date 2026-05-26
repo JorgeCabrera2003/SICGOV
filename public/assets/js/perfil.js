@@ -6,7 +6,6 @@
 
 $(document).ready(function () {
     // 1. Initial State & Setup
-    cargarHistorialActividad();
     aplicarMascaraTelefono();
     inicializarValidacionesTiempoReal();
 
@@ -63,51 +62,37 @@ $(document).ready(function () {
         }
     });
 
-    // 4. Cover Banner Upload Trigger
-    $('#btnEditarPortada').on('click', function () {
-        $('#inputPortada').click();
-    });
+    // 4. Update Username Form
+    $('#formActualizarUsername').on('submit', async function (e) {
+        e.preventDefault();
+        const form = this;
+        const username = $('#username_input').val().trim();
 
-    $('#inputPortada').on('change', async function () {
-        const file = this.files[0];
-        if (!file) return;
-
-        const allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'jfif'];
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (!allowed.includes(ext)) {
-            mensajes("error", 5000, "Formato no permitido", "Por favor seleccione una imagen válida (JPG, PNG, WEBP, GIF).");
+        if (!username || username.length < 3) {
+            mensajes("error", 4000, "Campo Inválido", "El nombre de usuario debe tener al menos 3 caracteres.");
             return;
         }
 
-        if (file.size > 5 * 1024 * 1024) {
-            mensajes("error", 5000, "Archivo muy grande", "La imagen no debe superar los 5 MB de tamaño.");
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('peticion', 'subir-portada');
-        formData.append('portada', file);
-
-        mensajes("info", 2000, "Procesando", "Comprimiendo y convirtiendo portada a WebP...");
-
-        try {
-            const res = await enviaAjax(formData);
-            if (res && res.resultado === 200) {
-                const imgElem = $('#imgPortada');
-                if (imgElem.is('img')) {
-                    imgElem.attr('src', res.url);
+        const confirm = await confirmarAccion("Actualizar Usuario", "¿Desea cambiar su nombre de usuario?", "question");
+        if (confirm) {
+            $('#btnGuardarUsername').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Guardando...');
+            
+            try {
+                const data = new FormData(form);
+                const res = await enviaAjax(data);
+                
+                if (res && res.resultado === 200) {
+                    mensajes("success", 3000, "Éxito", res.mensaje);
+                    // Update username in profile header
+                    $('.profile-username span:first-child').text('@' + username);
                 } else {
-                    // It was a div gradient, replace with actual img
-                    const parent = imgElem.parent();
-                    imgElem.remove();
-                    parent.prepend(`<img src="${res.url}" alt="Foto de portada" class="profile-cover-img" id="imgPortada">`);
+                    mensajes("error", 5000, "Error", res.mensaje || "No se pudo actualizar el nombre de usuario.");
                 }
-                mensajes("success", 3000, "Éxito", "Foto de portada actualizada exitosamente.");
-            } else {
-                mensajes("error", 5000, "Error", res.mensaje || "No se pudo actualizar la foto de portada.");
+            } catch (err) {
+                mensajes("error", 5000, "Error", "Error de conexión con el servidor.");
+            } finally {
+                $('#btnGuardarUsername').prop('disabled', false).html('<i class="bi bi-save me-2"></i>Actualizar');
             }
-        } catch (err) {
-            mensajes("error", 5000, "Error", "Ocurrió un error al cargar la imagen de portada.");
         }
     });
 
@@ -294,98 +279,5 @@ $(document).ready(function () {
         }
     });
 
-    // 9. Load Activity Timeline Log
-    async function cargarHistorialActividad() {
-        const container = $('#timelineContainer');
-        
-        // Show loader before async load
-        container.html(`
-            <div class="text-center py-5 timeline-loader">
-                <div class="spinner-border text-primary mb-3" role="status">
-                    <span class="visually-hidden">Cargando...</span>
-                </div>
-                <p class="mb-0 text-muted">Obteniendo registro de bitácora...</p>
-            </div>
-        `);
-
-        try {
-            const formData = new FormData();
-            formData.append('peticion', 'obtener-actividad');
-            const res = await enviaAjax(formData);
-
-            if (res && res.resultado === 200 && res.datos && res.datos.length > 0) {
-                let html = '';
-                
-                res.datos.forEach(log => {
-                    // Detect and format action categories
-                    let actionClass = 'Modificar';
-                    const actionName = log.accion.toLowerCase();
-                    
-                    if (actionName.includes('registr') || actionName.includes('crear') || actionName.includes('insert')) {
-                        actionClass = 'Registrar';
-                    } else if (actionName.includes('elimin') || actionName.includes('borrar') || actionName.includes('desactiv')) {
-                        actionClass = 'Eliminar';
-                    } else if (actionName.includes('sesi') || actionName.includes('log') || actionName.includes('acces')) {
-                        actionClass = 'Sesion';
-                    }
-
-                    // Format date to local Venezuela representation
-                    const dateObj = new Date(log.fecha);
-                    const formattedDate = dateObj.toLocaleDateString('es-VE', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                        hour12: true
-                    });
-
-                    html += `
-                        <article class="timeline-item ${actionClass}">
-                            <div class="timeline-marker"></div>
-                            <div class="timeline-content shadow-sm">
-                                <div class="timeline-header">
-                                    <div class="timeline-title-wrap">
-                                        <h3 class="timeline-title">${log.modulo}</h3>
-                                        <span class="timeline-badge">${log.accion}</span>
-                                    </div>
-                                    <span class="timeline-date">
-                                        <i class="bi bi-clock"></i>${formattedDate}
-                                    </span>
-                                </div>
-                                <p class="timeline-detail text-muted">${log.detalle || 'Acción ejecutada en el sistema.'}</p>
-                                <div class="timeline-ip">
-                                    <i class="bi bi-laptop"></i> Dirección IP: <strong>${log.ip_address}</strong>
-                                </div>
-                            </div>
-                        </article>
-                    `;
-                });
-
-                container.html(html);
-            } else {
-                container.html(`
-                    <div class="timeline-empty py-5">
-                        <i class="bi bi-journal-x"></i>
-                        <h3 class="h6 fw-bold mb-1">Sin Actividad</h3>
-                        <p class="mb-0 text-muted">No se encontraron movimientos registrados bajo su Cédula.</p>
-                    </div>
-                `);
-            }
-        } catch (err) {
-            container.html(`
-                <div class="timeline-empty py-5 border border-danger-subtle bg-danger-subtle bg-opacity-25 rounded-3">
-                    <i class="bi bi-exclamation-triangle-fill text-danger fs-2 mb-2"></i>
-                    <h3 class="h6 fw-bold text-danger mb-1">Error de Carga</h3>
-                    <p class="mb-0 text-muted">No se pudo recuperar su historial en este momento.</p>
-                </div>
-            `);
-        }
-    }
-
-    // 10. Recargar button trigger
-    $('#btnRecargarActividad').on('click', function () {
-        cargarHistorialActividad();
-    });
+    // Timeline removed
 });

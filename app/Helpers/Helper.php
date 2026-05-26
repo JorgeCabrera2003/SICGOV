@@ -176,7 +176,7 @@ class Helper
             $stmt->execute(['cedula' => $user['cedula'] ?? '']);
             $img = $stmt->fetch();
             if ($img && !empty($img['direccion'])) {
-                $foto = BASE_URL . $img['direccion'];
+                $foto = rtrim(BASE_URL, '/') . $img['direccion'];
             }
         } catch (\Exception $e) {
             // Fail silently and use default
