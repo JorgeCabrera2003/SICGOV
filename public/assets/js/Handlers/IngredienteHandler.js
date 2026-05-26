@@ -1,6 +1,7 @@
-import * as mensajeria from "../Helpers/MensajeriaHelper.js"
+import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js"
 import * as AjaxHelper from "../Helpers/AjaxHelper.js"
-import * as ValidarHelper from "../Helpers/ValidadorHelper.js"
+import * as ValidadorHelper from "../Helpers/ValidadorHelper.js"
+import * as SelectHelper from "../Helpers/SelectHelper.js"
 
 //MODULO DE INGREDIENTES
 
@@ -15,6 +16,7 @@ function EtiquetasFormulario(etiquetas) {
     costo_unitario: $('#costo_unitario'),
     categoria_id: $('#clave_categoria'),
     unidad_medida: $('#unidad_medida'),
+    proveedor: $('#id_proveedor'),
     stock_inicial: $('#stock_inicial'),
     stock_minimo: $('#stock_minimo'),
     stock_maximo: $('#stock_maximo'),
@@ -26,17 +28,18 @@ function EtiquetasFormulario(etiquetas) {
     costo_unitario: $('#scosto_unitario'),
     categoria_id: $('#sclave_categoria'),
     unidad_medida: $('#sunidad_medida'),
+    proveedor: $('#sid_proveedor'),
     stock_inicial: $('#sstock_inicial'),
     stock_minimo: $('#sstock_minimo'),
     stock_maximo: $('#sstock_maximo'),
     id_ingrediente: $('#sid_ingrediente')
   }
 
-  if (etiquetas === "input-Ingrediente") {
+  if (etiquetas === "input") {
     referencia = inputIngrediente
   }
 
-  if (etiquetas === "span-Ingrediente") {
+  if (etiquetas === "span") {
     referencia = spanIngrediente
   }
 
@@ -108,9 +111,9 @@ function manejarCambioEstado(formularioValido) {
 
 export async function EnviarDatos(operacion) {
 
-  let input = EtiquetasFormulario('input-Ingrediente');
-  let span = EtiquetasFormulario('span-Ingrediente');
-  let modal = EtiquetasModal(modulo);
+  let input = EtiquetasFormulario('input');
+  let span = EtiquetasFormulario('span');
+  let modal = EtiquetasModal("Ingrediente");
 
   let confirmacion = false;
   let str_acccion = "";
@@ -120,13 +123,20 @@ export async function EnviarDatos(operacion) {
   let mensajeConfirmacion = "¿Está seguro de realizar esta acción?";
   let endpoint = "";
   let peticion = new FormData();
+  let json = null;
 
   //Registrar y Modificar
   if (operacion == "registrar" || operacion == "modificar") {
-
+    let bool_peticion = true;
     if (operacion == "registrar") {
       str_acccion = "registrará";
       accion = "registrar"
+      if (input.stock_inicial.val() == "" || input.stock_inicial.val() == null) {
+        MensajeriaHelper.FeedbackToltipInput(input.stock_inicial, span.stock_inicial,
+          "El Stock Inicial no puede estar vacío", 0)
+        bool_peticion = false;
+      }
+      peticion.append('stock_inicial', input.stock_inicial.val());
     }
 
     if (operacion == "modificar") {
@@ -135,7 +145,7 @@ export async function EnviarDatos(operacion) {
       peticion.append('id_ingrediente', input.id_ingrediente.val());
     }
 
-    if (validarenvio()) {
+    if (Validarenvio() && bool_peticion) {
       confirmacion = await confirmarAccion(`Se ${str_acccion} un Ingrediente`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
@@ -143,17 +153,21 @@ export async function EnviarDatos(operacion) {
         peticion.append('nombre', input.nombre.val());
         peticion.append('unidad_medida', input.unidad_medida.val());
         peticion.append('costo_unitario', input.costo_unitario.val());
+        peticion.append('stock_maximo', input.stock_maximo.val());
+        peticion.append('stock_minimo', input.stock_minimo.val());
+        peticion.append('id_categoria', input.categoria_id.val());
+        peticion.append('id_proveedor', input.proveedor.val());
         btn_formulario = true;
       }
     } else {
       btn_formulario = false;
-      mensajeria.GenerarMensaje("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.")
+      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.")
     }
   } //Fin del Registrar y Modificar
   //Eliminar
   if (operacion == "eliminar") {
 
-    if (validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_ingrediente, span.id_ingrediente, '')) {
+    if (ValidadorHelper.ValidarCampo("ID", input.id_ingrediente, span.id_ingrediente)) {
       confirmacion = await confirmarAccion("Se eliminará un Ingrediente", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
@@ -163,18 +177,17 @@ export async function EnviarDatos(operacion) {
       }
     } else {
       btn_formulario = false;
-      mensajeria.GenerarMensaje("error", 10000, "Error de Validación", "El ID del Ingrediente no es válido.");
+      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "El ID del Ingrediente no es válido.");
     }
   }//Fin del Eliminar
 
   if (btn_formulario) {
     modal.boton.prop('disabled', true);
-    json = await enviaAjax(peticion, endpoint);
+    json = await AjaxHelper.enviaAjax(peticion, endpoint);
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       modal.modal.modal("hide");
-      DataTablePrincipal();
-      mensajeria.GenerarMensaje(json.icon, 10000, json.mensaje, null);
+      MensajeriaHelper.GenerarMensaje(json.icon, 10000, json.mensaje, null);
     }
     modal.boton.prop('disabled', false);
   }
@@ -185,11 +198,13 @@ export async function EnviarDatos(operacion) {
 
   input = null;
   modal = null;
+  return json;
 }
 
 //Manejo de envio de datos desde el modal
 export async function EnviarFormulario(btn_string) {
   let accion = null;
+  let respuesta = null;
   const MANEJADOR = {
     'Nuevo': 'registrar',
     'Actualizar': 'modificar',
@@ -200,40 +215,244 @@ export async function EnviarFormulario(btn_string) {
   accion = MANEJADOR[btn_string] || DEFAULT
 
   if (accion != null) {
-    enviarDatos(accion)
+    respuesta = await EnviarDatos(accion)
   } else {
-    console.log("Error, acción no válida")
+    respuesta = { resultado: 0 }
+    MensajeriaHelper.GenerarMensaje("danger", 10000, "Error, acción no válida", "")
   }
+  return respuesta;
 };
 
 //CAPA DE VALIDACIÓN
 
 export function CapaValidar() {
   KeyPressIngrediente();
+  KeyUpIngrediente();
+  CrearSelectProveedores();
+  CrearSelectCategoria();
+  CrearSelectUnidadMedida();
+}
+
+export async function CrearSelectProveedores() {
+  let json = null;
+  let datos = new FormData();
+  let input = EtiquetasFormulario('input');
+  const endpoint = "?page=proveedores";
+  const mensaje = "Seleccione un Proveedor"
+  let arreglo = [];
+  datos.append("peticion", "consultar")
+
+  try {
+    json = await AjaxHelper.enviaAjax(datos, endpoint);
+
+    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
+      const arrayCategoria = json.datos.map(item => ({
+        nombre: item.nombre,
+        valor: item.documento_legal
+      }));
+      console.log(arrayCategoria);
+      SelectHelper.RenderizarSelect(input.proveedor, arrayCategoria, mensaje);
+    };
+
+  } catch (error) {
+    console.log(error);
+    arreglo = [];
+  }
+}
+
+export async function CrearSelectUnidadMedida() {
+  let json = null;
+  let datos = new FormData();
+  let input = EtiquetasFormulario('input');
+  const endpoint = "?page=unidad-medida";
+  const mensaje = "Seleccione una Unidad de Medida"
+  let arreglo = [];
+  datos.append("peticion", "consultar")
+
+  try {
+    json = await AjaxHelper.enviaAjax(datos, endpoint);
+
+
+    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
+      const arrayUnidad = json.datos.map(item => ({
+        nombre: item.nombre + " - " + item.abreviatura,
+        valor: item.id_unidad
+      }));
+      console.log(arrayUnidad);
+      SelectHelper.RenderizarSelect(input.unidad_medida, arrayUnidad, mensaje);
+    };
+
+  } catch (error) {
+    console.log(error);
+    arreglo = [];
+  }
+}
+
+export async function CrearSelectCategoria() {
+  let json = null;
+  let datos = new FormData();
+  let input = EtiquetasFormulario('input');
+  const endpoint = "?page=categoria-ingrediente";
+  const mensaje = "Seleccione una Categoría"
+  let arreglo = [];
+  datos.append("peticion", "consultar")
+
+  try {
+    json = await AjaxHelper.enviaAjax(datos, endpoint);
+
+
+    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
+      const arrayCategoria = json.datos.map(item => ({
+        nombre: item.nombre,
+        valor: item.id_categoria
+      }));
+      console.log(arrayCategoria);
+      SelectHelper.RenderizarSelect(input.categoria_id, arrayCategoria, mensaje);
+    };
+
+  } catch (error) {
+    console.log(error);
+    arreglo = [];
+  }
 }
 
 function KeyPressIngrediente() {
-  let input = EtiquetasFormulario("input-Ingrediente")
-  input.nombre.on("keypress", function (e) {
-    validarKeyPress(/^[0-9 a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ -.\b]*$/, e);
-  });
+  let input = EtiquetasFormulario("input");
+  let span = EtiquetasFormulario("span");
 
-  input.costo_unitario.on("keypress", function (e) {
-    validarKeyPress(/^[0-9.\b]*$/, e);
-  });
-
-  // Aplicar capitalización en tiempo real para nombre y responsable
-  input.nombre.on("input", function () {
-    // Capitalizar mientras escribe (opcional)
-    const valor = $(this).val();
-    if (valor.length === 1) {
-      $(this).val(valor.toUpperCase());
-    }
-  });
+  input.nombre.on("keypress", function (e) { ValidadorHelper.ValidarTecla("NombrePersona", e); });
+  input.stock_inicial.on("keypress", function (e) { ValidadorHelper.ValidarTecla("NumeroDecimal", e); });
+  input.stock_maximo.on("keypress", function (e) { ValidadorHelper.ValidarTecla("NumeroDecimal", e); });
+  input.stock_minimo.on("keypress", function (e) { ValidadorHelper.ValidarTecla("NumeroDecimal", e); });
 }
 
-function Validarenvio(modulo = "Ingrediente") {
-  return SistemaValidacion.validarFormulario(EtiquetasFormulario('input-' + modulo));
+function KeyUpIngrediente() {
+  let input = EtiquetasFormulario("input");
+  let span = EtiquetasFormulario("span");
+
+
+  $(input.nombre).on("keyup", function () {
+    ValidadorHelper.ValidarCampo("NombrePersona", $(this), span.nombre);
+  })
+
+  $(input.costo_unitario).on("blur", function () {
+    ValidadorHelper.FormatoNumeroDecimal($(this));
+    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.costo_unitario);
+  })
+
+  $(input.stock_inicial).on("blur", function () {
+    ValidadorHelper.FormatoNumeroDecimal($(this));
+    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_inicial);
+  })
+
+  $(input.stock_minimo).on("blur", function () {
+    ValidadorHelper.FormatoNumeroDecimal($(this));
+    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_minimo);
+  })
+
+  $(input.stock_maximo).on("blur", function () {
+    ValidadorHelper.FormatoNumeroDecimal($(this));
+    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
+  })
+
+  $(input.unidad_medida).on("change", function () {
+
+    if ($(this).val() == "default") {
+      SelectHelper.FeedbackSelect($(this), span.unidad_medida, "Debe seleccionar una Unidad de Medida", 0)
+    } else {
+      SelectHelper.FeedbackSelect($(this), span.unidad_medida, "", 1)
+    }
+
+  })
+
+  $(input.proveedor).on("change", function () {
+
+    if ($(this).val() == "default") {
+      SelectHelper.FeedbackSelect($(this), span.proveedor, "Debe selccionar un Proveedor", 0)
+    } else {
+      SelectHelper.FeedbackSelect($(this), span.proveedor, "", 1)
+    }
+
+  })
+
+  $(input.categoria_id).on("change", function () {
+    if ($(this).val() == "default") {
+      SelectHelper.FeedbackSelect($(this), span.categoria_id, "Debe seleccionar una Categoría", 0)
+    } else {
+      SelectHelper.FeedbackSelect($(this), span.categoria_id, "", 1)
+    }
+  })
+
+}
+
+function Validarenvio() {
+  let input = EtiquetasFormulario("input");
+  let span = EtiquetasFormulario("span");
+  let bool = true;
+
+  if (input.proveedor.val() == "default") {
+    SelectHelper.FeedbackSelect($(this), span.proveedor, "Debe selccionar un Tipo de Documento", 0);
+    bool = false;
+  }
+
+  if (!ValidadorHelper.ValidarCampo("NombrePersona", input.nombre, span.nombre)) {
+    bool = false;
+  }
+
+  if (!ValidadorHelper.ValidarCampo("ID", input.unidad_medida, span.unidad_medida)) {
+    bool = false;
+  }
+
+  if (!ValidadorHelper.ValidarCampo("FormatoDocumentoLegal", input.proveedor, span.proveedor)) {
+    bool = false;
+  };
+
+  if (!ValidadorHelper.ValidarCampo("ID", input.categoria_id, span.categoria_id)) {
+    bool = false;
+  };
+
+  if (input.costo_unitario.val() == '' || input.costo_unitario.val() == null) {
+    MensajeriaHelper.FeedbackToltipInput(input.costo_unitario, span.costo_unitario, "El Costo Unitario no puede estar vacío", 0)
+    bool = false;
+  }
+
+  if (input.proveedor.val() == "default") {
+    SelectHelper.FeedbackSelect(input.proveedor, span.proveedor, "Debe Seleccionar a un Proveedor", 0);
+    bool = false;
+  }
+
+  if (input.unidad_medida.val() == "default") {
+    SelectHelper.FeedbackSelect(input.unidad_medida, span.unidad_medida, "Debe Seleccionar una Unidad de Medida", 0);
+    bool = false;
+  }
+
+  if (input.categoria_id.val() == "default") {
+    SelectHelper.FeedbackSelect(input.categoria_id, span.categoria_id, "Debe Seleccionar una Categoría", 0);
+    bool = false;
+  }
+
+  if (input.stock_minimo.val() == '' || input.stock_minimo.val() == null) {
+    MensajeriaHelper.FeedbackToltipInput(input.stock_minimo, span.stock_minimo, "El Stock Mínimo no puede estar vacío", 0)
+    bool = false;
+  }
+
+  if (input.stock_maximo.val() != '') {
+    let stockMinimo = parseFloat(input.stock_minimo.val());
+    let stockMaximo = parseFloat(input.stock_maximo.val());
+    if (isNaN(stockMinimo)) stockMinimo = 0;
+    if (isNaN(stockMaximo)) stockMaximo = 0;
+
+    if (stockMinimo >= stockMaximo) {
+      MensajeriaHelper.FeedbackToltipInput(input.stock_minimo, span.stock_minimo, "El Stock Mínimo debe ser menor al Stock Máximo", 0);
+      MensajeriaHelper.FeedbackToltipInput(input.stock_maximo, span.stock_maximo, "El Stock Máximo no puede ser menor al Stock Mínimo", 0);
+      bool = false;
+    } else {
+      MensajeriaHelper.FeedbackToltipInput(input.stock_minimo, span.stock_minimo, "", 1);
+      MensajeriaHelper.FeedbackToltipInput(input.stock_maximo, span.stock_maximo, "", 1);
+    }
+  }
+
+  return bool
 }
 
 async function RenderPermisoBotones(modulo = "Ingrediente") {
@@ -281,7 +500,7 @@ function RenderConfigStock(stockMinimo, abreviatura, stockMaximo) {
   const div = $('<div>');
   let abreviaturaMax = null;
 
-  if (stockMaximo != null && !isNaN(parseFloat(valor)) && isFinite(valor)) {
+  if (stockMaximo != null && !isNaN(parseFloat(stockMaximo)) && isFinite(stockMaximo)) {
     textMax.text(stockMaximo + " " + abreviatura).addClass('text-success me-1');
     abreviaturaMax = abreviatura;
   } else {
@@ -313,7 +532,7 @@ function RenderColorearStock(stockActual, stockMinimo, stockMaximo = null, abrev
     color = "text-success";
   }
 
-  if (stockMaximo != null && !isNaN(parseFloat(valor)) && isFinite(valor)) {
+  if (stockMaximo != null && !isNaN(parseFloat(stockMaximo)) && isFinite(stockMaximo)) {
     if (stockActual == stockMaximo) {
       color = "text-success";
     }
@@ -370,10 +589,10 @@ export async function DataTablePrincipal(arreglo) {
 }
 
 export function LimpiarFormulario() {
-  SistemaValidacion.limpiarValidacion(EtiquetasFormulario('input-Ingrediente'));
+  SistemaValidacion.limpiarValidacion(EtiquetasFormulario('input'));
 
-  let input = EtiquetasFormulario('input-Ingrediente');
-  let span = EtiquetasFormulario('span-Ingrediente');
+  let input = EtiquetasFormulario('input');
+  let span = EtiquetasFormulario('span');
   let modal = EtiquetasModal('Ingrediente');
   let fila_stock_inicial = $("#fila-stock-inicial");
 
@@ -387,7 +606,7 @@ export function LimpiarFormulario() {
 
   fila_stock_inicial.removeClass("d-none");
   // Deshabilitar el botón al limpiar (se habilitará automáticamente cuando los campos sean válidos)
-  modal.boton.prop('disabled', true);
+  modal.boton.prop('disabled', false);
   input = null;
   span = null;
   modal = null;
@@ -395,7 +614,7 @@ export function LimpiarFormulario() {
 
 export async function EditarFormIngrediente(datos, accion) {
   LimpiarFormulario();
-  let input = EtiquetasFormulario("input-Ingrediente");
+  let input = EtiquetasFormulario("input");
   let bool = false;
   let modal = EtiquetasModal("Ingrediente")
   let fila_stock_inicial = $("#fila-stock-inicial");

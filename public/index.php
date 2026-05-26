@@ -35,6 +35,7 @@ use App\Controllers\ProductoController;
 use App\Controllers\CategoriaController;
 use App\Controllers\BitacoraController;
 use App\Controllers\IngredienteController;
+use App\Controllers\CategoriaIngredienteController;
 use App\Controllers\ProveedorController;
 use App\Controllers\UsuarioController;
 use App\Controllers\NoticiaController;
@@ -63,6 +64,8 @@ try {
         'menu' => (new MenuController())->index(),
         'nuestro-menu' => (new MenuController())->indexPublico(),
         'ingredientes' => (new IngredienteController())->index(),
+        'unidad-medida' => (new IngredienteController())->indexUnidadMedida(),
+        'categoria-ingrediente-module' => (new CategoriaIngredienteController())->index(),
         'areas' => (new AreasController())->index(),
         'proveedores' => (new ProveedorController())->index(),
         'mesas' => (new MesasController())->index(),
@@ -70,6 +73,7 @@ try {
         'categorias' => (new CategoriaController())->index(),
         'bitacora' => (new BitacoraController())->index(),
         'asistencia' => (new AsistenciaController())->index(),
+        'asistencia-publica' => (new AsistenciaController())->indexPublico(),
         'noticias-admin' => (new NoticiaController())->indexAdmin(),
         'noticias' => (new NoticiaController())->indexPublico(),
         'noticias-detalle' => (new NoticiaController())->detallePublico(),

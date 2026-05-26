@@ -28,34 +28,20 @@ class Ingrediente extends Database
     private $stock_minimo;
     private $stock_maximo;
     private $estatus;
-    private $categoria_ingrediente;
-    private $unidad_medida;
+    private $id_categoria_ingrediente;
+    private $id_unidad_medida;
 
     public function __construct()
     {
         $this->id = "";
         $this->nombre = "";
-        $this->unidad_medida = "";
+        $this->id_unidad_medida = "";
+        $this->stock_actual = NULL;
+        $this->stock_minimo = NULL;
+        $this->stock_maximo = NULL;
         $this->precio_unitario = 0.0;
         $this->estatus = 0;
-        $this->unidad_medida = new UnidadMedida();
-        $this->categoria_ingrediente = new CategoriaIngrediente();
-    }
-
-    private function LlamarUnidadMedida()
-    {
-        if ($this->unidad_medida == NULL) {
-            $this->unidad_medida = new UnidadMedida();
-        }
-        return $this->unidad_medida;
-    }
-
-    private function LlamarCategoriaIngrediente()
-    {
-        if ($this->categoria_ingrediente == NULL) {
-            $this->categoria_ingrediente = new CategoriaIngrediente();
-        }
-        return $this->categoria_ingrediente;
+        $this->id_categoria_ingrediente = "";
     }
 
     // Getters y Setters
@@ -73,7 +59,22 @@ class Ingrediente extends Database
 
     public function setUnidadMedida(string $unidad)
     {
-        $this->unidad_medida = $unidad;
+        $this->id_unidad_medida = $unidad;
+    }
+
+    public function setStockActual(float $stock)
+    {
+        $this->stock_actual = $stock;
+    }
+
+    public function setStockMaximo(float $stock)
+    {
+        $this->stock_maximo = $stock;
+    }
+
+    public function setStockMinimo(float $stock)
+    {
+        $this->stock_minimo = $stock;
     }
 
     public function setPrecioUnitario(float $precio)
@@ -88,12 +89,12 @@ class Ingrediente extends Database
 
     public function setIdCategoria(string $id)
     {
-        $this->LlamarCategoriaIngrediente()->setId($id);
+        $this->id_categoria_ingrediente = $id;
     }
 
     public function setIdUnidadMedida(string $id)
     {
-        $this->LlamarUnidadMedida()->setId($id);
+        $this->id_unidad_medida = $id;
     }
     //FIN SETTERS
 
@@ -110,7 +111,7 @@ class Ingrediente extends Database
 
     public function getUnidadMedida()
     {
-        return $this->unidad_medida;
+        return $this->id_unidad_medida;
     }
 
     public function getPrecioUnitario()
@@ -125,7 +126,7 @@ class Ingrediente extends Database
     //FIN GETTERS
 
     // MANEJADOR DE OPERACIONES
-    public function Transaccion($peticion)
+    public function Transaccion($peticion, )
     {
         $response = [];
         $response['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"];
@@ -186,18 +187,27 @@ class Ingrediente extends Database
         $validacion = $this->ValidarIngrediente();
         if ($validacion['bool'] == 0) {
             try {
-                $sql = "INSERT INTO ingrediente(id_ingrediente, nombre_ingrediente, unidad_medida, precio_unitario)
-                VALUES (:id_ingrediente, :nombre_ingrediente, :unidad_medida, :precio_unitario)";
+                $sql = "INSERT INTO ingrediente(id_ingrediente, id_categoria, nombre_ingrediente, 
+                id_unidad_medida, precio_unitario, stock_actual, stock_minimo, stock_maximo)
+                VALUES (:id_ingrediente, :id_categoria, :nombre_ingrediente, 
+                :id_unidad_medida, :precio_unitario, :stock_actual, :stock_minimo, :stock_maximo)";
 
+                $this->LlamarConexion();
+                $this->LlamarConexion()->beginTransaction();
                 $stm = $this->LlamarConexion()->prepare($sql);
                 $stm->bindParam(':id_ingrediente', $this->id);
+                $stm->bindParam(':id_categoria', $this->id_categoria_ingrediente);
                 $stm->bindParam(':nombre_ingrediente', $this->nombre);
-                $stm->bindParam(':unidad_medida', $this->unidad_medida);
+                $stm->bindParam(':id_unidad_medida', $this->id_unidad_medida);
+                $stm->bindParam(':stock_actual', $this->stock_actual);
+                $stm->bindParam(':stock_minimo', $this->stock_minimo);
+                $stm->bindParam(':stock_maximo', $this->stock_maximo);
                 $stm->bindParam(':precio_unitario', $this->precio_unitario);
                 $stm->execute();
+                $this->LlamarConexion()->commit();
 
                 $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Ingrediente actualizado exitosamente"];
+                $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Ingrediente registrado exitosamente"];
                 $dato['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => "OK"];
 
             } catch (\PDOException $e) {
@@ -217,13 +227,17 @@ class Ingrediente extends Database
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "UPDATE ingrediente SET nombre_ingrediente = :nombre_ingrediente, unidad_medida = :unidad_medida, 
-            precio_unitario = :precio_unitario WHERE id_ingrediente = :id_ingrediente";
+            $sql = "UPDATE ingrediente SET id_categoria = :id_categoria, nombre_ingrediente = :nombre_ingrediente,
+            id_unidad_medida = :id_unidad_medida, precio_unitario = :precio_unitario, stock_minimo = :stock_minimo,
+            stock_maximo = :stock_maximo WHERE id_ingrediente = :id_ingrediente";
 
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':id_ingrediente', $this->id);
             $stm->bindParam(':nombre_ingrediente', $this->nombre);
-            $stm->bindParam(':unidad_medida', $this->unidad_medida);
+            $stm->bindParam(':id_categoria', $this->id_categoria_ingrediente);
+            $stm->bindParam(':id_unidad_medida', $this->id_unidad_medida);
+            $stm->bindParam(':stock_minimo', $this->stock_minimo);
+            $stm->bindParam(':stock_maximo', $this->stock_maximo);
             $stm->bindParam(':precio_unitario', $this->precio_unitario);
             $stm->execute();
             $this->LlamarConexion()->commit();

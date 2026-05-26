@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Helpers\Helper;
 use App\Helpers\RegexHelper;
 use App\Models\System\CategoriaIngrediente;
+use App\Models\System\UnidadMedida;
 use App\Models\System\Ingrediente;
 use Exception;
 
@@ -41,6 +42,7 @@ class IngredienteController
 							if ($_POST["peticion"] == "registrar") {
 								$id = Helper::generarId("INGR");
 								$str_mensaje = "registró";
+								$ingredienteModel->setStockActual($_POST["stock_inicial"]);
 							}
 
 							if ($_POST["peticion"] == "modificar") {
@@ -51,7 +53,10 @@ class IngredienteController
 							$ingredienteModel->setId($id);
 							$ingredienteModel->setNombre($_POST["nombre"]);
 							$ingredienteModel->setPrecioUnitario($_POST["costo_unitario"]);
-							$ingredienteModel->setUnidadMedida($_POST["unidad_medida"]);
+							$ingredienteModel->setIdUnidadMedida($_POST["unidad_medida"]);
+							$ingredienteModel->setIdCategoria($_POST["id_categoria"]);
+							$ingredienteModel->setStockMaximo($_POST["stock_maximo"]);
+							$ingredienteModel->setStockMinimo($_POST["stock_minimo"]);
 							$json = $ingredienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
 							if ($json['estado'] == 1) {
 								$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un nuevo ingrediente con ID:" . $ingredienteModel->getId();
@@ -156,7 +161,6 @@ class IngredienteController
 
 						$categoriaIngredienteModel->setId($id);
 						$categoriaIngredienteModel->setNombre($_POST["nombre"]);
-						$categoriaIngredienteModel->setDescripcion($_POST["descripcion"]);
 						$json = $categoriaIngredienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
 						if ($json['estado'] == 1) {
 							$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un nuevo ingrediente con ID:" . $categoriaIngredienteModel->getId();
@@ -216,5 +220,35 @@ class IngredienteController
 			exit;
 		} //Fin de Operaciones
 		header("Location: ?page=home");
+	}
+
+	public function indexUnidadMedida()
+	{
+		Helper::verificarSesion();
+
+		$unidadMedidaModel = new UnidadMedida();
+		if (isset($_POST["peticion"])) {
+
+			//Entrada
+			if ($_POST["peticion"] == "entrada") {
+				$json['HTTP_STATUS'] = ['codigo' => 204, 'mensaje' => ''];
+				$json['response'] = ['resultado' => 204, 'mensaje' => 'No hay contenido'];
+			}
+
+//Consultar
+			if ($_POST["peticion"] == "consultar") {
+				$json = $unidadMedidaModel->Transaccion(['peticion' => $_POST["peticion"]]);
+			}
+
+			//Enviar respuesta al navegador usando un encabezado HTTP
+			header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
+			echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
+			exit;
+		} //Fin de Operaciones
+
+		Helper::cargarVista(
+			'ingrediente/index',
+			'Ingredientes - Good Vibes'
+		);
 	}
 }
