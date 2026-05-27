@@ -11,7 +11,7 @@ import * as SelectHelper from "../Helpers/SelectHelper.js"
 function EtiquetasFormulario(etiquetas) {
   let referencia = null
 
-  const inputIngrediente = {
+  const inputInsumo = {
     nombre: $('#nombre'),
     costo_unitario: $('#costo_unitario'),
     categoria_id: $('#clave_categoria'),
@@ -20,10 +20,10 @@ function EtiquetasFormulario(etiquetas) {
     stock_inicial: $('#stock_inicial'),
     stock_minimo: $('#stock_minimo'),
     stock_maximo: $('#stock_maximo'),
-    id_ingrediente: $('#id_ingrediente')
+    id_insumo: $('#id_insumo')
   }
 
-  const spanIngrediente = {
+  const spanInsumo = {
     nombre: $('#snombre'),
     costo_unitario: $('#scosto_unitario'),
     categoria_id: $('#sclave_categoria'),
@@ -32,15 +32,15 @@ function EtiquetasFormulario(etiquetas) {
     stock_inicial: $('#sstock_inicial'),
     stock_minimo: $('#sstock_minimo'),
     stock_maximo: $('#sstock_maximo'),
-    id_ingrediente: $('#sid_ingrediente')
+    id_insumo: $('#sid_insumo')
   }
 
   if (etiquetas === "input") {
-    referencia = inputIngrediente
+    referencia = inputInsumo
   }
 
   if (etiquetas === "span") {
-    referencia = spanIngrediente
+    referencia = spanInsumo
   }
 
   return referencia
@@ -50,14 +50,14 @@ function EtiquetasFormulario(etiquetas) {
 function EtiquetasModal(etiqueta) {
   let referencia = null
 
-  const modalIngrediente = {
-    modal: $('#modalIngrediente'),
-    titulo: $('#modalTitleTextIngrediente'),
-    boton: $('#btnIngredienteForm')
+  const modalInsumo = {
+    modal: $('#modalInsumo'),
+    titulo: $('#modalTitleTextInsumo'),
+    boton: $('#btnInsumoForm')
   }
 
-  if (etiqueta === "Ingrediente") {
-    referencia = modalIngrediente;
+  if (etiqueta === "Insumo") {
+    referencia = modalInsumo;
   }
 
   return referencia;
@@ -67,20 +67,20 @@ function EtiquetasModal(etiqueta) {
 export function EditarModal(operacion) {
   let titulo;
   let boton;
-  let etiqueta_modal = EtiquetasModal("Ingrediente");
+  let etiqueta_modal = EtiquetasModal("Insumo");
 
   if (operacion == 'registrar') {
-    titulo = "Nuevo Ingrediente";
+    titulo = "Nuevo Insumo";
     boton = "Nuevo";
   }
 
   if (operacion == 'modificar') {
-    titulo = "Actualizar Ingrediente";
+    titulo = "Actualizar Insumo";
     boton = "Actualizar";
   }
 
   if (operacion == 'eliminar') {
-    titulo = "Borrar Ingrediente";
+    titulo = "Borrar Insumo";
     boton = "Borrar";
   }
 
@@ -93,12 +93,12 @@ export function EditarModal(operacion) {
 function manejarCambioEstado(formularioValido) {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
-  let modal = EtiquetasModal("Ingrediente");
+  let modal = EtiquetasModal("Insumo");
   const accion = modal.boton.text();
 
   if (accion === "Eliminar") {
     // Para eliminar solo validamos el ID
-    const idValido = validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_ingrediente.val(), span.id_ingrediente, '');
+    const idValido = validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_insumo.val(), span.id_insumo, '');
     modal.boton.prop('disabled', !idValido);
   } else {
     // Para registrar y modificar validamos todos los campos
@@ -113,7 +113,7 @@ export async function EnviarDatos(operacion) {
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
-  let modal = EtiquetasModal("Ingrediente");
+  let modal = EtiquetasModal("Insumo");
 
   let confirmacion = false;
   let str_acccion = "";
@@ -142,11 +142,11 @@ export async function EnviarDatos(operacion) {
     if (operacion == "modificar") {
       str_acccion = "actualizará";
       accion = "modificar";
-      peticion.append('id_ingrediente', input.id_ingrediente.val());
+      peticion.append('id_insumo', input.id_insumo.val());
     }
 
     if (Validarenvio() && bool_peticion) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} un Ingrediente`, mensajeConfirmacion, "question");
+      confirmacion = await confirmarAccion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', accion);
@@ -167,17 +167,17 @@ export async function EnviarDatos(operacion) {
   //Eliminar
   if (operacion == "eliminar") {
 
-    if (ValidadorHelper.ValidarCampo("ID", input.id_ingrediente, span.id_ingrediente)) {
-      confirmacion = await confirmarAccion("Se eliminará un Ingrediente", mensajeConfirmacion, "warning");
+    if (ValidadorHelper.ValidarCampo("ID", input.id_insumo, span.id_insumo)) {
+      confirmacion = await confirmarAccion("Se eliminará un Insumo", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
-        peticion.append('id_ingrediente', input.id_ingrediente.val());
+        peticion.append('id_insumo', input.id_insumo.val());
         btn_formulario = true;
       }
     } else {
       btn_formulario = false;
-      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "El ID del Ingrediente no es válido.");
+      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "El ID del Insumo no es válido.");
     }
   }//Fin del Eliminar
 
@@ -226,8 +226,8 @@ export async function EnviarFormulario(btn_string) {
 //CAPA DE VALIDACIÓN
 
 export function CapaValidar() {
-  KeyPressIngrediente();
-  KeyUpIngrediente();
+  KeyPressInsumo();
+  KeyUpInsumo();
   CrearSelectProveedores();
   CrearSelectCategoria();
   CrearSelectUnidadMedida();
@@ -250,7 +250,6 @@ export async function CrearSelectProveedores() {
         nombre: item.nombre,
         valor: item.documento_legal
       }));
-      console.log(arrayCategoria);
       SelectHelper.RenderizarSelect(input.proveedor, arrayCategoria, mensaje);
     };
 
@@ -278,7 +277,6 @@ export async function CrearSelectUnidadMedida() {
         nombre: item.nombre + " - " + item.abreviatura,
         valor: item.id_unidad
       }));
-      console.log(arrayUnidad);
       SelectHelper.RenderizarSelect(input.unidad_medida, arrayUnidad, mensaje);
     };
 
@@ -292,7 +290,7 @@ export async function CrearSelectCategoria() {
   let json = null;
   let datos = new FormData();
   let input = EtiquetasFormulario('input');
-  const endpoint = "?page=categoria-ingrediente";
+  const endpoint = "?page=categoria-insumo";
   const mensaje = "Seleccione una Categoría"
   let arreglo = [];
   datos.append("peticion", "consultar")
@@ -306,7 +304,6 @@ export async function CrearSelectCategoria() {
         nombre: item.nombre,
         valor: item.id_categoria
       }));
-      console.log(arrayCategoria);
       SelectHelper.RenderizarSelect(input.categoria_id, arrayCategoria, mensaje);
     };
 
@@ -316,23 +313,23 @@ export async function CrearSelectCategoria() {
   }
 }
 
-function KeyPressIngrediente() {
+function KeyPressInsumo() {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
 
-  input.nombre.on("keypress", function (e) { ValidadorHelper.ValidarTecla("NombrePersona", e); });
+  input.nombre.on("keypress", function (e) { ValidadorHelper.ValidarTecla("Objeto", e); });
   input.stock_inicial.on("keypress", function (e) { ValidadorHelper.ValidarTecla("NumeroDecimal", e); });
   input.stock_maximo.on("keypress", function (e) { ValidadorHelper.ValidarTecla("NumeroDecimal", e); });
   input.stock_minimo.on("keypress", function (e) { ValidadorHelper.ValidarTecla("NumeroDecimal", e); });
 }
 
-function KeyUpIngrediente() {
+function KeyUpInsumo() {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
 
 
   $(input.nombre).on("keyup", function () {
-    ValidadorHelper.ValidarCampo("NombrePersona", $(this), span.nombre);
+    ValidadorHelper.ValidarCampo("NombreObjeto", $(this), span.nombre);
   })
 
   $(input.costo_unitario).on("blur", function () {
@@ -358,7 +355,7 @@ function KeyUpIngrediente() {
   $(input.unidad_medida).on("change", function () {
 
     if ($(this).val() == "default") {
-      SelectHelper.FeedbackSelect($(this), span.unidad_medida, "Debe seleccionar una Unidad de Medida", 0)
+      SelectHelper.FeedbackSelect($(this), span.unidad_medida, "Debe seleccionar a una Unidad de Medida", 0)
     } else {
       SelectHelper.FeedbackSelect($(this), span.unidad_medida, "", 1)
     }
@@ -368,7 +365,7 @@ function KeyUpIngrediente() {
   $(input.proveedor).on("change", function () {
 
     if ($(this).val() == "default") {
-      SelectHelper.FeedbackSelect($(this), span.proveedor, "Debe selccionar un Proveedor", 0)
+      SelectHelper.FeedbackSelect($(this), span.proveedor, "Debe seleccionar a un Proveedor", 0)
     } else {
       SelectHelper.FeedbackSelect($(this), span.proveedor, "", 1)
     }
@@ -377,7 +374,7 @@ function KeyUpIngrediente() {
 
   $(input.categoria_id).on("change", function () {
     if ($(this).val() == "default") {
-      SelectHelper.FeedbackSelect($(this), span.categoria_id, "Debe seleccionar una Categoría", 0)
+      SelectHelper.FeedbackSelect($(this), span.categoria_id, "Debe seleccionar a una Categoría", 0)
     } else {
       SelectHelper.FeedbackSelect($(this), span.categoria_id, "", 1)
     }
@@ -395,7 +392,7 @@ function Validarenvio() {
     bool = false;
   }
 
-  if (!ValidadorHelper.ValidarCampo("NombrePersona", input.nombre, span.nombre)) {
+  if (!ValidadorHelper.ValidarCampo("NombreObjeto", input.nombre, span.nombre)) {
     bool = false;
   }
 
@@ -455,7 +452,7 @@ function Validarenvio() {
   return bool
 }
 
-async function RenderPermisoBotones(modulo = "Ingrediente") {
+async function RenderPermisoBotones(modulo = "Insumo") {
 
   const dropdown = $('<div>').addClass('dropdown');
   const boton = $('<button>').addClass('btn btn-sm btn-light border dropdown-toggle')
@@ -547,15 +544,15 @@ export async function DataTablePrincipal(arreglo) {
   let botones = '';
   botones = await RenderPermisoBotones();
 
-  if ($.fn.DataTable.isDataTable('#tablaIngrediente')) {
-    $('#tablaIngrediente').DataTable().destroy();
+  if ($.fn.DataTable.isDataTable('#tablaInsumo')) {
+    $('#tablaInsumo').DataTable().destroy();
   }
 
-  $('#tablaIngrediente').DataTable({
+  $('#tablaInsumo').DataTable({
     processing: true,
     data: arreglo,
     columns: [
-      { data: 'nombre_ingrediente' },
+      { data: 'nombre_insumo' },
       { data: 'nombre_categoria' },
       {
         data: null,
@@ -593,10 +590,10 @@ export function LimpiarFormulario() {
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
-  let modal = EtiquetasModal('Ingrediente');
+  let modal = EtiquetasModal('Insumo');
   let fila_stock_inicial = $("#fila-stock-inicial");
 
-  input.id_ingrediente.val("").prop("disabled", true);
+  input.id_insumo.val("").prop("disabled", true);
   input.nombre.val("").prop("disabled", false);
   input.costo_unitario.val("").prop("disabled", false);
   input.unidad_medida.prop("disabled", false);
@@ -612,17 +609,17 @@ export function LimpiarFormulario() {
   modal = null;
 }
 
-export async function EditarFormIngrediente(datos, accion) {
+export async function EditarFormInsumo(datos, accion) {
   LimpiarFormulario();
   let input = EtiquetasFormulario("input");
   let bool = false;
-  let modal = EtiquetasModal("Ingrediente")
+  let modal = EtiquetasModal("Insumo")
   let fila_stock_inicial = $("#fila-stock-inicial");
 
   if (accion == "eliminar") { bool = true; }
 
-  input.id_ingrediente.val(datos.id_ingrediente).prop("disabled", true);
-  input.nombre.val(datos.nombre_ingrediente).prop("disabled", bool);
+  input.id_insumo.val(datos.id_insumo).prop("disabled", true);
+  input.nombre.val(datos.nombre_insumo).prop("disabled", bool);
   input.costo_unitario.val(datos.precio_unitario).prop("disabled", bool);
   input.unidad_medida.prop("disabled", bool);
   input.stock_inicial.val(datos.stock_actual).prop("disabled", true);

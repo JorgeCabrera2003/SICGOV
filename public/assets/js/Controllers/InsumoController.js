@@ -1,4 +1,4 @@
-import * as ingrediente from "../Handlers/IngredienteHandler.js"
+import * as insumo from "../Handlers/InsumoHandler.js"
 import * as categoriaIngrediente from "../Handlers/CategoriaIngredienteHandler.js"
 import * as AjaxHelper from "../Helpers/AjaxHelper.js"
 
@@ -15,24 +15,24 @@ $(document).ready(function () {
 //EVENTOS CLICK DE LOS BOTONES DE LA INTERFAZ
 $("#btnIngredienteForm").on("click", async function () {
   let respuesta = null;
-  respuesta = await ingrediente.EnviarFormulario($(this).text());
+  respuesta = await insumo.EnviarFormulario($(this).text());
 
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
-    await crearDataTable("ingredientes");
+    await crearDataTable("insumos");
   };
 });
 
-$("#btnNuevoIngrediente").on("click", function () {
-  ingrediente.LimpiarFormulario();
-  ingrediente.EditarModal("registrar");
+$("#btnNuevoInsumo").on("click", function () {
+  insumo.LimpiarFormulario();
+  insumo.EditarModal("registrar");
 });
 
 $("#btn-ModalCategorias").on("click", async function () {
-  await crearDataTable("categoria-ingrediente");
+  await crearDataTable("categoria-insumo");
   categoriaIngrediente.MostrarModalTabla();
 })
 
-//Iniciar Modal Formulario de Categoría de Ingrediente
+//Iniciar Modal Formulario de Categoría de Insumo
 $("#btnNuevaCategoria").on("click", function () {
   categoriaIngrediente.FormNuevaCategoria();
 })
@@ -47,19 +47,19 @@ $("#btn-CategoriaForm").on("click", async function () {
   console.log(respuesta);
 
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
-    await crearDataTable("categoria-ingrediente");
+    await crearDataTable("categoria-insumo");
     categoriaIngrediente.MostrarModalTabla();
   };
 })
 //CAPA DE VALIDACIÓN
 
 function iniciarValidaciones() {
-  ingrediente.CapaValidar();
+  insumo.CapaValidar();
   categoriaIngrediente.KeyPressCategoria();
   categoriaIngrediente.KeyUpCategoria();
 }
 
-async function crearDataTable(controlador = "ingredientes") {
+async function crearDataTable(controlador = "insumos") {
   const peticion = new FormData();
   let json = null;
   let arreglo = [];
@@ -75,11 +75,11 @@ async function crearDataTable(controlador = "ingredientes") {
 
   if (Array.isArray(arreglo)) {
     console.log("arreglo");
-    if (controlador === "ingredientes") {
-      ingrediente.DataTablePrincipal(arreglo);
+    if (controlador === "insumos") {
+      insumo.DataTablePrincipal(arreglo);
     }
 
-    if (controlador === "categoria-ingrediente") {
+    if (controlador === "categoria-insumo") {
       categoriaIngrediente.DataTableCategoria(arreglo);
     }
   } else {
@@ -87,7 +87,7 @@ async function crearDataTable(controlador = "ingredientes") {
   }
 }
 
-async function rellenar(pos, accion, modulo = "Ingrediente") {
+async function rellenar(pos, accion, modulo = "Insumo") {
   let str_accion = "";
   const linea = $(pos).closest('tr');
   const tabla = $('#tabla' + modulo).DataTable();
@@ -102,8 +102,8 @@ async function rellenar(pos, accion, modulo = "Ingrediente") {
     str_accion = "eliminar";
   }
 
-  if (modulo == "Ingrediente") {
-    await ingrediente.EditarFormIngrediente(datosFila, str_accion)
+  if (modulo == "Insumo") {
+    await insumo.EditarFormInsumo(datosFila, str_accion)
   }
 
   if (modulo == "Categoria") {
