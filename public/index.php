@@ -35,7 +35,7 @@ use App\Controllers\ProductoController;
 use App\Controllers\CategoriaController;
 use App\Controllers\BitacoraController;
 use App\Controllers\InsumoController;
-use App\Controllers\CategoriaIngredienteController;
+use App\Controllers\CategoriaInsumoController;
 use App\Controllers\ProveedorController;
 use App\Controllers\UsuarioController;
 use App\Controllers\NoticiaController;
@@ -65,7 +65,7 @@ try {
         'nuestro-menu' => (new MenuController())->indexPublico(),
         'insumos' => (new InsumoController())->index(),
         'unidad-medida' => (new InsumoController())->indexUnidadMedida(),
-        'categoria-ingrediente-module' => (new CategoriaIngredienteController())->index(),
+        'categoria-insumo-module' => (new CategoriaInsumoController())->index(),
         'areas' => (new AreasController())->index(),
         'proveedores' => (new ProveedorController())->index(),
         'mesas' => (new MesasController())->index(),

@@ -117,15 +117,15 @@
                     <span class="flex-grow-1">Menú y Recetas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['categorias', 'insumos', 'menu']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo in_array($page, ['categorias', 'categoria-insumo-module', 'insumos', 'menu']) ? 'show' : ''; ?>"
                     id="cocina-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
                         <a href="?page=categorias"
                             class="nav-link <?php echo ($page == 'categorias') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-tags me-2"></i>Categorías del Menú
                         </a>
-                        <a href="?page=categoria-ingrediente-module"
-                            class="nav-link <?php echo ($page == 'categoria-ingrediente-module') ? 'active' : ''; ?> py-1">
+                        <a href="?page=categoria-insumo-module"
+                            class="nav-link <?php echo ($page == 'categoria-insumo-module') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-tags me-2"></i>Categorías de Insumos
                         </a>
                         <a href="?page=insumos"

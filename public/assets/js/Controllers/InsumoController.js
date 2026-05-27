@@ -1,5 +1,5 @@
 import * as insumo from "../Handlers/InsumoHandler.js"
-import * as categoriaIngrediente from "../Handlers/CategoriaIngredienteHandler.js"
+import * as categoriaInsumo from "../Handlers/CategoriaInsumoHandler.js"
 import * as AjaxHelper from "../Helpers/AjaxHelper.js"
 
 //MODULO DE INGREDIENTES
@@ -29,34 +29,34 @@ $("#btnNuevoInsumo").on("click", function () {
 
 $("#btn-ModalCategorias").on("click", async function () {
   await crearDataTable("categoria-insumo");
-  categoriaIngrediente.MostrarModalTabla();
+  categoriaInsumo.MostrarModalTabla();
 })
 
 //Iniciar Modal Formulario de Categoría de Insumo
 $("#btnNuevaCategoria").on("click", function () {
-  categoriaIngrediente.FormNuevaCategoria();
+  categoriaInsumo.FormNuevaCategoria();
 })
 
 $("#btn-CategoriaCancel").on("click", function () {
-  categoriaIngrediente.CancelarFormulario();
+  categoriaInsumo.CancelarFormulario();
 })
 
 $("#btn-CategoriaForm").on("click", async function () {
   let respuesta = null;
-  respuesta = await categoriaIngrediente.EnviarFormulario($(this));
+  respuesta = await categoriaInsumo.EnviarFormulario($(this));
   console.log(respuesta);
 
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
     await crearDataTable("categoria-insumo");
-    categoriaIngrediente.MostrarModalTabla();
+    categoriaInsumo.MostrarModalTabla();
   };
 })
 //CAPA DE VALIDACIÓN
 
 function iniciarValidaciones() {
   insumo.CapaValidar();
-  categoriaIngrediente.KeyPressCategoria();
-  categoriaIngrediente.KeyUpCategoria();
+  categoriaInsumo.KeyPressCategoria();
+  categoriaInsumo.KeyUpCategoria();
 }
 
 async function crearDataTable(controlador = "insumos") {
@@ -80,7 +80,7 @@ async function crearDataTable(controlador = "insumos") {
     }
 
     if (controlador === "categoria-insumo") {
-      categoriaIngrediente.DataTableCategoria(arreglo);
+      categoriaInsumo.DataTableCategoria(arreglo);
     }
   } else {
     console.log("falso");
@@ -93,7 +93,6 @@ async function rellenar(pos, accion, modulo = "Insumo") {
   const tabla = $('#tabla' + modulo).DataTable();
   const datosFila = tabla.row(linea).data();
 
-  console.log(datosFila);
   if (accion == 0) {
     str_accion = "modificar";
   }
@@ -107,18 +106,15 @@ async function rellenar(pos, accion, modulo = "Insumo") {
   }
 
   if (modulo == "Categoria") {
-    await categoriaIngrediente.EditarFormCategoria(datosFila, str_accion)
+    await categoriaInsumo.EditarFormCategoria(datosFila, str_accion)
   }
   // Habilitar el botón inmediatamente para Modificar/Eliminar ya que los datos vienen pre-validados
 }
 
 $(document).on('click', '.btn-editar', function () {
-  console.log($(this));
-  console.log($(this).attr("data-modulo"));
   rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
 })
 
 $(document).on('click', '.btn-eliminar', function () {
-  console.log($(this));
   rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
 })

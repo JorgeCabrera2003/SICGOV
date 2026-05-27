@@ -19,7 +19,7 @@ use App\Helpers\RegexHelper;
 use Exception;
 use PDO;
 
-class CategoriaIngrediente extends Database
+class CategoriaInsumo extends Database
 {
     private $id;
     private $nombre;
@@ -53,14 +53,6 @@ class CategoriaIngrediente extends Database
         $this->nombre = $nombre;
     }
 
-    public function setDescripcion(string $descripcion)
-    {
-        if (RegexHelper::ValidarFormatos($descripcion, 'ObjetoLargo') == 0) {
-            throw new Exception("La Descripción de la Categoría no cumple con el formato permitido");
-        }
-        $this->descripcion = $descripcion;
-    }
-
     public function setEstatus(int $estatus)
     {
         if ($estatus != 0 && $estatus != 1) {
@@ -82,10 +74,6 @@ class CategoriaIngrediente extends Database
         return $this->nombre;
     }
 
-    public function getDescripcion()
-    {
-        return $this->descripcion;
-    }
     public function getEstatus()
     {
         return $this->estatus;
@@ -101,11 +89,11 @@ class CategoriaIngrediente extends Database
 
         if (isset($peticion['peticion'])) {
             $response = match ($peticion['peticion']) {
-                'registrar' => $this->RegistrarCategoriaIngrediente(),
-                'consultar' => $this->ConsultarCategoriaIngrediente(),
-                'actualizar', 'modificar' => $this->ModificarCategoriaIngrediente(),
-                'eliminar' => $this->EliminarCategoriaIngrediente(),
-                'validar' => $this->ValidarCategoriaIngrediente(),
+                'registrar' => $this->RegistrarCategoriaInsumo(),
+                'consultar' => $this->ConsultarCategoriaInsumo(),
+                'actualizar', 'modificar' => $this->ModificarCategoriaInsumo(),
+                'eliminar' => $this->EliminarCategoriaInsumo(),
+                'validar' => $this->ValidarCategoriaInsumo(),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
@@ -117,14 +105,14 @@ class CategoriaIngrediente extends Database
     //FIN DE MANEJADOR DE OPERACIONES
 
     //OPERACIONES A BASE DE DATOS
-    private function ConsultarCategoriaIngrediente()
+    private function ConsultarCategoriaInsumo()
     {
         $dato = [];
         $arreglo = [];
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM categoria_ingrediente WHERE estatus = 1";
+            $sql = "SELECT * FROM categoria_insumo WHERE estatus = 1";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute();
             if ($stm->rowCount() > 0) {
@@ -147,20 +135,19 @@ class CategoriaIngrediente extends Database
         return $dato;
     }
 
-    private function RegistrarCategoriaIngrediente()
+    private function RegistrarCategoriaInsumo()
     {
         $dato = [];
         $validacion = [];
-        $validacion = $this->ValidarCategoriaIngrediente();
+        $validacion = $this->ValidarCategoriaInsumo();
         if ($validacion['bool'] == 0) {
             try {
-                $sql = "INSERT INTO categoria_ingrediente(id_categoria, nombre, descripcion) VALUES 
-                (:id_categoria, :nombre, :descripcion)";
+                $sql = "INSERT INTO categoria_insumo(id_categoria, nombre) VALUES 
+                (:id_categoria, :nombre)";
 
                 $stm = $this->LlamarConexion()->prepare($sql);
                 $stm->bindParam(':id_categoria', $this->id);
                 $stm->bindParam(':nombre', $this->nombre);
-                $stm->bindParam(':descripcion', $this->descripcion);
                 $stm->execute();
 
                 $dato['estado'] = 1;
@@ -179,18 +166,16 @@ class CategoriaIngrediente extends Database
         return $dato;
     }
 
-    private function ModificarCategoriaIngrediente()
+    private function ModificarCategoriaInsumo()
     {
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "UPDATE categoria_ingrediente SET nombre = :nombre, descripcion = :descripcion 
-            WHERE id_categoria = :id_categoria";
+            $sql = "UPDATE categoria_insumo SET nombre = :nombre WHERE id_categoria = :id_categoria";
 
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':id_categoria', $this->id);
             $stm->bindParam(':nombre', $this->nombre);
-            $stm->bindParam(':descripcion', $this->descripcion);
             $stm->execute();
             $this->LlamarConexion()->commit();
             $stm = NULL;
@@ -210,16 +195,16 @@ class CategoriaIngrediente extends Database
         return $dato;
     }
 
-    private function EliminarCategoriaIngrediente()
+    private function EliminarCategoriaInsumo()
     {
         $dato = [];
-        $validacion = $this->ValidarCategoriaIngrediente();
+        $validacion = $this->ValidarCategoriaInsumo();
 
         if ($validacion['bool'] == 1) {
             try {
                 $this->LlamarConexion();
                 $this->LlamarConexion()->beginTransaction();
-                $sql = "UPDATE categoria_ingrediente SET estatus = 0 WHERE id_categoria = :id_categoria";
+                $sql = "UPDATE categoria_insumo SET estatus = 0 WHERE id_categoria = :id_categoria";
                 $stm = $this->LlamarConexion()->prepare($sql);
                 $stm->bindParam(':id_categoria', $this->id);
                 $stm->execute();
@@ -244,14 +229,14 @@ class CategoriaIngrediente extends Database
         return $dato;
     }
 
-    private function ValidarCategoriaIngrediente()
+    private function ValidarCategoriaInsumo()
     {
         $dato = [];
         $arreglo = [];
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM categoria_ingrediente WHERE id_categoria = :id_categoria";
+            $sql = "SELECT * FROM categoria_insumo WHERE id_categoria = :id_categoria";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':id_categoria', $this->id);
             $stm->execute();
