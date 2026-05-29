@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Helpers\Helper;
 use App\Helpers\RegexHelper;
 use App\Models\Security\Noticia;
+use App\Helpers\NotificacionHelper;
 
 class NoticiaController
 {
@@ -39,6 +40,7 @@ class NoticiaController
 						$id = ($_POST["peticion"] == "registrar") ? Helper::generarId("NOTC") : ($_POST["id_noticia"] ?? "");
 						
 						$noticiaModel->setId($id);
+						$id = $noticiaModel->getId(); // Obtener el ID final (truncado si aplica) para consistencia en BD y Auditoría
 						$noticiaModel->setCedula($_SESSION['user']['cedula'] ?? $_SESSION['user']['id_usuario'] ?? ""); 
 						$noticiaModel->setTitulo($_POST["titulo"] ?? "");
 						$noticiaModel->setSubtitulo($_POST["subtitulo"] ?? "");
@@ -102,6 +104,13 @@ class NoticiaController
 							];
 
 							Helper::Bitacora($accion_bitacora, 'NOTICIAS', $detalle_bitacora, $datos_anteriores, $datos_nuevos);
+
+							// --- NOTIFICACIONES: Enviar alerta general si es una nueva publicación ---
+							if ($_POST["peticion"] == "registrar") {
+								$tituloNotif = "Nueva Publicación";
+								$mensajeNotif = "Se ha publicado una nueva noticia: " . ($_POST['titulo'] ?? "");
+								NotificacionHelper::notificarATodos('INFO', $mensajeNotif, $tituloNotif);
+							}
 						}
 					} catch (\Exception $e) {
 						$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Error de validación'];

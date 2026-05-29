@@ -47,7 +47,14 @@ class Papelera extends Database
             'pk' => 'id_categoria',
             'label' => 'nombre',
             'db' => 'business'
+        ],
+        'MESAS' => [
+            'tabla' => 'mesa',
+            'pk' => 'id_mesa',
+            'label' => 'CONCAT("Mesa #", numero_mesa)',
+            'db' => 'business'
         ]
+
     ];
 
     public function Transaccion($peticion)
