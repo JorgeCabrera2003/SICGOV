@@ -1,26 +1,26 @@
 <!-- ==========================================
-    MODAL DE INGREDIENTE - Reutilizable
+    MODAL DE INSUMO - Reutilizable
     ========================================== -->
 
-<div class="modal fade" id="modalIngrediente" tabindex="-1" aria-labelledby="modalIngredienteLabel" aria-hidden="true">
+<div class="modal fade" id="modalInsumo" tabindex="-1" aria-labelledby="modalInsumoLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered ">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-warning-subtle border-bottom-0">
-                <h5 class="modal-title fw-bold" id="modalIngredienteLabel">
+                <h5 class="modal-title fw-bold" id="modalInsumoLabel">
                     <i class="fas fa-box text-warning me-2"></i>
-                    <span id="modalTitleTextIngrediente"></span>
+                    <span id="modalTitleTextInsumo"></span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
 
-            <form id="formIngrediente" enctype="multipart/form-data">
+            <form id="formInsumo" enctype="multipart/form-data">
                 <div class="modal-body">
 
                     <!-- Fila: ID -->
                     <div class="row g-3 mb-3 justify-content-center d-none">
                         <div class="col-md-6 position-relative">
-                            <input type="hidden" name="id_ingrediente" id="id_ingrediente">
-                            <span class="form-label" id="sid_ingrediente"></span>
+                            <input type="hidden" name="id_insumo" id="id_insumo">
+                            <span class="form-label" id="sid_insumo"></span>
                         </div>
                     </div>
 
@@ -28,7 +28,7 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6 position-relative">
                             <label for="nombre" class="form-label fw-semibold">
-                                Nombre del Ingrediente <span class="text-danger">*</span>
+                                Nombre del Insumo <span class="text-danger">*</span>
                             </label>
                                 <input type="text" class="form-control" id="nombre" name="nombre" maxlength="100"
                                     required>
@@ -48,7 +48,7 @@
                     <div class="row g-3 mb-3 justify-content-center">
                         <div class="col-md-6 position-relative">
                             <label for="clave_categoria" class="form-label fw-semibold">
-                                Categoría del Ingrediente <span class="text-danger">*</span>
+                                Categoría del Insumo <span class="text-danger">*</span>
                             </label>
                             <select class="form-select" id="clave_categoria" name="clave_categoria">
                                 <!--Contenido Dinámico -->
@@ -111,7 +111,7 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         Cancelar
                     </button>
-                    <button type="button" class="btn btn-warning text-dark fw-semibold" id="btnIngredienteForm">
+                    <button type="button" class="btn btn-warning text-dark fw-semibold" id="btnInsumoForm">
 
                     </button>
                 </div>

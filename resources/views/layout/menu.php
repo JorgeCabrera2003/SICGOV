@@ -111,26 +111,26 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Cocina e Inventario</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['categorias', 'ingredientes', 'menu']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['categorias', 'insumos', 'menu']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#cocina-submenu" role="button">
                     <i class="bi bi-egg-fried fs-5"></i>
                     <span class="flex-grow-1">Menú y Recetas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['categorias', 'ingredientes', 'menu']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo in_array($page, ['categorias', 'categoria-insumo-module', 'insumos', 'menu']) ? 'show' : ''; ?>"
                     id="cocina-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
                         <a href="?page=categorias"
                             class="nav-link <?php echo ($page == 'categorias') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-tags me-2"></i>Categorías del Menú
                         </a>
-                        <a href="?page=categoria-ingrediente-module"
-                            class="nav-link <?php echo ($page == 'categoria-ingrediente-module') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-tags me-2"></i>Categorías de Ingredientes
+                        <a href="?page=categoria-insumo-module"
+                            class="nav-link <?php echo ($page == 'categoria-insumo-module') ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-tags me-2"></i>Categorías de Insumos
                         </a>
-                        <a href="?page=ingredientes"
-                            class="nav-link <?php echo ($page == 'ingredientes') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-droplet me-2"></i>Ingredientes
+                        <a href="?page=insumos"
+                            class="nav-link <?php echo ($page == 'insumos') ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-droplet me-2"></i>Insumos
                         </a>
                         <a href="?page=menu" class="nav-link <?php echo ($page == 'menu') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-journal-text me-2"></i>Carta / Menú

@@ -4,18 +4,18 @@ namespace App\Controllers;
 
 use App\Helpers\Helper;
 use App\Helpers\RegexHelper;
-use App\Models\System\CategoriaIngrediente;
+use App\Models\System\CategoriaInsumo;
 use App\Models\System\UnidadMedida;
-use App\Models\System\Ingrediente;
+use App\Models\System\Insumo;
 use Exception;
 
-class IngredienteController
+class InsumoController
 {
 	public function index()
 	{
 		Helper::verificarSesion();
 
-		$ingredienteModel = new Ingrediente();
+		$insumoModel = new Insumo();
 		if (isset($_POST["peticion"])) {
 
 			//Entrada
@@ -29,41 +29,39 @@ class IngredienteController
 				$accion_permiso = true;
 				//Validaciones
 				if ($accion_permiso) {
-					$bool_formulario = true;
 					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 					$msg = "(" . $_SESSION['user']['cedula'] . "), envió solicitud no válida";
 
 					try {
-						if ($bool_formulario) {
-							$id = NULL;
-							$str_mensaje = NULL;
-							//Si la petición es registrar, se generarà un ID, 
-							//en caso contrario (Modificar) solo se tomará el ID enviada por el formulario
-							if ($_POST["peticion"] == "registrar") {
-								$id = Helper::generarId("INGR");
-								$str_mensaje = "registró";
-								$ingredienteModel->setStockActual($_POST["stock_inicial"]);
-							}
-
-							if ($_POST["peticion"] == "modificar") {
-								$id = $_POST["id_ingrediente"];
-								$str_mensaje = "modificó";
-							}
-
-							$ingredienteModel->setId($id);
-							$ingredienteModel->setNombre($_POST["nombre"]);
-							$ingredienteModel->setPrecioUnitario($_POST["costo_unitario"]);
-							$ingredienteModel->setIdUnidadMedida($_POST["unidad_medida"]);
-							$ingredienteModel->setIdCategoria($_POST["id_categoria"]);
-							$ingredienteModel->setStockMaximo($_POST["stock_maximo"]);
-							$ingredienteModel->setStockMinimo($_POST["stock_minimo"]);
-							$json = $ingredienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
-							if ($json['estado'] == 1) {
-								$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un nuevo ingrediente con ID:" . $ingredienteModel->getId();
-							} else {
-								$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un ingrediente";
-							}
+						$id = NULL;
+						$str_mensaje = NULL;
+						//Si la petición es registrar, se generarà un ID, 
+						//en caso contrario (Modificar) solo se tomará el ID enviada por el formulario
+						if ($_POST["peticion"] == "registrar") {
+							$id = Helper::generarId("INGR");
+							$str_mensaje = "registró";
+							$insumoModel->setStockActual($_POST["stock_inicial"]);
 						}
+
+						if ($_POST["peticion"] == "modificar") {
+							$id = $_POST["id_insumo"];
+							$str_mensaje = "modificó";
+						}
+
+						$insumoModel->setId($id);
+						$insumoModel->setNombre($_POST["nombre"]);
+						$insumoModel->setPrecioUnitario($_POST["costo_unitario"]);
+						$insumoModel->setIdUnidadMedida($_POST["unidad_medida"]);
+						$insumoModel->setIdCategoria($_POST["id_categoria"]);
+						$insumoModel->setStockMaximo($_POST["stock_maximo"]);
+						$insumoModel->setStockMinimo($_POST["stock_minimo"]);
+						$json = $insumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
+						if ($json['estado'] == 1) {
+							$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un nuevo ingrediente con ID:" . $insumoModel->getId();
+						} else {
+							$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un ingrediente";
+						}
+
 					} catch (Exception $exception) {
 						$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 						$json['response'] = ['resultado' => 400, 'mensaje' => $exception->getMessage()];
@@ -77,38 +75,37 @@ class IngredienteController
 			//Fin del Registrar o Modificar
 //Consultar
 			if ($_POST["peticion"] == "consultar") {
-				$json = $ingredienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
+				$json = $insumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 			}
 			//Fin del Consultar 
 //Eliminar
 			if ($_POST["peticion"] == "eliminar") {
 				$accion_permiso = true;
 
-				if ($accion_permiso) {
-					$bool_formulario = true;
-					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
-					$msg = "(" . $_SESSION['user']['cedula'] . "), envió solicitud no válida";
-					//Validar ID del formulario
-					if (!isset($_POST["id_ingrediente"]) || RegexHelper::ValidarFormatos($_POST["id_ingrediente"], 'ID') == 0) {
-						$json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Id no válido'];
-						$bool_formulario = false;
-					}
-					//Fin de la Validación
-					if ($bool_formulario) {
-						$ingredienteModel->setId($_POST["id_ingrediente"]);
-						$json = $ingredienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
+				try {
+					if ($accion_permiso) {
+						$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+						$msg = "(" . $_SESSION['user']['cedula'] . "), envió solicitud no válida";
+
+						$insumoModel->setId($_POST["id_ingrediente"]);
+						$json = $insumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 
 						if ($json['estado'] == 1) {
 							$msg = "(" . $_SESSION['user']['cedula'] . "), Se eliminó un ingrediente con el id:" . $_POST["id_ingrediente"];
 						} else {
 							$msg = "(" . $_SESSION['user']['cedula'] . "), error al eliminar un ingrediente";
 						}
+
+					} else {
+						$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
+						$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a un insumo'];
+						$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
 					}
-				} else {
-					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
-					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a un ente'];
-					$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
+				} catch (Exception $exception) {
+					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+					$json['response'] = ['resultado' => 400, 'mensaje' => $exception->getMessage()];
 				}
+
 			}
 			//Fin del Eliminar
 
@@ -119,8 +116,8 @@ class IngredienteController
 		} //Fin de Operaciones
 
 		Helper::cargarVista(
-			'ingrediente/index',
-			'Ingredientes - Good Vibes'
+			'insumo/index',
+			'Insumos - Good Vibes'
 		);
 	}
 
@@ -129,7 +126,7 @@ class IngredienteController
 
 		Helper::verificarSesion();
 
-		$categoriaIngredienteModel = new CategoriaIngrediente();
+		$categoriaInsumoModel = new CategoriaInsumo();
 		if (isset($_POST["peticion"])) {
 
 			//Entrada
@@ -159,11 +156,11 @@ class IngredienteController
 							$str_mensaje = "modificó";
 						}
 
-						$categoriaIngredienteModel->setId($id);
-						$categoriaIngredienteModel->setNombre($_POST["nombre"]);
-						$json = $categoriaIngredienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
+						$categoriaInsumoModel->setId($id);
+						$categoriaInsumoModel->setNombre($_POST["nombre"]);
+						$json = $categoriaInsumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 						if ($json['estado'] == 1) {
-							$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un nuevo ingrediente con ID:" . $categoriaIngredienteModel->getId();
+							$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un nuevo ingrediente con ID:" . $categoriaInsumoModel->getId();
 						} else {
 							$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un ingrediente";
 						}
@@ -181,7 +178,7 @@ class IngredienteController
 			//Fin del Registrar o Modificar
 //Consultar
 			if ($_POST["peticion"] == "consultar") {
-				$json = $categoriaIngredienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
+				$json = $categoriaInsumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 			}
 			//Fin del Consultar 
 //Eliminar
@@ -193,8 +190,8 @@ class IngredienteController
 					$msg = "(" . $_SESSION['user']['cedula'] . "), envió solicitud no válida";
 
 					try {
-						$categoriaIngredienteModel->setId($_POST["id_categoria"]);
-						$json = $categoriaIngredienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
+						$categoriaInsumoModel->setId($_POST["id_categoria"]);
+						$json = $categoriaInsumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 						if ($json['estado'] == 1) {
 							$msg = "Se eliminó una categoría de ingrediente con el ID: " . $_POST["id_categoria"];
 						} else {
@@ -235,7 +232,7 @@ class IngredienteController
 				$json['response'] = ['resultado' => 204, 'mensaje' => 'No hay contenido'];
 			}
 
-//Consultar
+			//Consultar
 			if ($_POST["peticion"] == "consultar") {
 				$json = $unidadMedidaModel->Transaccion(['peticion' => $_POST["peticion"]]);
 			}
@@ -248,7 +245,7 @@ class IngredienteController
 
 		Helper::cargarVista(
 			'ingrediente/index',
-			'Ingredientes - Good Vibes'
+			'Insumos - Good Vibes'
 		);
 	}
 }

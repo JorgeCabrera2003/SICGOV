@@ -34,8 +34,8 @@ use App\Controllers\MenuController;
 use App\Controllers\ProductoController;
 use App\Controllers\CategoriaController;
 use App\Controllers\BitacoraController;
-use App\Controllers\IngredienteController;
-use App\Controllers\CategoriaIngredienteController;
+use App\Controllers\InsumoController;
+use App\Controllers\CategoriaInsumoController;
 use App\Controllers\ProveedorController;
 use App\Controllers\UsuarioController;
 use App\Controllers\NoticiaController;
@@ -63,13 +63,13 @@ try {
         'productos' => (new ProductoController())->index(),
         'menu' => (new MenuController())->index(),
         'nuestro-menu' => (new MenuController())->indexPublico(),
-        'ingredientes' => (new IngredienteController())->index(),
-        'unidad-medida' => (new IngredienteController())->indexUnidadMedida(),
-        'categoria-ingrediente-module' => (new CategoriaIngredienteController())->index(),
+        'insumos' => (new InsumoController())->index(),
+        'unidad-medida' => (new InsumoController())->indexUnidadMedida(),
+        'categoria-insumo-module' => (new CategoriaInsumoController())->index(),
         'areas' => (new AreasController())->index(),
         'proveedores' => (new ProveedorController())->index(),
         'mesas' => (new MesasController())->index(),
-        'categoria-ingrediente' => (new IngredienteController())->indexCategoria(),
+        'categoria-insumo' => (new InsumoController())->indexCategoria(),
         'categorias' => (new CategoriaController())->index(),
         'bitacora' => (new BitacoraController())->index(),
         'asistencia' => (new AsistenciaController())->index(),

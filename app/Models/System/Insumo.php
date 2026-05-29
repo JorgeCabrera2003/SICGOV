@@ -1,7 +1,7 @@
 <?php
 
 /*
-MODELO DE CATEGORIA INGREDIENTE
+MODELO DE INGREDIENTE
 
 OPERACIONES A BASE DE DATOS:
     REGISTRAR
@@ -19,19 +19,27 @@ use App\Helpers\RegexHelper;
 use Exception;
 use PDO;
 
-class CategoriaIngrediente extends Database
+class Insumo extends Database
 {
     private $id;
     private $nombre;
-    private $descripcion;
-    private $estatus;
+    private $precio_unitario;
+    private $stock_actual;
+    private $stock_minimo;
+    private $stock_maximo;
+    private $id_categoria_insumo;
+    private $id_unidad_medida;
 
     public function __construct()
     {
         $this->id = "";
         $this->nombre = "";
-        $this->descripcion = "";
-        $this->estatus = 0;
+        $this->id_unidad_medida = "";
+        $this->stock_actual = NULL;
+        $this->stock_minimo = NULL;
+        $this->stock_maximo = NULL;
+        $this->precio_unitario = 0.00;
+        $this->id_categoria_insumo = "";
     }
 
     // Getters y Setters
@@ -48,27 +56,57 @@ class CategoriaIngrediente extends Database
     public function setNombre(string $nombre)
     {
         if (RegexHelper::ValidarFormatos($nombre, 'Objeto') == 0) {
-            throw new Exception("El Nombre de la Categoría no cumple con el formato permitido.");
+            throw new Exception("El ID de la Categoría no cumple con el formato permitido.");
         }
         $this->nombre = $nombre;
     }
 
-    public function setDescripcion(string $descripcion)
+    public function setStockActual(float $stock)
     {
-        if (RegexHelper::ValidarFormatos($descripcion, 'ObjetoLargo') == 0) {
-            throw new Exception("La Descripción de la Categoría no cumple con el formato permitido");
+        if ($stock < 0) {
+            throw new Exception("El valor ingresado no puede ser negativo");
         }
-        $this->descripcion = $descripcion;
+        $this->stock_actual = $stock;
     }
 
-    public function setEstatus(int $estatus)
+    public function setStockMaximo(float $stock)
     {
-        if ($estatus != 0 && $estatus != 1) {
-            throw new Exception("El ID de la noticia no cumple con el formato permitido.");
+        if ($stock < 0) {
+            throw new Exception("El valor ingresado no puede ser negativo");
         }
-        $this->estatus = $estatus;
+        $this->stock_maximo = $stock;
     }
 
+    public function setStockMinimo(float $stock)
+    {
+        if ($stock < 0) {
+            throw new Exception("El valor ingresado no puede ser negativo");
+        }
+        $this->stock_minimo = $stock;
+    }
+
+    public function setPrecioUnitario(float $precio)
+    {
+        if ($precio < 0) {
+            throw new Exception("El valor ingresado no puede ser negativo");
+        }
+        $this->precio_unitario = $precio;
+    }
+    public function setIdCategoria(string $id)
+    {
+        if (RegexHelper::ValidarFormatos($id, 'ID') == 0) {
+            throw new Exception("El ID de la Categoría no cumple con el formato permitido.");
+        }
+        $this->id_categoria_insumo = $id;
+    }
+
+    public function setIdUnidadMedida(string $id)
+    {
+        if (RegexHelper::ValidarFormatos($id, 'ID') == 0) {
+            throw new Exception("El ID de la Unidad de Medida no cumple con el formato permitido.");
+        }
+        $this->id_unidad_medida = $id;
+    }
     //FIN SETTERS
 
     //GETTERS
@@ -82,18 +120,20 @@ class CategoriaIngrediente extends Database
         return $this->nombre;
     }
 
-    public function getDescripcion()
+    public function getUnidadMedida()
     {
-        return $this->descripcion;
+        return $this->id_unidad_medida;
     }
-    public function getEstatus()
+
+    public function getPrecioUnitario()
     {
-        return $this->estatus;
+        return $this->precio_unitario;
     }
+
     //FIN GETTERS
 
     // MANEJADOR DE OPERACIONES
-    public function Transaccion($peticion)
+    public function Transaccion($peticion, )
     {
         $response = [];
         $response['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"];
@@ -101,11 +141,11 @@ class CategoriaIngrediente extends Database
 
         if (isset($peticion['peticion'])) {
             $response = match ($peticion['peticion']) {
-                'registrar' => $this->RegistrarCategoriaIngrediente(),
-                'consultar' => $this->ConsultarCategoriaIngrediente(),
-                'actualizar', 'modificar' => $this->ModificarCategoriaIngrediente(),
-                'eliminar' => $this->EliminarCategoriaIngrediente(),
-                'validar' => $this->ValidarCategoriaIngrediente(),
+                'registrar' => $this->RegistrarInsumo(),
+                'consultar' => $this->ConsultarInsumo(),
+                'actualizar', 'modificar' => $this->ModificarInsumo(),
+                'eliminar' => $this->EliminarInsumo(),
+                'validar' => $this->ValidarInsumo(),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
@@ -117,14 +157,14 @@ class CategoriaIngrediente extends Database
     //FIN DE MANEJADOR DE OPERACIONES
 
     //OPERACIONES A BASE DE DATOS
-    private function ConsultarCategoriaIngrediente()
+    private function ConsultarInsumo()
     {
         $dato = [];
         $arreglo = [];
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM categoria_ingrediente WHERE estatus = 1";
+            $sql = "SELECT * FROM vw_insumo";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute();
             if ($stm->rowCount() > 0) {
@@ -147,25 +187,35 @@ class CategoriaIngrediente extends Database
         return $dato;
     }
 
-    private function RegistrarCategoriaIngrediente()
+    private function RegistrarInsumo()
     {
         $dato = [];
         $validacion = [];
-        $validacion = $this->ValidarCategoriaIngrediente();
+        $validacion = $this->ValidarInsumo();
         if ($validacion['bool'] == 0) {
             try {
-                $sql = "INSERT INTO categoria_ingrediente(id_categoria, nombre, descripcion) VALUES 
-                (:id_categoria, :nombre, :descripcion)";
+                $sql = "INSERT INTO insumo(id_insumo, id_categoria, nombre_insumo, 
+                id_unidad_medida, precio_unitario, stock_actual, stock_minimo, stock_maximo)
+                VALUES (:id_insumo, :id_categoria, :nombre_insumo, 
+                :id_unidad_medida, :precio_unitario, :stock_actual, :stock_minimo, :stock_maximo)";
 
+                $this->LlamarConexion();
+                $this->LlamarConexion()->beginTransaction();
                 $stm = $this->LlamarConexion()->prepare($sql);
-                $stm->bindParam(':id_categoria', $this->id);
-                $stm->bindParam(':nombre', $this->nombre);
-                $stm->bindParam(':descripcion', $this->descripcion);
+                $stm->bindParam(':id_insumo', $this->id);
+                $stm->bindParam(':id_categoria', $this->id_categoria_insumo);
+                $stm->bindParam(':nombre_insumo', $this->nombre);
+                $stm->bindParam(':id_unidad_medida', $this->id_unidad_medida);
+                $stm->bindParam(':stock_actual', $this->stock_actual);
+                $stm->bindParam(':stock_minimo', $this->stock_minimo);
+                $stm->bindParam(':stock_maximo', $this->stock_maximo);
+                $stm->bindParam(':precio_unitario', $this->precio_unitario);
                 $stm->execute();
+                $this->LlamarConexion()->commit();
 
                 $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Categoria registrada exitosamente"];
-                $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+                $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Insumo registrado exitosamente"];
+                $dato['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => "OK"];
 
             } catch (\PDOException $e) {
                 $this->LlamarConexion()->rollBack();
@@ -179,24 +229,29 @@ class CategoriaIngrediente extends Database
         return $dato;
     }
 
-    private function ModificarCategoriaIngrediente()
+    private function ModificarInsumo()
     {
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "UPDATE categoria_ingrediente SET nombre = :nombre, descripcion = :descripcion 
-            WHERE id_categoria = :id_categoria";
+            $sql = "UPDATE insumo SET id_categoria = :id_categoria, nombre_insumo = :nombre_insumo,
+            id_unidad_medida = :id_unidad_medida, precio_unitario = :precio_unitario, stock_minimo = :stock_minimo,
+            stock_maximo = :stock_maximo WHERE id_insumo = :id_insumo";
 
             $stm = $this->LlamarConexion()->prepare($sql);
-            $stm->bindParam(':id_categoria', $this->id);
-            $stm->bindParam(':nombre', $this->nombre);
-            $stm->bindParam(':descripcion', $this->descripcion);
+            $stm->bindParam(':id_insumo', $this->id);
+            $stm->bindParam(':nombre_insumo', $this->nombre);
+            $stm->bindParam(':id_categoria', $this->id_categoria_insumo);
+            $stm->bindParam(':id_unidad_medida', $this->id_unidad_medida);
+            $stm->bindParam(':stock_minimo', $this->stock_minimo);
+            $stm->bindParam(':stock_maximo', $this->stock_maximo);
+            $stm->bindParam(':precio_unitario', $this->precio_unitario);
             $stm->execute();
             $this->LlamarConexion()->commit();
             $stm = NULL;
 
             $dato['estado'] = 1;
-            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Categoría actualizada exitosamente"];
+            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Insumo actualizado exitosamente"];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
 
         } catch (\PDOException $e) {
@@ -210,24 +265,24 @@ class CategoriaIngrediente extends Database
         return $dato;
     }
 
-    private function EliminarCategoriaIngrediente()
+    private function EliminarInsumo()
     {
         $dato = [];
-        $validacion = $this->ValidarCategoriaIngrediente();
+        $validacion = $this->ValidarInsumo();
 
         if ($validacion['bool'] == 1) {
             try {
                 $this->LlamarConexion();
                 $this->LlamarConexion()->beginTransaction();
-                $sql = "UPDATE categoria_ingrediente SET estatus = 0 WHERE id_categoria = :id_categoria";
+                $sql = "UPDATE insumo SET estatus = 0 WHERE id_insumo = :id_insumo";
                 $stm = $this->LlamarConexion()->prepare($sql);
-                $stm->bindParam(':id_categoria', $this->id);
+                $stm->bindParam('id_insumo', $this->id);
                 $stm->execute();
                 $this->LlamarConexion()->commit();
                 $stm = NULL;
 
                 $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Categoría eliminada exitosamente"];
+                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Insumo eliminado exitosamente"];
                 $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
             } catch (\PDOException $e) {
                 Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
@@ -244,16 +299,16 @@ class CategoriaIngrediente extends Database
         return $dato;
     }
 
-    private function ValidarCategoriaIngrediente()
+    private function ValidarInsumo()
     {
         $dato = [];
         $arreglo = [];
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM categoria_ingrediente WHERE id_categoria = :id_categoria";
+            $sql = "SELECT * FROM vw_insumo WHERE id_insumo = :id_insumo";
             $stm = $this->LlamarConexion()->prepare($sql);
-            $stm->bindParam(':id_categoria', $this->id);
+            $stm->bindParam(':id_insumo', $this->id);
             $stm->execute();
             if ($stm->rowCount() > 0) {
                 $arreglo = $stm->fetch(PDO::FETCH_ASSOC);
