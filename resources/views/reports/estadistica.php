@@ -7,17 +7,14 @@
     <!-- Cabecera Principal de la Página -->
     <header class="mb-5 text-center">
         <h1 class="display-5 fw-bold text-gradient d-inline-flex align-items-center justify-content-center gap-3">
-            <span class="icon-title-accent" aria-hidden="true">
-                <i class="bi bi-graph-up"></i>
-            </span>
             <span>Estadísticas del Sistema</span>
         </h1>
-        <p class="text-muted fs-5 mt-2">Indicadores clave de rendimiento y análisis de actividades en tiempo real.</p>
+        
     </header>
 
     <!-- SECCIÓN 1: Indicadores Clave de Rendimiento (KPIs) -->
     <section aria-labelledby="kpi-section-title" class="mb-5">
-        <h2 id="kpi-section-title" class="visually-hidden">Resumen de Indicadores Clave (KPIs)</h2>
+        <h2 id="kpi-section-title" class="visually-hidden">Resumen de Indicadores Clave</h2>
         
         <div class="row g-4 justify-content-center">
             <!-- KPI 1: Reservaciones -->
@@ -163,13 +160,48 @@
                 <div class="card border-0 shadow card-report h-100">
                     <header class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
                         <div>
-                            <h3 class="h5 fw-bold mb-0">Tendencia Mensual de Reservas</h3>
-                            <small class="text-muted">Historial consolidado por mes en el último año</small>
+                            <h3 class="h5 fw-bold mb-0">Tendencia de Reservas</h3>
+                            <small class="text-muted">Historial consolidado mensual o diario</small>
                         </div>
-                        <div class="chart-actions">
-                            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold">Mensual</span>
+                        <div class="chart-actions d-flex gap-2 align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle btn-toggle-local-filter d-flex align-items-center justify-content-center" data-bs-toggle="collapse" data-bs-target="#local-filter-tiempo" aria-label="Filtrar" style="width: 28px; height: 28px;">
+                                <i class="bi bi-funnel"></i>
+                            </button>
+                            <select class="form-select form-select-sm chart-type-select shadow-sm border-0 px-2 py-1 rounded" style="width: auto; font-size: 0.8rem;" data-chart="tiempo">
+                                <option value="line" selected>Línea</option>
+                                <option value="bar">Barra</option>
+                                <option value="radar">Radar</option>
+                            </select>
                         </div>
                     </header>
+                    <div class="collapse local-filter-panel px-4 py-3 border-top border-light" id="local-filter-tiempo">
+                        <form class="form-local-filter" data-chart="tiempo">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Desde</label>
+                                    <input type="date" class="form-control form-control-sm" name="tiempo_fecha_desde">
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Hasta</label>
+                                    <input type="date" class="form-control form-control-sm" name="tiempo_fecha_hasta">
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Mesa</label>
+                                    <select class="form-select form-select-sm local-select-mesas" name="tiempo_reserva_mesa">
+                                        <option value="">Todas</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 d-flex justify-content-end gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-clear-local-filter rounded-pill px-3" data-chart="tiempo">
+                                        <i class="bi bi-x-circle"></i> Limpiar
+                                    </button>
+                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                        <i class="bi bi-filter"></i> Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                     
                     <section class="card-body px-4 pb-4 position-relative" style="height: 360px;">
                         <!-- Loader con alineación absoluta correcta -->
@@ -189,10 +221,51 @@
             <!-- Proporciones por Estado -->
             <article class="col-lg-4">
                 <div class="card border-0 shadow card-report h-100">
-                    <header class="card-header bg-transparent border-0 pt-4 px-4">
-                        <h3 class="h5 fw-bold mb-0">Estados de Reservas</h3>
-                        <small class="text-muted">Proporciones por estado actual</small>
+                    <header class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="h5 fw-bold mb-0">Estados de Reservas</h3>
+                            <small class="text-muted">Proporciones por estado actual</small>
+                        </div>
+                        <div class="chart-actions d-flex gap-2 align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle btn-toggle-local-filter d-flex align-items-center justify-content-center" data-bs-toggle="collapse" data-bs-target="#local-filter-estado" aria-label="Filtrar" style="width: 28px; height: 28px;">
+                                <i class="bi bi-funnel"></i>
+                            </button>
+                            <select class="form-select form-select-sm chart-type-select shadow-sm border-0 px-2 py-1 rounded" style="width: auto; font-size: 0.8rem;" data-chart="estado">
+                                <option value="doughnut" selected>Dona</option>
+                                <option value="pie">Torta</option>
+                                <option value="polarArea">Área Polar</option>
+                                <option value="bar">Barra</option>
+                            </select>
+                        </div>
                     </header>
+                    <div class="collapse local-filter-panel px-4 py-3 border-top border-light" id="local-filter-estado">
+                        <form class="form-local-filter" data-chart="estado">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Desde</label>
+                                    <input type="date" class="form-control form-control-sm" name="estado_fecha_desde">
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Hasta</label>
+                                    <input type="date" class="form-control form-control-sm" name="estado_fecha_hasta">
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Mesa</label>
+                                    <select class="form-select form-select-sm local-select-mesas" name="estado_reserva_mesa">
+                                        <option value="">Todas</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 d-flex justify-content-end gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-clear-local-filter rounded-pill px-3" data-chart="estado">
+                                        <i class="bi bi-x-circle"></i> Limpiar
+                                    </button>
+                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                        <i class="bi bi-filter"></i> Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                     
                     <section class="card-body px-4 pb-4 position-relative" style="height: 360px;">
                         <!-- Loader con alineación absoluta correcta -->
@@ -219,10 +292,60 @@
             <!-- Asistencia de Personal (Pie) -->
             <article class="col-md-6 col-lg-4">
                 <div class="card border-0 shadow card-report h-100">
-                    <header class="card-header bg-transparent border-0 pt-4 px-4">
-                        <h3 class="h5 fw-bold mb-0">Asistencia del Personal</h3>
-                        <small class="text-muted">Cumplimiento y puntualidad general</small>
+                    <header class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="h5 fw-bold mb-0">Asistencia del Personal</h3>
+                            <small class="text-muted">Cumplimiento y puntualidad general</small>
+                        </div>
+                        <div class="chart-actions d-flex gap-2 align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle btn-toggle-local-filter d-flex align-items-center justify-content-center" data-bs-toggle="collapse" data-bs-target="#local-filter-asistencia" aria-label="Filtrar" style="width: 28px; height: 28px;">
+                                <i class="bi bi-funnel"></i>
+                            </button>
+                            <select class="form-select form-select-sm chart-type-select shadow-sm border-0 px-2 py-1 rounded" style="width: auto; font-size: 0.8rem;" data-chart="asistencia">
+                                <option value="pie" selected>Torta</option>
+                                <option value="doughnut">Dona</option>
+                                <option value="polarArea">Área Polar</option>
+                                <option value="bar">Barra</option>
+                            </select>
+                        </div>
                     </header>
+                    <div class="collapse local-filter-panel px-4 py-3 border-top border-light" id="local-filter-asistencia">
+                        <form class="form-local-filter" data-chart="asistencia">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-sm-6">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Desde</label>
+                                    <input type="date" class="form-control form-control-sm" name="asistencia_fecha_desde">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Hasta</label>
+                                    <input type="date" class="form-control form-control-sm" name="asistencia_fecha_hasta">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Empleado</label>
+                                    <select class="form-select form-select-sm local-select-empleados" name="asistencia_empleado">
+                                        <option value="">Todos</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Estado</label>
+                                    <select class="form-select form-select-sm" name="asistencia_estado">
+                                        <option value="">Todos</option>
+                                        <option value="A_TIEMPO">A TIEMPO</option>
+                                        <option value="TARDE">TARDE</option>
+                                        <option value="FALTA">FALTA</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 d-flex justify-content-end gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-clear-local-filter rounded-pill px-3" data-chart="asistencia">
+                                        <i class="bi bi-x-circle"></i> Limpiar
+                                    </button>
+                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                        <i class="bi bi-filter"></i> Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                     
                     <section class="card-body px-4 pb-4 position-relative" style="height: 320px;">
                         <!-- Loader con alineación absoluta correcta -->
@@ -242,10 +365,43 @@
             <!-- Variedad de Menú por Categorías (Barra Vertical) -->
             <article class="col-md-6 col-lg-4">
                 <div class="card border-0 shadow card-report h-100">
-                    <header class="card-header bg-transparent border-0 pt-4 px-4">
-                        <h3 class="h5 fw-bold mb-0">Variedad del Menú</h3>
-                        <small class="text-muted">Cantidad de platos por categoría</small>
+                    <header class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="h5 fw-bold mb-0">Variedad del Menú</h3>
+                            <small class="text-muted">Cantidad de platos por categoría</small>
+                        </div>
+                        <div class="chart-actions d-flex gap-2 align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle btn-toggle-local-filter d-flex align-items-center justify-content-center" data-bs-toggle="collapse" data-bs-target="#local-filter-menu" aria-label="Filtrar" style="width: 28px; height: 28px;">
+                                <i class="bi bi-funnel"></i>
+                            </button>
+                            <select class="form-select form-select-sm chart-type-select shadow-sm border-0 px-2 py-1 rounded" style="width: auto; font-size: 0.8rem;" data-chart="menu">
+                                <option value="bar" selected>Barra</option>
+                                <option value="line">Línea</option>
+                                <option value="radar">Radar</option>
+                                <option value="doughnut">Dona</option>
+                            </select>
+                        </div>
                     </header>
+                    <div class="collapse local-filter-panel px-4 py-3 border-top border-light" id="local-filter-menu">
+                        <form class="form-local-filter" data-chart="menu">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-sm-8">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Categoría</label>
+                                    <select class="form-select form-select-sm local-select-categorias" name="menu_categoria_producto">
+                                        <option value="">Todas</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-4 d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-clear-local-filter rounded-pill px-3" data-chart="menu">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                        <i class="bi bi-filter"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                     
                     <section class="card-body px-4 pb-4 position-relative" style="height: 320px;">
                         <!-- Loader con alineación absoluta correcta -->
@@ -265,10 +421,71 @@
             <!-- Actividad del Sistema por Módulo (Barra Horizontal) -->
             <article class="col-lg-4">
                 <div class="card border-0 shadow card-report h-100">
-                    <header class="card-header bg-transparent border-0 pt-4 px-4">
-                        <h3 class="h5 fw-bold mb-0">Actividad de Seguridad</h3>
-                        <small class="text-muted">Módulos más auditados en Bitácora</small>
+                    <header class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="h5 fw-bold mb-0">Actividad de Seguridad</h3>
+                            <small class="text-muted">Módulos más auditados en Bitácora</small>
+                        </div>
+                        <div class="chart-actions d-flex gap-2 align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle btn-toggle-local-filter d-flex align-items-center justify-content-center" data-bs-toggle="collapse" data-bs-target="#local-filter-bitacora" aria-label="Filtrar" style="width: 28px; height: 28px;">
+                                <i class="bi bi-funnel"></i>
+                            </button>
+                            <select class="form-select form-select-sm chart-type-select shadow-sm border-0 px-2 py-1 rounded" style="width: auto; font-size: 0.8rem;" data-chart="bitacora">
+                                <option value="bar" selected>Barra</option>
+                                <option value="line">Línea</option>
+                                <option value="pie">Torta</option>
+                                <option value="radar">Radar</option>
+                            </select>
+                        </div>
                     </header>
+                    <div class="collapse local-filter-panel px-4 py-3 border-top border-light" id="local-filter-bitacora">
+                        <form class="form-local-filter" data-chart="bitacora">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-sm-6">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Desde</label>
+                                    <input type="date" class="form-control form-control-sm" name="bitacora_fecha_desde">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Hasta</label>
+                                    <input type="date" class="form-control form-control-sm" name="bitacora_fecha_hasta">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Módulo</label>
+                                    <select class="form-select form-select-sm" name="bitacora_modulo">
+                                        <option value="">Todos</option>
+                                        <option value="SEGURIDAD">SEGURIDAD</option>
+                                        <option value="RESERVACIONES">RESERVACIONES</option>
+                                        <option value="COMPRAS">COMPRAS</option>
+                                        <option value="VENTAS">VENTAS</option>
+                                        <option value="INVENTARIO">INVENTARIO</option>
+                                        <option value="CLIENTES">CLIENTES</option>
+                                        <option value="EMPLEADOS">EMPLEADOS</option>
+                                        <option value="ASISTENCIA">ASISTENCIA</option>
+                                        <option value="PLATOS">PLATOS</option>
+                                        <option value="BITACORA">BITACORA</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Empleado</label>
+                                    <select class="form-select form-select-sm local-select-empleados" name="bitacora_empleado">
+                                        <option value="">Todos</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-8">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Acción (Buscar)</label>
+                                    <input type="text" class="form-control form-control-sm" name="bitacora_accion" placeholder="Buscar acción...">
+                                </div>
+                                <div class="col-sm-4 d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-clear-local-filter rounded-pill px-3" data-chart="bitacora">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                        <i class="bi bi-filter"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                     
                     <section class="card-body px-4 pb-4 position-relative" style="height: 320px;">
                         <!-- Loader con alineación absoluta correcta -->
@@ -300,10 +517,49 @@
                             <h3 class="h5 fw-bold mb-0">Top 5 Productos Más Vendidos</h3>
                             <small class="text-muted">Platos y bebidas con mayor volumen de salida</small>
                         </div>
-                        <div class="chart-actions">
-                            <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill fw-bold">Popularidad</span>
+                        <div class="chart-actions d-flex gap-2 align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle btn-toggle-local-filter d-flex align-items-center justify-content-center" data-bs-toggle="collapse" data-bs-target="#local-filter-productosTop" aria-label="Filtrar" style="width: 28px; height: 28px;">
+                                <i class="bi bi-funnel"></i>
+                            </button>
+                            <select class="form-select form-select-sm chart-type-select shadow-sm border-0 px-2 py-1 rounded" style="width: auto; font-size: 0.8rem;" data-chart="productosTop">
+                                <option value="bar" selected>Barra</option>
+                                <option value="line">Línea</option>
+                                <option value="doughnut">Dona</option>
+                                <option value="polarArea">Área Polar</option>
+                            </select>
                         </div>
                     </header>
+                    <div class="collapse local-filter-panel px-4 py-3 border-top border-light" id="local-filter-productosTop">
+                        <form class="form-local-filter" data-chart="productosTop">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Desde</label>
+                                    <input type="date" class="form-control form-control-sm" name="productos_fecha_desde">
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Hasta</label>
+                                    <input type="date" class="form-control form-control-sm" name="productos_fecha_hasta">
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Tipo Pedido</label>
+                                    <select class="form-select form-select-sm" name="productos_pedido_tipo">
+                                        <option value="">Todos</option>
+                                        <option value="DELIVERY">DELIVERY</option>
+                                        <option value="PICKUP">PICKUP</option>
+                                        <option value="PRESENCIAL">PRESENCIAL</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 d-flex justify-content-end gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-clear-local-filter rounded-pill px-3" data-chart="productosTop">
+                                        <i class="bi bi-x-circle"></i> Limpiar
+                                    </button>
+                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                        <i class="bi bi-filter"></i> Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                     
                     <section class="card-body px-4 pb-4 position-relative" style="height: 360px;">
                         <!-- Loader con alineación absoluta correcta -->
@@ -323,10 +579,54 @@
             <!-- Distribución de Métodos de Pago (Dona) -->
             <article class="col-lg-4">
                 <div class="card border-0 shadow card-report h-100">
-                    <header class="card-header bg-transparent border-0 pt-4 px-4">
-                        <h3 class="h5 fw-bold mb-0">Métodos de Pago</h3>
-                        <small class="text-muted">Preferencia de pago de los clientes</small>
+                    <header class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="h5 fw-bold mb-0">Métodos de Pago</h3>
+                            <small class="text-muted">Preferencia de pago de los clientes</small>
+                        </div>
+                        <div class="chart-actions d-flex gap-2 align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle btn-toggle-local-filter d-flex align-items-center justify-content-center" data-bs-toggle="collapse" data-bs-target="#local-filter-metodosPago" aria-label="Filtrar" style="width: 28px; height: 28px;">
+                                <i class="bi bi-funnel"></i>
+                            </button>
+                            <select class="form-select form-select-sm chart-type-select shadow-sm border-0 px-2 py-1 rounded" style="width: auto; font-size: 0.8rem;" data-chart="metodosPago">
+                                <option value="doughnut" selected>Dona</option>
+                                <option value="pie">Torta</option>
+                                <option value="polarArea">Área Polar</option>
+                                <option value="bar">Barra</option>
+                            </select>
+                        </div>
                     </header>
+                    <div class="collapse local-filter-panel px-4 py-3 border-top border-light" id="local-filter-metodosPago">
+                        <form class="form-local-filter" data-chart="metodosPago">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Desde</label>
+                                    <input type="date" class="form-control form-control-sm" name="pagos_fecha_desde">
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Hasta</label>
+                                    <input type="date" class="form-control form-control-sm" name="pagos_fecha_hasta">
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Tipo Pedido</label>
+                                    <select class="form-select form-select-sm" name="pagos_pedido_tipo">
+                                        <option value="">Todos</option>
+                                        <option value="DELIVERY">DELIVERY</option>
+                                        <option value="PICKUP">PICKUP</option>
+                                        <option value="PRESENCIAL">PRESENCIAL</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 d-flex justify-content-end gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-clear-local-filter rounded-pill px-3" data-chart="metodosPago">
+                                        <i class="bi bi-x-circle"></i> Limpiar
+                                    </button>
+                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                        <i class="bi bi-filter"></i> Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                     
                     <section class="card-body px-4 pb-4 position-relative" style="height: 360px;">
                         <!-- Loader con alineación absoluta correcta -->
@@ -353,10 +653,55 @@
             <!-- Popularidad de Mesas (Radar) -->
             <article class="col-lg-6">
                 <div class="card border-0 shadow card-report h-100">
-                    <header class="card-header bg-transparent border-0 pt-4 px-4">
-                        <h3 class="h5 fw-bold mb-0">Popularidad de Mesas</h3>
-                        <small class="text-muted">Mesas con mayor cantidad de reservaciones históricas</small>
+                    <header class="card-header bg-transparent border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="h5 fw-bold mb-0">Popularidad de Mesas</h3>
+                            <small class="text-muted">Mesas con mayor cantidad de reservaciones históricas</small>
+                        </div>
+                        <div class="chart-actions d-flex gap-2 align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle btn-toggle-local-filter d-flex align-items-center justify-content-center" data-bs-toggle="collapse" data-bs-target="#local-filter-mesasPopularidad" aria-label="Filtrar" style="width: 28px; height: 28px;">
+                                <i class="bi bi-funnel"></i>
+                            </button>
+                            <select class="form-select form-select-sm chart-type-select shadow-sm border-0 px-2 py-1 rounded" style="width: auto; font-size: 0.8rem;" data-chart="mesasPopularidad">
+                                <option value="radar" selected>Radar</option>
+                                <option value="polarArea">Área Polar</option>
+                                <option value="bar">Barra</option>
+                                <option value="doughnut">Dona</option>
+                            </select>
+                        </div>
                     </header>
+                    <div class="collapse local-filter-panel px-4 py-3 border-top border-light" id="local-filter-mesasPopularidad">
+                        <form class="form-local-filter" data-chart="mesasPopularidad">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Desde</label>
+                                    <input type="date" class="form-control form-control-sm" name="mesas_fecha_desde">
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Hasta</label>
+                                    <input type="date" class="form-control form-control-sm" name="mesas_fecha_hasta">
+                                </div>
+                                <div class="col-sm-4">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Estado Reserva</label>
+                                    <select class="form-select form-select-sm" name="mesas_reserva_estado">
+                                        <option value="">Todos</option>
+                                        <option value="PENDIENTE">PENDIENTE</option>
+                                        <option value="CONFIRMADA">CONFIRMADA</option>
+                                        <option value="CANCELADA">CANCELADA</option>
+                                        <option value="COMPLETADA">COMPLETADA</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 d-flex justify-content-end gap-2 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-clear-local-filter rounded-pill px-3" data-chart="mesasPopularidad">
+                                        <i class="bi bi-x-circle"></i> Limpiar
+                                    </button>
+                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                        <i class="bi bi-filter"></i> Filtrar
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                     
                     <section class="card-body px-4 pb-4 position-relative" style="height: 360px;">
                         <!-- Loader con alineación absoluta correcta -->
@@ -381,10 +726,38 @@
                             <h3 class="h5 fw-bold mb-0">Stock Crítico de Ingredientes</h3>
                             <small class="text-muted">Ingredientes con stock actual por debajo del mínimo</small>
                         </div>
-                        <div class="chart-actions">
-                            <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill fw-bold" style="color: #fd7e14 !important; background-color: rgba(253, 126, 20, 0.1) !important;">Alerta Stock</span>
+                        <div class="chart-actions d-flex gap-2 align-items-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle btn-toggle-local-filter d-flex align-items-center justify-content-center" data-bs-toggle="collapse" data-bs-target="#local-filter-ingredientesAlerta" aria-label="Filtrar" style="width: 28px; height: 28px;">
+                                <i class="bi bi-funnel"></i>
+                            </button>
+                            <select class="form-select form-select-sm chart-type-select shadow-sm border-0 px-2 py-1 rounded" style="width: auto; font-size: 0.8rem;" data-chart="ingredientesAlerta">
+                                <option value="bar" selected>Barra</option>
+                                <option value="line">Línea</option>
+                            </select>
                         </div>
                     </header>
+                    <div class="collapse local-filter-panel px-4 py-3 border-top border-light" id="local-filter-ingredientesAlerta">
+                        <form class="form-local-filter" data-chart="ingredientesAlerta">
+                            <div class="row g-2 align-items-end">
+                                <div class="col-sm-8">
+                                    <label class="form-label small fw-semibold text-muted mb-1">Umbral de Alerta</label>
+                                    <select class="form-select form-select-sm" name="ingredientes_ratio_limite">
+                                        <option value="1.0">Alerta de stock (<= 100% del mínimo)</option>
+                                        <option value="0.5">Crítico severo (<= 50% del mínimo)</option>
+                                        <option value="0.25">Alerta extrema (<= 25% del mínimo)</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-4 d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary btn-clear-local-filter rounded-pill px-3" data-chart="ingredientesAlerta">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                    <button type="submit" class="btn btn-sm btn-primary rounded-pill px-3 shadow-sm">
+                                        <i class="bi bi-filter"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                     
                     <section class="card-body px-4 pb-4 position-relative" style="height: 360px;">
                         <!-- Loader con alineación absoluta correcta -->
