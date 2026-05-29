@@ -8,7 +8,7 @@
             <div class="modal-header bg-warning-subtle border-bottom-0">
                 <h5 class="modal-title fw-bold" id="modalCategoriaLabel">
                     <i class="fas fa-box text-warning me-2"></i>
-                    <span id="modalTitleTextCategoria">Categorías de Ingrediente</span>
+                    <span id="modalTitleTextCategoria">Categorías de Insumos</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
@@ -22,21 +22,9 @@
                                 </button>
                             </div>
                         </div>
-
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle" id="tablaCategoria" style="width:100%">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th scope="col">Nombre</th>
-                                        <th scope="col">Descripción</th>
-                                        <th scope="col"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- DataTables carga los datos aquí -->
-                                </tbody>
-                            </table>
-                        </div>
+                        <?php
+                        include_once $basePath . '/resources/views/categoria_insumo/partials/_tabla_categoria_insumo.php';
+                        ?>
                     </div>
                 </section>
             </div>

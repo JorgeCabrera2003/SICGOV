@@ -182,17 +182,10 @@ class MenuController
 
         require_once BASE_PATH . '/resources/views/layout/head.php';
         
-        if (isset($_SESSION['user'])) {
-            require_once BASE_PATH . '/resources/views/layout/menu.php'; 
-        } else {
-            echo '<main class="w-100 min-vh-100" id="main-content"><div class="content-wrapper bg-body">';
-        }
+        // No lateral navigation menu on the public view, ever
+        echo '<main class="main-content flex-grow-1 ms-0 w-100" id="main-content"><div class="content-wrapper bg-body">';
 
         require_once BASE_PATH . '/resources/views/menu/public.php';
-        
-        if (!isset($_SESSION['user'])) {
-            echo '</div></main>';
-        }
         
         require_once BASE_PATH . '/resources/views/layout/footer.php';
     }

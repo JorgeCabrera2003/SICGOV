@@ -34,8 +34,8 @@
 
         <!-- Perfil de usuario -->
         <div class="user-profile d-flex align-items-center gap-3 px-3 py-2 border-bottom">
-            <div class="user-avatar">
-                <i class="bi bi-person-circle fs-4"></i>
+            <div class="user-avatar" style="width: 36px; height: 36px;">
+                <img src="<?php echo $datos['foto']; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
             </div>
             <div class="user-info">
                 <div class="user-name fw-semibold"><?php echo $datos['nombres'] ?? 'Usuario'; ?></div>
@@ -111,22 +111,26 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Cocina e Inventario</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['categorias', 'ingredientes', 'menu']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['categorias', 'insumos', 'menu']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#cocina-submenu" role="button">
                     <i class="bi bi-egg-fried fs-5"></i>
                     <span class="flex-grow-1">Menú y Recetas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['categorias', 'ingredientes', 'menu']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo in_array($page, ['categorias', 'categoria-insumo-module', 'insumos', 'menu']) ? 'show' : ''; ?>"
                     id="cocina-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
                         <a href="?page=categorias"
                             class="nav-link <?php echo ($page == 'categorias') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-tags me-2"></i>Categorías
+                            <i class="bi bi-tags me-2"></i>Categorías del Menú
                         </a>
-                        <a href="?page=ingredientes"
-                            class="nav-link <?php echo ($page == 'ingredientes') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-droplet me-2"></i>Ingredientes
+                        <a href="?page=categoria-insumo-module"
+                            class="nav-link <?php echo ($page == 'categoria-insumo-module') ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-tags me-2"></i>Categorías de Insumos
+                        </a>
+                        <a href="?page=insumos"
+                            class="nav-link <?php echo ($page == 'insumos') ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-droplet me-2"></i>Insumos
                         </a>
                         <a href="?page=menu" class="nav-link <?php echo ($page == 'menu') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-journal-text me-2"></i>Carta / Menú
@@ -197,8 +201,7 @@
                     <span class="flex-grow-1">Equipo y Horario</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['asistencia']) ? 'show' : ''; ?>"
-                    id="personal-submenu">
+                <div class="collapse <?php echo in_array($page, ['asistencia']) ? 'show' : ''; ?>" id="personal-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
                         <a href="?page=asistencia"
                             class="nav-link <?php echo ($page == 'asistencia') ? 'active' : ''; ?> py-1">
@@ -338,7 +341,7 @@
                 <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                     <div class="user-avatar" style="width: 36px; height: 36px;">
-                        <i class="bi bi-person-circle fs-5"></i>
+                        <img src="<?php echo $datos['foto']; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
                     </div>
                     <span class="d-none d-lg-inline"><?php echo $datos['nombres'] ?? 'Invitado'; ?></span>
                 </button>
@@ -355,12 +358,14 @@
                         <li>
                             <hr class="dropdown-divider">
                         </li>
+                        <?php if (($datos['cedula'] ?? '') !== 'V-00000000'): ?>
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2"
                                 href="<?php echo BASE_URL; ?>/?page=perfil">
                                 <i class="bi bi-person"></i> Mi Perfil
                             </a>
                         </li>
+                        <?php endif; ?>
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2"
                                 href="<?php echo BASE_URL; ?>/?page=configuracion">

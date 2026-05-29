@@ -250,3 +250,8 @@ form {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
+.req-met { color: #198754 !important; list-style-type: '✓ '; }
+.req-unmet { color: var(--bs-danger) !important; list-style-type: '× '; }
+.hover-white:hover { color: #fff !important; }
+

@@ -32,37 +32,58 @@ class LoginController
                 $recaptcha = $_POST['g-recaptcha-response'] ?? '';
                 if (empty($recaptcha)) {
                     $_SESSION['error_register'] = 'Por favor, complete el reCAPTCHA';
-                } elseif (empty($_POST['nacionalidad'] ?? '') || empty($_POST['cedula'] ?? '') || empty($_POST['username'] ?? '') || empty($_POST['nombre'] ?? '') || empty($_POST['apellido'] ?? '') || empty($_POST['correo'] ?? '') || empty($_POST['clave'] ?? '') || empty($_POST['rclave'] ?? '')) {
+                } elseif (empty($_POST['nacionalidad'] ?? '') || empty($_POST['cedula'] ?? '') || empty($_POST['fecha_nacimiento'] ?? '') || empty($_POST['sexo'] ?? '') || empty($_POST['direccion'] ?? '') || empty($_POST['username'] ?? '') || empty($_POST['nombre'] ?? '') || empty($_POST['apellido'] ?? '') || empty($_POST['correo'] ?? '') || empty($_POST['clave'] ?? '') || empty($_POST['rclave'] ?? '')) {
                     $_SESSION['error_register'] = 'Por favor, complete todos los campos';
                 } elseif ($_POST['clave'] !== $_POST['rclave']) {
                     $_SESSION['error_register'] = 'Las contraseñas no coinciden';
                 } else {
-                    $cedula = ($_POST['nacionalidad'] ?? '') . ($_POST['cedula'] ?? '');
-                    $usuarioModel = new Usuario();
-                    $usuarioModel->setCedula($cedula);
-                    $usuarioModel->setIdRol('CLIE00420251001');
-                    $usuarioModel->setUsername($_POST['username']);
-                    $usuarioModel->setNombres($_POST['nombre']);
-                    $usuarioModel->setApellidos($_POST['apellido']);
-                    $usuarioModel->setTelefono($_POST['telefono'] ?? '');
-                    $usuarioModel->setCorreo($_POST['correo']);
-                    $usuarioModel->setClave($_POST['clave']);
+                    $cedula = ($_POST['nacionalidad'] ?? '') . "-" . ($_POST['cedula'] ?? '');
+                    
+                    // Paso 1: Registrar Cliente (Persona y Cliente)
+                    $clienteModel = new \App\Models\System\Cliente();
+                    $clienteModel->setCedula($cedula);
+                    $clienteModel->setNombre($_POST['nombre']);
+                    $clienteModel->setApellido($_POST['apellido']);
+                    $clienteModel->setFechaNacimiento($_POST['fecha_nacimiento']);
+                    $clienteModel->setSexo($_POST['sexo']);
+                    $clienteModel->setDireccion($_POST['direccion']);
+                    $clienteModel->setTelefono($_POST['telefono'] ?? '');
+                    $clienteModel->setCorreo($_POST['correo']);
+                    
+                    $registroCliente = $clienteModel->Transaccion(['peticion' => 'registrar']);
 
-                    $registro = $usuarioModel->Transaccion(['peticion' => 'registrar']);
-                    if (isset($registro['estado']) && $registro['estado'] == 1) {
-                        $validacion = $usuarioModel->Transaccion(['peticion' => 'sesion']);
-                        if (isset($validacion['response']['verificacion']) && $validacion['response']['verificacion']) {
-                            $datos = $usuarioModel->Transaccion(['peticion' => 'perfil']);
-                            if ($datos && isset($datos['response']['datos'])) {
-                                $_SESSION['user'] = $datos['response']['datos'];
-                                unset($_SESSION['error_register']);
-                                header('Location: ' . BASE_URL . '/?page=home');
-                                exit();
+                    if (isset($registroCliente['estado']) && $registroCliente['estado'] == 1) {
+                        // Paso 2: Registrar Usuario
+                        $usuarioModel = new Usuario();
+                        $usuarioModel->setCedula($cedula);
+                        $usuarioModel->setIdRol('ROLS25820260524110506258');
+                        $usuarioModel->setUsername($_POST['username']);
+                        $usuarioModel->setClave($_POST['clave']);
+                        $usuarioModel->setEstatusClave(1);
+
+                        $registroUsuario = $usuarioModel->Transaccion(['peticion' => 'registrar']);
+
+                        if (isset($registroUsuario['estado']) && $registroUsuario['estado'] == 1) {
+                            $validacion = $usuarioModel->Transaccion(['peticion' => 'sesion']);
+                            if (isset($validacion['response']['verificacion']) && $validacion['response']['verificacion']) {
+                                $datos = $usuarioModel->Transaccion(['peticion' => 'perfil']);
+                                if ($datos && isset($datos['response']['datos'])) {
+                                    $_SESSION['user'] = $datos['response']['datos'];
+                                    
+                                    // Set estatus_clave for the session correctly
+                                    $_SESSION['user']['estatus_clave'] = 1;
+
+                                    unset($_SESSION['error_register']);
+                                    header('Location: ' . BASE_URL . '/?page=home');
+                                    exit();
+                                }
                             }
+                            $_SESSION['error_register'] = 'Usuario registrado pero no se pudo iniciar sesión automáticamente';
+                        } else {
+                            $_SESSION['error_register'] = $registroUsuario['response']['mensaje'] ?? 'Error al registrar credenciales de usuario';
                         }
-                        $_SESSION['error_register'] = 'Usuario registrado pero no se pudo iniciar sesión automáticamente';
                     } else {
-                        $_SESSION['error_register'] = $registro['response']['mensaje'] ?? 'Error al registrar usuario';
+                        $_SESSION['error_register'] = $registroCliente['response']['mensaje'] ?? 'Error al registrar los datos del cliente';
                     }
                 }
             }
@@ -95,6 +116,17 @@ class LoginController
                     $datos = $usuarioModel->Transaccion(['peticion' => 'perfil']);
                     if ($datos && isset($datos['response']['datos'])) {
                         $_SESSION['user'] = $datos['response']['datos'];
+                        
+                        // Asegurar que tenemos el estatus_clave actualizado
+                        try {
+                            $dbSec = \App\Core\Database::getConnection('security');
+                            $stmtSt = $dbSec->prepare("SELECT estatus_clave FROM usuario WHERE cedula = ?");
+                            $stmtSt->execute([$cedula]);
+                            if ($resSt = $stmtSt->fetch(\PDO::FETCH_ASSOC)) {
+                                $_SESSION['user']['estatus_clave'] = $resSt['estatus_clave'];
+                            }
+                        } catch (\Exception $e) { }
+
                         unset($_SESSION['error_login']);
                         header('Location: ' . BASE_URL . '/?page=home');
                     } else {
