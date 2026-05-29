@@ -82,6 +82,7 @@ try {
         'reservaciones' => (new ReservacionController())->index(),
         'reservar' => (new ReservacionController())->index(true),
         'reportes' => (new ReporteController())->index(),
+        'estadistica' => (new ReporteController())->indexEstadistica(),
         'papelera' => (new PapeleraController())->index(),
         'notificaciones' => (new NotificationController())->index(),
         'rol' => (new RolController())->index(),

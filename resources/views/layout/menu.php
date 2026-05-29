@@ -35,7 +35,7 @@
         <!-- Perfil de usuario -->
         <div class="user-profile d-flex align-items-center gap-3 px-3 py-2 border-bottom">
             <div class="user-avatar" style="width: 36px; height: 36px;">
-                <img src="<?php echo $datos['foto']; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
+                <img src="<?php echo !empty($datos['foto']) ? BASE_URL . ltrim($datos['foto'], '/') : BASE_URL . 'assets/img/default.jpg'; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
             </div>
             <div class="user-info">
                 <div class="user-name fw-semibold"><?php echo $datos['nombres'] ?? 'Usuario'; ?></div>
@@ -304,31 +304,29 @@
 
             <div class="d-flex align-items-center gap-2">
                 <!-- Notificaciones -->
-                <div class="dropdown">
-                    <button class="btn btn-link text-decoration-none p-2 position-relative" type="button"
+                <div class="dropdown notificacion">
+                    <button class="btn btn-link text-decoration-none p-2 position-relative notificacion__campana" type="button"
                         data-bs-toggle="dropdown" aria-expanded="false" id="notificationDropdown"
                         aria-label="Notificaciones" <?php echo !isset($_SESSION['user']) ? 'disabled' : ''; ?>>
                         <i class="bi bi-bell fs-5"></i>
-                        <span
-                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger notification-badge"
-                            id="notificationBadge" style="font-size: 0.6rem; display: none;">0</span>
+                        <span class="notificacion__badge" id="notificationBadge" style="display: none;">0</span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
-                        <div class="dropdown-header d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0">Notificaciones</h6>
-                            <button class="btn btn-sm btn-link p-0" id="markAllRead" title="Marcar todas como leídas">
+                    <div class="dropdown-menu dropdown-menu-end notificacion__dropdown" aria-labelledby="notificationDropdown">
+                        <div class="notificacion__cabecera">
+                            <h6 class="notificacion__titulo">Notificaciones</h6>
+                            <button class="notificacion__accion" id="markAllRead" title="Marcar todas como leídas">
                                 <i class="bi bi-check2-all"></i>
                             </button>
                         </div>
-                        <div class="notification-list" id="notificationList">
+                        <div class="notificacion__lista" id="notificationList">
                             <!-- Las notificaciones se cargarán aquí vía JavaScript -->
-                            <div class="text-center text-muted py-4">
-                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                            <div class="notificacion__vacio">
+                                <i class="bi bi-inbox notificacion__vacio-icono"></i>
                                 <span>Cargando notificaciones...</span>
                             </div>
                         </div>
-                        <div class="dropdown-footer text-center">
-                            <a href="<?php echo BASE_URL; ?>/?page=notificaciones" class="btn btn-sm btn-primary w-100">
+                        <div class="notificacion__pie">
+                            <a href="<?php echo BASE_URL; ?>/?page=notificaciones" class="notificacion__ver-todas">
                                 Ver todas
                             </a>
                         </div>
@@ -343,7 +341,7 @@
                 <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                     <div class="user-avatar" style="width: 36px; height: 36px;">
-                        <img src="<?php echo $datos['foto']; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
+                        <img src="<?php echo !empty($datos['foto']) ? BASE_URL . ltrim($datos['foto'], '/') : BASE_URL . 'assets/img/default.jpg'; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
                     </div>
                     <span class="d-none d-lg-inline"><?php echo $datos['nombres'] ?? 'Invitado'; ?></span>
                 </button>
@@ -393,7 +391,6 @@
                     <?php endif; ?>
                 </ul>
             </div>
-        </div>
         </div>
     </header>
 

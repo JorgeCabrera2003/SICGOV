@@ -1,0 +1,370 @@
+/* ==========================================================================
+   BLOCK: notificacion
+   ========================================================================== */
+.notificacion {
+    position: relative;
+    display: inline-block;
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__campana
+   ========================================================================== */
+.notificacion__campana {
+    color: var(--color-sidebar);
+    background: transparent;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.2s ease;
+}
+
+.notificacion__campana:hover {
+    color: var(--color-acento);
+    transform: scale(1.1);
+}
+
+.notificacion__campana:active {
+    transform: scale(0.95);
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__badge
+   ========================================================================== */
+.notificacion__badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: var(--color-acento);
+    color: var(--color-sidebar);
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 0.25em 0.5em;
+    border-radius: 50rem;
+    line-height: 1;
+    transform: translate(20%, -20%);
+    border: 2px solid var(--bg-tarjetas);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    animation: notificacionPulse 2s infinite;
+}
+
+@keyframes notificacionPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 214, 0, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(255, 214, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 214, 0, 0);
+    }
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__dropdown
+   ========================================================================== */
+.notificacion__dropdown {
+    width: 340px;
+    padding: 0;
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-border);
+    background-color: var(--bg-tarjetas);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    transform-origin: top right;
+    animation: notificacionDropdownSlide 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes notificacionDropdownSlide {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__cabecera
+   ========================================================================== */
+.notificacion__cabecera {
+    padding: 0.75rem 1rem;
+    background-color: var(--bg-principal);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__titulo
+   ========================================================================== */
+.notificacion__titulo {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-sidebar);
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__accion
+   ========================================================================== */
+.notificacion__accion {
+    font-size: 0.75rem;
+    color: var(--color-sidebar);
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.notificacion__accion:hover {
+    background-color: var(--color-bg-muted);
+    color: var(--color-acento);
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__lista
+   ========================================================================== */
+.notificacion__lista {
+    max-height: 320px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.notificacion__lista::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notificacion__lista::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.notificacion__lista::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 3px;
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__item
+   ========================================================================== */
+.notificacion__item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+    align-items: flex-start;
+}
+
+.notificacion__item:hover {
+    background-color: var(--bg-principal);
+}
+
+/* MODIFIER: notificacion__item--no-leida */
+.notificacion__item--no-leida {
+    background-color: rgba(255, 214, 0, 0.04);
+}
+
+.notificacion__item--no-leida:hover {
+    background-color: rgba(255, 214, 0, 0.08);
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__icono
+   ========================================================================== */
+.notificacion__icono {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    transition: transform 0.2s ease;
+}
+
+.notificacion__item:hover .notificacion__icono {
+    transform: scale(1.05);
+}
+
+/* Icon Modifiers */
+.notificacion__icono--info {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+}
+
+.notificacion__icono--alerta {
+    background-color: rgba(255, 193, 7, 0.15);
+    color: #cc9a06;
+}
+
+.notificacion__icono--exito {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754;
+}
+
+.notificacion__icono--error {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__contenido
+   ========================================================================== */
+.notificacion__contenido {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__encabezado
+   ========================================================================== */
+.notificacion__encabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.15rem;
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__asunto
+   ========================================================================== */
+.notificacion__asunto {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-sidebar);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__fecha
+   ========================================================================== */
+.notificacion__fecha {
+    font-size: 0.65rem;
+    color: rgba(26, 28, 32, 0.5);
+    white-space: nowrap;
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__mensaje
+   ========================================================================== */
+.notificacion__mensaje {
+    font-size: 0.75rem;
+    color: var(--color-sidebar);
+    margin: 0;
+    line-height: 1.35;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__opciones
+   ========================================================================== */
+.notificacion__opciones {
+    display: flex;
+    align-self: center;
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__marcar-leida
+   ========================================================================== */
+.notificacion__marcar-leida {
+    background: transparent;
+    border: none;
+    color: rgba(26, 28, 32, 0.4);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0.2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.notificacion__marcar-leida:hover {
+    background-color: var(--color-bg-muted);
+    color: var(--color-acento);
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__vacio
+   ========================================================================== */
+.notificacion__vacio {
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: rgba(26, 28, 32, 0.5);
+}
+
+.notificacion__vacio-icono {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 0.5rem;
+    color: rgba(26, 28, 32, 0.3);
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__pie
+   ========================================================================== */
+.notificacion__pie {
+    padding: 0.5rem;
+    background-color: var(--bg-principal);
+    border-top: 1px solid var(--color-border);
+    text-align: center;
+}
+
+/* ==========================================================================
+   ELEMENT: notificacion__ver-todas
+   ========================================================================== */
+.notificacion__ver-todas {
+    display: block;
+    width: 100%;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-sidebar);
+    text-decoration: none;
+    padding: 0.35rem;
+    border-radius: 0.35rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.notificacion__ver-todas:hover {
+    background-color: var(--color-bg-muted);
+    color: var(--color-acento);
+}
+
+/* ==========================================================================
+   MODO OSCURO - AJUSTES DE CONTRASTE
+   ========================================================================== */
+.dark .notificacion__badge {
+    border-color: var(--bg-tarjetas);
+    color: #1A1C20;
+}
+
+.dark .notificacion__fecha {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.dark .notificacion__marcar-leida {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.dark .notificacion__marcar-leida:hover {
+    color: var(--color-acento);
+}
