@@ -123,7 +123,7 @@ export async function EnviarDatos(operacion) {
   let mensajeConfirmacion = "¿Está seguro de realizar esta acción?";
   let endpoint = "";
   let peticion = new FormData();
-  let json = null;
+  let json = { resultado: 0};
 
   //Registrar y Modificar
   if (operacion == "registrar" || operacion == "modificar") {
@@ -338,17 +338,17 @@ function KeyUpInsumo() {
   })
 
   $(input.stock_inicial).on("blur", function () {
-    ValidadorHelper.FormatoNumeroDecimal($(this));
+    ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
     ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_inicial);
   })
 
   $(input.stock_minimo).on("blur", function () {
-    ValidadorHelper.FormatoNumeroDecimal($(this));
+    ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
     ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_minimo);
   })
 
   $(input.stock_maximo).on("blur", function () {
-    ValidadorHelper.FormatoNumeroDecimal($(this));
+    ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
     ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
   })
 
@@ -392,7 +392,9 @@ function Validarenvio() {
     bool = false;
   }
 
+
   if (!ValidadorHelper.ValidarCampo("NombreObjeto", input.nombre, span.nombre)) {
+    MensajeriaHelper.FeedbackToltipInput(input.nombre, span.nombre, "Nombre ingresado, no válido", 0)
     bool = false;
   }
 
@@ -596,7 +598,9 @@ export function LimpiarFormulario() {
   input.id_insumo.val("").prop("disabled", true);
   input.nombre.val("").prop("disabled", false);
   input.costo_unitario.val("").prop("disabled", false);
-  input.unidad_medida.prop("disabled", false);
+  input.unidad_medida.val("default").prop("disabled", false);
+  input.proveedor.val("default").prop("disabled", false);
+  input.categoria_id.val("default").prop("disabled", false);
   input.stock_inicial.val("").prop("disabled", false);
   input.stock_maximo.val("").prop("disabled", false);
   input.stock_minimo.val("").prop("disabled", false);
@@ -622,6 +626,9 @@ export async function EditarFormInsumo(datos, accion) {
   input.nombre.val(datos.nombre_insumo).prop("disabled", bool);
   input.costo_unitario.val(datos.precio_unitario).prop("disabled", bool);
   input.unidad_medida.prop("disabled", bool);
+  input.categoria_id.prop("disabled", bool);
+  SelectHelper.BuscarValor(input.unidad_medida, datos.id_unidad_medida, "value")
+  SelectHelper.BuscarValor(input.categoria_id, datos.id_categoria, "value")
   input.stock_inicial.val(datos.stock_actual).prop("disabled", true);
   input.stock_maximo.val(datos.stock_maximo).prop("disabled", bool);
   input.stock_minimo.val(datos.stock_minimo).prop("disabled", bool);
