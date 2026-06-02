@@ -142,6 +142,8 @@ class CategoriaInsumo extends Database
         $validacion = $this->ValidarCategoriaInsumo();
         if ($validacion['bool'] == 0) {
             try {
+                $this->LlamarConexion();
+                $this->LlamarConexion()->beginTransaction();
                 $sql = "INSERT INTO categoria_insumo(id_categoria, nombre) VALUES 
                 (:id_categoria, :nombre)";
 
