@@ -1,85 +1,458 @@
-/* ==========================================
-   COMPONENTE: Estadísticas y Dashboard (Puertos)
-   Metodología: BEM + Anidamiento Nativo
-========================================== */
+/* ==============================================================================
+   MÓDULO: Reportes Estadísticos y Analytics Dashboard (SICGOV)
+   Estilos Ultra-Premium: Glassmorphism, Micro-Interacciones y Temas Dinámicos
+============================================================================== */
 
-.stats-dashboard {
-    /* Elemento: Grid de puertos interactivos */
-    &__grid {
-        display: grid;
-        grid-template-columns: repeat(8, 1fr);
-        gap: 0.5rem;
+/* Icono de acento flotante en el título */
+.icon-title-accent {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    background: rgba(253, 126, 20, 0.1);
+    color: #fd7e14;
+    border: 1px solid rgba(253, 126, 20, 0.25);
+    border-radius: 14px;
+    font-size: 1.4rem;
+    animation: accentFloat 3s ease-in-out infinite;
+    box-shadow: 0 8px 20px -6px rgba(253, 126, 20, 0.3);
+    vertical-align: middle;
+}
 
-        @media (max-width: 768px) {
-            grid-template-columns: repeat(6, 1fr);
-        }
+@keyframes accentFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(4deg); }
+}
 
-        @media (max-width: 576px) {
-            grid-template-columns: repeat(4, 1fr);
-        }
+body.dark-mode .icon-title-accent {
+    background: rgba(253, 126, 20, 0.15);
+    border-color: rgba(253, 126, 20, 0.35);
+    box-shadow: 0 8px 25px -5px rgba(253, 126, 20, 0.45);
+}
+
+/* Contenedor Principal con animación de entrada suave */
+main.container-fluid {
+    animation: dashboardFadeIn 0.8s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+/* Animación de entrada de tarjetas y elementos */
+@keyframes dashboardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
-
-    /* Elemento: Botón interactivo de puerto */
-    &__port-btn {
-        width: 100%;
-        aspect-ratio: 1 / 1;
-        max-width: 50px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 0.2rem;
-        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s ease;
-        background-color: var(--bg-tarjetas);
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-base);
-        transition: transform 0.3s ease;
-        color: var(--color-sidebar);
-        cursor: pointer;
-        margin: 0 auto;
-
-        &:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
-            border-color: var(--color-acento);
-            background-color: var(--bg-principal);
-            /* Animación de pulso continuo al hacer hover */
-            animation: pulse-border 1.5s infinite;
-        }
-
-        & i {
-            font-size: 1.2rem;
-            margin-bottom: 2px;
-            color: inherit;
-        }
-
-        & small {
-            font-size: 0.65rem;
-            line-height: 1;
-            font-weight: 700;
-        }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-/* Animaciones */
-@keyframes pulse-border {
-    0% { box-shadow: 0 0 0 0 rgba(255, 214, 0, 0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(255, 214, 0, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 214, 0, 0); }
+/* Tarjetas Analíticas Modernas - Glassmorphism Base */
+.card-report {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px) saturate(120%);
+    -webkit-backdrop-filter: blur(16px) saturate(120%);
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    border-radius: 24px !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04) !important;
 }
 
-/* Tooltips globales estilizados */
-.tooltip-inner {
-    background-color: var(--color-sidebar);
-    color: var(--bg-tarjetas);
-    border-radius: var(--border-radius-base);
-    padding: 0.5rem 0.75rem;
-    font-weight: 500;
+/* Hover de Tarjetas con Elevación y Resplandor */
+.hover-transform:hover {
+    transform: translateY(-8px) scale(1.02) !important;
+    box-shadow: 0 20px 40px -15px rgba(9, 132, 227, 0.15) !important;
+    border-color: rgba(9, 132, 227, 0.3) !important;
+}
+
+/* Ajustes especiales para KPIs individuales */
+.card-report h3 {
+    font-size: 0.85rem;
+    letter-spacing: 0.8px;
+    color: #636e72;
+}
+
+.kpi-value {
+    letter-spacing: -1px;
+}
+
+/* Gradientes específicos para KPIs de negocio adaptativos */
+.card-kpi-ganancias {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(46, 213, 115, 0.08)) !important;
+}
+.card-kpi-estrella {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 71, 87, 0.08)) !important;
+}
+.card-kpi-top-client {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(108, 92, 231, 0.08)) !important;
+}
+.card-kpi-ocupacion {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(253, 126, 20, 0.08)) !important;
+}
+
+/* Iconos circulares con gradientes tenues de fondo */
+.icon-shape {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    transition: transform 0.3s ease;
+}
+
+.card-report:hover .icon-shape {
+    transform: rotate(8deg) scale(1.1);
+}
+
+/* Overlay de Carga Glassmorphic */
+.chart-loading-overlay {
+    background-color: rgba(255, 255, 255, 0.75) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+    border-radius: 24px;
+    opacity: 1;
+    visibility: visible;
+}
+
+.chart-loading-overlay.loaded {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Cabeceras de Gráficos */
+.card-header h3 {
+    letter-spacing: -0.3px;
+    font-size: 1.15rem;
+    color: #2d3436;
+}
+
+/* ==============================================================================
+   ESTILOS COMPLEMENTARIOS PARA MODO OSCURO (DARK MODE)
+============================================================================== */
+body.dark-mode {
+    /* Fondo semi-transparente oscuro con desenfoque para tarjetas */
+    & .card-report {
+        background: rgba(26, 28, 32, 0.8) !important;
+        backdrop-filter: blur(20px) saturate(140%);
+        -webkit-backdrop-filter: blur(20px) saturate(140%);
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 15px 35px -15px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    & .card-report h3 {
+        color: #b2bec3 !important;
+    }
+
+    & .card-header h3 {
+        color: #ffffff !important;
+    }
+
+    & .text-muted {
+        color: #a4b0be !important;
+    }
+
+    /* Resplandor especial en Hover para Modo Oscuro */
+    & .hover-transform:hover {
+        box-shadow: 0 25px 50px -15px rgba(9, 132, 227, 0.3) !important;
+        border-color: rgba(9, 132, 227, 0.4) !important;
+        background: rgba(26, 28, 32, 0.95) !important;
+    }
+
+    /* Carga en Modo Oscuro */
+    & .chart-loading-overlay {
+        background-color: rgba(21, 23, 26, 0.8) !important;
+    }
+
+    /* Fondos oscuros adaptativos premium para KPIs de negocio */
+    & .card-kpi-ganancias {
+        background: linear-gradient(135deg, rgba(26, 28, 32, 0.8), rgba(46, 213, 115, 0.12)) !important;
+    }
+    & .card-kpi-estrella {
+        background: linear-gradient(135deg, rgba(26, 28, 32, 0.8), rgba(255, 71, 87, 0.12)) !important;
+    }
+    & .card-kpi-top-client {
+        background: linear-gradient(135deg, rgba(26, 28, 32, 0.8), rgba(108, 92, 231, 0.12)) !important;
+    }
+    & .card-kpi-ocupacion {
+        background: linear-gradient(135deg, rgba(26, 28, 32, 0.8), rgba(253, 126, 20, 0.12)) !important;
+    }
+}
+
+/* ==============================================================================
+   FILTROS AVANZADOS Y CONTROLES GLASSMORPHIC (Filtros & Selectores)
+   ============================================================================== */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.45) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08) !important;
+}
+
+#toggle-filter-btn {
+    user-select: none;
+    transition: background-color 0.3s ease;
+    border-radius: 24px;
+}
+
+#toggle-filter-btn:hover {
+    background-color: rgba(9, 132, 227, 0.04);
+}
+
+.transition-icon {
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#toggle-filter-btn[aria-expanded="true"] .transition-icon {
+    transform: rotate(180deg);
+    color: #0984e3;
+}
+
+.filter-group {
+    background: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(0, 0, 0, 0.03);
+    border-radius: 16px;
+    padding: 16px;
+    height: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.filter-group:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.05);
+}
+
+/* Estilo Premium para los inputs y selectores del Panel */
+#filter-panel-card .form-control,
+#filter-panel-card .form-select {
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 0.55rem 0.85rem;
+    font-size: 0.9rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #2d3436;
+}
+
+#filter-panel-card .form-control-sm,
+#filter-panel-card .form-select-sm {
+    padding: 0.35rem 0.65rem;
     font-size: 0.8rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.bs-tooltip-top .tooltip-arrow::before,
-.bs-tooltip-auto[data-popper-placement^="top"] .tooltip-arrow::before {
-    border-top-color: var(--color-sidebar);
+#filter-panel-card .form-control:focus,
+#filter-panel-card .form-select:focus {
+    background-color: #ffffff;
+    border-color: #0984e3;
+    box-shadow: 0 0 0 3px rgba(9, 132, 227, 0.15);
+    transform: scale(1.01);
+}
+
+.input-group-custom {
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.input-group-custom .input-group-text {
+    background-color: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    color: #636e72;
+    transition: all 0.3s ease;
+}
+
+.input-group-custom:focus-within .input-group-text {
+    border-color: #0984e3;
+    color: #0984e3;
+}
+
+/* Selectores de tipo de gráfico en las cabeceras de tarjeta */
+.chart-type-select {
+    padding: 0.25rem 1.8rem 0.25rem 0.75rem !important;
+    background-color: rgba(9, 132, 227, 0.06) !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%230984e3' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+    border: 1px solid rgba(9, 132, 227, 0.1) !important;
+    color: #0984e3 !important;
+    font-weight: 600;
+    border-radius: 10px !important;
+    cursor: pointer;
+    transition: all 0.3s ease !important;
+}
+
+.chart-type-select:hover {
+    background-color: rgba(9, 132, 227, 0.12) !important;
+    border-color: rgba(9, 132, 227, 0.25) !important;
+    transform: translateY(-1px);
+}
+
+.chart-type-select:focus {
+    box-shadow: 0 0 0 3px rgba(9, 132, 227, 0.2) !important;
+}
+
+/* Modo oscuro para filtros y selectores */
+body.dark-mode {
+    & .glass-panel {
+        background: rgba(30, 32, 38, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    & #toggle-filter-btn:hover {
+        background-color: rgba(255, 255, 255, 0.02);
+    }
+    
+    & .filter-group {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    
+    & #filter-panel-card .form-control,
+    & #filter-panel-card .form-select {
+        background-color: rgba(26, 28, 32, 0.95);
+        border-color: rgba(255, 255, 255, 0.08);
+        color: #f1f2f6;
+    }
+    
+    & #filter-panel-card .form-control:focus,
+    & #filter-panel-card .form-select:focus {
+        background-color: #1a1c20;
+        border-color: #0984e3;
+        box-shadow: 0 0 0 3px rgba(9, 132, 227, 0.3);
+    }
+    
+    & .input-group-custom .input-group-text {
+        background-color: rgba(26, 28, 32, 0.95);
+        border-color: rgba(255, 255, 255, 0.08);
+        color: #a4b0be;
+    }
+    
+    & .chart-type-select {
+        background-color: rgba(9, 132, 227, 0.15) !important;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2374b9ff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+        border-color: rgba(9, 132, 227, 0.25) !important;
+        color: #74b9ff !important;
+    }
+    
+    & .chart-type-select:hover {
+        background-color: rgba(9, 132, 227, 0.25) !important;
+        border-color: rgba(9, 132, 227, 0.45) !important;
+    }
+    
+    & .chart-type-select option {
+        background-color: #1e2124 !important;
+        color: #ffffff !important;
+    }
+}
+
+/* ==============================================================================
+   AJUSTES RESPONSIVOS DE EXCELENCIA
+============================================================================== */
+@media (max-width: 991px) {
+    .card-report {
+        padding: 1.5rem !important;
+    }
+    
+    .chart-container {
+        height: 280px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    header h1 {
+        font-size: 2rem !important;
+    }
+    
+    .card-report {
+        padding: 1.25rem !important;
+    }
+}
+
+/* ==============================================================================
+   LOCAL FILTER PANELS (FILTROS LOCALES POR TARJETA)
+   ============================================================================== */
+.local-filter-panel {
+    background: rgba(9, 132, 227, 0.02);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+}
+
+body.dark-mode .local-filter-panel {
+    background: rgba(255, 255, 255, 0.01);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.local-filter-panel .form-control,
+.local-filter-panel .form-select {
+    font-size: 0.75rem !important;
+    border-radius: 8px !important;
+    padding: 0.3rem 0.5rem !important;
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    color: #2d3436 !important;
+    height: auto !important;
+}
+
+body.dark-mode .local-filter-panel .form-control,
+body.dark-mode .local-filter-panel .form-select {
+    background-color: rgba(26, 28, 32, 0.9) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    color: #f1f2f6 !important;
+}
+
+.local-filter-panel .form-control:focus,
+.local-filter-panel .form-select:focus {
+    border-color: #0984e3 !important;
+    box-shadow: 0 0 0 2px rgba(9, 132, 227, 0.1) !important;
+    background-color: #ffffff !important;
+}
+
+body.dark-mode .local-filter-panel .form-control:focus,
+body.dark-mode .local-filter-panel .form-select:focus {
+    background-color: #1a1c20 !important;
+    box-shadow: 0 0 0 2px rgba(9, 132, 227, 0.2) !important;
+}
+
+.btn-toggle-local-filter {
+    transition: all 0.3s ease;
+    background: rgba(9, 132, 227, 0.05);
+    border: 1px solid rgba(9, 132, 227, 0.1);
+    color: #0984e3;
+}
+
+.btn-toggle-local-filter:hover {
+    background: rgba(9, 132, 227, 0.15) !important;
+    transform: scale(1.05);
+}
+
+body.dark-mode .btn-toggle-local-filter {
+    background: rgba(9, 132, 227, 0.1);
+    border-color: rgba(9, 132, 227, 0.2);
+    color: #74b9ff;
+}
+
+body.dark-mode .btn-toggle-local-filter:hover {
+    background: rgba(9, 132, 227, 0.25) !important;
+}
+
+.btn-clear-local-filter {
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.6rem !important;
+    border-radius: 20px !important;
+}
+
+/* Active filter state visual indicator for funnel buttons */
+.btn-toggle-local-filter.active-filter {
+    background: #0984e3 !important;
+    color: #ffffff !important;
+    border-color: #0984e3 !important;
+    box-shadow: 0 0 8px rgba(9, 132, 227, 0.4);
+}
+
+body.dark-mode .btn-toggle-local-filter.active-filter {
+    background: #74b9ff !important;
+    color: #15171a !important;
+    border-color: #74b9ff !important;
+    box-shadow: 0 0 8px rgba(116, 185, 255, 0.4);
 }

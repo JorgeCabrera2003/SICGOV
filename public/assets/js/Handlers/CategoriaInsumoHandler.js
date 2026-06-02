@@ -12,13 +12,11 @@ function EtiquetasFormulario(etiquetas) {
 
   const inputCategoria = {
     nombre: $('#categoria-nombre'),
-    descripcion: $('#categoria-descripcion'),
     id_categoria: $('#id_categoria')
   }
 
   const spanCategoria = {
     nombre: $('#scategoria-nombre'),
-    descripcion: $('#scategoria-descripcion'),
     id_categoria: $('#sid_categoria')
   }
 
@@ -106,6 +104,13 @@ export function CancelarFormulario() {
   modal_tabla = null;
 }
 
+export function CerrarFormulario() {
+  let modal_form = EtiquetasModal("Categoria");
+
+  modal_form.modal.modal("hide");
+  modal_form = null;
+}
+
 export function MostrarModalTabla() {
   let modal_tabla = EtiquetasModal("TablaCategoria");
   let modal_form = EtiquetasModal("Categoria");
@@ -152,7 +157,6 @@ async function EnviarDatos(operacion) {
       if (confirmacion) {
         peticion.append('peticion', accion);
         peticion.append('nombre', input.nombre.val());
-        peticion.append('descripcion', input.descripcion.val());
         btn_formulario = true;
       }
     } else {
@@ -179,7 +183,7 @@ async function EnviarDatos(operacion) {
 
   if (btn_formulario) {
     modal.boton.prop('disabled', true);
-    json = await AjaxHelper.enviaAjax(peticion, "?page=categoria-ingrediente");
+    json = await AjaxHelper.enviaAjax(peticion, "?page=categoria-insumo");
     modal.boton.prop('disabled', false);
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       MensajeriaHelper.GenerarMensaje(json.icon, 10000, json.mensaje, null);
@@ -213,13 +217,12 @@ export async function EnviarFormulario(etiqueta_boton) {
     respuesta = { resultado: 0 }
     MensajeriaHelper.GenerarMensaje("danger", 10000, "Error, acción no válida", "")
   }
-  return respuesta ;
+  return respuesta;
 };
 
 export function KeyPressCategoria() {
   let input = EtiquetasFormulario("input");
   $(input.nombre).on("keypress", function (e) { ValidadorHelper.ValidarTecla("NombreObjeto", e); })
-  $(input.descripcion).on("keypress", function (e) { ValidadorHelper.ValidarTecla("NombreObjeto", e); })
 }
 
 export function KeyUpCategoria() {
@@ -228,10 +231,6 @@ export function KeyUpCategoria() {
 
   $(input.nombre).on("keyup", function () {
     ValidadorHelper.ValidarCampo("NombreObjeto", $(this), span.nombre);
-  })
-
-  $(input.descripcion).on("keyup", function () {
-    ValidadorHelper.ValidarCampo("NombreObjeto", $(this), span.descripcion);
   })
 }
 
@@ -244,10 +243,6 @@ export function ValidarEnvio() {
   if (!ValidadorHelper.ValidarCampo("NombreObjeto", input.nombre, span.nombre)) {
     bool = false;
   }
-
-  if (!ValidadorHelper.ValidarCampo("NombreObjeto", input.descripcion, span.descripcion)) {
-    bool = false;
-  };
 
   return bool;
 }
@@ -306,7 +301,6 @@ export async function DataTableCategoria(arreglo) {
     data: arreglo,
     columns: [
       { data: 'nombre' },
-      { data: 'descripcion' },
       {
         data: null,
         render: function () {
@@ -331,7 +325,6 @@ export async function EditarFormCategoria(datos, accion) {
 
   input.id_categoria.val(datos.id_categoria).prop("disabled", true);
   input.nombre.val(datos.nombre).prop("disabled", bool);
-  input.descripcion.val(datos.descripcion).prop("disabled", bool);
   modal_tabla.modal.modal("hide");
   modal_formulario.boton.prop('disabled', false);
   EditarModal(accion);
@@ -345,5 +338,4 @@ export function Limpiar() {
   modal.boton.prop('disabled', false);
   input.id_categoria.val("").prop("readOnly", true);
   input.nombre.val("").prop("readOnly", false)
-  input.descripcion.val("").prop("readOnly", false)
 }

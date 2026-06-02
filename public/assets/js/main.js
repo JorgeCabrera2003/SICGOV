@@ -309,7 +309,7 @@ const SICGOV = (function($) {
     $(document).ready(function() {
         initTheme();
         initSidebar();
-        initNotifications();
+        // initNotifications(); // Desactivado para usar modulo_notificaciones.js (ES6)
         initUserMenu();
         initBackToTop();
         

@@ -8,11 +8,11 @@
     <header class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">
             <i class="fas fa-box me-2 text-warning"></i>
-            Gestión de Ingredientes
+            Gestión de Insumos
         </h1>
-        <div class="btn-group" role="group" aria-label="Acciones de ingrediente">
-            <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoIngrediente">
-                <i class="fas fa-plus me-2"></i>Nuevo Ingrediente
+        <div class="btn-group" role="group" aria-label="Acciones de insumo">
+            <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoInsumo">
+                <i class="fas fa-plus me-2"></i>Nuevo Insumo
             </button>
             <button class="btn btn-outline-warning" id="btn-ModalCategorias">
                 <i class="fas fa-tags me-2"></i>Categorías
@@ -24,7 +24,7 @@
     <section class="card shadow-sm border-0">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover align-middle" id="tablaIngrediente" style="width:100%">
+                <table class="table table-hover align-middle" id="tablaInsumo" style="width:100%">
                     <thead class="table-light">
                         <tr>
                             <th scope="col">Nombre</th>
@@ -46,10 +46,10 @@
 
 <!-- Modales (incluidos como partials) -->
 <?php
-include_once 'partials/_modal_ingrediente.php';
-include_once 'partials/_modal_categoria_ingrediente.php';
-include_once $basePath. '/resources/views/categoria_ingrediente/partials/_modal_categoria_ingrediente_form.php';
+include_once 'partials/_modal_insumo.php';
+include_once 'partials/_modal_categoria_insumo.php';
+include_once $basePath. '/resources/views/categoria_insumo/partials/_modal_categoria_insumo_form.php';
 ?>
 
 <!-- Recursos específicos de la página -->
-<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/IngredienteController.js" defer></script>
+<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/InsumoController.js" defer></script>

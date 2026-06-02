@@ -42,7 +42,7 @@
                                 <div class="carousel-inner">
                                     <?php foreach ($noticia['imagenes'] as $index => $img): ?>
                                         <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>" data-bs-interval="4000">
-                                            <img src="<?= BASE_URL . $img['direccion'] ?>" class="d-block w-100" alt="News Image">
+                                            <img src="<?= BASE_URL . $img['direccion'] ?>" class="d-block w-100" alt="News Image" onerror="this.src='<?= BASE_URL ?>/assets/img/logo.png'; this.style.objectFit='contain'; this.style.padding='40px';">
                                         </div>
                                     <?php endforeach; ?>
                                 </div>
@@ -57,9 +57,13 @@
                             </div>
                         <?php else: ?>
                             <!-- Mostrar una sola imagen de forma estática -->
-                            <img src="<?= BASE_URL . $noticia['imagenes'][0]['direccion'] ?>" class="w-100 object-fit-cover" style="height: 500px;" alt="News Image">
+                            <img src="<?= BASE_URL . $noticia['imagenes'][0]['direccion'] ?>" class="w-100 object-fit-cover" style="height: 500px;" alt="News Image" onerror="this.src='<?= BASE_URL ?>/assets/img/logo.png'; this.style.objectFit='contain'; this.style.padding='40px';">
                         <?php endif; ?>
+                    <?php else: ?>
+                        <!-- Imagen por defecto si no hay ninguna cargada -->
+                        <img src="<?= BASE_URL ?>/assets/img/noticia-default.png" class="w-100 object-fit-cover" style="height: 500px;" alt="News Image" onerror="this.src='<?= BASE_URL ?>/assets/img/logo.png'; this.style.objectFit='contain';">
                     <?php endif; ?>
+
 
                     <div class="card-body p-5 article-content">
                         <!-- EL CONTENIDO -->

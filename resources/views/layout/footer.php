@@ -53,6 +53,9 @@
 <!-- 7. Scripts personalizados (dependen de jQuery) -->
 <script src="<?php echo BASE_URL; ?>/assets/js/main.js"></script>
 <script src="<?php echo BASE_URL; ?>/assets/js/utils.js"></script>
+<?php if (isset($_SESSION['user'])): ?>
+    <script type="module" src="<?php echo BASE_URL; ?>/assets/js/modulo_notificaciones.js?v=<?php echo time(); ?>"></script>
+<?php endif; ?>
 
 <!-- 8. Scripts dinámicos clásicos pasados desde el controlador -->
 <?php if (!empty($extra_js) && is_array($extra_js)): ?>

@@ -26,7 +26,7 @@ class BusinessSeeder
         $this->crearMesas();
         $this->crearPersonasYUsuarios();
         $this->crearProductosFalsos(10);
-        $this->crearIngredientesFalsos(20);
+        $this->crearInsumosFalsos(20);
         $this->crearClientesFalsos(15);
         $this->crearProveedoresFalsos(5);
     }
@@ -62,10 +62,10 @@ class BusinessSeeder
             echo "       Categorías de productos creadas.\n";
         }
 
-        // Categorías de ingredientes
-        $countIng = $this->db->query("SELECT COUNT(*) FROM categoria_ingrediente")->fetchColumn();
+        // Categorías de insumos
+        $countIng = $this->db->query("SELECT COUNT(*) FROM categoria_insumo")->fetchColumn();
         if ($countIng == 0) {
-            $sql = "INSERT INTO categoria_ingrediente (id_categoria, nombre) VALUES 
+            $sql = "INSERT INTO categoria_insumo (id_categoria, nombre) VALUES 
                 ('CATEGIN00120260519200547232', 'Carnes'),
                 ('CATEGIN00220260519200547232', 'Verduras'),
                 ('CATEGIN00320260519200547232', 'Lácteos'),
@@ -74,7 +74,7 @@ class BusinessSeeder
                 ('CATEGIN00620260519200547232', 'Bebidas'),
                 ('CATEGIN00720260519200547232', 'Frutas')";
             $this->db->exec($sql);
-            echo "       Categorías de ingredientes creadas.\n";
+            echo "       Categorías de insumos creadas.\n";
         }
     }
 
@@ -236,7 +236,7 @@ class BusinessSeeder
         echo "       $cantidad productos generados.\n";
     }
 
-    private function crearIngredientesFalsos($cantidad)
+    private function crearInsumosFalsos($cantidad)
     {
         $ingredientes = [
             'Carne de res', 'Pollo', 'Cerdo', 'Pescado', 'Camarones',
@@ -249,7 +249,7 @@ class BusinessSeeder
 
         $cantidad = min($cantidad, count($ingredientes));
 
-        $categorias = $this->db->query("SELECT id_categoria FROM categoria_ingrediente")->fetchAll(\PDO::FETCH_COLUMN);
+        $categorias = $this->db->query("SELECT id_categoria FROM categoria_insumo")->fetchAll(\PDO::FETCH_COLUMN);
         if (empty($categorias)) {
             $categorias = ['CATING001'];
         }
@@ -259,8 +259,8 @@ class BusinessSeeder
             $unidades = ['KG', 'G', 'L', 'ML', 'UN'];
         }
 
-        $sql = "INSERT INTO ingrediente 
-            (id_ingrediente, id_categoria, nombre_ingrediente, id_unidad_medida, precio_unitario, stock_actual, stock_minimo, estatus) 
+        $sql = "INSERT INTO insumo 
+            (id_insumo, id_categoria, nombre_insumo, id_unidad_medida, precio_unitario, stock_actual, stock_minimo, estatus) 
             VALUES 
             (:id, :cat, :nombre, :unidad, :precio, :stock, :stock_min, 1)";
 
@@ -268,7 +268,7 @@ class BusinessSeeder
 
         for ($i = 0; $i < $cantidad; $i++) {
             $stmt->execute([
-                'id' => 'INGR-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT) . date('Ymd'),
+                'id' => 'INGR' . str_pad($i + 1, 4, '0', STR_PAD_LEFT) . date('Ymd'),
                 'cat' => $this->faker->randomElement($categorias),
                 'nombre' => $ingredientes[$i],
                 'unidad' => $this->faker->randomElement($unidades),
