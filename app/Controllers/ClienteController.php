@@ -15,11 +15,22 @@ class ClienteController
 		$clienteModel = new Cliente();
 		if (isset($_POST["peticion"])) {
 
+
+
 			//Entrada
 			if ($_POST["peticion"] == "entrada") {
 				$json['HTTP_STATUS'] = ['codigo' => 204, 'mensaje' => ''];
 				$json['response'] = ['resultado' => 204, 'mensaje' => 'No hay contenido'];
 			}
+
+
+
+
+
+
+
+
+
 
 			//Registrar y Modificar
 		if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar" || $_POST["peticion"] == "eliminar") {
@@ -63,11 +74,24 @@ class ClienteController
 		}
 		//Fin del Registrar o Modificar
             
+
+
+
+
+
             //Consultar
 			if ($_POST["peticion"] == "consultar") {
 				$json = $clienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
 			}
 			//Fin del Consultar
+
+
+
+
+
+
+
+
 
 			// Verificar cédula duplicada (validación async desde frontend)
 			if ($_POST["peticion"] == "verificar_cedula") {
@@ -88,6 +112,18 @@ class ClienteController
 				}
 			}
 			// Fin de Verificar cédula duplicada
+
+
+
+
+
+
+
+
+
+
+
+
 
 			if ($_POST["peticion"] == "cambiar_estatus") {
 				$accion_permiso = true;
@@ -119,6 +155,8 @@ class ClienteController
 			}
 			//Fin del Cambiar Estatus
 
+
+			
 			//Enviar respuesta al navegador usando un encabezado HTTP
 			header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
 			echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON

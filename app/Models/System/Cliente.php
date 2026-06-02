@@ -1,16 +1,5 @@
 <?php
 
-/*
-MODELO DE CLIENTES
-
-OPERACIONES A BASE DE DATOS:
-    REGISTRAR
-    CONSULTAR
-    MODIFICAR
-    ELIMINAR
-    VALIDAR
-*/
-
 namespace App\Models\System;
 
 use App\Core\Database;
@@ -49,11 +38,7 @@ class Cliente extends Persona
         $this->db = NULL;
     }
 
-    // Getters y Setters
-
-    // Getters y Setters heredados de Persona
     
-    /** Estatus: 0 (inactivo) o 1 (activo). */
     public function setEstatus(int $estatus)
     {
         if (!in_array($estatus, [0, 1], true)) {

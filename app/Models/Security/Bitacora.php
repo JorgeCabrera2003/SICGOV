@@ -78,6 +78,12 @@ class Bitacora extends Database {
         return $response;
     }
 
+
+
+
+
+
+
     private function listarBitacora($filtros = []) {
         $arreglo = [];
         try {
@@ -138,6 +144,12 @@ class Bitacora extends Database {
         return $arreglo;
     }
 
+
+
+
+
+
+    
     private function Registrar() {
         $result = false;
         try {

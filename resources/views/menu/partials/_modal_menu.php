@@ -188,7 +188,7 @@
                         <i class="fas fa-times me-2"></i>Cancelar
                     </button>
                     <button type="submit" class="btn btn-primary px-4 fw-semibold text-white shadow-sm" id="btnGuardarMenu" disabled>
-                        <i class="fas fa-save me-2"></i>Guardar Menú
+                        <i class="fas fa-save me-2"></i>Guardar Producto
                     </button>
                 </div>
             </div>

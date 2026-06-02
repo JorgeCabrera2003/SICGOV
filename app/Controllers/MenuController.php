@@ -34,9 +34,12 @@ class MenuController
 
 
 
+
+
     public function guardar()
     {
         $this->responderJson(function() {
+            
             Helper::verificarSesion();
 
             $menu = new Menu();
@@ -76,6 +79,7 @@ class MenuController
             }
 
             $peticion = empty($_POST['id_producto']) ? 'registrar' : 'modificar';
+
             $result = $menu->Transaccion(['peticion' => $peticion]);
 
             if (isset($result['success']) && $result['success']) {

@@ -26,6 +26,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     init();
 
+
+
+
+
+
+
+
+
+
+
     function init() {
         // Capturar categorías originales válidas
         const catSelect = document.getElementById('id_categoria');
@@ -129,6 +139,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const tbodyA = document.querySelector('#tablaAdicionales tbody');
         if (tbodyA) domObserver.observe(tbodyA, { attributes: true, childList: true, subtree: true, characterData: true });
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     function validateForm() {
         const nombre = document.getElementById('nombre').value.trim();
@@ -381,6 +413,24 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btnGuardarMenu').disabled = !isValid;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // ==========================================
     // RENDERIZADO GALERIA
     // ==========================================
@@ -409,6 +459,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
+
+
+
+
+
+
+
+
     function filtrarGaleria(idCategoria) {
         galleryContainer.innerHTML = '';
         let filtrados = [];
@@ -428,6 +487,19 @@ document.addEventListener('DOMContentLoaded', () => {
             filtrados.forEach(p => renderCard(p));
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     function renderCard(p) {
         const imgUrl = (p.imagen && p.imagen !== 'default-product.png') ? `${BASE_URL}/assets/img/productos/${p.imagen}` : `${BASE_URL}/assets/img/placeholder.png`;
@@ -468,9 +540,23 @@ document.addEventListener('DOMContentLoaded', () => {
         card.querySelector('.btn-eliminar').addEventListener('click', (e) => eliminarMenu(p.id_producto));
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     // ==========================================
     // GESTIÓN DE MODAL Y RECETA
     // ==========================================
+
 
     function handlePreviewImagen(e) {
         const file = e.target.files[0];
@@ -489,6 +575,18 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsDataURL(file);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
     function handleAbrirGaleria() {
         if (typeof MediaPicker !== 'undefined') {
             MediaPicker.open({
@@ -504,6 +602,15 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn('Omitiendo MediaPicker, asegúrate de haberlo incluido.');
         }
     }
+
+
+
+
+
+
+
+
+
 
     function abrirModalNuevo() {
         formMenu.reset();
@@ -521,6 +628,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         modalMenu.show();
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     function renderCatalogoIngredientes(query = '') {
         const container = document.getElementById('listaIngredientesUI');
@@ -563,6 +683,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     function addIngredienteTo(ing, listType) {
         let isPrincipal = listType === 'principal';
         let targetList = isPrincipal ? listPrincipales : listAdicionales;
@@ -589,6 +722,14 @@ document.addEventListener('DOMContentLoaded', () => {
         validateForm();
     }
 
+
+
+
+
+
+
+
+
     function removeIngrediente(id, isPrincipal) {
         if (isPrincipal) {
             listPrincipales = listPrincipales.filter(i => i.id !== id);
@@ -599,6 +740,16 @@ document.addEventListener('DOMContentLoaded', () => {
         validateForm();
     }
 
+
+
+
+
+
+
+
+
+
+
     function renderReceta() {
         renderTablaReceta('tablaPrincipales', listPrincipales, true);
         renderTablaReceta('tablaAdicionales', listAdicionales, false);
@@ -606,6 +757,12 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('contPrincipales').innerText = listPrincipales.length;
         document.getElementById('contAdicionales').innerText = listAdicionales.length;
     }
+
+
+
+
+
+
 
     function renderTablaReceta(tableId, list, isPrincipal) {
         const tbody = document.querySelector(`#${tableId} tbody`);
@@ -627,7 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const tipoUnidad = unidadBase ? unidadBase.tipo : null;
 
             // Filtrar unidadesDB para que solo muestre las del mismo tipo
-            const unidadesFiltradas = tipoUnidad 
+            const unidadesFiltradas = tipoUnidad
                 ? unidadesDB.filter(u => u.tipo === tipoUnidad)
                 : unidadesDB;
 
@@ -682,6 +839,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+
+
+
+
+
+
+
+
+
+
     function updateIngrediente(id, isPrincipal, field, value) {
         let list = isPrincipal ? listPrincipales : listAdicionales;
         let item = list.find(i => i.id === id);
@@ -689,11 +856,24 @@ document.addEventListener('DOMContentLoaded', () => {
         validateForm();
     }
 
-    // ==========================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // CRUDS BASE DE DATOS
-    // ==========================================
 
     async function guardarMenu(e) {
+
         e.preventDefault();
 
         const btnSave = document.getElementById('btnGuardarMenu');
@@ -733,6 +913,23 @@ document.addEventListener('DOMContentLoaded', () => {
             btnSave.innerHTML = '<i class="fas fa-save me-2"></i>Guardar Menú';
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     async function editarMenu(id) {
         try {
@@ -789,6 +986,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
+
+
+
+
+
+
+
+
+
     function eliminarMenu(id) {
         Swal.fire({
             title: '¿Estás seguro de eliminar este producto?',
@@ -829,6 +1036,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+
+
 
     // CSS para mejorar la galería por inyección
     const style = document.createElement('style');

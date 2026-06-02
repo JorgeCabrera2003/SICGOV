@@ -116,6 +116,8 @@ class Menu
         $this->ingredientes_principales = $ingredientes_json;
     }
 
+
+    
     public function setIngredientesAdicionales($ingredientes_json)
     {
         if ($this->tipo_producto === 'COCINA') {
@@ -661,6 +663,8 @@ class Menu
     {
         return 'PROD' . date('YmdHis') . rand(1000, 9999);
     }
+
+    
 
     public function subirImagen($archivo)
     {
