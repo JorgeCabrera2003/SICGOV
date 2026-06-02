@@ -13,7 +13,7 @@ $(document).ready(function () {
 });
 
 //EVENTOS CLICK DE LOS BOTONES DE LA INTERFAZ
-$("#btnIngredienteForm").on("click", async function () {
+$("#btnInsumoForm").on("click", async function () {
   let respuesta = null;
   respuesta = await insumo.EnviarFormulario($(this).text());
 
