@@ -35,7 +35,8 @@
         <!-- Perfil de usuario -->
         <div class="user-profile d-flex align-items-center gap-3 px-3 py-2 border-bottom">
             <div class="user-avatar" style="width: 36px; height: 36px;">
-                <img src="<?php echo !empty($datos['foto']) ? BASE_URL . ltrim($datos['foto'], '/') : BASE_URL . 'assets/img/default.jpg'; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
+                <img src="<?php echo !empty($datos['foto']) ? BASE_URL . ltrim($datos['foto'], '/') : BASE_URL . 'assets/img/default.jpg'; ?>"
+                    alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
             </div>
             <div class="user-info">
                 <div class="user-name fw-semibold"><?php echo $datos['nombres'] ?? 'Usuario'; ?></div>
@@ -128,8 +129,7 @@
                             class="nav-link <?php echo ($page == 'categoria-insumo-module') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-tags me-2"></i>Categorías de Insumos
                         </a>
-                        <a href="?page=insumos"
-                            class="nav-link <?php echo ($page == 'insumos') ? 'active' : ''; ?> py-1">
+                        <a href="?page=insumos" class="nav-link <?php echo ($page == 'insumos') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-droplet me-2"></i>Insumos
                         </a>
                         <a href="?page=menu" class="nav-link <?php echo ($page == 'menu') ? 'active' : ''; ?> py-1">
@@ -195,7 +195,7 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Gestión del Personal</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['asistencia']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['asistencia', 'cargo']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#personal-submenu" role="button">
                     <i class="bi bi-people fs-5"></i>
                     <span class="flex-grow-1">Equipo y Horario</span>
@@ -207,7 +207,10 @@
                             class="nav-link <?php echo ($page == 'asistencia') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-check2-square me-2"></i>Asistencia
                         </a>
-                    </div>
+                        <a href="?page=cargo" class="nav-link <?php echo ($page == 'cargo') ? 'active' : ''; ?> py-1">
+                        <i class="bi bi-journal-text me-2"></i>Cargos
+                    </a>
+                    </div
                 </div>
             </div>
 
@@ -305,13 +308,14 @@
             <div class="d-flex align-items-center gap-2">
                 <!-- Notificaciones -->
                 <div class="dropdown notificacion">
-                    <button class="btn btn-link text-decoration-none p-2 position-relative notificacion__campana" type="button"
-                        data-bs-toggle="dropdown" aria-expanded="false" id="notificationDropdown"
+                    <button class="btn btn-link text-decoration-none p-2 position-relative notificacion__campana"
+                        type="button" data-bs-toggle="dropdown" aria-expanded="false" id="notificationDropdown"
                         aria-label="Notificaciones" <?php echo !isset($_SESSION['user']) ? 'disabled' : ''; ?>>
                         <i class="bi bi-bell fs-5"></i>
                         <span class="notificacion__badge" id="notificationBadge" style="display: none;">0</span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end notificacion__dropdown" aria-labelledby="notificationDropdown">
+                    <div class="dropdown-menu dropdown-menu-end notificacion__dropdown"
+                        aria-labelledby="notificationDropdown">
                         <div class="notificacion__cabecera">
                             <h6 class="notificacion__titulo">Notificaciones</h6>
                             <button class="notificacion__accion" id="markAllRead" title="Marcar todas como leídas">
@@ -341,7 +345,8 @@
                 <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                     <div class="user-avatar" style="width: 36px; height: 36px;">
-                        <img src="<?php echo !empty($datos['foto']) ? BASE_URL . ltrim($datos['foto'], '/') : BASE_URL . 'assets/img/default.jpg'; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
+                        <img src="<?php echo !empty($datos['foto']) ? BASE_URL . ltrim($datos['foto'], '/') : BASE_URL . 'assets/img/default.jpg'; ?>"
+                            alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
                     </div>
                     <span class="d-none d-lg-inline"><?php echo $datos['nombres'] ?? 'Invitado'; ?></span>
                 </button>
@@ -359,12 +364,12 @@
                             <hr class="dropdown-divider">
                         </li>
                         <?php if (($datos['cedula'] ?? '') !== 'V-00000000'): ?>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2"
-                                href="<?php echo BASE_URL; ?>/?page=perfil">
-                                <i class="bi bi-person"></i> Mi Perfil
-                            </a>
-                        </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center gap-2"
+                                    href="<?php echo BASE_URL; ?>/?page=perfil">
+                                    <i class="bi bi-person"></i> Mi Perfil
+                                </a>
+                            </li>
                         <?php endif; ?>
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2"
