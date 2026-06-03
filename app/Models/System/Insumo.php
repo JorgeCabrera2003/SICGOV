@@ -74,6 +74,10 @@ class Insumo extends Database
         if ($stock < 0) {
             throw new Exception("El valor ingresado no puede ser negativo");
         }
+
+        if ($stock == 0) {
+            $stock = NULL;
+        }
         $this->stock_maximo = $stock;
     }
 
@@ -224,6 +228,10 @@ class Insumo extends Database
                 $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
                 $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
             }
+        } else {
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 409, 'mensaje' => "Ups, intente de nuevo más tarde"];
+            $dato['HTTP_STATUS'] = ['codigo' => 409, 'mensaje' => "Registro duplicado"];
         }
         $this->DestruirConexion();
         return $dato;

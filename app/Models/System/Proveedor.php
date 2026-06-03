@@ -196,6 +196,10 @@ class Proveedor extends Database
                 $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
                 $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
             }
+        } else {
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 409, 'mensaje' => "Ups, intente de nuevo más tarde"];
+            $dato['HTTP_STATUS'] = ['codigo' => 409, 'mensaje' => "Registro duplicado"];
         }
         $this->DestruirConexion();
         return $dato;
