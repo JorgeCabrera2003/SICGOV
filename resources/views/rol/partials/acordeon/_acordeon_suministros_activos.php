@@ -19,15 +19,15 @@
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input group-checkbox" type="checkbox" id="group-proveedores"
-                                    data-modulo="BITAC00320251001">
+                                    data-modulo="PROVE0001920260519200547232">
                                 <label class="form-check-label" for="group-proveedores">Gestionar Proveedores</label>
                             </div>
                         </legend>
-                        <div class="row permission-options" data-modulo-string="BITAC00320251001">
+                        <div class="row permission-options" data-modulo-string="PROVE0001920260519200547232">
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
-                                        type="checkbox" role="switch" value="ver" id="proveedor-registrar">
+                                        type="checkbox" role="switch" value="registrar" id="proveedor-registrar">
                                     <label class="form-check-label" for="proveedor-registrar">Registrar</label>
                                 </div>
                             </div>
@@ -41,14 +41,14 @@
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
-                                        type="checkbox" role="switch" value="ver" id="proveedor-modificar">
+                                        type="checkbox" role="switch" value="modificar" id="proveedor-modificar">
                                     <label class="form-check-label" for="proveedor-modificar">Modificar</label>
                                 </div>
                             </div>
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
-                                        type="checkbox" role="switch" value="ver" id="proveedor-eliminar">
+                                        type="checkbox" role="switch" value="eliminar" id="proveedor-eliminar">
                                     <label class="form-check-label" for="proveedor-eliminar">Eliminar</label>
                                 </div>
                             </div>

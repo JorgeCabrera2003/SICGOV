@@ -19,11 +19,11 @@
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input group-checkbox" type="checkbox" id="group-multimedia"
-                                    data-modulo="USUAR00120251001">
+                                    data-modulo="MULTI0000820260519200547232">
                                 <label class="form-check-label" for="group-multimedia">Gestionar Multimedia</label>
                             </div>
                         </legend>
-                        <div class="row permission-options" data-modulo-string="USUAR00120251001">
+                        <div class="row permission-options" data-modulo-string="MULTI0000820260519200547232">
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
@@ -61,11 +61,11 @@
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input group-checkbox" type="checkbox" id="group-noticia"
-                                    data-modulo="ROL0000220251001">
+                                    data-modulo="NOTIC0000920260519200547232">
                                 <label class="form-check-label" for="group-noticia">Gestionar Noticias</label>
                             </div>
                         </legend>
-                        <div class="row permission-options" data-modulo-string="ROL0000220251001">
+                        <div class="row permission-options" data-modulo-string="NOTIC0000920260519200547232">
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""

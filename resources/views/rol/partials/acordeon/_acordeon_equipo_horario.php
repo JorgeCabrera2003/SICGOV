@@ -19,11 +19,11 @@
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input group-checkbox" type="checkbox" id="group-asistencia"
-                                    data-modulo="ROL0000220251001">
+                                    data-modulo="ASIST0001020260519200547232">
                                 <label class="form-check-label" for="group-asistencia">Gestionar Asistencias</label>
                             </div>
                         </legend>
-                        <div class="row permission-options" data-modulo-string="ROL0000220251001">
+                        <div class="row permission-options" data-modulo-string="ASIST0001020260519200547232">
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
@@ -47,11 +47,11 @@
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input group-checkbox" type="checkbox" id="group-cargo"
-                                    data-modulo="USUAR00120251001">
+                                    data-modulo="CARGO0001120260519200547232">
                                 <label class="form-check-label" for="group-cargo">Gestionar Cargos</label>
                             </div>
                         </legend>
-                        <div class="row permission-options" data-modulo-string="USUAR00120251001">
+                        <div class="row permission-options" data-modulo-string="CARGO0001120260519200547232">
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
@@ -91,11 +91,11 @@
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input group-checkbox" type="checkbox" id="group-empleado"
-                                    data-modulo="USUAR00120251001">
+                                    data-modulo="EMPLE0001220260519200547232">
                                 <label class="form-check-label" for="group-empleado">Gestionar Empleados</label>
                             </div>
                         </legend>
-                        <div class="row permission-options" data-modulo-string="USUAR00120251001">
+                        <div class="row permission-options" data-modulo-string="EMPLE0001220260519200547232">
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
@@ -133,11 +133,11 @@
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input group-checkbox" type="checkbox" id="group-horario"
-                                    data-modulo="USUAR00120251001">
+                                    data-modulo="HORAR0001320260519200547232">
                                 <label class="form-check-label" for="group-horario">Gestionar Horarios</label>
                             </div>
                         </legend>
-                        <div class="row permission-options" data-modulo-string="USUAR00120251001">
+                        <div class="row permission-options" data-modulo-string="HORAR0001320260519200547232">
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
@@ -177,11 +177,11 @@
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input group-checkbox" type="checkbox" id="group-horario"
-                                    data-modulo="USUAR00120251001">
+                                    data-modulo="TURNO0001420260519200547232">
                                 <label class="form-check-label" for="group-horario">Gestionar Turnos</label>
                             </div>
                         </legend>
-                        <div class="row permission-options" data-modulo-string="USUAR00120251001">
+                        <div class="row permission-options" data-modulo-string="TURNO0001420260519200547232">
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""

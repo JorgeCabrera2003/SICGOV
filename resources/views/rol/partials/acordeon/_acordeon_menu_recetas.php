@@ -19,15 +19,15 @@
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input group-checkbox" type="checkbox" id="group-categoria_insumo"
-                                    data-modulo="BITAC00320251001">
+                                    data-modulo="CATIN0001520260519200547232">
                                 <label class="form-check-label" for="group-categoria_insumo">Gestionar Categorías de Insumos</label>
                             </div>
                         </legend>
-                        <div class="row permission-options" data-modulo-string="BITAC00320251001">
+                        <div class="row permission-options" data-modulo-string="CATIN0001520260519200547232">
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
-                                        type="checkbox" role="switch" value="ver" id="categoria_insumo-registrar">
+                                        type="checkbox" role="switch" value="registrar" id="categoria_insumo-registrar">
                                     <label class="form-check-label" for="categoria_insumo-registrar">Registrar</label>
                                 </div>
                             </div>
@@ -41,14 +41,14 @@
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
-                                        type="checkbox" role="switch" value="ver" id="categoria_insumo-modificar">
+                                        type="checkbox" role="switch" value="modificar" id="categoria_insumo-modificar">
                                     <label class="form-check-label" for="categoria_insumo-modificar">Modificar</label>
                                 </div>
                             </div>
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
-                                        type="checkbox" role="switch" value="ver" id="categoria_insumo-eliminar">
+                                        type="checkbox" role="switch" value="eliminar" id="categoria_insumo-eliminar">
                                     <label class="form-check-label" for="categoria_insumo-eliminar">Eliminar</label>
                                 </div>
                             </div>
@@ -61,15 +61,15 @@
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input group-checkbox" type="checkbox" id="group-categoria_menu"
-                                    data-modulo="BITAC00320251001">
+                                    data-modulo="CATME0001620260519200547232">
                                 <label class="form-check-label" for="group-categoria_menu">Gestionar Categorías del Menú</label>
                             </div>
                         </legend>
-                        <div class="row permission-options" data-modulo-string="BITAC00320251001">
+                        <div class="row permission-options" data-modulo-string="CATME0001620260519200547232">
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
-                                        type="checkbox" role="switch" value="ver" id="categoria_menu-registrar">
+                                        type="checkbox" role="switch" value="registrar" id="categoria_menu-registrar">
                                     <label class="form-check-label" for="categoria_menu-registrar">Registrar</label>
                                 </div>
                             </div>
@@ -83,14 +83,14 @@
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
-                                        type="checkbox" role="switch" value="ver" id="categoria_menu-modificar">
+                                        type="checkbox" role="switch" value="modificar" id="categoria_menu-modificar">
                                     <label class="form-check-label" for="categoria_menu-modificar">Modificar</label>
                                 </div>
                             </div>
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
-                                        type="checkbox" role="switch" value="ver" id="categoria_menu-eliminar">
+                                        type="checkbox" role="switch" value="eliminar" id="categoria_menu-eliminar">
                                     <label class="form-check-label" for="categoria_menu-eliminar">Eliminar</label>
                                 </div>
                             </div>
@@ -105,11 +105,11 @@
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input group-checkbox" type="checkbox" id="group-insumo"
-                                    data-modulo="USUAR00120251001">
+                                    data-modulo="INSUM0001720260519200547232">
                                 <label class="form-check-label" for="group-insumo">Gestionar Insumos</label>
                             </div>
                         </legend>
-                        <div class="row permission-options" data-modulo-string="USUAR00120251001">
+                        <div class="row permission-options" data-modulo-string="INSUM0001720260519200547232">
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
@@ -154,11 +154,11 @@
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input group-checkbox" type="checkbox" id="group-producto"
-                                    data-modulo="ROL0000220251001">
+                                    data-modulo="PRODU0001820260519200547232">
                                 <label class="form-check-label" for="group-producto">Gestionar Productos (Menú)</label>
                             </div>
                         </legend>
-                        <div class="row permission-options" data-modulo-string="ROL0000220251001">
+                        <div class="row permission-options" data-modulo-string="PRODU0001820260519200547232">
                             <div class="col-lg-6">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
