@@ -88,27 +88,27 @@
                             
                         </div>
 
-                        <!-- COLUMNA DERECHA: RECETAS / INGREDIENTES -->
+                        <!-- COLUMNA DERECHA: RECETAS / INSUMOS -->
                         <div class="col-lg-7 p-4">
-                            <div id="seccionIngredientes">
-                                <h6 class="fw-bold mb-3 text-primary"><i class="fas fa-list-check me-2"></i>Receta e Ingredientes</h6>
-                            <p class="text-muted small">Selecciona los ingredientes y define sus cantidades.</p>
+                            <div id="seccionInsumos">
+                                <h6 class="fw-bold mb-3 text-primary"><i class="fas fa-list-check me-2"></i>Receta e Insumos</h6>
+                            <p class="text-muted small">Selecciona los insumos y define sus cantidades.</p>
                             
-                            <!-- Buscador de ingredientes -->
+                            <!-- Buscador de insumos -->
                             <div class="mb-3 position-relative">
                                 <div class="input-group mb-2 shadow-sm">
                                     <span class="input-group-text bg-body"><i class="fas fa-search"></i></span>
-                                    <input type="text" class="form-control select-ingrediente-input" placeholder="Escribe para buscar ingredientes..." aria-label="Buscar Ingrediente">
-                                    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#catalogoIngredientes" aria-expanded="false">
+                                    <input type="text" class="form-control select-insumo-input" placeholder="Escribe para buscar insumos..." aria-label="Buscar Insumo">
+                                    <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#catalogoInsumos" aria-expanded="false">
                                         Ver Catálogo
                                     </button>
                                 </div>
                                 
                                 <!-- Lista desplegable emergente -->
-                                <div class="collapse position-absolute w-100 z-3" id="catalogoIngredientes">
+                                <div class="collapse position-absolute w-100 z-3" id="catalogoInsumos">
                                     <div class="card card-body shadow border-0 p-1" style="max-height: 200px; overflow-y: auto;">
-                                        <div class="list-group list-group-flush" id="listaIngredientesUI">
-                                            <!-- Ingredientes renderizados por JS -->
+                                        <div class="list-group list-group-flush" id="listaInsumosUI">
+                                            <!-- Insumos renderizados por JS -->
                                         </div>
                                     </div>
                                 </div>
@@ -135,14 +135,14 @@
                                         <table class="table table-borderless table-sm align-middle w-100 m-0" id="tablaPrincipales">
                                             <thead class="border-bottom">
                                                 <tr>
-                                                    <th>Ingrediente</th>
+                                                    <th>Insumo</th>
                                                     <th style="width: 120px;">Cantidad</th>
                                                     <th style="width: 140px;">Unidad</th>
                                                     <th style="width: 50px;"></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr class="empty-row text-center text-muted"><td colspan="4" class="py-4">No hay ingredientes principales</td></tr>
+                                                <tr class="empty-row text-center text-muted"><td colspan="4" class="py-4">No hay insumos principales</td></tr>
                                             </tbody>
                                         </table>
                                     </div>
@@ -154,7 +154,7 @@
                                         <table class="table table-borderless table-sm align-middle w-100 m-0" id="tablaAdicionales">
                                             <thead class="border-bottom">
                                                 <tr>
-                                                    <th>Ingrediente</th>
+                                                    <th>Insumo</th>
                                                     <th style="width: 100px;">Cantidad</th>
                                                     <th style="width: 120px;">Unidad</th>
                                                     <th style="width: 100px;">Precio ($)</th>
@@ -162,22 +162,22 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr class="empty-row text-center text-muted"><td colspan="5" class="py-4">No hay ingredientes adicionales</td></tr>
+                                                <tr class="empty-row text-center text-muted"><td colspan="5" class="py-4">No hay insumos adicionales</td></tr>
                                             </tbody>
                                         </table>
                                     </div>
-                                    <div class="mt-2 text-muted small"><i class="fas fa-info-circle"></i> Los ingredientes adicionales normalmente pueden ser solicitados extra por el cliente.</div>
+                                    <div class="mt-2 text-muted small"><i class="fas fa-info-circle"></i> Los insumos adicionales normalmente pueden ser solicitados extra por el cliente.</div>
                                 </div>
                             </div>
                             </div>
                             
-                            <!-- MENSAJE DE SIN INGREDIENTES -->
-                            <div id="seccionSinIngredientes" class="h-100 flex-column justify-content-center align-items-center text-center p-5" style="display: none;">
+                            <!-- MENSAJE DE SIN INSUMOS -->
+                            <div id="seccionSinInsumos" class="h-100 flex-column justify-content-center align-items-center text-center p-5" style="display: none;">
                                 <div class="bg-body-tertiary rounded-circle p-4 mb-4 shadow-sm border">
                                     <i class="fas fa-glass-martini-alt fa-3x text-secondary"></i>
                                 </div>
-                                <h5 class="fw-bold text-body">No requiere ingredientes</h5>
-                                <p class="text-muted">Este tipo de producto se prepara o despacha directamente, por lo que no lleva un control estricto de receta o ingredientes desde este módulo.</p>
+                                <h5 class="fw-bold text-body">No requiere insumos</h5>
+                                <p class="text-muted">Este tipo de producto se prepara o despacha directamente, por lo que no lleva un control estricto de receta o insumos desde este módulo.</p>
                             </div>
                         </div>
                     </div>

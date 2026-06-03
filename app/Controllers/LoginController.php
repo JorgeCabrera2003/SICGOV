@@ -26,6 +26,20 @@ class LoginController
         $openRegisterSlide = $currentPage === 'crear-cuenta';
 
         if (isset($_POST['peticion'])) {
+            if ($_POST['peticion'] == 'verificar_cedula') {
+                header('Content-Type: application/json');
+                $cedula = ($_POST['nacionalidad'] ?? '') . "-" . ($_POST['cedula'] ?? '');
+                
+                try {
+                    $clienteModel = new \App\Models\System\Cliente();
+                    $clienteModel->setCedula($cedula);
+                    $resultado = $clienteModel->Transaccion(['peticion' => 'verificar_cedula']);
+                    echo json_encode($resultado['response'] ?? ['resultado' => 500, 'existe' => false]);
+                } catch (\Exception $e) {
+                    echo json_encode(['resultado' => 500, 'existe' => false, 'mensaje' => $e->getMessage()]);
+                }
+                exit();
+            }
 
             if ($_POST['peticion'] == 'registrar') {
                 $openRegisterSlide = true;
@@ -56,10 +70,10 @@ class LoginController
                         // Paso 2: Registrar Usuario
                         $usuarioModel = new Usuario();
                         $usuarioModel->setCedula($cedula);
-                        $usuarioModel->setIdRol('ROLS25820260524110506258');
+                        $usuarioModel->setIdRol('ROLS74320260602130629743');
                         $usuarioModel->setUsername($_POST['username']);
                         $usuarioModel->setClave($_POST['clave']);
-                        $usuarioModel->setEstatusClave(0);
+                        $usuarioModel->setEstatusClave(1);
 
                         $registroUsuario = $usuarioModel->Transaccion(['peticion' => 'registrar']);
 
@@ -110,10 +124,19 @@ class LoginController
 
                 $usuarioModel = new Usuario();
                 $usuarioModel->setCedula($cedula);
-                $usuarioModel->setClave($pass);
+                $usuarioModel->setClave($pass, false);
                 $validacion = $usuarioModel->Transaccion(['peticion' => 'sesion']);
 
                 if (isset($validacion['response']['verificacion']) && $validacion['response']['verificacion']) {
+                    if (isset($validacion['response']['estatus']) && $validacion['response']['estatus'] == 0) {
+                        $_SESSION['error_login'] = 'Su cuenta de usuario se encuentra inhabilitada.';
+                        $_SESSION['show_disabled_alert'] = true;
+                        \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Intento de inicio de sesión fallido: Cuenta inhabilitada', null, null, $cedula);
+                        header('Location: ' . BASE_URL . '/?page=login');
+                        exit();
+                    }
+
+                    unset($_SESSION['login_attempts'][$cedula]);
                     $datos = $usuarioModel->Transaccion(['peticion' => 'perfil']);
                     if ($datos && isset($datos['response']['datos'])) {
                         $_SESSION['user'] = $datos['response']['datos'];
@@ -128,13 +151,43 @@ class LoginController
                             }
                         } catch (\Exception $e) { }
 
+                        \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Inicio de sesión exitoso', null, null, $cedula);
+
                         unset($_SESSION['error_login']);
                         header('Location: ' . BASE_URL . '/?page=home');
+                        exit();
                     } else {
                         $_SESSION['error_login'] = 'Error al cargar datos del usuario';
                     }
                 } else {
-                    $_SESSION['error_login'] = 'Cédula o contraseña incorrectos';
+                    if (isset($validacion['response']['usuario_existe']) && $validacion['response']['usuario_existe']) {
+                        if (isset($validacion['response']['estatus']) && $validacion['response']['estatus'] == 0) {
+                            $_SESSION['error_login'] = 'Su cuenta de usuario se encuentra inhabilitada.';
+                            $_SESSION['show_disabled_alert'] = true;
+                            \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Intento de inicio de sesión fallido: Cuenta inhabilitada (Contraseña incorrecta)', null, null, $cedula);
+                        } else {
+                            if (!isset($_SESSION['login_attempts'][$cedula])) {
+                                $_SESSION['login_attempts'][$cedula] = 0;
+                            }
+                            $_SESSION['login_attempts'][$cedula]++;
+
+                            if ($_SESSION['login_attempts'][$cedula] >= 4) {
+                                $usuarioModel->setEstatus(0);
+                                $usuarioModel->Transaccion(['peticion' => 'toggle-estatus']);
+                                $_SESSION['error_login'] = 'Su cuenta de usuario ha sido inhabilitada por muchos intentos fallidos.';
+                                $_SESSION['show_disabled_alert'] = true;
+                                unset($_SESSION['login_attempts'][$cedula]);
+                                \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Cuenta inhabilitada por exceso de intentos fallidos', null, null, $cedula);
+                            } else {
+                                $intentos = 4 - $_SESSION['login_attempts'][$cedula];
+                                $_SESSION['error_login'] = "Cédula o contraseña incorrectos. Le quedan $intentos intento(s).";
+                                \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Intento de inicio de sesión fallido: Contraseña incorrecta', null, null, $cedula);
+                            }
+                        }
+                    } else {
+                        $_SESSION['error_login'] = 'Cédula o contraseña incorrectos';
+                        \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Intento de inicio de sesión fallido: Usuario no existe', null, null, $cedula);
+                    }
                 }
             }
         }

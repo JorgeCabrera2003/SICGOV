@@ -17,8 +17,7 @@ class UsuarioController
 
         if (isset($_POST["peticion"])) {
             header('Content-Type: application/json');
-            
-            // Block modification of the superuser V-00000000 under all circumstances
+
             if (isset($_POST["cedula"]) && $_POST["cedula"] === 'V-00000000' && in_array($_POST["peticion"], ['modificar', 'toggle-estatus', 'registrar'])) {
                 header("HTTP/1.1 403 Forbidden");
                 echo json_encode([
@@ -165,9 +164,9 @@ class UsuarioController
                     $usuarioModel->setIdRol($_POST["rol"]);
                     
                     if (isset($_POST["clave"]) && !empty($_POST["clave"])) {
-                        $usuarioModel->setClave($_POST["clave"]);
+                        $usuarioModel->setClave($_POST["clave"], false);
                     } else {
-                        $usuarioModel->setClave("");
+                        $usuarioModel->setClave("", false);
                     }
 
                     $json = $usuarioModel->Transaccion(['peticion' => $_POST["peticion"]]);
@@ -178,6 +177,25 @@ class UsuarioController
                         } else {
                             Helper::Bitacora("MODIFICAR", "USUARIOS", "Se modificó el usuario con Cédula: " . $_POST["cedula"]);
                         }
+                    }
+                }
+            }
+
+            // ── PETICIÓN: FORZAR CAMBIO DE CLAVE ───────────────
+            if ($_POST["peticion"] == "forzar-clave") {
+                $bool_formulario = true;
+
+                if (!isset($_POST["cedula"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'Cedula') == 0) {
+                    $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Cédula no válida'];
+                    $bool_formulario = false;
+                }
+
+                if ($bool_formulario) {
+                    $usuarioModel->setCedula($_POST["cedula"]);
+                    $json = $usuarioModel->Transaccion(['peticion' => 'forzar-clave']);
+
+                    if (isset($json['estado']) && $json['estado'] == 1) {
+                        Helper::Bitacora("MODIFICAR", "USUARIOS", "Se forzó cambio de clave al usuario con Cédula: " . $_POST["cedula"]);
                     }
                 }
             }
@@ -203,8 +221,11 @@ class UsuarioController
                     $json = $usuarioModel->Transaccion(['peticion' => 'toggle-estatus']);
 
                     if (isset($json['estado']) && $json['estado'] == 1) {
-                        $accionNombre = ($_POST["estatus"] == 1) ? "ACTIVÓ" : "INACTIVÓ";
-                        Helper::Bitacora("MODIFICAR", "USUARIOS", "Se " . $accionNombre . " el usuario con Cédula: " . $_POST["cedula"]);
+                        if ($_POST["estatus"] == 1) {
+                            Helper::Bitacora("MODIFICAR", "USUARIOS", "Se activó el usuario con Cédula: " . $_POST["cedula"]);
+                        } else {
+                            Helper::Bitacora("ELIMINAR", "USUARIOS", "Se eliminó (inactivó) el usuario con Cédula: " . $_POST["cedula"]);
+                        }
                     }
                 }
             }

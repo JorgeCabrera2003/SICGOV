@@ -35,10 +35,10 @@
         <!-- Perfil de usuario -->
         <div class="user-profile d-flex align-items-center gap-3 px-3 py-2 border-bottom">
             <div class="user-avatar" style="width: 36px; height: 36px;">
-                <img src="<?php echo !empty($datos['foto']) ? BASE_URL . ltrim($datos['foto'], '/') : BASE_URL . 'assets/img/default.jpg'; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
+                <img src="<?php echo $datos['foto'] ?? (BASE_URL . 'assets/img/default.jpg'); ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
             </div>
             <div class="user-info">
-                <div class="user-name fw-semibold"><?php echo $datos['nombres'] ?? 'Usuario'; ?></div>
+                <div class="user-name fw-semibold"><?php echo $datos['username'] ?? ($datos['nombre'] ?? 'Usuario'); ?></div>
                 <div class="user-role small text-muted"><?php echo $datos['rol'] ?? 'Sin rol'; ?></div>
             </div>
         </div>
@@ -341,16 +341,16 @@
                 <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                     <div class="user-avatar" style="width: 36px; height: 36px;">
-                        <img src="<?php echo !empty($datos['foto']) ? BASE_URL . ltrim($datos['foto'], '/') : BASE_URL . 'assets/img/default.jpg'; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
+                        <img src="<?php echo $datos['foto'] ?? (BASE_URL . 'assets/img/default.jpg'); ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
                     </div>
-                    <span class="d-none d-lg-inline"><?php echo $datos['nombres'] ?? 'Invitado'; ?></span>
+                    <span class="d-none d-lg-inline"><?php echo $datos['username'] ?? ($datos['nombre'] ?? 'Invitado'); ?></span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                     <?php if (isset($_SESSION['user'])): ?>
                         <li>
                             <div class="dropdown-header">
                                 <div class="fw-semibold">
-                                    <?php echo ($datos['nombres'] ?? '') . ' ' . ($datos['apellidos'] ?? ''); ?>
+                                    <?php echo $datos['username'] ?? (($datos['nombre'] ?? '') . ' ' . ($datos['apellido'] ?? '')); ?>
                                 </div>
                                 <div class="small text-muted"><?php echo $datos['cedula'] ?? ''; ?></div>
                             </div>

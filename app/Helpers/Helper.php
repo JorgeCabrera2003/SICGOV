@@ -40,23 +40,21 @@ class Helper
     /**
      * Registra un movimiento en la bitácora de forma segura
      */
-    public static function Bitacora($accion, $modulo, $detalle, $prev_data = null, $new_data = null)
+    public static function Bitacora($accion, $modulo, $detalle, $prev_data = null, $new_data = null, $cedula_override = null)
     {
         try {
             // Verificar si hay sesión activa
             if (session_status() === PHP_SESSION_NONE) { session_start(); }
             
-            if (!isset($_SESSION['user'])) {
-                return false;
-            }
-
             $bitacora = new Bitacora();
             $idBitacora = self::generarId('BIT');
             $bitacora->setIdBitacora($idBitacora);
 
-            // Intentar obtener la identidad más precisa (Cédula es la PK en usuario)
-            $user = $_SESSION['user'];
-            $cedula = $user['cedula'] ?? null;
+            // Intentar obtener la identidad más precisa
+            $cedula = $cedula_override;
+            if (!$cedula && isset($_SESSION['user']['cedula'])) {
+                $cedula = $_SESSION['user']['cedula'];
+            }
 
             if (!$cedula) {
                 return false;
@@ -167,7 +165,7 @@ class Helper
         self::verificarSesion();
 
         $user = $_SESSION['user'];
-        $foto = BASE_URL . '/assets/img/default.jpg';
+        $foto = BASE_URL . 'assets/img/default.jpg';
 
         try {
             $db = \App\Core\Database::getConnection('security');
@@ -183,8 +181,8 @@ class Helper
         }
 
         return [
-            'nombres' => $user['nombres'] ?? $user['username'] ?? 'Usuario',
-            'apellidos' => $user['apellidos'] ?? '',
+            'nombre' => $user['nombre'] ?? $user['username'] ?? 'Usuario',
+            'apellido' => $user['apellido'] ?? '',
             'cedula' => $user['cedula'] ?? '',
             'rol' => $user['rol'] ?? 'Usuario',
             'foto' => $foto,

@@ -20,13 +20,13 @@ class MenuController
         $menuModel = new Menu();
         $menus = $menuModel->Transaccion(['peticion' => 'listar']);
         $categorias = $menuModel->Transaccion(['peticion' => 'categorias']);
-        $ingredientes = $menuModel->Transaccion(['peticion' => 'ingredientes']);
+        $insumos = $menuModel->Transaccion(['peticion' => 'insumos']);
         $unidades = $menuModel->Transaccion(['peticion' => 'unidades']);
 
         Helper::cargarVista(
             'menu/index',
             'Menú - Good Vibes',
-            compact('menus', 'categorias', 'ingredientes', 'unidades')
+            compact('menus', 'categorias', 'insumos', 'unidades')
         );
     }
 
@@ -49,8 +49,8 @@ class MenuController
             $menu->setPrecio($_POST['precio'] ?? 0);
             $menu->setIdCategoria($_POST['id_categoria'] ?? null);
             $menu->setTipoProducto($_POST['tipo_producto'] ?? 'COCINA');
-            $menu->setIngredientesPrincipales($_POST['ingredientes_principales'] ?? '[]');
-            $menu->setIngredientesAdicionales($_POST['ingredientes_adicionales'] ?? '[]');
+            $menu->setInsumosPrincipales($_POST['insumos_principales'] ?? '[]');
+            $menu->setInsumosAdicionales($_POST['insumos_adicionales'] ?? '[]');
 
             $imagen_nombre = null;
             // Prioridad 1: Imagen seleccionada de la galería
