@@ -14,13 +14,13 @@ export function ValidarCampo(patron, etiqueta, span) {
         'ID': /^[A-Z0-9]{3,5}[A-Z0-9]{3,5}[0-9]{8}[0-9]{0,6}[0-9]{0,6}$/,
         'NombrePersona': /^[a-z A-ZÁÉÍÓÚÜáéíóúüñÑçÇ]{3,65}$/,
         'NombreUsuario': /^[0-9a-zA-Z_]{4,20}$/,
-        'NombreObjeto': /^[0-9 a-zA-ZÁÉÍÓÚÜáéíóúüñÑçÇ]{3,65}$/,
+        'NombreObjeto': /^[0-9 a-zA-ZÁÉÍÓÚÜáéíóúüñÑçÇ\-]{3,65}$/,
         'Telefono': /^[0-9]{4}[-][0-9]{7}$/,
         'Telefono-Segmento': /^[0-9]{7}$/,
         'Correo': /^[a-zA-Z0-9][a-zA-Z0-9._%+-]{1,63}@[a-zA-Z0-9][a-zA-Z0-9.-]{1,50}\.(com|es|mx|co\.uk|org|net)$/,
         'Titulo': /^[0-9a-zA-ZÁÉÍÓÚÜáéíóúüñÑçÇ\s\-.,()!?\"\'%:;]{3,150}$/,
         'Direccion': /^[0-9a-zA-ZÁÉÍÓÚÜáéíóúüñÑçÇ\s\-.,()!?\"\'%:;\/]{10,200}$/,
-        'NumeroDecimal': /^[0-9]+[.]{1}[0-9]{2}$/
+        'NumeroDecimal': /^[0-9]+[.]{1}[0-9]{2,8}$/
     };
     const DEFAULT = '';
     regex = REGEX[patron] || DEFAULT;
@@ -62,6 +62,7 @@ export function ValidarTecla(patron, etiqueta) {
         'Cedula': /^[0-9]*$/,
         'NombrePersona': /^[A-Za-zÁÉÍÓÚÜáéíóú\b\s\u00f1\u00d1\u00E0-\u00FC]*$/,
         'NombreUsuario': /^[0-9a-zA-Z_]*$/,
+        'Objeto': /^[0-9a-zA-ZÁÉÍÓÚÜáéíóúüñÑçÇ\s\-]*$/,
         'NombreObjeto': /^[0-9a-zA-ZÁÉÍÓÚÜáéíóúüñÑçÇ\s\-.,()\-]*$/,
         'Telefono': /^[0-9]*$/,
         'Correo': /^[a-zA-Z0-9._%+-@]*$/,
@@ -151,8 +152,15 @@ export function AgregarGuion(patron, etiqueta) {
     }
 };
 
-export function FormatoNumeroDecimal(etiqueta, evento) {
+export function FormatoNumeroDecimal(etiqueta, formato = null) {
     let valor = $(etiqueta).val();
+    let cantidad_decimales = 0;
+
+    if (formato == "medida"){
+        cantidad_decimales = 3;
+    } else {
+        cantidad_decimales = 2;
+    }
     
     if (valor === '' || valor === null || valor === undefined) {
         return '';
@@ -172,8 +180,8 @@ export function FormatoNumeroDecimal(etiqueta, evento) {
         return '';
     }
     
-    // Asegurar 2 decimales
-    let resultado = numero.toFixed(2);
+    // Asegurar 3 decimales
+    let resultado = numero.toFixed(cantidad_decimales);
     
     // Separar parte entera y decimal
     let partes = resultado.split('.');

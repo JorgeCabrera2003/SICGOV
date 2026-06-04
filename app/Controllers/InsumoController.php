@@ -57,9 +57,9 @@ class InsumoController
 						$insumoModel->setStockMinimo($_POST["stock_minimo"]);
 						$json = $insumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 						if ($json['estado'] == 1) {
-							$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un nuevo ingrediente con ID:" . $insumoModel->getId();
+							$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un nuevo insumo con ID:" . $insumoModel->getId();
 						} else {
-							$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un ingrediente";
+							$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un insumo";
 						}
 
 					} catch (Exception $exception) {
@@ -68,7 +68,7 @@ class InsumoController
 					}
 				} else {
 					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
-					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a un ente'];
+					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a un insumo'];
 					$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
 				}
 			}
@@ -87,13 +87,13 @@ class InsumoController
 						$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 						$msg = "(" . $_SESSION['user']['cedula'] . "), envió solicitud no válida";
 
-						$insumoModel->setId($_POST["id_ingrediente"]);
+						$insumoModel->setId($_POST["id_insumo"]);
 						$json = $insumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 
 						if ($json['estado'] == 1) {
-							$msg = "(" . $_SESSION['user']['cedula'] . "), Se eliminó un ingrediente con el id:" . $_POST["id_ingrediente"];
+							$msg = "(" . $_SESSION['user']['cedula'] . "), Se eliminó un insumo con el id:" . $_POST["id_insumo"];
 						} else {
-							$msg = "(" . $_SESSION['user']['cedula'] . "), error al eliminar un ingrediente";
+							$msg = "(" . $_SESSION['user']['cedula'] . "), error al eliminar un insumo";
 						}
 
 					} else {
@@ -160,9 +160,9 @@ class InsumoController
 						$categoriaInsumoModel->setNombre($_POST["nombre"]);
 						$json = $categoriaInsumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 						if ($json['estado'] == 1) {
-							$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un nuevo ingrediente con ID:" . $categoriaInsumoModel->getId();
+							$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un nuevo insumo con ID:" . $categoriaInsumoModel->getId();
 						} else {
-							$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un ingrediente";
+							$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un insumo";
 						}
 					} catch (Exception $exception) {
 						$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
@@ -193,9 +193,9 @@ class InsumoController
 						$categoriaInsumoModel->setId($_POST["id_categoria"]);
 						$json = $categoriaInsumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 						if ($json['estado'] == 1) {
-							$msg = "Se eliminó una categoría de ingrediente con el ID: " . $_POST["id_categoria"];
+							$msg = "Se eliminó una categoría de insumo con el ID: " . $_POST["id_categoria"];
 						} else {
-							$msg = "Error al eliminar una categoría de ingrediente";
+							$msg = "Error al eliminar una categoría de insumo";
 						}
 						Helper::Bitacora('ELIMINAR', 'INGREDIENTE/CATEGORÍA DE INGREDIENTE', $msg);
 					} catch (Exception $exception) {
@@ -205,7 +205,7 @@ class InsumoController
 
 				} else {
 					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
-					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a una categoría de ingrediente'];
+					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a una categoría de insumo'];
 					$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
 				}
 			}
@@ -244,7 +244,7 @@ class InsumoController
 		} //Fin de Operaciones
 
 		Helper::cargarVista(
-			'ingrediente/index',
+			'insumo/index',
 			'Insumos - Good Vibes'
 		);
 	}
