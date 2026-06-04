@@ -6,7 +6,7 @@ use App\Models\Security\Usuario;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-class PasswordRecoveryController
+class RecuperacionClaveController
 {
     public function index()
     {
