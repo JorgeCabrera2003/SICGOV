@@ -33,6 +33,7 @@ use App\Controllers\DashboardController;
 use App\Controllers\MenuController;
 use App\Controllers\ProductoController;
 use App\Controllers\CategoriaController;
+use App\Controllers\CargoController;
 use App\Controllers\BitacoraController;
 use App\Controllers\InsumoController;
 use App\Controllers\CategoriaInsumoController;
@@ -66,6 +67,7 @@ try {
         'insumos' => (new InsumoController())->index(),
         'unidad-medida' => (new InsumoController())->indexUnidadMedida(),
         'categoria-insumo-module' => (new CategoriaInsumoController())->index(),
+        'cargo' => (new CargoController())->index(),
         'areas' => (new AreasController())->index(),
         'proveedores' => (new ProveedorController())->index(),
         'mesas' => (new MesasController())->index(),

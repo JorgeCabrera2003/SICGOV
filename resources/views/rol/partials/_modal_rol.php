@@ -31,7 +31,20 @@
                             <div class="form-label" id="snombre"></div>
                         </div>
                     </div>
-
+                    <div class="row g-3 mb-3 justify-content-center">
+                        <div class="col-md-12">
+                            <div class="mt-4 accordion permissions-section" id="accordionPermisos">
+                                <?php include_once 'acordeon/_acordeon_seguridad.php';
+                                include_once 'acordeon/_acordeon_areas_mesas.php';
+                                include_once 'acordeon/_acordeon_difusion_digital.php';
+                                include_once 'acordeon/_acordeon_equipo_horario.php';
+                                include_once 'acordeon/_acordeon_menu_recetas.php';
+                                include_once 'acordeon/_acordeon_suministros_activos.php';
+                                include_once 'acordeon/_acordeon_servicios_citas.php';
+                                ?>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-footer border-top-0">
