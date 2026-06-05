@@ -142,6 +142,8 @@ class CategoriaInsumo extends Database
         $validacion = $this->ValidarCategoriaInsumo();
         if ($validacion['bool'] == 0) {
             try {
+                $this->LlamarConexion();
+                $this->LlamarConexion()->beginTransaction();
                 $sql = "INSERT INTO categoria_insumo(id_categoria, nombre) VALUES 
                 (:id_categoria, :nombre)";
 
@@ -149,6 +151,7 @@ class CategoriaInsumo extends Database
                 $stm->bindParam(':id_categoria', $this->id);
                 $stm->bindParam(':nombre', $this->nombre);
                 $stm->execute();
+                $this->LlamarConexion()->commit();
 
                 $dato['estado'] = 1;
                 $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Categoria registrada exitosamente"];
@@ -161,6 +164,10 @@ class CategoriaInsumo extends Database
                 $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
                 $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
             }
+        } else {
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 409, 'mensaje' => "Ups, intente de nuevo más tarde"];
+            $dato['HTTP_STATUS'] = ['codigo' => 409, 'mensaje' => "Registro duplicado"];
         }
         $this->DestruirConexion();
         return $dato;
