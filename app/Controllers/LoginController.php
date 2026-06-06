@@ -5,16 +5,15 @@ namespace App\Controllers;
 use App\Models\Security\Usuario;
 use App\Models\Security\LoginSettings;
 
-class LoginController
-{
-    public function index()
-    {
+$type = $_REQUEST['type'] ?? 'index';
+
+if ($type === 'index') {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
         if (isset($_SESSION['user'])) {
-            header("Location: " . BASE_URL . "/?page=home");
+            header("Location: " . BASE_URL . "/?url=Dashboard");
             exit();
         }
 
@@ -89,7 +88,7 @@ class LoginController
                                     $_SESSION['user']['estatus_clave'] = 1;
 
                                     unset($_SESSION['error_register']);
-                                    header('Location: ' . BASE_URL . '/?page=home');
+                                    header('Location: ' . BASE_URL . '/?url=Dashboard');
                                     exit();
                                 }
                             }
@@ -154,7 +153,7 @@ class LoginController
                         \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Inicio de sesión exitoso', null, null, $cedula);
 
                         unset($_SESSION['error_login']);
-                        header('Location: ' . BASE_URL . '/?page=home');
+                        header('Location: ' . BASE_URL . '/?url=Dashboard');
                         exit();
                     } else {
                         $_SESSION['error_login'] = 'Error al cargar datos del usuario';
@@ -193,5 +192,4 @@ class LoginController
         }
         $titulo = 'Login - Good Vibes';
         require_once BASE_PATH . '/resources/views/auth/login.php';
-    }
 }
