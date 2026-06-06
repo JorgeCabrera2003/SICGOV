@@ -11,6 +11,13 @@
  */
 ?>
 
+<?php
+$fotoUrl = BASE_URL . 'assets/img/default.jpg';
+if (isset($datos['foto']) && trim($datos['foto']) !== '' && trim(strtolower($datos['foto'])) !== 'null') {
+    $fotoPath = ltrim(trim($datos['foto']), '/');
+    $fotoUrl = strpos($fotoPath, 'http') === 0 ? $fotoPath : BASE_URL . $fotoPath;
+}
+?>
 <?php if (!isset($hideSidebar) || !$hideSidebar): ?>
     <!-- Sidebar -->
     <aside class="sidebar d-flex flex-column flex-shrink-0 vh-100 position-fixed" id="sidebar">
@@ -35,7 +42,7 @@
         <!-- Perfil de usuario -->
         <div class="user-profile d-flex align-items-center gap-3 px-3 py-2 border-bottom">
             <div class="user-avatar" style="width: 36px; height: 36px;">
-                <img src="<?php echo $datos['foto'] ?? (BASE_URL . 'assets/img/default.jpg'); ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
+                <img src="<?php echo $fotoUrl; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
             </div>
             <div class="user-info">
                 <div class="user-name fw-semibold"><?php echo $datos['username'] ?? ($datos['nombre'] ?? 'Usuario'); ?></div>
@@ -344,7 +351,7 @@
                 <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                     <div class="user-avatar" style="width: 36px; height: 36px;">
-                        <img src="<?php echo !empty($datos['foto']) ? BASE_URL . ltrim($datos['foto'], '/') : BASE_URL . 'assets/img/default.jpg'; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
+                        <img src="<?php echo $fotoUrl; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
                     </div>
                     <span class="d-none d-lg-inline"><?php echo $datos['username'] ?? ($datos['nombre'] ?? 'Invitado'); ?></span>
                 </button>

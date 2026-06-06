@@ -317,4 +317,81 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    // Validaciones para la pantalla de restablecer contraseña (nueva_password.php)
+    const claveReset = document.getElementById('clave');
+    const rclaveReset = document.getElementById('rclave');
+    const reqLength = document.getElementById('req-length');
+    const reqUpper = document.getElementById('req-upper');
+    const reqNumber = document.getElementById('req-number');
+    const reqSpecial = document.getElementById('req-special');
+    const matchError = document.getElementById('match-error');
+    const btnSubmitReset = document.getElementById('btn-submit');
+
+    if (claveReset && rclaveReset && reqLength && reqUpper && reqNumber && reqSpecial && btnSubmitReset && matchError) {
+        function validateResetPassword() {
+            const val = claveReset.value;
+            let isValid = true;
+
+            // Al menos 8 caracteres
+            if (val.length >= 8) {
+                reqLength.classList.remove('req-unmet');
+                reqLength.classList.add('req-met');
+            } else {
+                reqLength.classList.remove('req-met');
+                reqLength.classList.add('req-unmet');
+                isValid = false;
+            }
+
+            // Al menos una mayúscula
+            if (/[A-Z]/.test(val)) {
+                reqUpper.classList.remove('req-unmet');
+                reqUpper.classList.add('req-met');
+            } else {
+                reqUpper.classList.remove('req-met');
+                reqUpper.classList.add('req-unmet');
+                isValid = false;
+            }
+
+            // Al menos un número
+            if (/[0-9]/.test(val)) {
+                reqNumber.classList.remove('req-unmet');
+                reqNumber.classList.add('req-met');
+            } else {
+                reqNumber.classList.remove('req-met');
+                reqNumber.classList.add('req-unmet');
+                isValid = false;
+            }
+
+            // Al menos un carácter especial
+            if (/[\W_]/.test(val)) {
+                reqSpecial.classList.remove('req-unmet');
+                reqSpecial.classList.add('req-met');
+            } else {
+                reqSpecial.classList.remove('req-met');
+                reqSpecial.classList.add('req-unmet');
+                isValid = false;
+            }
+
+            // Confirmar contraseña coincide
+            const confirmVal = rclaveReset.value;
+            if (confirmVal.length > 0 && val !== confirmVal) {
+                matchError.classList.remove('d-none');
+                isValid = false;
+            } else {
+                matchError.classList.add('d-none');
+                if (confirmVal.length === 0) {
+                    isValid = false;
+                }
+            }
+
+            btnSubmitReset.disabled = !isValid;
+        }
+
+        claveReset.addEventListener('input', validateResetPassword);
+        rclaveReset.addEventListener('input', validateResetPassword);
+        
+        // Estado inicial
+        validateResetPassword();
+    }
 });
