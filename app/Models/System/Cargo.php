@@ -1,13 +1,13 @@
 <?php
 
 /*
-MODELO DE PROVEEDORES
+MODELO DE CARGO
 
 OPERACIONES A BASE DE DATOS:
     REGISTRAR
     CONSULTAR
     MODIFICAR
-    ELIMINAR
+    ELIMINAR (LÓGICO)
     VALIDAR
 */
 
@@ -16,79 +16,44 @@ namespace App\Models\System;
 use App\Core\Database;
 use App\Helpers\Helper;
 use App\Helpers\RegexHelper;
-use PDO;
 use Exception;
+use PDO;
 
-class Proveedor extends Database
+class Cargo extends Database
 {
-    private $documento_legal;
+    private $id;
     private $nombre;
-    private $telefono;
-    private $correo;
-    private $direccion;
-
     public function __construct()
     {
-        $this->documento_legal = "";
+        $this->id = "";
         $this->nombre = "";
-        $this->telefono = "";
-        $this->correo = "";
-        $this->direccion = "";
     }
 
     // Getters y Setters
 
-    /**
-     * Documento Legal: prefijo (V/E/J/P/G) + 7 a 9 dígitos.
-     * El frontend envía ya concatenado, ej. "V12345678".
-     */
-    public function setDocumentoLegal(string $documento)
+    //SETTERS
+    public function setId(string $id)
     {
-        $documento = trim($documento);
-        if (RegexHelper::ValidarFormatos($documento, "DocumentoLegal") == 0) {
-            throw new Exception('El documento legal debe tener un prefijo válido (V, E, J, P, G) seguido de 7 a 12 dígitos.');
+        if (RegexHelper::ValidarFormatos($id, 'ID') == 0) {
+            throw new Exception("El ID del Cargo no cumple con el formato permitido.");
         }
-        $this->documento_legal = strtoupper($documento[0]) . substr($documento, 1);
+        $this->id = $id;
     }
 
     public function setNombre(string $nombre)
     {
-        $nombre = trim($nombre);
-        if (RegexHelper::ValidarFormatos($nombre, "Titulo") == 0) {
-            throw new Exception('Nombre no válido. Debe tener al menos entre 3 a 150 carácteres');
+        if (RegexHelper::ValidarFormatos($nombre, 'Objeto') == 0) {
+            throw new Exception("El Nombre del Cargo no cumple con el formato permitido.");
         }
-
         $this->nombre = $nombre;
     }
 
-    public function setTelefono(string $telefono)
-    {
-        if (RegexHelper::ValidarFormatos($telefono, "Telefono") == 0) {
-            throw new Exception('Teléfono no válido. Debe tener el siguiente formato: 0424-1234567');
-        }
-        $this->telefono = $telefono;
-    }
+    //FIN SETTERS
 
-    public function setCorreo(string $correo)
+    //GETTERS
+    public function getId()
     {
-        if (RegexHelper::ValidarFormatos($correo, "Correo") == 0) {
-            throw new Exception('El formato del correo electrónico no es válido.');
-        }
-        $this->correo = $correo;
-    }
-
-    /** Dirección: obligatoria, mínimo 3 caracteres. */
-    public function setDireccion(string $direccion)
-    {
-        if (RegexHelper::ValidarFormatos($direccion, "Direccion") == 0) {
-            throw new Exception('Dirección no válida');
-        }
-        $this->direccion = $direccion;
-    }
-
-    public function getDocumentoLegal()
-    {
-        return $this->documento_legal;
+        return $this->id;
     }
 
     public function getNombre()
@@ -96,21 +61,10 @@ class Proveedor extends Database
         return $this->nombre;
     }
 
-    public function getTelefono()
-    {
-        return $this->telefono;
-    }
+    //FIN GETTERS
 
-    public function getCorreo()
-    {
-        return $this->correo;
-    }
-
-    public function getDireccion()
-    {
-        return $this->direccion;
-    }
-    public function Transaccion($peticion, )
+    // MANEJADOR DE OPERACIONES
+    public function Transaccion($peticion)
     {
         $response = [];
         $response['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"];
@@ -118,11 +72,11 @@ class Proveedor extends Database
 
         if (isset($peticion['peticion'])) {
             $response = match ($peticion['peticion']) {
-                'registrar' => $this->RegistrarProveedor(),
-                'consultar' => $this->ConsultarProveedor(),
-                'actualizar', 'modificar' => $this->ModificarProveedor(),
-                'eliminar' => $this->EliminarProveedor(),
-                'validar' => $this->ValidarProveedor(),
+                'registrar' => $this->RegistrarCargo(),
+                'consultar' => $this->ConsultarCargo(),
+                'actualizar', 'modificar' => $this->ModificarCargo(),
+                'eliminar' => $this->EliminarCargo(),
+                'validar' => $this->ValidarCargo(),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
@@ -134,14 +88,14 @@ class Proveedor extends Database
     //FIN DE MANEJADOR DE OPERACIONES
 
     //OPERACIONES A BASE DE DATOS
-    private function ConsultarProveedor()
+    private function ConsultarCargo()
     {
         $dato = [];
         $arreglo = [];
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM proveedor WHERE estatus = 1";
+            $sql = "SELECT * FROM cargo WHERE estatus = 1";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute();
             if ($stm->rowCount() > 0) {
@@ -164,30 +118,26 @@ class Proveedor extends Database
         return $dato;
     }
 
-    private function RegistrarProveedor()
+    private function RegistrarCargo()
     {
         $dato = [];
         $validacion = [];
-        $validacion = $this->ValidarProveedor();
+        $validacion = $this->ValidarCargo();
         if ($validacion['bool'] == 0) {
             try {
-                $sql = "INSERT INTO proveedor(documento_legal, nombre, telefono, correo, direccion)
-                VALUES (:documento_legal, :nombre, :telefono, :correo, :direccion)";
-
                 $this->LlamarConexion();
                 $this->LlamarConexion()->beginTransaction();
+                $sql = "INSERT INTO cargo(id_cargo, nombre_cargo) VALUES 
+                (:id_cargo, :nombre)";
+
                 $stm = $this->LlamarConexion()->prepare($sql);
-                $stm->bindParam(':documento_legal', $this->documento_legal);
+                $stm->bindParam(':id_cargo', $this->id);
                 $stm->bindParam(':nombre', $this->nombre);
-                $stm->bindParam(':telefono', $this->telefono);
-                $stm->bindParam(':correo', $this->correo);
-                $stm->bindParam(':direccion', $this->direccion);
                 $stm->execute();
                 $this->LlamarConexion()->commit();
-
                 $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Proveedor registrado exitosamente"];
-                $dato['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => "OK"];
+                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Cargo registrado exitosamente"];
+                $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
 
             } catch (\PDOException $e) {
                 $this->LlamarConexion()->rollBack();
@@ -205,26 +155,22 @@ class Proveedor extends Database
         return $dato;
     }
 
-    private function ModificarProveedor()
+    private function ModificarCargo()
     {
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "UPDATE proveedor SET nombre = :nombre, telefono = :telefono, 
-            correo = :correo, direccion = :direccion WHERE documento_legal = :documento_legal";
+            $sql = "UPDATE cargo SET nombre_cargo = :nombre WHERE id_cargo = :id_cargo";
 
             $stm = $this->LlamarConexion()->prepare($sql);
-            $stm->bindParam(':documento_legal', $this->documento_legal);
+            $stm->bindParam(':id_cargo', $this->id);
             $stm->bindParam(':nombre', $this->nombre);
-            $stm->bindParam(':telefono', $this->telefono);
-            $stm->bindParam(':correo', $this->correo);
-            $stm->bindParam(':direccion', $this->direccion);
             $stm->execute();
             $this->LlamarConexion()->commit();
             $stm = NULL;
 
             $dato['estado'] = 1;
-            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Proveedor actualizado exitosamente"];
+            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Cargo actualizado exitosamente"];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
 
         } catch (\PDOException $e) {
@@ -238,24 +184,24 @@ class Proveedor extends Database
         return $dato;
     }
 
-    private function EliminarProveedor()
+    private function EliminarCargo()
     {
         $dato = [];
-        $validacion = $this->ValidarProveedor();
+        $validacion = $this->ValidarCargo();
 
         if ($validacion['bool'] == 1) {
             try {
                 $this->LlamarConexion();
                 $this->LlamarConexion()->beginTransaction();
-                $sql = "UPDATE proveedor SET estatus = 0 WHERE documento_legal = :documento_legal";
+                $sql = "UPDATE cargo SET estatus = 0 WHERE id_cargo = :id_cargo";
                 $stm = $this->LlamarConexion()->prepare($sql);
-                $stm->bindParam(':documento_legal', $this->documento_legal);
+                $stm->bindParam(':id_cargo', $this->id);
                 $stm->execute();
                 $this->LlamarConexion()->commit();
                 $stm = NULL;
 
                 $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Proveedor eliminado exitosamente"];
+                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Cargo eliminado exitosamente"];
                 $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
             } catch (\PDOException $e) {
                 Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
@@ -272,16 +218,16 @@ class Proveedor extends Database
         return $dato;
     }
 
-    private function ValidarProveedor()
+    private function ValidarCargo()
     {
         $dato = [];
         $arreglo = [];
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM proveedor WHERE documento_legal = :documento_legal";
+            $sql = "SELECT * FROM cargo WHERE id_cargo = :id_cargo";
             $stm = $this->LlamarConexion()->prepare($sql);
-            $stm->bindParam(':documento_legal', $this->documento_legal);
+            $stm->bindParam(':id_cargo', $this->id);
             $stm->execute();
             if ($stm->rowCount() > 0) {
                 $arreglo = $stm->fetch(PDO::FETCH_ASSOC);

@@ -1,12 +1,5 @@
-/**
- * CLIENT-SIDE MODULE: MY PROFILE (FACEBOOK-STYLE LAYOUT) - SICGOV
- * Handles interactive tabs, dynamic real-time avatar/banner uploading,
- * mask formatting, secure validations, and async activity log retrieval.
- */
-
 $(document).ready(function () {
     // 1. Initial State & Setup
-    cargarHistorialActividad();
     aplicarMascaraTelefono();
     inicializarValidacionesTiempoReal();
 
@@ -50,10 +43,10 @@ $(document).ready(function () {
             if (res && res.resultado === 200) {
                 // Update local profile avatar
                 $('#imgAvatar').attr('src', res.url);
-                
+
                 // Update global sidebar and navbar avatars immediately
                 $('.user-avatar img').attr('src', res.url);
-                
+
                 mensajes("success", 3000, "Éxito", "Foto de perfil actualizada exitosamente.");
             } else {
                 mensajes("error", 5000, "Error", res.mensaje || "No se pudo actualizar la foto de perfil.");
@@ -63,329 +56,380 @@ $(document).ready(function () {
         }
     });
 
-    // 4. Cover Banner Upload Trigger
-    $('#btnEditarPortada').on('click', function () {
-        $('#inputPortada').click();
-    });
+    // 4. Update Username Form & Validation
+    const inputUsername = $('#username_input');
+    const spanUsername = $('#susername_input');
+    const btnUsername = $('#btnGuardarUsername');
 
-    $('#inputPortada').on('change', async function () {
-        const file = this.files[0];
-        if (!file) return;
+    function validarUsername() {
+        const val = inputUsername.val().trim();
+        const tieneValor = val !== '';
+        // Min 3 chars, ONLY letters
+        const valido = val.length >= 3 && /^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ]+$/.test(val);
+        const msg = 'Debe tener al menos 3 caracteres y solo letras.';
 
-        const allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'jfif'];
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (!allowed.includes(ext)) {
-            mensajes("error", 5000, "Formato no permitido", "Por favor seleccione una imagen válida (JPG, PNG, WEBP, GIF).");
+        if (!tieneValor) {
+            inputUsername.removeClass('is-valid is-invalid');
+            spanUsername.removeClass('invalid-tooltip d-inline-block').text('');
+            btnUsername.prop('disabled', true);
+            return false;
+        }
+
+        if (!valido) {
+            inputUsername.addClass('is-invalid').removeClass('is-valid');
+            spanUsername.addClass('invalid-tooltip d-inline-block').text(msg);
+            btnUsername.prop('disabled', true);
+            return false;
+        } else {
+            inputUsername.addClass('is-valid').removeClass('is-invalid');
+            spanUsername.removeClass('invalid-tooltip d-inline-block').text('');
+            btnUsername.prop('disabled', false);
+            return true;
+        }
+    }
+
+    if (typeof validarKeyPress === 'function') {
+        inputUsername.on('keypress', function (e) { validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ]*$/, e); });
+    }
+    inputUsername.on('input', validarUsername);
+    // Initial call to set button state
+    validarUsername();
+
+    $('#formActualizarUsername').on('submit', async function (e) {
+        e.preventDefault();
+
+        if (!validarUsername()) {
+            mensajes("error", 4000, "Campo Inválido", "El nombre de usuario no cumple con los requisitos.");
             return;
         }
 
-        if (file.size > 5 * 1024 * 1024) {
-            mensajes("error", 5000, "Archivo muy grande", "La imagen no debe superar los 5 MB de tamaño.");
-            return;
-        }
+        const username = inputUsername.val().trim();
+        const form = this;
 
-        const formData = new FormData();
-        formData.append('peticion', 'subir-portada');
-        formData.append('portada', file);
+        const confirm = await confirmarAccion("Actualizar Usuario", "¿Desea cambiar su nombre de usuario?", "question");
+        if (confirm) {
+            btnUsername.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Guardando...');
 
-        mensajes("info", 2000, "Procesando", "Comprimiendo y convirtiendo portada a WebP...");
+            try {
+                const data = new FormData(form);
+                const res = await enviaAjax(data);
 
-        try {
-            const res = await enviaAjax(formData);
-            if (res && res.resultado === 200) {
-                const imgElem = $('#imgPortada');
-                if (imgElem.is('img')) {
-                    imgElem.attr('src', res.url);
+                if (res && res.resultado === 200) {
+                    mensajes("success", 3000, "Éxito", res.mensaje);
+                    // Update username in profile header
+                    $('.profile-username span:first-child').text('@' + username);
+                    inputUsername.removeClass('is-valid is-invalid');
                 } else {
-                    // It was a div gradient, replace with actual img
-                    const parent = imgElem.parent();
-                    imgElem.remove();
-                    parent.prepend(`<img src="${res.url}" alt="Foto de portada" class="profile-cover-img" id="imgPortada">`);
+                    mensajes("error", 5000, "Error", res.mensaje || "No se pudo actualizar el nombre de usuario.");
                 }
-                mensajes("success", 3000, "Éxito", "Foto de portada actualizada exitosamente.");
-            } else {
-                mensajes("error", 5000, "Error", res.mensaje || "No se pudo actualizar la foto de portada.");
+            } catch (err) {
+                mensajes("error", 5000, "Error", "Error de conexión con el servidor.");
+            } finally {
+                btnUsername.prop('disabled', false).html('<i class="bi bi-save me-2"></i>Actualizar');
             }
-        } catch (err) {
-            mensajes("error", 5000, "Error", "Ocurrió un error al cargar la imagen de portada.");
         }
     });
 
-    // 5. Telephone Input Mask (0000-0000000)
+    // 5. Telephone Input Mask (7 digits)
     function aplicarMascaraTelefono() {
         $('#telefono').on('input', function () {
             let val = $(this).val().replace(/\D/g, ''); // Numbers only
-            if (val.length > 11) val = val.substring(0, 11);
-            
-            if (val.length > 4) {
-                $(this).val(val.substring(0, 4) + '-' + val.substring(4));
-            } else {
-                $(this).val(val);
-            }
+            if (val.length > 7) val = val.substring(0, 7);
+            $(this).val(val);
         });
     }
 
-    // 6. Real-time form input styling listeners
+    // 6. Real-time form input styling listeners & Validation System (Similar to Cliente)
+    function etiquetasFormularioPerfil(etiquetas) {
+        const input = {
+            nombre: $('#nombre'),
+            apellido: $('#apellido'),
+            correo: $('#correo'),
+            telefono: $('#telefono'),
+            sexo: $('#sexo'),
+            fecha_nacimiento: $('#fecha_nacimiento'),
+            direccion: $('#direccion')
+        };
+        const span = {
+            snombre: $('#snombre'),
+            sapellido: $('#sapellido'),
+            scorreo: $('#scorreo'),
+            stelefono: $('#stelefono'),
+            ssexo: $('#ssexo'),
+            sfecha_nacimiento: $('#sfecha_nacimiento'),
+            sdireccion: $('#sdireccion')
+        };
+        return etiquetas === "input" ? input : (etiquetas === "span" ? span : null);
+    }
+
+    function validarCamposPerfil() {
+        const input = etiquetasFormularioPerfil('input');
+        const btnGuardar = $('#btnGuardarPerfil');
+        let formularioValido = true;
+
+        function aplicar($campo, $span, valido, msg) {
+            const val = typeof $campo.val === 'function' ? $campo.val() : '';
+            const tieneValor = val !== '' && val !== 'default' && val !== null;
+
+            if (!tieneValor && !valido) {
+                if ($campo.data('touched')) {
+                    $campo.addClass('is-invalid').removeClass('is-valid');
+                    $span.addClass('invalid-tooltip d-inline-block').text(msg);
+                } else {
+                    $campo.removeClass('is-valid is-invalid');
+                    $span.removeClass('invalid-tooltip d-inline-block').text('');
+                }
+            } else if (tieneValor && !valido) {
+                $campo.addClass('is-invalid').removeClass('is-valid');
+                $span.addClass('invalid-tooltip d-inline-block').text(msg);
+            } else if (valido) {
+                if (tieneValor) {
+                    $campo.addClass('is-valid').removeClass('is-invalid');
+                } else {
+                    $campo.removeClass('is-valid is-invalid');
+                }
+                $span.removeClass('invalid-tooltip d-inline-block').text('');
+            } else {
+                $campo.removeClass('is-valid is-invalid');
+                $span.removeClass('invalid-tooltip d-inline-block').text('');
+            }
+
+            if (!valido) formularioValido = false;
+        }
+
+        // Nombre
+        const nombre = input.nombre.val().trim();
+        const nombreValido = nombre.length >= 2 && /^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/.test(nombre);
+        aplicar(input.nombre, $('#snombre'), nombreValido, 'El nombre debe tener al menos 2 caracteres y solo letras.');
+
+        // Apellido
+        const apellido = input.apellido.val().trim();
+        const apellidoValido = apellido.length >= 2 && /^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/.test(apellido);
+        aplicar(input.apellido, $('#sapellido'), apellidoValido, 'El apellido debe tener al menos 2 caracteres y solo letras.');
+
+        // Correo
+        const correo = input.correo.val().trim();
+        const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const correoValido = regexEmail.test(correo);
+        aplicar(input.correo, $('#scorreo'), correoValido, 'El formato del correo no es válido.');
+
+        // Teléfono
+        const prefijo = $('#prefijo_telefono').val() || '';
+        const numTelefono = input.telefono.val().trim();
+        const telefonoCompleto = prefijo + '-' + numTelefono;
+        const regexTelefono = /^\d{4}-\d{7}$/;
+        const telefonoValido = regexTelefono.test(telefonoCompleto);
+        aplicar(input.telefono, $('#stelefono'), telefonoValido, 'Ingrese 7 dígitos numéricos.');
+
+        // Sexo
+        const sexoVal = input.sexo.val();
+        const sexoValido = sexoVal && sexoVal !== 'default';
+        aplicar(input.sexo, $('#ssexo'), sexoValido, 'El sexo es obligatorio.');
+
+        // Fecha de Nacimiento
+        const fechaNac = input.fecha_nacimiento.val();
+        const fechaValida = fechaNac !== '' && new Date(fechaNac) < new Date();
+        aplicar(input.fecha_nacimiento, $('#sfecha_nacimiento'), fechaValida, 'La fecha de nacimiento es obligatoria y debe ser válida.');
+
+        // Dirección
+        const direccion = input.direccion.val().trim();
+        const direccionValida = direccion.length >= 3 && direccion.length <= 200;
+        aplicar(input.direccion, $('#sdireccion'), direccionValida, 'La dirección debe tener entre 3 y 200 caracteres.');
+
+        btnGuardar.prop('disabled', !formularioValido);
+        return formularioValido;
+    }
+
+    function manejarCambioEstadoPerfil(valido) {
+        validarCamposPerfil();
+    }
+
+    function capaValidarPerfil() {
+        const input = etiquetasFormularioPerfil('input');
+
+        function marcarYValidar() {
+            $(this).data('touched', true);
+            validarCamposPerfil();
+        }
+
+        if (typeof validarKeyPress === 'function') {
+            input.nombre.on('keypress', function (e) { validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/, e); });
+            input.apellido.on('keypress', function (e) { validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/, e); });
+        }
+
+        input.nombre.on('input', function () {
+            const val = $(this).val();
+            if (val.length === 1) $(this).val(val.toUpperCase());
+            marcarYValidar.call(this);
+        });
+        input.apellido.on('input', function () {
+            const val = $(this).val();
+            if (val.length === 1) $(this).val(val.toUpperCase());
+            marcarYValidar.call(this);
+        });
+
+        input.correo.on('input', marcarYValidar);
+        input.telefono.on('input', marcarYValidar);
+        input.sexo.on('change', marcarYValidar);
+        input.fecha_nacimiento.on('change', marcarYValidar);
+        input.direccion.on('input', marcarYValidar);
+    }
+
     function inicializarValidacionesTiempoReal() {
-        // Name Validation: characters only, >= 3
-        $('#nombre, #apellido').on('input', function () {
-            const val = $(this).val().trim();
-            const regex = /^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]{3,65}$/;
-            if (regex.test(val)) {
-                $(this).addClass('is-valid').removeClass('is-invalid');
-            } else {
-                $(this).addClass('is-invalid').removeClass('is-valid');
-            }
-        });
-
-        // Email Validation
-        $('#correo').on('input', function () {
-            const val = $(this).val().trim();
-            const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-            if (regex.test(val)) {
-                $(this).addClass('is-valid').removeClass('is-invalid');
-            } else {
-                $(this).addClass('is-invalid').removeClass('is-valid');
-            }
-        });
-
-        // Phone Validation
-        $('#telefono').on('input', function () {
-            const val = $(this).val().trim();
-            const regex = /^\d{4}-\d{7}$/;
-            if (regex.test(val)) {
-                $(this).addClass('is-valid').removeClass('is-invalid');
-            } else {
-                $(this).addClass('is-invalid').removeClass('is-valid');
-            }
-        });
-
-        // Address Validation
-        $('#direccion').on('input', function () {
-            const val = $(this).val().trim();
-            if (val.length >= 10 && val.length <= 200) {
-                $(this).addClass('is-valid').removeClass('is-invalid');
-            } else {
-                $(this).addClass('is-invalid').removeClass('is-valid');
-            }
-        });
+        // Inicializar Sistema de Validación Global
+        if (typeof SistemaValidacion !== 'undefined') {
+            SistemaValidacion.inicializar(etiquetasFormularioPerfil('input'), manejarCambioEstadoPerfil);
+        }
+        capaValidarPerfil();
+        validarCamposPerfil();
     }
 
     // 7. Edit Profile Form Submission
     $('#formEditarPerfil').on('submit', async function (e) {
         e.preventDefault();
-        const form = this;
-        const nombre = $('#nombre').val().trim();
-        const apellido = $('#apellido').val().trim();
-        const correo = $('#correo').val().trim();
-        const telefono = $('#telefono').val().trim();
-        const sexo = $('#sexo').val();
-        const fecha_nacimiento = $('#fecha_nacimiento').val();
-        const direccion = $('#direccion').val().trim();
 
-        // Strict Client Validations
-        if (!nombre || !/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]{3,65}$/.test(nombre)) {
-            mensajes("error", 4000, "Campo Inválido", "Nombres debe contener solo letras y espacio (mínimo 3 caracteres).");
-            $('#nombre').addClass('is-invalid');
+        // Forzar marcado "touched" en todos los campos al intentar enviar
+        const input = etiquetasFormularioPerfil('input');
+        Object.values(input).forEach($el => $el.data('touched', true));
+
+        let esValidoGeneral = typeof SistemaValidacion !== 'undefined' ? SistemaValidacion.validarFormulario(etiquetasFormularioPerfil('input')) : true;
+
+        if (!validarCamposPerfil() || !esValidoGeneral) {
+            mensajes("error", 4000, "Error de Validación", "Por favor corrija los errores en el formulario antes de guardar.");
             return;
         }
-        if (!apellido || !/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]{3,65}$/.test(apellido)) {
-            mensajes("error", 4000, "Campo Inválido", "Apellidos debe contener solo letras y espacio (mínimo 3 caracteres).");
-            $('#apellido').addClass('is-invalid');
-            return;
-        }
-        if (!correo || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(correo)) {
-            mensajes("error", 4000, "Campo Inválido", "Por favor ingrese un correo electrónico válido.");
-            $('#correo').addClass('is-invalid');
-            return;
-        }
-        if (!telefono || !/^\d{4}-\d{7}$/.test(telefono)) {
-            mensajes("error", 4000, "Campo Inválido", "El teléfono celular debe tener exactamente 11 dígitos en formato 0000-0000000.");
-            $('#telefono').addClass('is-invalid');
-            return;
-        }
-        if (!sexo) {
-            mensajes("error", 4000, "Campo Inválido", "Debe seleccionar su sexo.");
-            $('#sexo').addClass('is-invalid');
-            return;
-        }
-        if (!fecha_nacimiento || new Date(fecha_nacimiento) >= new Date()) {
-            mensajes("error", 4000, "Campo Inválido", "Fecha de nacimiento inválida o futura.");
-            $('#fecha_nacimiento').addClass('is-invalid');
-            return;
-        }
-        if (direccion.length < 10 || direccion.length > 200) {
-            mensajes("error", 4000, "Campo Inválido", "La dirección de habitación debe tener entre 10 y 200 caracteres.");
-            $('#direccion').addClass('is-invalid');
-            return;
-        }
+
+        const form = this;
+        const nombre = input.nombre.val().trim();
+        const apellido = input.apellido.val().trim();
 
         const confirm = await confirmarAccion("Modificar Perfil", "¿Desea guardar los cambios en su perfil?", "question");
         if (confirm) {
             $('#btnGuardarPerfil').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Guardando...');
-            
+
             try {
                 const data = new FormData(form);
-                const res = await enviaAjax(data);
+                // Combinar prefijo y teléfono antes de enviar
+                const prefijo = $('#prefijo_telefono').val() || '';
+                const numero = input.telefono.val().trim();
+                if (prefijo && numero) {
+                    data.set('telefono', prefijo + '-' + numero);
+                }
                 
+                const res = await enviaAjax(data);
+
                 if (res && res.resultado === 200) {
                     mensajes("success", 3000, "Éxito", res.mensaje);
-                    
+
                     // Update header name and global displays
                     const fullName = nombre + ' ' + apellido;
                     $('.profile-name').text(fullName);
                     $('.user-name').text(nombre);
                     $('#userDropdown span').text(nombre);
-                    
-                    // Force input styling classes reload
-                    $(form).find('.is-valid').removeClass('is-valid');
+
+                    // Reset validation styling but keep values
+                    Object.values(input).forEach($el => {
+                        $el.removeClass('is-valid is-invalid').removeData('touched');
+                    });
+                    const span = etiquetasFormularioPerfil('span');
+                    Object.values(span).forEach($el => {
+                        $el.removeClass('invalid-tooltip d-inline-block').text('');
+                    });
+                    $('#btnGuardarPerfil').prop('disabled', false);
                 } else {
                     mensajes("error", 5000, "Error", res.mensaje || "No se pudo actualizar el perfil.");
                 }
             } catch (err) {
                 mensajes("error", 5000, "Error", "Error de conexión con el servidor.");
             } finally {
-                $('#btnGuardarPerfil').prop('disabled', false).html('<i class="bi bi-save me-2"></i>Guardar Cambios');
+                $('#btnGuardarPerfil').html('<i class="bi bi-save me-2"></i>Guardar Cambios');
             }
         }
     });
 
-    // 8. Change Password Form Submission
+    // 8. Change Password Form & Validation
+    const inputClaveNueva = $('#clave_nueva');
+    const inputClaveConfirmar = $('#clave_confirmar');
+    const spanClaveNueva = $('#sclave_nueva');
+    const spanClaveConfirmar = $('#sclave_confirmar');
+    const btnClave = $('#btnGuardarClave');
+
+    function validarClaves() {
+        let formValido = true;
+
+        function aplicarC($campo, $span, valido, msg) {
+            const val = $campo.val();
+            const tieneValor = val !== '';
+
+            if (!tieneValor) {
+                $campo.removeClass('is-valid is-invalid');
+                $span.removeClass('invalid-tooltip d-inline-block').text('');
+                formValido = false;
+            } else if (!valido) {
+                $campo.addClass('is-invalid').removeClass('is-valid');
+                $span.addClass('invalid-tooltip d-inline-block').text(msg);
+                formValido = false;
+            } else {
+                $campo.addClass('is-valid').removeClass('is-invalid');
+                $span.removeClass('invalid-tooltip d-inline-block').text('');
+            }
+        }
+
+        // Nueva
+        const nueva = inputClaveNueva.val();
+        // Regex: 8 chars, 1 uppercase, 1 number, 1 special character
+        const regexClave = /^(?=.*[A-Z])(?=.*\d)(?=.*[\W_])[A-Za-z\d\W_]{8,}$/;
+        const nuevaValida = regexClave.test(nueva);
+        aplicarC(inputClaveNueva, spanClaveNueva, nuevaValida, 'Mínimo 8 caracteres, 1 mayúscula, 1 número y 1 símbolo.');
+
+        // Confirmar
+        const confirmar = inputClaveConfirmar.val();
+        const confirmarValida = (confirmar === nueva) && confirmar.length > 0;
+        aplicarC(inputClaveConfirmar, spanClaveConfirmar, confirmarValida, 'Las contraseñas no coinciden.');
+
+        btnClave.prop('disabled', !formValido);
+        return formValido;
+    }
+
+    inputClaveNueva.on('input', validarClaves);
+    inputClaveConfirmar.on('input', validarClaves);
+    // Initial check to disable button
+    validarClaves();
+
     $('#formCambiarClave').on('submit', async function (e) {
         e.preventDefault();
-        const form = this;
-        const actual = $('#clave_actual').val();
-        const nueva = $('#clave_nueva').val();
-        const confirmar = $('#clave_confirmar').val();
 
-        if (!actual) {
-            mensajes("error", 4000, "Contraseña Requerida", "Debe ingresar su contraseña actual.");
+        if (!validarClaves()) {
+            mensajes("error", 4000, "Error de Validación", "Por favor cumpla con los requisitos de la contraseña.");
             return;
         }
-        if (!nueva || nueva.length < 4) {
-            mensajes("error", 4000, "Contraseña Muy Corta", "La nueva contraseña debe tener al menos 4 caracteres.");
-            return;
-        }
-        if (nueva !== confirmar) {
-            mensajes("error", 4000, "Contraseñas no coinciden", "La nueva contraseña y su confirmación deben coincidir.");
-            return;
-        }
+
+        const form = this;
 
         const confirm = await confirmarAccion("Cambiar Contraseña", "¿Está seguro de que desea cambiar su contraseña de acceso?", "warning");
         if (confirm) {
-            $('#btnGuardarClave').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Cambiando...');
-            
+            btnClave.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Cambiando...');
+
             try {
                 const data = new FormData(form);
                 const res = await enviaAjax(data);
-                
+
                 if (res && res.resultado === 200) {
                     mensajes("success", 3000, "Éxito", res.mensaje);
                     form.reset();
-                    $(form).find('.is-valid, .is-invalid').removeClass('is-valid is-invalid');
+                    inputClaveNueva.removeClass('is-valid is-invalid');
+                    inputClaveConfirmar.removeClass('is-valid is-invalid');
+                    validarClaves();
                 } else {
                     mensajes("error", 5000, "Error", res.mensaje || "No se pudo cambiar la contraseña.");
                 }
             } catch (err) {
                 mensajes("error", 5000, "Error", "Error al comunicarse con el servidor.");
             } finally {
-                $('#btnGuardarClave').prop('disabled', false).html('<i class="bi bi-shield-check me-2"></i>Actualizar Contraseña');
+                btnClave.html('<i class="bi bi-shield-check me-2"></i>Actualizar Contraseña');
             }
         }
     });
 
-    // 9. Load Activity Timeline Log
-    async function cargarHistorialActividad() {
-        const container = $('#timelineContainer');
-        
-        // Show loader before async load
-        container.html(`
-            <div class="text-center py-5 timeline-loader">
-                <div class="spinner-border text-primary mb-3" role="status">
-                    <span class="visually-hidden">Cargando...</span>
-                </div>
-                <p class="mb-0 text-muted">Obteniendo registro de bitácora...</p>
-            </div>
-        `);
-
-        try {
-            const formData = new FormData();
-            formData.append('peticion', 'obtener-actividad');
-            const res = await enviaAjax(formData);
-
-            if (res && res.resultado === 200 && res.datos && res.datos.length > 0) {
-                let html = '';
-                
-                res.datos.forEach(log => {
-                    // Detect and format action categories
-                    let actionClass = 'Modificar';
-                    const actionName = log.accion.toLowerCase();
-                    
-                    if (actionName.includes('registr') || actionName.includes('crear') || actionName.includes('insert')) {
-                        actionClass = 'Registrar';
-                    } else if (actionName.includes('elimin') || actionName.includes('borrar') || actionName.includes('desactiv')) {
-                        actionClass = 'Eliminar';
-                    } else if (actionName.includes('sesi') || actionName.includes('log') || actionName.includes('acces')) {
-                        actionClass = 'Sesion';
-                    }
-
-                    // Format date to local Venezuela representation
-                    const dateObj = new Date(log.fecha);
-                    const formattedDate = dateObj.toLocaleDateString('es-VE', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                        hour12: true
-                    });
-
-                    html += `
-                        <article class="timeline-item ${actionClass}">
-                            <div class="timeline-marker"></div>
-                            <div class="timeline-content shadow-sm">
-                                <div class="timeline-header">
-                                    <div class="timeline-title-wrap">
-                                        <h3 class="timeline-title">${log.modulo}</h3>
-                                        <span class="timeline-badge">${log.accion}</span>
-                                    </div>
-                                    <span class="timeline-date">
-                                        <i class="bi bi-clock"></i>${formattedDate}
-                                    </span>
-                                </div>
-                                <p class="timeline-detail text-muted">${log.detalle || 'Acción ejecutada en el sistema.'}</p>
-                                <div class="timeline-ip">
-                                    <i class="bi bi-laptop"></i> Dirección IP: <strong>${log.ip_address}</strong>
-                                </div>
-                            </div>
-                        </article>
-                    `;
-                });
-
-                container.html(html);
-            } else {
-                container.html(`
-                    <div class="timeline-empty py-5">
-                        <i class="bi bi-journal-x"></i>
-                        <h3 class="h6 fw-bold mb-1">Sin Actividad</h3>
-                        <p class="mb-0 text-muted">No se encontraron movimientos registrados bajo su Cédula.</p>
-                    </div>
-                `);
-            }
-        } catch (err) {
-            container.html(`
-                <div class="timeline-empty py-5 border border-danger-subtle bg-danger-subtle bg-opacity-25 rounded-3">
-                    <i class="bi bi-exclamation-triangle-fill text-danger fs-2 mb-2"></i>
-                    <h3 class="h6 fw-bold text-danger mb-1">Error de Carga</h3>
-                    <p class="mb-0 text-muted">No se pudo recuperar su historial en este momento.</p>
-                </div>
-            `);
-        }
-    }
-
-    // 10. Recargar button trigger
-    $('#btnRecargarActividad').on('click', function () {
-        cargarHistorialActividad();
-    });
+    // Timeline removed
 });

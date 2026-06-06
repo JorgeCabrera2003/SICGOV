@@ -3,11 +3,10 @@
 namespace App\Controllers;
 
 use App\Models\Security\Usuario;
-use App\Models\Security\PasswordRecovery;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-class PasswordRecoveryController
+class RecuperacionClaveController
 {
     public function index()
     {
@@ -24,10 +23,14 @@ class PasswordRecoveryController
                 $usuarioModel->setCorreo($correo);
                 $validacion = $usuarioModel->Transaccion(['peticion' => 'validar']);
 
-                if ($validacion['bool'] == 1) {
+                if ($validacion['bool'] == 1 && isset($validacion['response']['registro']['cedula'])) {
+                    $cedula = $validacion['response']['registro']['cedula'];
                     $codigo = sprintf("%06d", mt_rand(1, 999999));
-                    $recoveryModel = new PasswordRecovery();
-                    if ($recoveryModel->guardarCodigo($correo, $codigo)) {
+                    
+                    $usuarioModel->setCedula($cedula);
+                    $guardado = $usuarioModel->Transaccion(['peticion' => 'guardar-codigo', 'codigo' => $codigo]);
+                    
+                    if (isset($guardado['estado']) && $guardado['estado'] == 1) {
                         if ($this->enviarCorreo($correo, $codigo)) {
                             $_SESSION['recovery_correo'] = $correo;
                             header('Location: ' . BASE_URL . '/?page=verificar-codigo');
@@ -66,13 +69,23 @@ class PasswordRecoveryController
             if (empty($codigo)) {
                 $_SESSION['error_verificar'] = 'Por favor, ingrese el código de verificación.';
             } else {
-                $recoveryModel = new PasswordRecovery();
-                if ($recoveryModel->validarCodigo($correo, $codigo)) {
+                $usuarioModel = new Usuario();
+                $usuarioModel->setCorreo($correo);
+                $validacion = $usuarioModel->Transaccion(['peticion' => 'validar']);
+                
+                if ($validacion['bool'] == 1 && isset($validacion['response']['registro']['cedula'])) {
+                    $usuarioModel->setCedula($validacion['response']['registro']['cedula']);
+                    $validacionCodigo = $usuarioModel->Transaccion(['peticion' => 'validar-codigo', 'codigo' => $codigo]);
+                    
+                    if (isset($validacionCodigo['bool']) && $validacionCodigo['bool'] == 1) {
                     $_SESSION['recovery_codigo_valido'] = $codigo;
                     header('Location: ' . BASE_URL . '/?page=restablecer-password');
                     exit();
+                    } else {
+                        $_SESSION['error_verificar'] = 'Código inválido o expirado.';
+                    }
                 } else {
-                    $_SESSION['error_verificar'] = 'Código inválido o expirado.';
+                    $_SESSION['error_verificar'] = 'Error al identificar al usuario.';
                 }
             }
         }
@@ -115,8 +128,7 @@ class PasswordRecoveryController
                     $resultado = $usuarioModel->Transaccion(['peticion' => 'actualizar-clave']);
                     
                     if ($resultado['estado'] == 1) {
-                        $recoveryModel = new PasswordRecovery();
-                        $recoveryModel->marcarComoUsado($correo, $codigo);
+                        $usuarioModel->Transaccion(['peticion' => 'limpiar-codigo']);
                         
                         unset($_SESSION['recovery_correo']);
                         unset($_SESSION['recovery_codigo_valido']);

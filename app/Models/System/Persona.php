@@ -102,9 +102,15 @@ class Persona
             $this->telefono = null;
             return;
         }
-        if (!preg_match('/^\d{11}$/', $telefono)) {
-            throw new Exception('El teléfono debe incluir el prefijo (4 dígitos) más 7 dígitos de número (11 en total).');
+        if (!preg_match('/^\d{4}-?\d{7}$/', $telefono)) {
+            throw new Exception('El teléfono debe incluir el prefijo (4 dígitos) más 7 dígitos de número.');
         }
+        
+        // Asegurar que se guarde con el formato 0000-0000000
+        if (strpos($telefono, '-') === false) {
+            $telefono = substr($telefono, 0, 4) . '-' . substr($telefono, 4);
+        }
+
         $this->telefono = $telefono;
     }
 

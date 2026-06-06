@@ -74,6 +74,10 @@ class Insumo extends Database
         if ($stock < 0) {
             throw new Exception("El valor ingresado no puede ser negativo");
         }
+
+        if ($stock == 0) {
+            $stock = NULL;
+        }
         $this->stock_maximo = $stock;
     }
 
@@ -164,7 +168,7 @@ class Insumo extends Database
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM vw_insumo";
+            $sql = "SELECT * FROM vw_insumo WHERE estatus = 1";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute();
             if ($stm->rowCount() > 0) {
@@ -224,6 +228,10 @@ class Insumo extends Database
                 $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
                 $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
             }
+        } else {
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 409, 'mensaje' => "Ups, intente de nuevo más tarde"];
+            $dato['HTTP_STATUS'] = ['codigo' => 409, 'mensaje' => "Registro duplicado"];
         }
         $this->DestruirConexion();
         return $dato;

@@ -774,7 +774,7 @@ class ReporteController
         }
 
         $info = [
-            'usuario' => $datosUsuario['nombres'] . ' ' . $datosUsuario['apellidos'],
+            'usuario' => $datosUsuario['nombre'] . ' ' . $datosUsuario['apellido'],
             'titulo' => 'Reporte del Sistema',
             'subtitulo' => 'Información generada dinámicamente',
             'resumen' => $resumen,

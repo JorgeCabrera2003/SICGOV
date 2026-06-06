@@ -40,23 +40,21 @@ class Helper
     /**
      * Registra un movimiento en la bitácora de forma segura
      */
-    public static function Bitacora($accion, $modulo, $detalle, $prev_data = null, $new_data = null)
+    public static function Bitacora($accion, $modulo, $detalle, $prev_data = null, $new_data = null, $cedula_override = null)
     {
         try {
             // Verificar si hay sesión activa
             if (session_status() === PHP_SESSION_NONE) { session_start(); }
             
-            if (!isset($_SESSION['user'])) {
-                return false;
-            }
-
             $bitacora = new Bitacora();
             $idBitacora = self::generarId('BIT');
             $bitacora->setIdBitacora($idBitacora);
 
-            // Intentar obtener la identidad más precisa (Cédula es la PK en usuario)
-            $user = $_SESSION['user'];
-            $cedula = $user['cedula'] ?? null;
+            // Intentar obtener la identidad más precisa
+            $cedula = $cedula_override;
+            if (!$cedula && isset($_SESSION['user']['cedula'])) {
+                $cedula = $_SESSION['user']['cedula'];
+            }
 
             if (!$cedula) {
                 return false;
@@ -67,7 +65,7 @@ class Helper
             $bitacora->set_accion($accion);
             $bitacora->set_detalle($detalle);
             $bitacora->set_ip_address($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
-            
+
             // Si vienen arrays u objetos, convertirlos a JSON
             if ($prev_data !== null) {
                 $bitacora->set_anteriores(is_string($prev_data) ? $prev_data : json_encode($prev_data, JSON_UNESCAPED_UNICODE));
@@ -146,9 +144,9 @@ class Helper
                 if ($peticion !== 'forzar-cambiar-clave') {
                     header('Content-Type: application/json');
                     echo json_encode([
-                        'resultado' => 403, 
-                        'icon' => 'warning', 
-                        'mensaje' => 'Por razones de seguridad, debe cambiar su contraseña antes de continuar.', 
+                        'resultado' => 403,
+                        'icon' => 'warning',
+                        'mensaje' => 'Por razones de seguridad, debe cambiar su contraseña antes de continuar.',
                         'redirect' => BASE_URL . '/?page=forzar-cambiar-clave'
                     ]);
                     exit();
@@ -167,7 +165,7 @@ class Helper
         self::verificarSesion();
 
         $user = $_SESSION['user'];
-        $foto = BASE_URL . '/assets/img/default.jpg';
+        $foto = BASE_URL . 'assets/img/default.jpg';
 
         try {
             $db = \App\Core\Database::getConnection('security');
@@ -176,15 +174,15 @@ class Helper
             $stmt->execute(['cedula' => $user['cedula'] ?? '']);
             $img = $stmt->fetch();
             if ($img && !empty($img['direccion'])) {
-                $foto = BASE_URL . $img['direccion'];
+                $foto = rtrim(BASE_URL, '/') . $img['direccion'];
             }
         } catch (\Exception $e) {
             // Fail silently and use default
         }
 
         return [
-            'nombres' => $user['nombres'] ?? $user['username'] ?? 'Usuario',
-            'apellidos' => $user['apellidos'] ?? '',
+            'nombre' => $user['nombre'] ?? $user['username'] ?? 'Usuario',
+            'apellido' => $user['apellido'] ?? '',
             'cedula' => $user['cedula'] ?? '',
             'rol' => $user['rol'] ?? 'Usuario',
             'foto' => $foto,
@@ -256,7 +254,8 @@ class Helper
         }
 
         $info = getimagesize($source);
-        if (!$info) return false;
+        if (!$info)
+            return false;
 
         $mime = $info['mime'];
         $image = null;
@@ -264,14 +263,16 @@ class Helper
         try {
             $image = match ($mime) {
                 'image/jpeg' => imagecreatefromjpeg($source),
-                'image/png'  => imagecreatefrompng($source),
-                'image/gif'  => imagecreatefromgif($source),
+                'image/png' => imagecreatefrompng($source),
+                'image/gif' => imagecreatefromgif($source),
                 'image/webp' => 'SKIP',
-                default      => null
+                default => null
             };
 
-            if ($image === 'SKIP') return copy($source, $destination);
-            if (!$image) return false;
+            if ($image === 'SKIP')
+                return copy($source, $destination);
+            if (!$image)
+                return false;
 
             // Post-procesamiento
             if ($mime === 'image/png') {
@@ -281,11 +282,13 @@ class Helper
             }
 
 
-            if (!$image) return false;
+            if (!$image)
+                return false;
 
             // Asegurar que el directorio destino existe
             $dir = dirname($destination);
-            if (!is_dir($dir)) mkdir($dir, 0777, true);
+            if (!is_dir($dir))
+                mkdir($dir, 0777, true);
 
             $res = imagewebp($image, $destination, $quality);
             imagedestroy($image);
@@ -294,5 +297,32 @@ class Helper
             self::ErrorLog("Error convirtiendo imagen a WebP: " . $e->getMessage());
             return false;
         }
+    }
+    public static function convertirJSON($objeto)
+    {
+        if (is_object($objeto)) {
+
+            $objeto = (array) $objeto;
+
+            foreach ($objeto as &$valor) {
+
+                if (is_object($valor)) {
+                    $valor = self::convertirJSON($valor);
+                } elseif (is_array($valor)) {
+                    $valor = array_map(function ($item) {
+                        return is_object($item) ? self::convertirJSON($item) : $item;
+                    }, $valor);
+                }
+            }
+            return $objeto;
+        }
+
+        if (is_array($objeto)) {
+            return array_map(function ($valor) {
+                return is_object($valor) ? self::convertirJSON($valor) : $valor;
+            }, $objeto);
+        }
+
+        return $objeto;
     }
 }
