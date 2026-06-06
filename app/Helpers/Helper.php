@@ -127,7 +127,7 @@ class Helper
                 echo json_encode(['success' => false, 'message' => 'Sesión no iniciada']);
                 exit();
             } else {
-                header("Location: " . BASE_URL . "/?page=login");
+                header("Location: " . BASE_URL . "?url=Login");
                 exit();
             }
         }
@@ -147,12 +147,12 @@ class Helper
                         'resultado' => 403,
                         'icon' => 'warning',
                         'mensaje' => 'Por razones de seguridad, debe cambiar su contraseña antes de continuar.',
-                        'redirect' => BASE_URL . '/?page=forzar-cambiar-clave'
+                        'redirect' => BASE_URL . '?url=Perfil&type=forzar-cambiar-clave'
                     ]);
                     exit();
                 }
             } else {
-                header("Location: " . BASE_URL . "/?page=forzar-cambiar-clave");
+                header("Location: " . BASE_URL . "?url=Perfil&type=forzar-cambiar-clave");
                 exit();
             }
         }
@@ -324,5 +324,24 @@ class Helper
         }
 
         return $objeto;
+    }
+
+    /**
+     * Calcula la diferencia de tiempo relativo en español.
+     * 
+     * @param \DateTime $fecha Objeto DateTime de la fecha a comparar
+     * @return string Tiempo transcurrido legible
+     */
+    public static function tiempoTranscurrido($fecha)
+    {
+        $ahora = new \DateTime();
+        $diferencia = $ahora->diff($fecha);
+
+        if ($diferencia->y > 0) return 'Hace ' . $diferencia->y . ' año' . ($diferencia->y > 1 ? 's' : '');
+        if ($diferencia->m > 0) return 'Hace ' . $diferencia->m . ' mes' . ($diferencia->m > 1 ? 'es' : '');
+        if ($diferencia->d > 0) return 'Hace ' . $diferencia->d . ' día' . ($diferencia->d > 1 ? 's' : '');
+        if ($diferencia->h > 0) return 'Hace ' . $diferencia->h . ' hora' . ($diferencia->h > 1 ? 's' : '');
+        if ($diferencia->i > 0) return 'Hace ' . $diferencia->i . ' minuto' . ($diferencia->i > 1 ? 's' : '');
+        return 'Hace unos instantes';
     }
 }
