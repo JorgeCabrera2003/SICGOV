@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Validation functions
     function aplicarValidacion(input, span, isValid, mensaje) {
         if (!span || !input) return;
-        
+
         input.classList.remove('is-valid', 'is-invalid');
         span.className = '';
         span.innerHTML = '';
@@ -153,11 +153,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const hiddenTelefono = document.getElementById('telefono');
 
         // Prevent invalid chars on input
-        if(inputs.nombre) inputs.nombre.addEventListener('keypress', soloLetras);
-        if(inputs.apellido) inputs.apellido.addEventListener('keypress', soloLetras);
-        if(inputs.cedula) inputs.cedula.addEventListener('input', function() { this.value = this.value.replace(/\D/g, ''); });
-        if(inputs.numero_telefono) inputs.numero_telefono.addEventListener('input', function() { this.value = this.value.replace(/\D/g, ''); });
-        if(inputs.username) inputs.username.addEventListener('input', function() { this.value = this.value.replace(/[^a-zA-Z]/g, ''); });
+        if (inputs.nombre) inputs.nombre.addEventListener('keypress', soloLetras);
+        if (inputs.apellido) inputs.apellido.addEventListener('keypress', soloLetras);
+        if (inputs.cedula) inputs.cedula.addEventListener('input', function () { this.value = this.value.replace(/\D/g, ''); });
+        if (inputs.numero_telefono) inputs.numero_telefono.addEventListener('input', function () { this.value = this.value.replace(/\D/g, ''); });
+        if (inputs.username) inputs.username.addEventListener('input', function () { this.value = this.value.replace(/[^a-zA-Z]/g, ''); });
 
         let cedulaDisponible = true;
         let cedulaEnChequeo = '';
@@ -169,14 +169,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (ced.length >= 7 && ced.length <= 9 && nac !== '') {
                     const checkStr = nac + '-' + ced;
                     if (cedulaEnChequeo === checkStr) return;
-                    
+
                     cedulaEnChequeo = checkStr;
-                    
+
                     const formData = new FormData();
                     formData.append('peticion', 'verificar_cedula');
                     formData.append('nacionalidad', nac);
                     formData.append('cedula', ced);
-                    
+
                     try {
                         // El form action de login manda a ?page=login (o BASE_URL si es index)
                         const res = await fetch(BASE_URL + '/?page=login', {
@@ -195,8 +195,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        if(inputs.cedula) inputs.cedula.addEventListener('blur', chequearCedula);
-        if(inputs.nacionalidad) inputs.nacionalidad.addEventListener('change', chequearCedula);
+        if (inputs.cedula) inputs.cedula.addEventListener('blur', chequearCedula);
+        if (inputs.nacionalidad) inputs.nacionalidad.addEventListener('change', chequearCedula);
 
         function validarFormulario() {
             let isValid = true;
@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 let numValid = inputs.numero_telefono.value.trim().length === 7;
                 let prefValid = inputs.prefijo_telefono.value !== '';
                 let valid = numValid && prefValid;
-                
+
                 if (valid && hiddenTelefono) {
                     hiddenTelefono.value = inputs.prefijo_telefono.value + '-' + inputs.numero_telefono.value.trim();
                 } else if (hiddenTelefono) {
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Initialize state
         validarFormulario();
-        
+
         regForm.addEventListener('submit', function (event) {
             if (btnReg && btnReg.disabled) {
                 event.preventDefault();
@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         claveReset.addEventListener('input', validateResetPassword);
         rclaveReset.addEventListener('input', validateResetPassword);
-        
+
         // Estado inicial
         validateResetPassword();
     }
