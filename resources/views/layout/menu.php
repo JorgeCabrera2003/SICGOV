@@ -250,7 +250,7 @@
                     <span class="flex-grow-1">Control de Acceso</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['bitacora', 'papelera', 'usuario']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo in_array($page, ['bitacora', 'papelera', 'usuario', 'modulo_sistema', 'rol']) ? 'show' : ''; ?>"
                     id="seguridad-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
                         <a href="?page=bitacora" class="nav-link <?php echo ($page == 'bitacora') ? 'active' : ''; ?> py-1">
@@ -265,6 +265,9 @@
                         </a>
                         <a href="?page=rol" class="nav-link <?php echo ($page == 'rol') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-person-vcard me-2"></i>Gestión de Roles
+                        </a>
+                        <a href="?page=modulo_sistema" class="nav-link <?php echo ($page == 'modulo_sistema') ? 'active' : ''; ?> py-1">
+                            <i class="fa-solid fa-computer me-2"></i>Módulos del Sistema
                         </a>
                     </div>
                 </div>
