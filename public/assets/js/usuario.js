@@ -478,6 +478,40 @@ async function toggleEstatus(pos, targetEstatus) {
     }
 }
 
+// Forzar cambio de clave
+async function forzarCambioClave(pos) {
+    const linea = $(pos).closest('tr');
+    const tabla = $('#tabla-usuario').DataTable();
+    const datosFila = tabla.row(linea).data();
+
+    const nombreUsuario = datosFila.username;
+    const textoConfirmacion = `¿Está seguro de forzar a ${nombreUsuario} a cambiar su contraseña en su próximo inicio de sesión?`;
+
+    let confirmacion = await confirmarAccion(
+        "Forzar Cambio de Clave",
+        textoConfirmacion,
+        "warning"
+    );
+
+    if (confirmacion) {
+        let peticionData = new FormData();
+        peticionData.append('peticion', 'forzar-clave');
+        peticionData.append('cedula', datosFila.cedula);
+
+        try {
+            let json = await enviaAjax(peticionData);
+
+            if (json && json.resultado >= 200 && json.resultado < 300) {
+                mensajes("success", 3000, "Éxito", json.mensaje);
+            } else {
+                mensajes("error", 5000, "Error", (json && json.mensaje) || "Ocurrió un error inesperado.");
+            }
+        } catch (error) {
+            mensajes("error", 5000, "Error", "Error de comunicación con el servidor.");
+        }
+    }
+}
+
 // Inicialización de la DataTable principal
 async function crearDataTable() {
     let peticion = new FormData();
@@ -553,7 +587,16 @@ async function crearDataTable() {
                         .html(`<i class="fa-solid ${icono} me-2"></i>${textoAccion}`);
                     itemToggle.append(linkToggle);
 
-                    menu.append(itemEditar, separador, itemToggle);
+                    // Forzar cambio de clave
+                    const itemForzarClave = $('<li>');
+                    const linkForzarClave = $('<a>')
+                        .addClass('dropdown-item text-danger')
+                        .attr('href', '#')
+                        .attr('onclick', 'forzarCambioClave(this)')
+                        .html('<i class="fa-solid fa-key me-2"></i>Forzar cambio de clave');
+                    itemForzarClave.append(linkForzarClave);
+
+                    menu.append(itemEditar, separador, itemToggle, itemForzarClave);
                     dropdown.append(boton, menu);
 
                     return dropdown.prop('outerHTML');

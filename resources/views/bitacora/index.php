@@ -33,6 +33,7 @@
                             <option value="">TODOS LOS MÓDULOS</option>
                             <option value="SEGURIDAD">SEGURIDAD</option>
                             <option value="USUARIOS">USUARIOS</option>
+                            <option value="PERFIL">PERFIL</option>
                             <option value="NOTICIAS">NOTICIAS</option>
                             <option value="INVENTARIO">INVENTARIO</option>
                             <option value="PERSONAL">PERSONAL</option>

@@ -115,8 +115,8 @@ class PerfilController
                     echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Teléfono inválido (formato: XXXX-XXXXXXX)']);
                     exit;
                 }
-                if (empty($direccion) || RegexHelper::ValidarFormatos($direccion, 'Direccion') == 0) {
-                    echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Dirección inválida (mínimo 10 caracteres)']);
+                if (empty($direccion) || strlen($direccion) < 3) {
+                    echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Dirección inválida (mínimo 3 caracteres)']);
                     exit;
                 }
                 if (empty($sexo) || RegexHelper::ValidarFormatos($sexo, 'Sexo') == 0) {
@@ -159,13 +159,11 @@ class PerfilController
                     ];
 
                     // Write to Bitacora (audit log)
-                    Helper::Bitacora('Modificar', 'Perfil', 'Usuario actualizó su información personal de perfil', $old_data, $new_data);
+                    Helper::Bitacora('MODIFICAR', 'PERFIL', 'Usuario actualizó su información personal de perfil', $old_data, $new_data);
 
                     // Update session
                     $_SESSION['user']['nombre'] = $nombre;
-                    $_SESSION['user']['nombres'] = $nombre;
                     $_SESSION['user']['apellido'] = $apellido;
-                    $_SESSION['user']['apellidos'] = $apellido;
                     $_SESSION['user']['correo'] = $correo;
                     $_SESSION['user']['telefono'] = $telefono;
                     $_SESSION['user']['direccion'] = $direccion;
@@ -180,12 +178,47 @@ class PerfilController
                 exit;
             }
 
+            if ($peticion === 'actualizar-username') {
+                $username = trim($_POST['username'] ?? '');
+
+                if (empty($username) || strlen($username) < 3) {
+                    echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El nombre de usuario debe tener al menos 3 caracteres']);
+                    exit;
+                }
+
+                try {
+                    $db = Database::getConnection('security');
+                    
+                    // Verificar si el username ya existe en otro usuario
+                    $stmtCheck = $db->prepare("SELECT cedula FROM usuario WHERE username = :username AND cedula != :cedula");
+                    $stmtCheck->execute(['username' => $username, 'cedula' => $cedula]);
+                    if ($stmtCheck->rowCount() > 0) {
+                        echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El nombre de usuario ya está en uso']);
+                        exit;
+                    }
+
+                    // Actualizar username
+                    $stmtUpdate = $db->prepare("UPDATE usuario SET username = :username WHERE cedula = :cedula");
+                    $stmtUpdate->execute(['username' => $username, 'cedula' => $cedula]);
+
+                    $_SESSION['user']['username'] = $username;
+
+                    // Bitacora
+                    Helper::Bitacora('MODIFICAR', 'USUARIOS', 'Usuario cambió su nombre de usuario');
+
+                    echo json_encode(['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Nombre de usuario actualizado exitosamente']);
+                } catch (Exception $e) {
+                    Helper::ErrorLog("Error cambiando nombre de usuario: " . $e->getMessage());
+                    echo json_encode(['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Error interno al actualizar el nombre de usuario']);
+                }
+                exit;
+            }
+
             if ($peticion === 'cambiar-clave') {
-                $clave_actual = $_POST['clave_actual'] ?? '';
                 $clave_nueva = $_POST['clave_nueva'] ?? '';
                 $clave_confirmar = $_POST['clave_confirmar'] ?? '';
 
-                if (empty($clave_actual) || empty($clave_nueva) || empty($clave_confirmar)) {
+                if (empty($clave_nueva) || empty($clave_confirmar)) {
                     echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Todos los campos de contraseña son obligatorios']);
                     exit;
                 }
@@ -206,8 +239,8 @@ class PerfilController
                     $stmtSelect->execute(['cedula' => $cedula]);
                     $user_db = $stmtSelect->fetch(PDO::FETCH_ASSOC);
 
-                    if (!$user_db || !password_verify($clave_actual, $user_db['clave'])) {
-                        echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'La contraseña actual es incorrecta']);
+                    if (!$user_db) {
+                        echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Usuario no encontrado']);
                         exit;
                     }
 
@@ -216,7 +249,7 @@ class PerfilController
                     $stmtUpdate->execute(['clave' => $hashed_clave, 'cedula' => $cedula]);
 
                     // Bitacora
-                    Helper::Bitacora('Modificar', 'Seguridad', 'Usuario cambió su contraseña de acceso');
+                    Helper::Bitacora('MODIFICAR', 'SEGURIDAD', 'Usuario cambió su contraseña de acceso');
 
                     echo json_encode(['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Contraseña cambiada exitosamente']);
                 } catch (Exception $e) {
@@ -310,9 +343,9 @@ class PerfilController
 
                         // Bitacora
                         $label = ($peticion === 'subir-avatar') ? 'foto de perfil' : 'foto de portada';
-                        Helper::Bitacora('Modificar', 'Perfil', "Usuario actualizó su {$label}");
+                        Helper::Bitacora('MODIFICAR', 'PERFIL', "Usuario actualizó su {$label}");
 
-                        $img_full_url = BASE_URL . $direccion_db;
+                        $img_full_url = rtrim(BASE_URL, '/') . $direccion_db;
 
                         echo json_encode([
                             'resultado' => 200, 

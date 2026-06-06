@@ -177,6 +177,19 @@ $openRegisterSlide = $openRegisterSlide ?? false;
 <script>
     window.authOpenRegisterSlide = <?php echo json_encode($openRegisterSlide); ?>;
 </script>
+<?php if (isset($_SESSION['show_disabled_alert']) && $_SESSION['show_disabled_alert']): ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        Swal.fire({
+            icon: 'error',
+            title: 'Cuenta inhabilitada',
+            text: 'Su cuenta de usuario ha sido inhabilitada o se encuentra inactiva.',
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Entendido'
+        });
+    });
+</script>
+<?php unset($_SESSION['show_disabled_alert']); endif; ?>
 
 </body>
 </html>
