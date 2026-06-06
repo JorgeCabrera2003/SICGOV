@@ -21,7 +21,7 @@
                     <i class="bi bi-chevron-left fs-5" id="collapse-icon"></i>
                 </button>
 
-                <a href="<?php echo BASE_URL; ?>/?page=home" class="d-flex align-items-center gap-2 text-decoration-none">
+                <a href="<?php echo BASE_URL; ?>/?url=Dashboard" class="d-flex align-items-center gap-2 text-decoration-none">
                     <img src="<?php echo BASE_URL; ?>/assets/img/favicon.ico" alt="logo" class="logo-img" id="logo-img">
                     <span class="h5 mb-0 fw-bold" id="logo-text">GOOD VIBES</span>
                 </a>
@@ -47,7 +47,7 @@
         <nav class="nav nav-pills flex-nowrap flex-column gap-1 px-2 py-3 flex-grow-1 overflow-auto"
             aria-label="Menú principal">
             <!-- Dashboard -->
-            <a href="<?php echo BASE_URL; ?>/?page=home"
+            <a href="<?php echo BASE_URL; ?>/?url=Dashboard"
                 class="nav-link <?php echo ($page == 'home') ? 'active' : ''; ?> d-flex align-items-center gap-2 mb-3">
                 <i class="bi bi-grid-1x2-fill fs-5"></i>
                 <span class="fw-bold">Dashboard Principal</span>
