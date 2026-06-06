@@ -5,10 +5,9 @@ namespace App\Controllers;
 use App\Helpers\Helper;
 use App\Helpers\NotificacionHelper;
 
-class NotificationController
-{
-    public function index()
-    {
+$type = $_REQUEST['type'] ?? 'index';
+
+if ($type === 'index') {
         // ===== 1. VERIFICAR SESIÓN =====
         Helper::verificarSesion();
 
@@ -43,7 +42,7 @@ class NotificationController
                 $datosFormateados = [];
                 foreach ($notificaciones as $n) {
                     $fechaObj = new \DateTime($n['fecha_envio']);
-                    $hace = $this->tiempoTranscurrido($fechaObj);
+                    $hace = Helper::tiempoTranscurrido($fechaObj);
 
                     $datosFormateados[] = [
                         'id' => $n['id_notificacion'],
@@ -123,24 +122,4 @@ class NotificationController
 
         // ===== 3. CARGAR VISTA NORMAL =====
         Helper::cargarVista('notificaciones/index', 'Mis Notificaciones - Good Vibes');
-    }
-
-    /**
-     * Calcula la diferencia de tiempo relativo en español.
-     * 
-     * @param \DateTime $fecha Objeto DateTime de la fecha a comparar
-     * @return string Tiempo transcurrido legible
-     */
-    private function tiempoTranscurrido($fecha)
-    {
-        $ahora = new \DateTime();
-        $diferencia = $ahora->diff($fecha);
-
-        if ($diferencia->y > 0) return 'Hace ' . $diferencia->y . ' año' . ($diferencia->y > 1 ? 's' : '');
-        if ($diferencia->m > 0) return 'Hace ' . $diferencia->m . ' mes' . ($diferencia->m > 1 ? 'es' : '');
-        if ($diferencia->d > 0) return 'Hace ' . $diferencia->d . ' día' . ($diferencia->d > 1 ? 's' : '');
-        if ($diferencia->h > 0) return 'Hace ' . $diferencia->h . ' hora' . ($diferencia->h > 1 ? 's' : '');
-        if ($diferencia->i > 0) return 'Hace ' . $diferencia->i . ' minuto' . ($diferencia->i > 1 ? 's' : '');
-        return 'Hace unos instantes';
-    }
 }

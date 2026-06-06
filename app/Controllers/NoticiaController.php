@@ -7,10 +7,9 @@ use App\Helpers\RegexHelper;
 use App\Models\Security\Noticia;
 use App\Helpers\NotificacionHelper;
 
-class NoticiaController
-{
-	public function indexAdmin()
-	{
+$type = $_REQUEST['type'] ?? 'admin';
+
+if ($type === 'admin') {
 		Helper::verificarSesion();
 
 		$noticiaModel = new Noticia();
@@ -189,9 +188,7 @@ class NoticiaController
 			'noticias/index',
 			'Gestión de Noticias - Good Vibes'
 		);
-	}
-
-    public function indexPublico() {
+} elseif ($type === 'publico') {
         // Vista pública estilo portal de noticias
         $noticiaModel = new Noticia();
         
@@ -225,11 +222,9 @@ class NoticiaController
         echo '</div></main>';
 
         require_once BASE_PATH . '/resources/views/layout/footer.php';
-    }
-
-    public function detallePublico() {
+} elseif ($type === 'detalle') {
         if (!isset($_GET['id'])) {
-            header("Location: " . BASE_URL . "?page=noticias-publicas");
+            header("Location: " . BASE_URL . "?url=Noticia&type=publico");
             exit;
         }
 
@@ -259,5 +254,4 @@ class NoticiaController
         echo '</div></main>';
 
         require_once BASE_PATH . '/resources/views/layout/footer.php';
-    }
 }
