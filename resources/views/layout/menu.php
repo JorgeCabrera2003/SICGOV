@@ -57,13 +57,13 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Atención al Cliente</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['clientes', 'pedidos', 'reservaciones', 'reservar']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reservacion') || in_array($page, ['clientes', 'pedidos']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#cliente-submenu" role="button">
                     <i class="bi bi-person-heart fs-5"></i>
                     <span class="flex-grow-1">Servicio y Citas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['clientes', 'pedidos', 'reservaciones', 'reservar']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reservacion') || in_array($page, ['clientes', 'pedidos']) ? 'show' : ''; ?>"
                     id="cliente-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
                         <a href="?page=clientes" class="nav-link <?php echo ($page == 'clientes') ? 'active' : ''; ?> py-1">
@@ -72,13 +72,11 @@
                         <a href="?page=pedidos" class="nav-link <?php echo ($page == 'pedidos') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-receipt me-2"></i>Pedidos
                         </a>
-                        <?php if (in_array($datos['rol'], ['ADMINISTRADOR', 'VENTAS'])): ?>
-                            <a href="?page=reservaciones"
-                                class="nav-link <?php echo ($page == 'reservaciones') ? 'active' : ''; ?> py-1">
-                                <i class="bi bi-calendar-check me-2"></i>Agenda Global
-                            </a>
-                        <?php endif; ?>
-                        <a href="?page=reservar" class="nav-link <?php echo ($page == 'reservar') ? 'active' : ''; ?> py-1">
+                        <a href="?url=Reservacion"
+                            class="nav-link <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reservacion' && (!isset($_REQUEST['type']) || $_REQUEST['type'] != 'publico')) ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-calendar-check me-2"></i>Agenda Global
+                        </a>
+                        <a href="?url=Reservacion&type=publico" class="nav-link <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reservacion' && isset($_REQUEST['type']) && $_REQUEST['type'] == 'publico') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-calendar-plus me-2"></i>Nueva Reserva
                         </a>
                     </div>
@@ -217,20 +215,20 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Inteligencia de Negocio</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['reportes', 'estadistica']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reporte') ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#reportes-submenu" role="button">
                     <i class="bi bi-graph-up-arrow fs-5"></i>
                     <span class="flex-grow-1">Análisis y PDF</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['reportes', 'estadistica']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reporte') ? 'show' : ''; ?>"
                     id="reportes-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=estadistica"
-                            class="nav-link <?php echo ($page == 'estadistica') ? 'active' : ''; ?> py-1">
+                        <a href="?url=Reporte&type=estadistica"
+                            class="nav-link <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reporte' && isset($_REQUEST['type']) && $_REQUEST['type'] == 'estadistica') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-pie-chart me-2"></i>Estadísticas Reales
                         </a>
-                        <a href="?page=reportes" class="nav-link <?php echo ($page == 'reportes') ? 'active' : ''; ?> py-1">
+                        <a href="?url=Reporte&type=reportes" class="nav-link <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reporte' && isset($_REQUEST['type']) && $_REQUEST['type'] == 'reportes') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-file-earmark-pdf me-2"></i>Centro de Reportes
                         </a>
                     </div>
