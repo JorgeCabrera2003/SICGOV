@@ -541,4 +541,25 @@ class Cliente extends Persona
             $this->DestruirConexion();
         }
     }
+
+    /**
+     * Asegura que el usuario esté registrado como cliente para evitar fallos de integridad (FK)
+     */
+    public function AsegurarCliente($cedula)
+    {
+        $db = $this->LlamarConexion();
+        try {
+            $stm = $db->prepare("SELECT COUNT(*) FROM cliente WHERE cedula = ?");
+            $stm->execute([$cedula]);
+            
+            if ($stm->fetchColumn() == 0) {
+                $stm = $db->prepare("INSERT INTO cliente (cedula, estatus) VALUES (?, 1)");
+                $stm->execute([$cedula]);
+            }
+        } catch (\PDOException $e) {
+            Helper::ErrorLog("Error auto-registrando cliente: " . $e->getMessage());
+        } finally {
+            $this->DestruirConexion();
+        }
+    }
 }

@@ -22,7 +22,7 @@
                     <i class="bi bi-chevron-left fs-5" id="collapse-icon"></i>
                 </button>
 
-                <a href="<?php echo BASE_URL; ?>/?page=home" class="d-flex align-items-center gap-2 text-decoration-none">
+                <a href="<?php echo BASE_URL; ?>/?url=Dashboard" class="d-flex align-items-center gap-2 text-decoration-none">
                     <img src="<?php echo BASE_URL; ?>/assets/img/favicon.ico" alt="logo" class="logo-img" id="logo-img">
                     <span class="h5 mb-0 fw-bold" id="logo-text">GOOD VIBES</span>
                 </a>
@@ -48,7 +48,7 @@
         <nav class="nav nav-pills flex-nowrap flex-column gap-1 px-2 py-3 flex-grow-1 overflow-auto"
             aria-label="Menú principal">
             <!-- Dashboard -->
-            <a href="<?php echo BASE_URL; ?>/?page=home"
+            <a href="<?php echo BASE_URL; ?>/?url=Dashboard"
                 class="nav-link <?php echo ($page == 'home') ? 'active' : ''; ?> d-flex align-items-center gap-2 mb-3">
                 <i class="bi bi-grid-1x2-fill fs-5"></i>
                 <span class="fw-bold">Dashboard Principal</span>
@@ -58,13 +58,13 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Atención al Cliente</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['clientes', 'pedidos', 'reservaciones', 'reservar']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reservacion') || in_array($page, ['clientes', 'pedidos']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#cliente-submenu" role="button">
                     <i class="bi bi-person-heart fs-5"></i>
                     <span class="flex-grow-1">Servicio y Citas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['clientes', 'pedidos', 'reservaciones', 'reservar']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reservacion') || in_array($page, ['clientes', 'pedidos']) ? 'show' : ''; ?>"
                     id="cliente-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
                         <a href="?page=clientes" class="nav-link <?php echo ($page == 'clientes') ? 'active' : ''; ?> py-1">
@@ -73,13 +73,11 @@
                         <a href="?page=pedidos" class="nav-link <?php echo ($page == 'pedidos') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-receipt me-2"></i>Pedidos
                         </a>
-                        <?php if (in_array($datos['rol'], ['ADMINISTRADOR', 'VENTAS'])): ?>
-                            <a href="?page=reservaciones"
-                                class="nav-link <?php echo ($page == 'reservaciones') ? 'active' : ''; ?> py-1">
-                                <i class="bi bi-calendar-check me-2"></i>Agenda Global
-                            </a>
-                        <?php endif; ?>
-                        <a href="?page=reservar" class="nav-link <?php echo ($page == 'reservar') ? 'active' : ''; ?> py-1">
+                        <a href="?url=Reservacion"
+                            class="nav-link <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reservacion' && (!isset($_REQUEST['type']) || $_REQUEST['type'] != 'publico')) ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-calendar-check me-2"></i>Agenda Global
+                        </a>
+                        <a href="?url=Reservacion&type=publico" class="nav-link <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reservacion' && isset($_REQUEST['type']) && $_REQUEST['type'] == 'publico') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-calendar-plus me-2"></i>Nueva Reserva
                         </a>
                     </div>
@@ -218,20 +216,20 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Inteligencia de Negocio</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['reportes', 'estadistica']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reporte') ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#reportes-submenu" role="button">
                     <i class="bi bi-graph-up-arrow fs-5"></i>
                     <span class="flex-grow-1">Análisis y PDF</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['reportes', 'estadistica']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reporte') ? 'show' : ''; ?>"
                     id="reportes-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=estadistica"
-                            class="nav-link <?php echo ($page == 'estadistica') ? 'active' : ''; ?> py-1">
+                        <a href="?url=Reporte&type=estadistica"
+                            class="nav-link <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reporte' && isset($_REQUEST['type']) && $_REQUEST['type'] == 'estadistica') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-pie-chart me-2"></i>Estadísticas Reales
                         </a>
-                        <a href="?page=reportes" class="nav-link <?php echo ($page == 'reportes') ? 'active' : ''; ?> py-1">
+                        <a href="?url=Reporte&type=reportes" class="nav-link <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reporte' && isset($_REQUEST['type']) && $_REQUEST['type'] == 'reportes') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-file-earmark-pdf me-2"></i>Centro de Reportes
                         </a>
                     </div>
@@ -307,18 +305,17 @@
 
             <div class="d-flex align-items-center gap-2">
                 <!-- Notificaciones -->
-                <div class="dropdown notificacion">
-                    <button class="btn btn-link text-decoration-none p-2 position-relative notificacion__campana"
-                        type="button" data-bs-toggle="dropdown" aria-expanded="false" id="notificationDropdown"
+                <div class="dropdown">
+                    <button class="btn btn-link text-decoration-none p-2 position-relative" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false" id="notificationDropdown"
                         aria-label="Notificaciones" <?php echo !isset($_SESSION['user']) ? 'disabled' : ''; ?>>
                         <i class="bi bi-bell fs-5"></i>
                         <span class="notificacion__badge" id="notificationBadge" style="display: none;">0</span>
                     </button>
-                    <div class="dropdown-menu dropdown-menu-end notificacion__dropdown"
-                        aria-labelledby="notificationDropdown">
-                        <div class="notificacion__cabecera">
-                            <h6 class="notificacion__titulo">Notificaciones</h6>
-                            <button class="notificacion__accion" id="markAllRead" title="Marcar todas como leídas">
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                        <div class="dropdown-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">Notificaciones</h6>
+                            <button class="btn btn-sm btn-link p-0" id="markAllRead" title="Marcar todas como leídas">
                                 <i class="bi bi-check2-all"></i>
                             </button>
                         </div>

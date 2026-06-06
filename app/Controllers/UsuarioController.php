@@ -7,10 +7,9 @@ use App\Helpers\RegexHelper;
 use App\Models\Security\Usuario;
 use App\Models\Security\Rol;
 
-class UsuarioController
-{
-    public function index()
-    {
+$type = $_REQUEST['type'] ?? 'index';
+
+if ($type === 'index') {
         Helper::verificarSesion();
 
         $usuarioModel = new Usuario();
@@ -239,5 +238,4 @@ class UsuarioController
             'usuario/index',
             'Usuarios - Good Vibes'
         );
-    }
 }

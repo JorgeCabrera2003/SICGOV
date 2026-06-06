@@ -201,6 +201,8 @@ FROM imagen i;
 
 -- (Removido sp_registrar_bitacora)
 
+DELIMITER $$
+
 CREATE PROCEDURE `sp_obtener_imagenes_entidad`(
     IN `p_tipo` VARCHAR(20),
     IN `p_id` VARCHAR(30)

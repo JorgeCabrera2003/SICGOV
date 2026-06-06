@@ -3,22 +3,17 @@ namespace App\Controllers;
 
 use App\Helpers\Helper;
 
-class DashboardController {
+$type = $_REQUEST['type'] ?? 'index';
 
-    public function index() {
+if ($type === 'index') {
+    Helper::verificarSesion();
+    Helper::cargarVista('dashboard', 'Dashboard - Good Vibes');
 
-        Helper::verificarSesion();
-
-        Helper::cargarVista('dashboard', 'Dashboard - Good Vibes');
-    }
-    
-    public function indexConVariables() {
-        $datos = Helper::getDatosUsuario();
-        $vars = [
-            'productos_recientes' => [], // Aquí irían datos del modelo
-            'estadisticas' => []
-        ];
-        
-        Helper::cargarVista('dashboard', 'Dashboard - Good Vibes', $vars);
-    }
+} elseif ($type === 'variables') {
+    $datos = Helper::getDatosUsuario();
+    $vars = [
+        'productos_recientes' => [], // Aquí irían datos del modelo
+        'estadisticas' => []
+    ];
+    Helper::cargarVista('dashboard', 'Dashboard - Good Vibes', $vars);
 }

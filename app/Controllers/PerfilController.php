@@ -81,7 +81,7 @@ class PerfilController
 
         // Superuser admin_root V-00000000 is not allowed to have/access "Mi perfil"
         if ($cedula === 'V-00000000') {
-            header("Location: " . BASE_URL . "/?page=home");
+            header("Location: " . BASE_URL . "/?url=Dashboard");
             exit;
         }
 
