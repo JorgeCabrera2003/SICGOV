@@ -5,7 +5,7 @@
 
 'use strict';
 
-const ENDPOINT = BASE_URL + '?page=notificaciones';
+const ENDPOINT = BASE_URL + '?url=Notification';
 
 // Selectores BEM
 const SELECTORS = {
