@@ -59,6 +59,9 @@ CREATE TABLE `usuario` (
   `ultimo_acceso` timestamp NULL DEFAULT NULL,
   `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp(),
   `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  `estatus_clave` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1=valida, 0=debe_cambiar',
+  `token_recuperacion` varchar(10) DEFAULT NULL,
+  `fecha_expiracion_token` datetime DEFAULT NULL,
   PRIMARY KEY (`cedula`),
   UNIQUE KEY `idx_usuario_username` (`username`),
   KEY `fk_usuario_rol` (`id_rol`),
@@ -78,15 +81,6 @@ CREATE TABLE `permiso` (
   CONSTRAINT `fk_permiso_modulo` FOREIGN KEY (`id_modulo`) REFERENCES `modulo` (`id_modulo`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_permiso_rol` FOREIGN KEY (`id_rol`) REFERENCES `rol` (`id_rol`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE `recuperacion_clave` (
-  `id` int(11) NOT NULL,
-  `correo` varchar(255) NOT NULL,
-  `codigo` varchar(10) NOT NULL,
-  `fecha_expiracion` datetime NOT NULL,
-  `usado` tinyint(1) DEFAULT 0,
-  `creado_en` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `sesion` (
   `id_sesion` varchar(50) NOT NULL,
@@ -205,19 +199,7 @@ FROM imagen i;
 -- 5. PROCEDIMIENTOS (STORED PROCEDURES)
 -- --------------------------------------------------------
 
-DELIMITER $$
-CREATE PROCEDURE `sp_registrar_bitacora`(
-    IN `p_cedula` VARCHAR(15), 
-    IN `p_modulo` VARCHAR(50), 
-    IN `p_accion` VARCHAR(50), 
-    IN `p_detalle` TEXT,
-    IN `p_old` JSON,
-    IN `p_new` JSON
-)
-BEGIN
-    INSERT INTO bitacora (id_bitacora, cedula, modulo, accion, detalle, valores_anteriores, valores_nuevos)
-    VALUES (CONCAT('LOG-', UNIX_TIMESTAMP(), '-', SUBSTRING(MD5(RAND()), 1, 4)), p_cedula, p_modulo, p_accion, p_detalle, p_old, p_new);
-END$$
+-- (Removido sp_registrar_bitacora)
 
 CREATE PROCEDURE `sp_obtener_imagenes_entidad`(
     IN `p_tipo` VARCHAR(20),
@@ -236,15 +218,6 @@ DELIMITER ;
 -- 6. DISPARADORES (TRIGGERS)
 -- --------------------------------------------------------
 
-DELIMITER $$
-CREATE TRIGGER `trg_audit_usuario_update` AFTER UPDATE ON `usuario`
-FOR EACH ROW BEGIN
-    IF OLD.estatus != NEW.estatus THEN
-        CALL sp_registrar_bitacora(NEW.cedula, 'SEGURIDAD', 'UPDATE_ESTATUS', CONCAT('Estatus cambiado de ', OLD.estatus, ' a ', NEW.estatus), NULL, NULL);
-    END IF;
-END$$
-
-
-DELIMITER ;
+-- (Removido trg_audit_usuario_update por redundancia con PHP)
 
 COMMIT;

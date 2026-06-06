@@ -44,7 +44,7 @@
                              <i class="bi bi-person text-dark fs-4"></i>
                         </div>
                         <div>
-                            <h6 class="mb-0 fw-bold"><?= $datos['nombres'] ?></h6>
+                            <h6 class="mb-0 fw-bold"><?= $datos['nombre'] ?></h6>
                             <span class="text-muted small">Confirmaremos tu cita vía SMS</span>
                         </div>
                     </div>

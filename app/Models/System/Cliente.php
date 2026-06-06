@@ -1,16 +1,5 @@
 <?php
 
-/*
-MODELO DE CLIENTES
-
-OPERACIONES A BASE DE DATOS:
-    REGISTRAR
-    CONSULTAR
-    MODIFICAR
-    ELIMINAR
-    VALIDAR
-*/
-
 namespace App\Models\System;
 
 use App\Core\Database;
@@ -49,11 +38,7 @@ class Cliente extends Persona
         $this->db = NULL;
     }
 
-    // Getters y Setters
-
-    // Getters y Setters heredados de Persona
     
-    /** Estatus: 0 (inactivo) o 1 (activo). */
     public function setEstatus(int $estatus)
     {
         if (!in_array($estatus, [0, 1], true)) {
@@ -258,6 +243,15 @@ class Cliente extends Persona
 
         } catch (\PDOException $e) {
             if ($db->inTransaction()) $db->rollBack();
+            
+            if ($e->getCode() == 23000 && strpos($e->getMessage(), 'correo') !== false) {
+                return [
+                    'estado'      => -1,
+                    'response'    => ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El correo electrónico ya se encuentra registrado.'],
+                    'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'El correo ya existe'],
+                ];
+            }
+            
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             return [
                 'estado'      => -1,
@@ -329,6 +323,15 @@ class Cliente extends Persona
 
         } catch (\PDOException $e) {
             if ($db->inTransaction()) $db->rollBack();
+
+            if ($e->getCode() == 23000 && strpos($e->getMessage(), 'correo') !== false) {
+                return [
+                    'estado'      => -1,
+                    'response'    => ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El correo electrónico ya se encuentra registrado a otra persona.'],
+                    'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'El correo ya existe'],
+                ];
+            }
+
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             return [
                 'estado'      => -1,

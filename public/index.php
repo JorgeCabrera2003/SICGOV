@@ -51,7 +51,7 @@ use App\Controllers\PapeleraController;
 use App\Controllers\RolController;
 use App\Controllers\AsistenciaController;
 use App\Controllers\PerfilController;
-use App\Controllers\PasswordRecoveryController;
+use App\Controllers\RecuperacionClaveController;
 
 try {
 
@@ -90,9 +90,9 @@ try {
         'rol' => (new RolController())->index(),
         'perfil' => (new PerfilController())->index(),
         'forzar-cambiar-clave' => (new PerfilController())->forzarCambioClave(),
-        'recuperar-password' => (new PasswordRecoveryController())->index(),
-        'verificar-codigo' => (new PasswordRecoveryController())->verificar(),
-        'restablecer-password' => (new PasswordRecoveryController())->restablecer(),
+        'recuperar-password' => (new RecuperacionClaveController())->index(),
+        'verificar-codigo' => (new RecuperacionClaveController())->verificar(),
+        'restablecer-password' => (new RecuperacionClaveController())->restablecer(),
         default => require_once BASE_PATH . '/resources/views/errors/404.php'
     };
 

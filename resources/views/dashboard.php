@@ -72,7 +72,7 @@
                     <h6 class="m-0 font-weight-bold text-primary">Bienvenido al Sistema Good Vibes</h6>
                 </div>
                 <div class="card-body">
-                    <p>Hola, <strong><?php echo $datos['nombres']; ?></strong>. El sistema ha sido configurado correctamente y está listo para usar.</p>
+                    <p>Hola, <strong><?php echo $datos['nombre']; ?></strong>. El sistema ha sido configurado correctamente y está listo para usar.</p>
                     
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>

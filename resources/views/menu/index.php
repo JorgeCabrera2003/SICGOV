@@ -54,7 +54,7 @@
 <!-- Scripts con los datos cargados desde PHP -->
 <script>
     const categoriasDB = <?= json_encode($categorias) ?>;
-    const ingredientesDB = <?= json_encode($ingredientes) ?>;
+    const insumosDB = <?= json_encode($insumos) ?>;
     const unidadesDB = <?= json_encode($unidades) ?>;
 </script>
 
