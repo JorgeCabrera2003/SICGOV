@@ -348,11 +348,8 @@ foreach ($menus as $menuItem) {
     </div>
 </div>
 
-<script>
-    const BASE_URL_PUBLIC = '<?= BASE_URL ?>';
-</script>
-<script src="<?= BASE_URL ?>/assets/js/Handlers/PedidoPublicoHandler.js?v=<?= time() ?>"></script>
-<script src="<?= BASE_URL ?>/assets/js/Controllers/PedidoPublicoController.js?v=<?= time() ?>"></script>
+
+
 
 <style>
     .hide-scrollbar::-webkit-scrollbar { display: none; }

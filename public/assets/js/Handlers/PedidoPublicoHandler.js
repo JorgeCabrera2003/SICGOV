@@ -94,8 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-prod-name').textContent = product.nombre_producto;
         document.getElementById('modal-prod-desc').textContent = product.descripcion || '';
         document.getElementById('modal-prod-img').src = product.imagen && product.imagen !== 'default-product.png' 
-            ? `${BASE_URL_PUBLIC}/assets/img/productos/${product.imagen}` 
-            : `${BASE_URL_PUBLIC}/assets/img/placeholder.png`;
+            ? `${BASE_URL}/assets/img/productos/${product.imagen}` 
+            : `${BASE_URL}/assets/img/placeholder.png`;
 
         // Ingredientes Principales
         const cPrincipales = document.getElementById('container-principales');

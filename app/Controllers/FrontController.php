@@ -21,6 +21,8 @@
                 if ($_REQUEST["page"] === 'nuestro-menu') {
                     $this->url = 'Menu';
                     $_REQUEST["type"] = 'publico';
+                } elseif ($_REQUEST["page"] === 'pedidos') {
+                    $this->url = 'Pedido';
                 } else {
                     $this->url = $_REQUEST["page"];
                 }

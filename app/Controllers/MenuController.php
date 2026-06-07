@@ -152,6 +152,10 @@ if ($type === 'admin') {
     $titulo = 'Nuestro Menú - Good Vibes';
     
     $extra_css = [BASE_URL . '/assets/css/main.css?v=' . time()];
+    $extra_js = [
+        BASE_URL . '/assets/js/Controllers/PedidoPublicoController.js?v=' . time(),
+        BASE_URL . '/assets/js/Handlers/PedidoPublicoHandler.js?v=' . time()
+    ];
 
     require_once BASE_PATH . '/resources/views/layout/head.php';
     

@@ -82,5 +82,4 @@
 
 <!-- ===== RECURSOS DE LA PÁGINA ===== -->
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/bitacora.css">
-<!-- ✅ AGREGAR EL SCRIPT DE BITÁCORA -->
-<script src="<?= BASE_URL ?>/assets/js/bitacora.js"></script>
+<!-- ✅ AGREGAR EL SCRIPT DE BITÁCORA -->

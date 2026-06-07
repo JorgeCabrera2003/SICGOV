@@ -60,20 +60,23 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Atención al Cliente</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido', 'pedidos', 'pos']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#cliente-submenu" role="button">
                     <i class="bi bi-person-heart fs-5"></i>
                     <span class="flex-grow-1">Servicio y Citas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido', 'pedidos', 'pos']) ? 'show' : ''; ?>"
                     id="cliente-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
                         <a href="?page=Cliente" class="nav-link <?php echo ($page == 'Cliente') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-people me-2"></i>Clientes
                         </a>
-                        <a href="?page=Pedido" class="nav-link <?php echo ($page == 'Pedido') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-receipt me-2"></i>Pedidos
+                        <a href="?page=pedidos" class="nav-link <?php echo ($page == 'pedidos' || $page == 'Pedido') ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-receipt me-2"></i>Gestión de Pedidos
+                        </a>
+                        <a href="?page=pos" class="nav-link <?php echo ($page == 'pos') ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-cash-coin me-2"></i>Punto de Venta (POS)
                         </a>
                         <a href="?page=Reservacion"
                             class="nav-link <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion' && (!isset($_REQUEST['type']) || $_REQUEST['type'] != 'publico')) ? 'active' : ''; ?> py-1">

@@ -1,7 +1,7 @@
 class PedidoPublicoController {
     static async buscarProducto(id) {
         try {
-            const url = `${BASE_URL_PUBLIC}/?page=PedidoPublico&action=buscarProducto&id=${id}`;
+            const url = `${BASE_URL}/?page=PedidoPublico&action=buscarProducto&id=${id}`;
             const response = await fetch(url);
             return await response.json();
         } catch (error) {
@@ -12,7 +12,7 @@ class PedidoPublicoController {
 
     static async enviarPedido(formData) {
         try {
-            const url = `${BASE_URL_PUBLIC}/?page=PedidoPublico`;
+            const url = `${BASE_URL}/?page=PedidoPublico`;
             const response = await fetch(url, {
                 method: 'POST',
                 body: formData

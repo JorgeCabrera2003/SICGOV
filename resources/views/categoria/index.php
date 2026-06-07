@@ -41,4 +41,4 @@
 <?php include 'partials/_modal_categoria.php'; ?>
 
 <!-- Recursos específicos de la página -->
-<script src="<?= BASE_URL ?>/assets/js/categoria.js" defer></script>
+
