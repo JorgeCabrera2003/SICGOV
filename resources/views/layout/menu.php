@@ -6,7 +6,7 @@
  * Características:
  * - Sidebar colapsable con botón visible
  * - Bandeja de notificaciones interactiva
- * - Perfil de usuario con menú
+ * - Perfil de Usuario con menú
  * - Sin color de fondo fijo (se adapta al tema)
  */
 ?>
@@ -22,7 +22,8 @@
                     <i class="bi bi-chevron-left fs-5" id="collapse-icon"></i>
                 </button>
 
-                <a href="<?php echo BASE_URL; ?>/?url=Dashboard" class="d-flex align-items-center gap-2 text-decoration-none">
+                <a href="<?php echo BASE_URL; ?>/?page=Dashboard"
+                    class="d-flex align-items-center gap-2 text-decoration-none">
                     <img src="<?php echo BASE_URL; ?>/assets/img/favicon.ico" alt="logo" class="logo-img" id="logo-img">
                     <span class="h5 mb-0 fw-bold" id="logo-text">GOOD VIBES</span>
                 </a>
@@ -33,14 +34,17 @@
             </button>
         </div>
 
-        <!-- Perfil de usuario -->
+        <!-- Perfil de Usuario -->
         <div class="user-profile d-flex align-items-center gap-3 px-3 py-2 border-bottom">
             <div class="user-avatar" style="width: 36px; height: 36px;">
+                <img src="<?php echo $datos['foto'] ?? (BASE_URL . 'assets/img/default.jpg'); ?>" alt="Avatar"
+                    class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
                 <img src="<?php echo $datos['foto']; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
             </div>
             <div class="user-info">
-                <div class="user-name fw-semibold"><?php echo $datos['username'] ?? ($datos['nombre'] ?? 'Usuario'); ?></div>
-                <div class="user-role small text-muted"><?php echo $datos['rol'] ?? 'Sin rol'; ?></div>
+                <div class="user-name fw-semibold"><?php echo $datos['username'] ?? ($datos['nombre'] ?? 'Usuario'); ?>
+                </div>
+                <div class="user-role small text-muted"><?php echo $datos['Rol'] ?? 'Sin Rol'; ?></div>
             </div>
         </div>
 
@@ -48,7 +52,7 @@
         <nav class="nav nav-pills flex-nowrap flex-column gap-1 px-2 py-3 flex-grow-1 overflow-auto"
             aria-label="Menú principal">
             <!-- Dashboard -->
-            <a href="<?php echo BASE_URL; ?>/?url=Dashboard"
+            <a href="<?php echo BASE_URL; ?>/?page=Dashboard"
                 class="nav-link <?php echo ($page == 'home') ? 'active' : ''; ?> d-flex align-items-center gap-2 mb-3">
                 <i class="bi bi-grid-1x2-fill fs-5"></i>
                 <span class="fw-bold">Dashboard Principal</span>
@@ -58,26 +62,27 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Atención al Cliente</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reservacion') || in_array($page, ['clientes', 'pedidos']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#cliente-submenu" role="button">
                     <i class="bi bi-person-heart fs-5"></i>
                     <span class="flex-grow-1">Servicio y Citas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reservacion') || in_array($page, ['clientes', 'pedidos']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido']) ? 'show' : ''; ?>"
                     id="cliente-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=clientes" class="nav-link <?php echo ($page == 'clientes') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Cliente" class="nav-link <?php echo ($page == 'Cliente') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-people me-2"></i>Clientes
                         </a>
-                        <a href="?page=pedidos" class="nav-link <?php echo ($page == 'pedidos') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Pedido" class="nav-link <?php echo ($page == 'Pedido') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-receipt me-2"></i>Pedidos
                         </a>
-                        <a href="?url=Reservacion"
-                            class="nav-link <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reservacion' && (!isset($_REQUEST['type']) || $_REQUEST['type'] != 'publico')) ? 'active' : ''; ?> py-1">
+                        <a href="?page=Reservacion"
+                            class="nav-link <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion' && (!isset($_REQUEST['type']) || $_REQUEST['type'] != 'publico')) ? 'active' : ''; ?> py-1">
                             <i class="bi bi-calendar-check me-2"></i>Agenda Global
                         </a>
-                        <a href="?url=Reservacion&type=publico" class="nav-link <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reservacion' && isset($_REQUEST['type']) && $_REQUEST['type'] == 'publico') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Reservacion&type=publico"
+                            class="nav-link <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion' && isset($_REQUEST['type']) && $_REQUEST['type'] == 'publico') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-calendar-plus me-2"></i>Nueva Reserva
                         </a>
                     </div>
@@ -88,18 +93,18 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Gestión del Salón</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['areas', 'mesas']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Areas', 'Mesas']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#salon-submenu" role="button">
                     <i class="bi bi-houses fs-5"></i>
                     <span class="flex-grow-1">Áreas y Mesas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['areas', 'mesas']) ? 'show' : ''; ?>" id="salon-submenu">
+                <div class="collapse <?php echo in_array($page, ['Areas', 'Mesas']) ? 'show' : ''; ?>" id="salon-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=areas" class="nav-link <?php echo ($page == 'areas') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Areas" class="nav-link <?php echo ($page == 'Areas') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-geo-alt me-2"></i>Áreas del Local
                         </a>
-                        <a href="?page=mesas" class="nav-link <?php echo ($page == 'mesas') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Mesas" class="nav-link <?php echo ($page == 'Mesas') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-table me-2"></i>Control de Mesas
                         </a>
                     </div>
@@ -110,27 +115,27 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Cocina e Inventario</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['categorias', 'insumos', 'menu']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Categoria', 'CategoriaInsumo', 'Insumo', 'Menu']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#cocina-submenu" role="button">
                     <i class="bi bi-egg-fried fs-5"></i>
                     <span class="flex-grow-1">Menú y Recetas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['categorias', 'categoria-insumo-module', 'insumos', 'menu']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo in_array($page, ['Categoria', 'CategoriaInsumo', 'Insumo', 'Menu']) ? 'show' : ''; ?>"
                     id="cocina-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=categorias"
-                            class="nav-link <?php echo ($page == 'categorias') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Categoria"
+                            class="nav-link <?php echo ($page == 'Categoria') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-tags me-2"></i>Categorías del Menú
                         </a>
-                        <a href="?page=categoria-insumo-module"
-                            class="nav-link <?php echo ($page == 'categoria-insumo-module') ? 'active' : ''; ?> py-1">
+                        <a href="?page=CategoriaInsumo"
+                            class="nav-link <?php echo ($page == 'CategoriaInsumo') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-tags me-2"></i>Categorías de Insumos
                         </a>
-                        <a href="?page=insumos" class="nav-link <?php echo ($page == 'insumos') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Insumo" class="nav-link <?php echo ($page == 'Insumo') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-droplet me-2"></i>Insumos
                         </a>
-                        <a href="?page=menu" class="nav-link <?php echo ($page == 'menu') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Menu" class="nav-link <?php echo ($page == 'Menu') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-journal-text me-2"></i>Carta / Menú
                         </a>
                     </div>
@@ -141,23 +146,23 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Logística y Almacén</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['bien', 'equipo', 'material', 'productos']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['bien', 'equipo', 'material', 'Producto']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#logistica-submenu" role="button">
                     <i class="bi bi-truck fs-5"></i>
                     <span class="flex-grow-1">Suministros y Activos</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['productos', 'proveedores']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo in_array($page, ['Producto', 'Proveedor']) ? 'show' : ''; ?>"
                     id="logistica-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=productos"
-                            class="nav-link <?php echo ($page == 'productos') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Producto"
+                            class="nav-link <?php echo ($page == 'Producto') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-box-seam me-2"></i>Otros Productos
                         </a>
                     </div>
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=proveedores"
-                            class="nav-link <?php echo ($page == 'proveedores') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Proveedor"
+                            class="nav-link <?php echo ($page == 'Proveedor') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-people me-2"></i>Proveedores
                         </a>
                     </div>
@@ -168,21 +173,21 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Marketing y Contenido</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['multimedia', 'noticias-admin']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Media', 'Noticia']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#marketing-submenu" role="button">
                     <i class="bi bi-megaphone fs-5"></i>
                     <span class="flex-grow-1">Difusión Digital</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['multimedia', 'noticias-admin']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo in_array($page, ['Media', 'Noticia']) ? 'show' : ''; ?>"
                     id="marketing-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=multimedia"
-                            class="nav-link <?php echo ($page == 'multimedia') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Media"
+                            class="nav-link <?php echo ($page == 'Media') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-images me-2"></i>Galería Multimedia
                         </a>
-                        <a href="?page=noticias-admin"
-                            class="nav-link <?php echo ($page == 'noticias-admin') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Noticia"
+                            class="nav-link <?php echo ($page == 'Noticia') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-newspaper me-2"></i>Blog / Noticias
                         </a>
                     </div>
@@ -193,22 +198,22 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Gestión del Personal</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['asistencia', 'cargo']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Asistencia', 'Cargo']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#personal-submenu" role="button">
                     <i class="bi bi-people fs-5"></i>
                     <span class="flex-grow-1">Equipo y Horario</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['asistencia']) ? 'show' : ''; ?>" id="personal-submenu">
+                <div class="collapse <?php echo in_array($page, ['Asistencia', 'Cargo']) ? 'show' : ''; ?>" id="personal-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=asistencia"
-                            class="nav-link <?php echo ($page == 'asistencia') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Asistencia"
+                            class="nav-link <?php echo ($page == 'Asistencia') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-check2-square me-2"></i>Asistencia
                         </a>
-                        <a href="?page=cargo" class="nav-link <?php echo ($page == 'cargo') ? 'active' : ''; ?> py-1">
-                        <i class="bi bi-journal-text me-2"></i>Cargos
-                    </a>
-                    </div
+                        <a href="?page=Cargo" class="nav-link <?php echo ($page == 'Cargo') ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-journal-text me-2"></i>Cargos
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -216,20 +221,21 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Inteligencia de Negocio</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reporte') ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reporte') ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#reportes-submenu" role="button">
                     <i class="bi bi-graph-up-arrow fs-5"></i>
                     <span class="flex-grow-1">Análisis y PDF</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reporte') ? 'show' : ''; ?>"
+                <div class="collapse <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reporte') ? 'show' : ''; ?>"
                     id="reportes-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?url=Reporte&type=estadistica"
-                            class="nav-link <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reporte' && isset($_REQUEST['type']) && $_REQUEST['type'] == 'estadistica') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Reporte&type=estadistica"
+                            class="nav-link <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reporte' && isset($_REQUEST['type']) && $_REQUEST['type'] == 'estadistica') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-pie-chart me-2"></i>Estadísticas Reales
                         </a>
-                        <a href="?url=Reporte&type=reportes" class="nav-link <?php echo (isset($_REQUEST['url']) && $_REQUEST['url'] == 'Reporte' && isset($_REQUEST['type']) && $_REQUEST['type'] == 'reportes') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Reporte&type=reportes"
+                            class="nav-link <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reporte' && isset($_REQUEST['type']) && $_REQUEST['type'] == 'reportes') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-file-earmark-pdf me-2"></i>Centro de Reportes
                         </a>
                     </div>
@@ -242,27 +248,31 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Seguridad y Auditoría</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['bitacora', 'papelera', 'usuario']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Bitacora', 'Papelera', 'Usuario']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#seguridad-submenu" role="button">
                     <i class="bi bi-shield-lock fs-5"></i>
                     <span class="flex-grow-1">Control de Acceso</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['bitacora', 'papelera', 'usuario']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo in_array($page, ['Bitacora', 'Papelera', 'Usuario', 'ModuloSistema', 'Rol']) ? 'show' : ''; ?>"
                     id="seguridad-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=bitacora" class="nav-link <?php echo ($page == 'bitacora') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Bitacora" class="nav-link <?php echo ($page == 'Bitacora') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-shield-shaded me-2"></i>Bitácora de Acciones
                         </a>
-                        <a href="?page=papelera"
-                            class="nav-link <?php echo ($page == 'papelera') ? 'active text-danger' : 'text-danger'; ?> py-1">
+                        <a href="?page=Papelera"
+                            class="nav-link <?php echo ($page == 'Papelera') ? 'active text-danger' : 'text-danger'; ?> py-1">
                             <i class="bi bi-trash3 me-2"></i>Papelera (Recycle)
                         </a>
-                        <a href="?page=usuario" class="nav-link <?php echo ($page == 'usuario') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Usuario" class="nav-link <?php echo ($page == 'Usuario') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-person-vcard me-2"></i>Gestión de Usuarios
                         </a>
-                        <a href="?page=rol" class="nav-link <?php echo ($page == 'rol') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Rol" class="nav-link <?php echo ($page == 'Rol') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-person-vcard me-2"></i>Gestión de Roles
+                        </a>
+                        <a href="?page=ModuloSistema"
+                            class="nav-link <?php echo ($page == 'ModuloSistema') ? 'active' : ''; ?> py-1">
+                            <i class="fa-solid fa-computer me-2"></i>Módulos del Sistema
                         </a>
                     </div>
                 </div>
@@ -299,7 +309,7 @@
                 <button class="btn btn-link d-lg-none p-0" id="sidebar-toggle" aria-label="Abrir menú">
                     <i class="bi bi-list fs-4"></i>
                 </button>
-                <!-- Breadcrumbs removidos por solicitud del usuario -->
+                <!-- Breadcrumbs removidos por solicitud del Usuario -->
 
             </div>
 
@@ -342,9 +352,10 @@
                 <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                     <div class="user-avatar" style="width: 36px; height: 36px;">
-                        <img src="<?php echo $datos['foto']; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
+                        <img src="<?php echo !empty($datos['foto']) ? BASE_URL . ltrim($datos['foto'], '/') : BASE_URL . 'assets/img/default.jpg'; ?>" alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
                     </div>
-                    <span class="d-none d-lg-inline"><?php echo $datos['username'] ?? ($datos['nombre'] ?? 'Invitado'); ?></span>
+                    <span
+                        class="d-none d-lg-inline"><?php echo $datos['username'] ?? ($datos['nombre'] ?? 'Invitado'); ?></span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                     <?php if (isset($_SESSION['user'])): ?>
