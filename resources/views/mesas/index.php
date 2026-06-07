@@ -181,5 +181,4 @@
     </div>
 </div>
 
-<!-- Recursos específicos de la página -->
-<script src="<?= BASE_URL ?>/assets/js/mesas.js" defer></script>
+<!-- Recursos específicos de la página -->

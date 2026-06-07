@@ -224,7 +224,7 @@ if ($type === 'admin') {
         require_once BASE_PATH . '/resources/views/layout/footer.php';
 } elseif ($type === 'detalle') {
         if (!isset($_GET['id'])) {
-            header("Location: " . BASE_URL . "?url=Noticia&type=publico");
+            header("Location: " . BASE_URL . "?page=Noticia&type=publico");
             exit;
         }
 

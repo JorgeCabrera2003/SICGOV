@@ -21,7 +21,7 @@ Helper::verificarSesion();
                 exit;
             } else {
                 // Redirigir al dashboard u otra página con permiso
-                header('Location: ' . BASE_URL . '/?url=Dashboard');
+                header('Location: ' . BASE_URL . '/?page=Dashboard');
                 exit;
             }
         }

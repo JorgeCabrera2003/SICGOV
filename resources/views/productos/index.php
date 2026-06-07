@@ -1,4 +1,4 @@
-﻿<!-- ==========================================
+<!-- ==========================================
     MÓDULO DE PRODUCTOS - GOOD VIBES
     HTML Semántico + Bootstrap 5.3
 ========================================== -->
@@ -54,4 +54,4 @@
 
 <!-- Recursos específicos de la página -->
 <script src="<?= BASE_URL ?>/assets/js/media-picker.js" defer></script>
-<script src="<?= BASE_URL ?>/assets/js/productos.js" defer></script>
+

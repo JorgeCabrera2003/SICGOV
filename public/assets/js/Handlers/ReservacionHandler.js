@@ -8,7 +8,7 @@ import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js";
 
 // Detectar si estamos en vista pública
 const ES_PUBLICO = window.location.search.includes('type=publico');
-const BASE_URL_API = ES_PUBLICO ? '?url=Reservacion&type=publico' : '?url=Reservacion';
+const BASE_URL_API = ES_PUBLICO ? '?page=Reservacion&type=publico' : '?page=Reservacion';
 
 // IDs de elementos que cambian según la vista
 const IDs = {

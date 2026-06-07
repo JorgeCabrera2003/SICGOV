@@ -47,4 +47,4 @@
 <?php include 'partials/_modal_consultar_cliente.php'; ?>
 
 <!-- Recursos específicos de la página -->
-<script src="<?= BASE_URL ?>/assets/js/cliente.js" defer></script>
+

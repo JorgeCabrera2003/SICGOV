@@ -127,7 +127,7 @@ class Helper
                 echo json_encode(['success' => false, 'message' => 'Sesión no iniciada']);
                 exit();
             } else {
-                header("Location: " . BASE_URL . "?url=Login");
+                header("Location: " . BASE_URL . "?page=Login");
                 exit();
             }
         }
@@ -147,12 +147,12 @@ class Helper
                         'resultado' => 403,
                         'icon' => 'warning',
                         'mensaje' => 'Por razones de seguridad, debe cambiar su contraseña antes de continuar.',
-                        'redirect' => BASE_URL . '?url=Perfil&type=forzar-cambiar-clave'
+                        'redirect' => BASE_URL . '?page=Perfil&type=forzar-cambiar-clave'
                     ]);
                     exit();
                 }
             } else {
-                header("Location: " . BASE_URL . "?url=Perfil&type=forzar-cambiar-clave");
+                header("Location: " . BASE_URL . "?page=Perfil&type=forzar-cambiar-clave");
                 exit();
             }
         }
