@@ -630,7 +630,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const filterParams = getCompiledFilterParams();
-        const url = `${BASE_URL}/?url=Reporte&type=estadistica&action=data${filterParams ? '&' + filterParams : ''}`;
+        const url = `${BASE_URL}/?page=Reporte&type=estadistica&action=data${filterParams ? '&' + filterParams : ''}`;
         
         fetch(url)
             .then(res => {

@@ -100,7 +100,7 @@ define('BASE_URL', 'http://localhost/good-vibes/public');
                     <a href="<?php echo BASE_URL; ?>/?page=login" class="list-group-item list-group-item-action" target="_blank">
                         <i class="fas fa-sign-in-alt me-2"></i> Login
                     </a>
-                    <a href="<?php echo BASE_URL; ?>/?url=Dashboard" class="list-group-item list-group-item-action" target="_blank">
+                    <a href="<?php echo BASE_URL; ?>/?page=Dashboard" class="list-group-item list-group-item-action" target="_blank">
                         <i class="fas fa-home me-2"></i> Dashboard (Home)
                     </a>
                     <a href="<?php echo BASE_URL; ?>/?page=productos" class="list-group-item list-group-item-action" target="_blank">

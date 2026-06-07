@@ -101,7 +101,7 @@ $(document).ready(function() {
                         color: '#fff',
                         confirmButtonColor: '#4e54c8'
                     }).then(() => {
-                        window.location.href = BASE_URL + '/?url=Dashboard';
+                        window.location.href = BASE_URL + '/?page=Dashboard';
                     });
                 } else {
                     $('#mensaje-error').text(response.mensaje);
