@@ -51,39 +51,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'nombre' => $nombre,
             'telefono' => $telefono,
             'direccion' => $direccion,
-            'observacion' => $_POST['observacion'] ?? 'Pedido Web'
+            'observacion' => $_POST['observacion'] ?? 'Pedido Web',
+            'tipo_pedido' => $_POST['tipo_pedido'] ?? 'DELIVERY'
         ];
 
+        $idMetodoPago = $_POST['id_metodo_pago'] ?? 'METOD00420260519200547232';
+
         $datosPago = [
-            'id_metodo_pago' => 'MP_PM_2024',
-            'referencia' => $referencia,
+            'id_metodo_pago' => $idMetodoPago,
+            'referencia' => $idMetodoPago === 'METOD00420260519200547232' ? $referencia : null,
             'comprobante_url' => null
         ];
 
         // Manejo de la subida de la imagen (comprobante)
-        if (isset($_FILES['comprobante']) && $_FILES['comprobante']['error'] === UPLOAD_ERR_OK) {
-            $file = $_FILES['comprobante'];
-            $target_dir = __DIR__ . '/../../public/assets/img/comprobantes/';
-            
-            if (!file_exists($target_dir)) {
-                mkdir($target_dir, 0777, true);
-            }
+        // Manejo de la subida de la imagen (comprobante)
+        if ($idMetodoPago === 'METOD00420260519200547232') {
+            if (isset($_FILES['comprobante']) && $_FILES['comprobante']['error'] === UPLOAD_ERR_OK) {
+                $file = $_FILES['comprobante'];
+                $target_dir = __DIR__ . '/../../public/assets/img/comprobantes/';
+                
+                if (!file_exists($target_dir)) {
+                    mkdir($target_dir, 0777, true);
+                }
 
-            $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-            $allowed = ['jpg', 'jpeg', 'png', 'pdf'];
+                $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                $allowed = ['jpg', 'jpeg', 'png', 'pdf'];
 
-            if (!in_array($extension, $allowed)) {
-                echo json_encode(['success' => false, 'message' => 'Formato de comprobante no permitido.']);
-                exit;
-            }
+                if (!in_array($extension, $allowed)) {
+                    echo json_encode(['success' => false, 'message' => 'Formato de comprobante no permitido.']);
+                    exit;
+                }
 
-            $newFileName = uniqid('comp_') . '.' . $extension;
-            $target_file = $target_dir . $newFileName;
+                $newFileName = uniqid('comp_') . '.' . $extension;
+                $target_file = $target_dir . $newFileName;
 
-            if (move_uploaded_file($file['tmp_name'], $target_file)) {
-                $datosPago['comprobante_url'] = '/assets/img/comprobantes/' . $newFileName;
+                if (move_uploaded_file($file['tmp_name'], $target_file)) {
+                    $datosPago['comprobante_url'] = '/assets/img/comprobantes/' . $newFileName;
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'No se pudo guardar el comprobante.']);
+                    exit;
+                }
             } else {
-                echo json_encode(['success' => false, 'message' => 'No se pudo guardar el comprobante.']);
+                echo json_encode(['success' => false, 'message' => 'El comprobante de pago es obligatorio para Pago Móvil.']);
                 exit;
             }
         }

@@ -271,9 +271,22 @@ foreach ($menus as $menuItem) {
                                 <label class="form-label">Teléfono <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="telefono" id="chk-telefono" required>
                             </div>
+                            
                             <div class="mb-3">
-                                <label class="form-label">Dirección (Delivery) u Observaciones</label>
-                                <textarea class="form-control" name="direccion" id="chk-direccion" rows="2"></textarea>
+                                <label class="form-label">Tipo de Pedido <span class="text-danger">*</span></label>
+                                <select class="form-select" name="tipo_pedido" id="chk-tipo-pedido" required>
+                                    <option value="DELIVERY">Delivery</option>
+                                    <option value="RETIRO">Retiro en el Local</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3" id="box-direccion">
+                                <label class="form-label" id="lbl-direccion">Dirección de Entrega <span class="text-danger">*</span></label>
+                                <textarea class="form-control" name="direccion" id="chk-direccion" rows="2" required></textarea>
+                            </div>
+                            <div class="mb-3" id="box-observacion">
+                                <label class="form-label">Observaciones (Opcional)</label>
+                                <textarea class="form-control" name="observacion" id="chk-observacion" rows="1"></textarea>
                             </div>
                         </div>
 
@@ -281,30 +294,41 @@ foreach ($menus as $menuItem) {
                         <div class="col-md-6">
                             <h6 class="fw-bold mb-3 border-bottom pb-2 text-primary">Pago</h6>
                             
-                            <div class="pago-movil-box">
-                                <h6 class="fw-bold text-info mb-2"><i class="fas fa-mobile-alt me-2"></i>Pago Móvil</h6>
-                                <p class="mb-1 d-flex justify-content-between align-items-center">
-                                    <span><strong>Banco:</strong> Banesco (0134)</span>
-                                    <button type="button" class="copy-btn" onclick="navigator.clipboard.writeText('0134')"><i class="far fa-copy"></i></button>
-                                </p>
-                                <p class="mb-1 d-flex justify-content-between align-items-center">
-                                    <span><strong>Teléfono:</strong> 0414-1234567</span>
-                                    <button type="button" class="copy-btn" onclick="navigator.clipboard.writeText('04141234567')"><i class="far fa-copy"></i></button>
-                                </p>
-                                <p class="mb-0 d-flex justify-content-between align-items-center">
-                                    <span><strong>RIF:</strong> J-12345678-9</span>
-                                    <button type="button" class="copy-btn" onclick="navigator.clipboard.writeText('J123456789')"><i class="far fa-copy"></i></button>
-                                </p>
-                            </div>
-                            
                             <div class="mb-3">
-                                <label class="form-label">Referencia de Pago <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="referencia" id="chk-referencia" required placeholder="Últimos 4 o 6 dígitos">
+                                <label class="form-label">Método de Pago <span class="text-danger">*</span></label>
+                                <select class="form-select" name="id_metodo_pago" id="chk-metodo-pago" required>
+                                    <option value="METOD00420260519200547232">Pago Móvil</option>
+                                    <option value="METOD00120260519200547232">Efectivo (al entregar)</option>
+                                    <option value="METOD00320260519200547232">Punto de Venta (al entregar)</option>
+                                </select>
                             </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Comprobante (Captura) <span class="text-danger">*</span></label>
-                                <input type="file" class="form-control" name="comprobante" id="chk-comprobante" accept="image/*" required>
+
+                            <div id="box-pago-movil">
+                                <div class="pago-movil-box">
+                                    <h6 class="fw-bold text-info mb-2"><i class="fas fa-mobile-alt me-2"></i>Pago Móvil</h6>
+                                    <p class="mb-1 d-flex justify-content-between align-items-center">
+                                        <span><strong>Banco:</strong> Banesco (0134)</span>
+                                        <button type="button" class="copy-btn" onclick="navigator.clipboard.writeText('0134')"><i class="far fa-copy"></i></button>
+                                    </p>
+                                    <p class="mb-1 d-flex justify-content-between align-items-center">
+                                        <span><strong>Teléfono:</strong> 0414-1234567</span>
+                                        <button type="button" class="copy-btn" onclick="navigator.clipboard.writeText('04141234567')"><i class="far fa-copy"></i></button>
+                                    </p>
+                                    <p class="mb-0 d-flex justify-content-between align-items-center">
+                                        <span><strong>RIF:</strong> J-12345678-9</span>
+                                        <button type="button" class="copy-btn" onclick="navigator.clipboard.writeText('J123456789')"><i class="far fa-copy"></i></button>
+                                    </p>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Referencia de Pago <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="referencia" id="chk-referencia" required placeholder="Últimos 4 o 6 dígitos">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Comprobante (Captura) <span class="text-danger">*</span></label>
+                                    <input type="file" class="form-control" name="comprobante" id="chk-comprobante" accept="image/*" required>
+                                </div>
                             </div>
                             
                             <div class="alert alert-info py-2 mt-3 text-center">

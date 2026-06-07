@@ -52,6 +52,40 @@ document.addEventListener('DOMContentLoaded', () => {
     // Enviar Pedido
     document.getElementById('btn-submit-order').addEventListener('click', submitOrder);
 
+    // Dinamismo del Checkout
+    const tipoPedidoSelect = document.getElementById('chk-tipo-pedido');
+    const metodoPagoSelect = document.getElementById('chk-metodo-pago');
+    const boxDireccion = document.getElementById('box-direccion');
+    const chkDireccion = document.getElementById('chk-direccion');
+    const boxPagoMovil = document.getElementById('box-pago-movil');
+    const chkReferencia = document.getElementById('chk-referencia');
+    const chkComprobante = document.getElementById('chk-comprobante');
+
+    tipoPedidoSelect.addEventListener('change', () => {
+        if (tipoPedidoSelect.value === 'DELIVERY') {
+            boxDireccion.style.display = 'block';
+            chkDireccion.required = true;
+        } else {
+            boxDireccion.style.display = 'none';
+            chkDireccion.required = false;
+        }
+    });
+
+    metodoPagoSelect.addEventListener('change', () => {
+        // METOD00420260519200547232 es Pago Móvil
+        if (metodoPagoSelect.value === 'METOD00420260519200547232') {
+            boxPagoMovil.style.display = 'block';
+            chkReferencia.required = true;
+            chkComprobante.required = true;
+        } else {
+            boxPagoMovil.style.display = 'none';
+            chkReferencia.required = false;
+            chkComprobante.required = false;
+            // Limpiar valores
+            chkReferencia.value = '';
+            chkComprobante.value = '';
+        }
+    });
 
     function openCustomizationModal(product) {
         currentProduct = product;

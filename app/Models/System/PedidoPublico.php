@@ -61,10 +61,11 @@ class PedidoPublico
             $observacion = $datosCliente['observacion'] ?? 'Pedido Web';
 
             $sqlPedido = "INSERT INTO pedido (id_pedido, cedula_cliente, cedula_empleado, tipo_pedido, total, observacion) 
-                          VALUES (?, ?, NULL, 'DELIVERY', ?, ?)";
+                          VALUES (?, ?, NULL, ?, ?, ?)";
             $this->dbBusiness->prepare($sqlPedido)->execute([
                 $idPedido,
                 $cedula,
+                $datosCliente['tipo_pedido'] ?? 'DELIVERY',
                 $totalPedido,
                 $observacion
             ]);
