@@ -11,8 +11,8 @@
             Módulos del Sistema
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de ingrediente">
-            <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoProveedor">
-                <i class="fas fa-plus me-2"></i>Nuevo Proveedor
+            <button class="btn btn-warning text-dark fw-semibold" id="btnComprobarModulo">
+                <i class="fas fa-plus me-2"></i>Comprobar Módulos
             </button>
         </div>
     </header>
@@ -38,4 +38,4 @@
 
 
 <!-- Recursos específicos de la página -->
-<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/ProveedorController.js" defer></script>
+<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/ModuloSistemaController.js" defer></script>
