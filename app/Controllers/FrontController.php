@@ -9,9 +9,9 @@
 
         public function __construct() {
 
-            if (isset($_REQUEST["url"])) {
+            if (isset($_REQUEST["page"])) {
 
-                $this->url = $_REQUEST["url"];
+                $this->url = $_REQUEST["page"];
 
                 $this->dir = BASE_PATH . '/app/Controllers/';
 

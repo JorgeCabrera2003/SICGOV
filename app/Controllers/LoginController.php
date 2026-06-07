@@ -13,7 +13,7 @@ if ($type === 'index') {
         }
 
         if (isset($_SESSION['user'])) {
-            header("Location: " . BASE_URL . "/?url=Dashboard");
+            header("Location: " . BASE_URL . "?page=Dashboard");
             exit();
         }
 
@@ -88,7 +88,7 @@ if ($type === 'index') {
                                     $_SESSION['user']['estatus_clave'] = 1;
 
                                     unset($_SESSION['error_register']);
-                                    header('Location: ' . BASE_URL . '/?url=Dashboard');
+                                    header('Location: ' . BASE_URL . '/?page=Dashboard');
                                     exit();
                                 }
                             }
@@ -106,13 +106,13 @@ if ($type === 'index') {
                 $recaptcha = $_POST['g-recaptcha-response'] ?? '';
                 if (empty($recaptcha)) {
                     $_SESSION['error_login'] = 'Por favor, complete el reCAPTCHA';
-                    header('Location: ' . BASE_URL . '/?page=login');
+                    header('Location: ' . BASE_URL . '?page=Login');
                     exit();
                 }
 
                 if (empty($_POST['CI'] ?? '') || empty($_POST['password'] ?? '')) {
                     $_SESSION['error_login'] = 'Por favor, complete todos los campos';
-                    header('Location: ' . BASE_URL . '/?page=login');
+                    header('Location: ' . BASE_URL . '/?page=Login');
                     exit();
                 }
 
@@ -153,7 +153,7 @@ if ($type === 'index') {
                         \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Inicio de sesión exitoso', null, null, $cedula);
 
                         unset($_SESSION['error_login']);
-                        header('Location: ' . BASE_URL . '/?url=Dashboard');
+                        header('Location: ' . BASE_URL . '?page=Dashboard');
                         exit();
                     } else {
                         $_SESSION['error_login'] = 'Error al cargar datos del usuario';

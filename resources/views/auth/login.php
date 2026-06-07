@@ -61,7 +61,7 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                                             </div>
                                         <?php endif; ?>
 
-                                        <form action="?page=login" method="post" id="login-form">
+                                        <form action="?page=Login" method="post" id="login-form">
                                             <div class="form-group">
                                                 <label for="CI" class="form-label">Cédula de identidad</label>
                                                 <div class="input-group">
