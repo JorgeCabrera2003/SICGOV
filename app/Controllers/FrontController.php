@@ -18,7 +18,12 @@
 
             if (isset($_REQUEST["page"])) {
 
-                $this->url = $_REQUEST["page"];
+                if ($_REQUEST["page"] === 'nuestro-menu') {
+                    $this->url = 'Menu';
+                    $_REQUEST["type"] = 'publico';
+                } else {
+                    $this->url = $_REQUEST["page"];
+                }
 
                 $this->dir = BASE_PATH . '/app/Controllers/';
 
