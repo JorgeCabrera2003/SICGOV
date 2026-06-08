@@ -7,12 +7,17 @@ use App\Models\System\Menu;
 
 $type = $_REQUEST['type'] ?? 'admin';
 
+
+
 if ($type === 'admin') {
+
+
     Helper::verificarSesion();
     $menuModel = new Menu();
     
     $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
     
+
     $peticion = $_POST['peticion'] ?? $_POST['action'] ?? $_GET['action'] ?? '';
 
     if (!empty($peticion) || $isAjax) {
@@ -21,6 +26,9 @@ if ($type === 'admin') {
         if (ob_get_length()) ob_clean();
         
         header('Content-Type: application/json');
+
+
+
 
         if ($peticion == 'guardar' || $peticion == 'registrar' || $peticion == 'modificar') {
             try {
@@ -73,6 +81,12 @@ if ($type === 'admin') {
             }
         }
 
+
+
+
+
+
+
         if ($peticion == 'buscar' || $peticion == 'consultar') {
             try {
                 $id = $_GET['id'] ?? $_POST['id'] ?? '';
@@ -97,6 +111,16 @@ if ($type === 'admin') {
             }
         }
 
+
+
+
+
+
+
+
+
+
+
         if ($peticion == 'eliminar') {
             try {
                 if (empty($_POST['id'])) {
@@ -120,6 +144,10 @@ if ($type === 'admin') {
             }
         }
 
+
+
+
+
         if ($peticion == 'listarJson' || $peticion == 'listar') {
             try {
                 $menus = $menuModel->Transaccion(['peticion' => 'listar']) ?: [];
@@ -142,6 +170,11 @@ if ($type === 'admin') {
         'Menú - Good Vibes',
         compact('menus', 'categorias', 'insumos', 'unidades')
     );
+
+
+
+
+
 
 } elseif ($type === 'publico') {
     $menuModel = new Menu();
