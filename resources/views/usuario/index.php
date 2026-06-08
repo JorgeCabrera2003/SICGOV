@@ -42,5 +42,4 @@
 <!-- Modales (incluidos como partials) -->
 <?php include 'partials/_modal_usuario.php'; ?>
 
-<!-- Recursos específicos de la página -->
-<script src="<?= BASE_URL ?>/assets/js/usuario.js" defer></script>
+<!-- Recursos específicos de la página -->
