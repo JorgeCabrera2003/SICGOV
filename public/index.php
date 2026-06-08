@@ -48,6 +48,7 @@ use App\Controllers\ReporteController;
 use App\Controllers\PapeleraController;
 use App\Controllers\RolController;
 use App\Controllers\AsistenciaController;
+use App\Controllers\PromocionController;
 
 try {
 
@@ -63,6 +64,7 @@ try {
         'ingredientes' => (new IngredienteController())->index(),
         'areas' => (new AreasController())->index(),
         'proveedores' => (new ProveedorController())->index(),
+        'promocion' => (new PromocionController())->index(),
         'mesas' => (new MesasController())->index(),
         'categoria-ingrediente' => (new IngredienteController())->indexCategoria(),
         'categorias' => (new CategoriaController())->index(),
