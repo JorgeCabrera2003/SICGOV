@@ -1,18 +1,21 @@
 <?php
 namespace App\Database\Seeders;
 
-class SecuritySeeder {
+class SecuritySeeder
+{
     private $db;
 
-    public function __construct($db) {
+    public function __construct($db)
+    {
         $this->db = $db;
     }
 
-    public function run() {
+    public function run()
+    {
         // Verificar e insertar roles
         $count = $this->db->query("SELECT COUNT(*) FROM rol")->fetchColumn();
         $hash = password_hash("1234", PASSWORD_DEFAULT);
-        
+
         if ($count == 0) {
             echo "       Roles no encontrados, insertando...\n";
             $sqlRoles = "INSERT INTO rol (id_rol, nombre_rol, estatus) VALUES 
@@ -29,22 +32,28 @@ class SecuritySeeder {
         if ($countModulos == 0) {
             echo "       Módulos no encontrados, insertando...\n";
             $sqlModulos = "INSERT INTO modulo (id_modulo, nombre, estatus) VALUES 
-                ('MOD001', 'Dashboard', 1),
-                ('MOD002', 'Usuarios', 1),
-                ('MOD003', 'Roles', 1),
-                ('MOD004', 'Permisos', 1),
-                ('MOD005', 'Pedidos', 1),
-                ('MOD006', 'Productos', 1),
-                ('MOD007', 'Inventario', 1),
-                ('MOD008', 'Mesas', 1),
-                ('MOD009', 'Reportes', 1),
-                ('MOD010', 'Personal', 1),
-                ('MOD011', 'Clientes', 1),
-                ('MOD012', 'Proveedores', 1),
-                ('MOD013', 'Promociones', 1),
-                ('MOD014', 'Noticias', 1),
-                ('MOD015', 'Notificaciones', 1),
-                ('MOD016', 'Bitácora', 1)";
+                ('AREAM0000720260519200547232', 'area_mesa', 1),
+                ('ASIST0001020260519200547232', 'asistencia', 1),
+                ('BITAC0000320260519200547232', 'bitacora', 1),
+                ('CARGO0001120260519200547232', 'cargo', 1),
+                ('CATIN0001520260519200547232', 'categoria_insumo', 1),
+                ('CATME0001620260519200547232', 'categoria_menu', 1),
+                ('CLIEN0002020260519200547232', 'cliente', 1),
+                ('EMPLE0001220260519200547232', 'empleado', 1),
+                ('HORAR0001320260519200547232', 'horario', 1),
+                ('INSUM0001720260519200547232', 'insumo', 1),
+                ('MANTE0000420260519200547232', 'mantenimiento', 1),
+                ('MESA00000620260519200547232', 'mesa', 1),
+                ('MODUL0000520260519200547232', 'modulo_sistema', 1),
+                ('MULTI0000820260519200547232', 'multimedia', 1),
+                ('NOTIC0000920260519200547232', 'noticia', 1),
+                ('PEDID0002020260519200547232', 'pedido', 1),
+                ('PRODU0001820260519200547232', 'producto', 1),
+                ('PROVE0001920260519200547232', 'proveedor', 1),
+                ('RESER0002120260519200547232', 'reservacion', 1),
+                ('ROL000000220260519200547232', 'rol', 1),
+                ('TURNO0001420260519200547232', 'turno', 1),
+                ('USUAR0000120260519200547232', 'usuario', 1)";
             $this->db->exec($sqlModulos);
             echo "       Módulos base creados.\n";
         }
@@ -55,10 +64,10 @@ class SecuritySeeder {
             echo "       Permisos para SUPERUSUARIO no encontrados, insertando...\n";
             $modulos = $this->db->query("SELECT id_modulo FROM modulo")->fetchAll(\PDO::FETCH_COLUMN);
             $acciones = ['LEER', 'CREAR', 'EDITAR', 'ELIMINAR'];
-            
+
             $sqlPermiso = "INSERT INTO permiso (id_permiso, id_rol, id_modulo, accion, estatus) VALUES (:id, 'ROLS71920260602140652719', :modulo, :accion, 1)";
             $stmt = $this->db->prepare($sqlPermiso);
-            
+
             foreach ($modulos as $modulo) {
                 foreach ($acciones as $accion) {
                     $stmt->execute([
