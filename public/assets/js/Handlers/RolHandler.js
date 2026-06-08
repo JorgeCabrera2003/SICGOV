@@ -232,6 +232,49 @@ function ValidarEnvio() {
   return bool;
 }
 
+export async function CargarFuncionesCheckBox() {
+  GruposCheckBox();
+  MarcarCheckBox();
+}
+
+export async function GruposCheckBox() {
+  $('.group-checkbox').each(function () {
+    const $checkbox = $(this);
+
+    $checkbox.on('change', function () {
+      const modulo = $(this).attr('data-modulo');
+      const isChecked = $(this).prop('checked');
+
+      $(`.permission-options[data-modulo-string="${modulo}"] .permission-checkbox`).each(function () {
+        $(this).prop('checked', isChecked);
+      });
+    });
+  });
+}
+export async function MarcarCheckBox() {
+  // Script para manejar la selección de grupos completos
+  $(document).ready(function () {
+    // Seleccionar/deseleccionar todos los permisos de un grupo
+
+
+    // Actualizar el checkbox del grupo cuando cambian los permisos individuales
+    $('.permission-checkbox').each(function () {
+      $(this).on('change', function () {
+        const $groupContainer = $(this).closest('.permission-options');
+        const groupId = $groupContainer.attr('data-modulo-string');
+        const $groupCheckbox = $(`.group-checkbox[data-modulo="${groupId}"]`);
+        const $allCheckboxes = $(`.permission-options[data-modulo-string="${groupId}"] .permission-checkbox`);
+
+        const allChecked = $allCheckboxes.length === $allCheckboxes.filter(':checked').length;
+        const someChecked = $allCheckboxes.filter(':checked').length > 0;
+
+        $groupCheckbox.prop('checked', allChecked);
+        $groupCheckbox.prop('indeterminate', someChecked && !allChecked);
+      });
+    });
+  });
+}
+
 async function RenderPermisoBotones(modulo = "Rol") {
 
   const dropdown = $('<div>').addClass('dropdown');
@@ -268,6 +311,19 @@ async function RenderPermisoBotones(modulo = "Rol") {
   return dropdown.prop('outerHTML');
 }
 
+function LimpiarCheckBox(){
+  	$('[data-modulo-string]').each(function () {
+		const modulo = $(this);
+
+		modulo.find('.form-check-input').each(function () {
+			const checkbox = $(this);
+			checkbox.attr('data-id-permiso', '');
+			checkbox.prop('checked', false);
+			checkbox.prop('disabled', false);
+		});
+	});
+}
+
 async function TraerPermiso(id) {
   var datos = new FormData();
   datos.append("peticion", "filtrar_permiso");
@@ -278,8 +334,6 @@ async function TraerPermiso(id) {
 }
 
 function ColocarPermisosCheckBox(Arraypermisos) {
-
-  console.log(Arraypermisos);
 
   $('[data-modulo-string]').each(function () {
     const modulo = $(this);
@@ -399,6 +453,7 @@ export function LimpiarFormulario() {
   input = null;
   span = null;
   modal = null;
+  LimpiarCheckBox();
 }
 
 export async function EditarFormRol(datos, accion) {

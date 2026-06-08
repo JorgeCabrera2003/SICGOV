@@ -9,6 +9,7 @@ $(document).ready(function () {
   crearDataTable();
   registrarEntrada();
   iniciarValidaciones();
+  rol.CargarFuncionesCheckBox()
 });
 
 //EVENTOS CLICK DE LOS BOTONES DE LA INTERFAZ
