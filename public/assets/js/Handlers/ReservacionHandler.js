@@ -7,8 +7,8 @@ import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js";
  */
 
 // Detectar si estamos en vista pública
-const ES_PUBLICO = window.location.search.includes('page=reservar');
-const BASE_URL_API = ES_PUBLICO ? '?page=reservar' : '?page=reservaciones';
+const ES_PUBLICO = window.location.search.includes('type=publico');
+const BASE_URL_API = ES_PUBLICO ? '?page=Reservacion&type=publico' : '?page=Reservacion';
 
 // IDs de elementos que cambian según la vista
 const IDs = {
@@ -80,7 +80,6 @@ export function inicializarCalendario(calendarEl, pickers) {
             hour12: true
         },
         themeSystem: 'bootstrap5',
-        editable: !ES_PUBLICO,
         selectable: true,
         unselectAuto: false,
 
@@ -121,11 +120,11 @@ export function inicializarCalendario(calendarEl, pickers) {
 
 
         eventDrop: function (info) {
-            if (!ES_PUBLICO) MoverEvento(info, calendar);
+            MoverEvento(info, calendar);
         },
 
         eventResize: function (info) {
-            if (!ES_PUBLICO) MoverEvento(info, calendar, 'Duración actualizada');
+            MoverEvento(info, calendar, 'Duración actualizada');
         }
     });
 
@@ -239,7 +238,7 @@ export async function MoverEvento(info, calendar, mensaje = 'Reprogramado con é
 
     const res = await AjaxHelper.enviaAjax(formData, BASE_URL_API);
     if (res && res.resultado == 200) {
-        MensajeriaHelper.GenerarMensaje('success', 3000, '¡Éxito!', mensaje);
+        MensajeriaHelper.GenerarToast('success', mensaje);
     } else {
         info.revert();
         MensajeriaHelper.GenerarMensaje('error', 5000, 'Error', res?.mensaje || 'No se pudo mover');

@@ -33,6 +33,7 @@
                             <option value="">TODOS LOS MÓDULOS</option>
                             <option value="SEGURIDAD">SEGURIDAD</option>
                             <option value="USUARIOS">USUARIOS</option>
+                            <option value="PERFIL">PERFIL</option>
                             <option value="NOTICIAS">NOTICIAS</option>
                             <option value="INVENTARIO">INVENTARIO</option>
                             <option value="PERSONAL">PERSONAL</option>
@@ -81,5 +82,4 @@
 
 <!-- ===== RECURSOS DE LA PÁGINA ===== -->
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/bitacora.css">
-<!-- ✅ AGREGAR EL SCRIPT DE BITÁCORA -->
-<script src="<?= BASE_URL ?>/assets/js/bitacora.js"></script>
+<!-- ✅ AGREGAR EL SCRIPT DE BITÁCORA -->

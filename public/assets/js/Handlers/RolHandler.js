@@ -89,6 +89,7 @@ export async function EnviarDatos(operacion) {
   let mensajeConfirmacion = "¿Está seguro de realizar esta acción?";
   let endpoint = "";
   let peticion = new FormData();
+  let permisos = [];
   let json;
 
   //Registrar y Modificar
@@ -113,10 +114,13 @@ export async function EnviarDatos(operacion) {
       confirmacion = await confirmarAccion(`Se ${str_acccion} un Rol`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
+        permisos = CrearArregloPermisos();
         peticion.append('peticion', accion);
         peticion.append('nombre', input.nombre.val());
+        peticion.append('permisos', JSON.stringify(permisos));
         peticion.append('id', input.id.val());
         btn_formulario = true;
+        console.log(permisos)
       }
     } else {
       btn_formulario = false;
@@ -262,6 +266,86 @@ async function RenderPermisoBotones(modulo = "Rol") {
 
   console.log(dropdown)
   return dropdown.prop('outerHTML');
+}
+
+function ColocarPermisosCheckBox() {
+  function ColocarPermisos(Arraypermisos) {
+
+    console.log(Arraypermisos);
+
+    $('[data-modulo-string]').each(function () {
+      const modulo = $(this);
+      const moduloString = modulo.data('moduloString');
+      const permisos = [];
+
+      const permisosModulo = Arraypermisos[moduloString] || {}
+      console.log(permisosModulo);
+      modulo.find('.form-check-input').each(function () {
+        const checkbox = $(this);
+        const accion = checkbox.val();  // Variable intermedia
+        console.log(permisosModulo[accion]);
+
+        if (permisosModulo[accion]) {
+          if (permisosModulo[accion].estado == 1) {
+            checkbox.prop('checked', true);
+            checkbox.attr('data-id-permiso', permisosModulo[accion].id);
+
+          } else {
+            checkbox.prop('checked', false);
+            checkbox.attr('data-id-permiso', permisosModulo[accion].id);
+          }
+          console.log("Encontrado");
+        } else {
+          checkbox.prop('checked', false);
+          checkbox.attr('data-id-permiso', '');
+          console.log("Perdido");
+        }
+        console.log(checkbox.attr('data-id-permiso'));
+      });
+
+      if (permisos.length > 0) {
+        permisos_modulos.push({
+          modulo: moduloString,
+          permisos: permisos
+        });
+      }
+    });
+  }
+}
+
+function CrearArregloPermisos() {
+
+  const datos = []
+
+  $('[data-modulo-string]').each(function () {
+    const modulo = $(this);
+    const moduloString = modulo.data('moduloString');
+    const permisos = [];
+
+    // Obtener todos los checkboxes dentro del módulo
+    modulo.find('.form-check-input').each(function () {
+      const checkbox = $(this);
+      var bool;
+      if (checkbox.prop('checked')) {
+        bool = 1;
+      } else {
+        bool = 0;
+      }
+      permisos.push({
+        accion: checkbox.val(),
+        estado: bool
+      });
+    });
+
+    if (permisos.length > 0) {
+      datos.push({
+        modulo: moduloString,
+        permisos: permisos
+      });
+    }
+  });
+
+  return datos;
 }
 
 

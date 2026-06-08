@@ -17,7 +17,9 @@ class SecuritySeeder {
             echo "       Roles no encontrados, insertando...\n";
             $sqlRoles = "INSERT INTO rol (id_rol, nombre_rol, estatus) VALUES 
                 ('ADMIN00120251001', 'ADMINISTRADOR', 1),
-                ('GEREN00520251001', 'GERENTE', 1)";
+                ('GEREN00520251001', 'GERENTE', 1),
+                ('ROLS74320260602130629743', 'Cliente', 1),
+                ('ROLS71920260602140652719', 'SuperUsuario', 1)";
             $this->db->exec($sqlRoles);
             echo "       Roles base creados.\n";
         }
@@ -47,14 +49,14 @@ class SecuritySeeder {
             echo "       Módulos base creados.\n";
         }
 
-        // Verificar e insertar permisos para ADMINISTRADOR
-        $countPermisos = $this->db->query("SELECT COUNT(*) FROM permiso WHERE id_rol = 'ADMIN00120251001'")->fetchColumn();
+        // Verificar e insertar permisos para SUPERUSUARIO
+        $countPermisos = $this->db->query("SELECT COUNT(*) FROM permiso WHERE id_rol = 'ROLS71920260602140652719'")->fetchColumn();
         if ($countPermisos == 0) {
-            echo "       Permisos para ADMINISTRADOR no encontrados, insertando...\n";
+            echo "       Permisos para SUPERUSUARIO no encontrados, insertando...\n";
             $modulos = $this->db->query("SELECT id_modulo FROM modulo")->fetchAll(\PDO::FETCH_COLUMN);
             $acciones = ['LEER', 'CREAR', 'EDITAR', 'ELIMINAR'];
             
-            $sqlPermiso = "INSERT INTO permiso (id_permiso, id_rol, id_modulo, accion, estatus) VALUES (:id, 'ADMIN00120251001', :modulo, :accion, 1)";
+            $sqlPermiso = "INSERT INTO permiso (id_permiso, id_rol, id_modulo, accion, estatus) VALUES (:id, 'ROLS71920260602140652719', :modulo, :accion, 1)";
             $stmt = $this->db->prepare($sqlPermiso);
             
             foreach ($modulos as $modulo) {
@@ -66,7 +68,7 @@ class SecuritySeeder {
                     ]);
                 }
             }
-            echo "       Permisos para ADMINISTRADOR creados.\n";
+            echo "       Permisos para SUPERUSUARIO creados.\n";
         }
 
         // Crear usuario admin si no existe
@@ -77,7 +79,7 @@ class SecuritySeeder {
             $sqlAdmin = "INSERT INTO usuario
                         (cedula, id_rol, username, clave, tema, estatus)
                         VALUES 
-                        ('V-00000000', 'ADMIN00120251001', 'admin_root', :clave, 'light', 1)";
+                        ('V-00000000', 'ROLS71920260602140652719', 'admin_root', :clave, 'light', 1)";
             try {
                 $stmt = $this->db->prepare($sqlAdmin);
                 $stmt->execute(['clave' => $hash]);

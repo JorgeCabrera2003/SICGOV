@@ -40,23 +40,21 @@ class Helper
     /**
      * Registra un movimiento en la bitácora de forma segura
      */
-    public static function Bitacora($accion, $modulo, $detalle, $prev_data = null, $new_data = null)
+    public static function Bitacora($accion, $modulo, $detalle, $prev_data = null, $new_data = null, $cedula_override = null)
     {
         try {
             // Verificar si hay sesión activa
             if (session_status() === PHP_SESSION_NONE) { session_start(); }
             
-            if (!isset($_SESSION['user'])) {
-                return false;
-            }
-
             $bitacora = new Bitacora();
             $idBitacora = self::generarId('BIT');
             $bitacora->setIdBitacora($idBitacora);
 
-            // Intentar obtener la identidad más precisa (Cédula es la PK en usuario)
-            $user = $_SESSION['user'];
-            $cedula = $user['cedula'] ?? null;
+            // Intentar obtener la identidad más precisa
+            $cedula = $cedula_override;
+            if (!$cedula && isset($_SESSION['user']['cedula'])) {
+                $cedula = $_SESSION['user']['cedula'];
+            }
 
             if (!$cedula) {
                 return false;
@@ -67,7 +65,7 @@ class Helper
             $bitacora->set_accion($accion);
             $bitacora->set_detalle($detalle);
             $bitacora->set_ip_address($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
-            
+
             // Si vienen arrays u objetos, convertirlos a JSON
             if ($prev_data !== null) {
                 $bitacora->set_anteriores(is_string($prev_data) ? $prev_data : json_encode($prev_data, JSON_UNESCAPED_UNICODE));
@@ -129,7 +127,32 @@ class Helper
                 echo json_encode(['success' => false, 'message' => 'Sesión no iniciada']);
                 exit();
             } else {
-                header("Location: " . BASE_URL . "/?page=login");
+                header("Location: " . BASE_URL . "?page=Login");
+                exit();
+            }
+        }
+
+        $currentPage = $_GET['page'] ?? 'home';
+        $estatusClave = $_SESSION['user']['estatus_clave'] ?? 1;
+
+        if ($estatusClave == 0 && !in_array($currentPage, ['forzar-cambiar-clave', 'logout'])) {
+            if (
+                isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest'
+            ) {
+                $peticion = $_POST['peticion'] ?? '';
+                if ($peticion !== 'forzar-cambiar-clave') {
+                    header('Content-Type: application/json');
+                    echo json_encode([
+                        'resultado' => 403,
+                        'icon' => 'warning',
+                        'mensaje' => 'Por razones de seguridad, debe cambiar su contraseña antes de continuar.',
+                        'redirect' => BASE_URL . '?page=Perfil&type=forzar-cambiar-clave'
+                    ]);
+                    exit();
+                }
+            } else {
+                header("Location: " . BASE_URL . "?page=Perfil&type=forzar-cambiar-clave");
                 exit();
             }
         }
@@ -142,13 +165,27 @@ class Helper
         self::verificarSesion();
 
         $user = $_SESSION['user'];
+        $foto = BASE_URL . 'assets/img/default.jpg';
+
+        try {
+            $db = \App\Core\Database::getConnection('security');
+            $sql = "SELECT direccion FROM imagen WHERE entidad_tipo = 'USUARIO' AND entidad_id = :cedula AND es_principal = 1 LIMIT 1";
+            $stmt = $db->prepare($sql);
+            $stmt->execute(['cedula' => $user['cedula'] ?? '']);
+            $img = $stmt->fetch();
+            if ($img && !empty($img['direccion'])) {
+                $foto = rtrim(BASE_URL, '/') . $img['direccion'];
+            }
+        } catch (\Exception $e) {
+            // Fail silently and use default
+        }
 
         return [
-            'nombres' => $user['nombres'] ?? $user['username'] ?? 'Usuario',
-            'apellidos' => $user['apellidos'] ?? '',
+            'nombre' => $user['nombre'] ?? $user['username'] ?? 'Usuario',
+            'apellido' => $user['apellido'] ?? '',
             'cedula' => $user['cedula'] ?? '',
             'rol' => $user['rol'] ?? 'Usuario',
-            'foto' => BASE_URL . '/assets/img/default.jpg',
+            'foto' => $foto,
             'username' => $user['username'] ?? ''
         ];
     }
@@ -217,7 +254,8 @@ class Helper
         }
 
         $info = getimagesize($source);
-        if (!$info) return false;
+        if (!$info)
+            return false;
 
         $mime = $info['mime'];
         $image = null;
@@ -225,14 +263,16 @@ class Helper
         try {
             $image = match ($mime) {
                 'image/jpeg' => imagecreatefromjpeg($source),
-                'image/png'  => imagecreatefrompng($source),
-                'image/gif'  => imagecreatefromgif($source),
+                'image/png' => imagecreatefrompng($source),
+                'image/gif' => imagecreatefromgif($source),
                 'image/webp' => 'SKIP',
-                default      => null
+                default => null
             };
 
-            if ($image === 'SKIP') return copy($source, $destination);
-            if (!$image) return false;
+            if ($image === 'SKIP')
+                return copy($source, $destination);
+            if (!$image)
+                return false;
 
             // Post-procesamiento
             if ($mime === 'image/png') {
@@ -242,11 +282,13 @@ class Helper
             }
 
 
-            if (!$image) return false;
+            if (!$image)
+                return false;
 
             // Asegurar que el directorio destino existe
             $dir = dirname($destination);
-            if (!is_dir($dir)) mkdir($dir, 0777, true);
+            if (!is_dir($dir))
+                mkdir($dir, 0777, true);
 
             $res = imagewebp($image, $destination, $quality);
             imagedestroy($image);
@@ -255,5 +297,51 @@ class Helper
             self::ErrorLog("Error convirtiendo imagen a WebP: " . $e->getMessage());
             return false;
         }
+    }
+    public static function convertirJSON($objeto)
+    {
+        if (is_object($objeto)) {
+
+            $objeto = (array) $objeto;
+
+            foreach ($objeto as &$valor) {
+
+                if (is_object($valor)) {
+                    $valor = self::convertirJSON($valor);
+                } elseif (is_array($valor)) {
+                    $valor = array_map(function ($item) {
+                        return is_object($item) ? self::convertirJSON($item) : $item;
+                    }, $valor);
+                }
+            }
+            return $objeto;
+        }
+
+        if (is_array($objeto)) {
+            return array_map(function ($valor) {
+                return is_object($valor) ? self::convertirJSON($valor) : $valor;
+            }, $objeto);
+        }
+
+        return $objeto;
+    }
+
+    /**
+     * Calcula la diferencia de tiempo relativo en español.
+     * 
+     * @param \DateTime $fecha Objeto DateTime de la fecha a comparar
+     * @return string Tiempo transcurrido legible
+     */
+    public static function tiempoTranscurrido($fecha)
+    {
+        $ahora = new \DateTime();
+        $diferencia = $ahora->diff($fecha);
+
+        if ($diferencia->y > 0) return 'Hace ' . $diferencia->y . ' año' . ($diferencia->y > 1 ? 's' : '');
+        if ($diferencia->m > 0) return 'Hace ' . $diferencia->m . ' mes' . ($diferencia->m > 1 ? 'es' : '');
+        if ($diferencia->d > 0) return 'Hace ' . $diferencia->d . ' día' . ($diferencia->d > 1 ? 's' : '');
+        if ($diferencia->h > 0) return 'Hace ' . $diferencia->h . ' hora' . ($diferencia->h > 1 ? 's' : '');
+        if ($diferencia->i > 0) return 'Hace ' . $diferencia->i . ' minuto' . ($diferencia->i > 1 ? 's' : '');
+        return 'Hace unos instantes';
     }
 }

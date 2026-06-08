@@ -5,11 +5,11 @@ namespace App\Controllers;
 use App\Helpers\Helper;
 use App\Helpers\RegexHelper;
 use App\Models\Security\Noticia;
+use App\Helpers\NotificacionHelper;
 
-class NoticiaController
-{
-	public function indexAdmin()
-	{
+$type = $_REQUEST['type'] ?? 'admin';
+
+if ($type === 'admin') {
 		Helper::verificarSesion();
 
 		$noticiaModel = new Noticia();
@@ -39,6 +39,7 @@ class NoticiaController
 						$id = ($_POST["peticion"] == "registrar") ? Helper::generarId("NOTC") : ($_POST["id_noticia"] ?? "");
 						
 						$noticiaModel->setId($id);
+						$id = $noticiaModel->getId(); // Obtener el ID final (truncado si aplica) para consistencia en BD y Auditoría
 						$noticiaModel->setCedula($_SESSION['user']['cedula'] ?? $_SESSION['user']['id_usuario'] ?? ""); 
 						$noticiaModel->setTitulo($_POST["titulo"] ?? "");
 						$noticiaModel->setSubtitulo($_POST["subtitulo"] ?? "");
@@ -102,6 +103,13 @@ class NoticiaController
 							];
 
 							Helper::Bitacora($accion_bitacora, 'NOTICIAS', $detalle_bitacora, $datos_anteriores, $datos_nuevos);
+
+							// --- NOTIFICACIONES: Enviar alerta general si es una nueva publicación ---
+							if ($_POST["peticion"] == "registrar") {
+								$tituloNotif = "Nueva Publicación";
+								$mensajeNotif = "Se ha publicado una nueva noticia: " . ($_POST['titulo'] ?? "");
+								NotificacionHelper::notificarATodos('INFO', $mensajeNotif, $tituloNotif);
+							}
 						}
 					} catch (\Exception $e) {
 						$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Error de validación'];
@@ -180,9 +188,7 @@ class NoticiaController
 			'noticias/index',
 			'Gestión de Noticias - Good Vibes'
 		);
-	}
-
-    public function indexPublico() {
+} elseif ($type === 'publico') {
         // Vista pública estilo portal de noticias
         $noticiaModel = new Noticia();
         
@@ -216,11 +222,9 @@ class NoticiaController
         echo '</div></main>';
 
         require_once BASE_PATH . '/resources/views/layout/footer.php';
-    }
-
-    public function detallePublico() {
+} elseif ($type === 'detalle') {
         if (!isset($_GET['id'])) {
-            header("Location: " . BASE_URL . "?page=noticias-publicas");
+            header("Location: " . BASE_URL . "?page=Noticia&type=publico");
             exit;
         }
 
@@ -250,5 +254,4 @@ class NoticiaController
         echo '</div></main>';
 
         require_once BASE_PATH . '/resources/views/layout/footer.php';
-    }
 }

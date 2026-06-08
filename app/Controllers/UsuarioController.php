@@ -5,138 +5,237 @@ namespace App\Controllers;
 use App\Helpers\Helper;
 use App\Helpers\RegexHelper;
 use App\Models\Security\Usuario;
+use App\Models\Security\Rol;
 
-class UsuarioController
-{
-	public function index()
-	{
-		Helper::verificarSesion();
+$type = $_REQUEST['type'] ?? 'index';
 
-		$usuarioModel = new Usuario();
-		if (isset($_POST["peticion"])) {
+if ($type === 'index') {
+        Helper::verificarSesion();
 
-			//Entrada
-			if ($_POST["peticion"] == "entrada") {
-				$json['HTTP_STATUS'] = ['codigo' => 204, 'mensaje' => ''];
-				$json['response'] = ['resultado' => 204, 'mensaje' => 'No hay contenido'];
-			}
+        $usuarioModel = new Usuario();
 
-			//Registrar y Modificar
-			if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
-				$accion_permiso = true;
+        if (isset($_POST["peticion"])) {
+            header('Content-Type: application/json');
 
-				//Validaciones
-				if ($accion_permiso) {
-					$bool_formulario = true;
-					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
-					$msg = "(" . $_SESSION['user']['id_usuario'] . "), envió solicitud no válida";
+            if (isset($_POST["cedula"]) && $_POST["cedula"] === 'V-00000000' && in_array($_POST["peticion"], ['modificar', 'toggle-estatus', 'registrar'])) {
+                header("HTTP/1.1 403 Forbidden");
+                echo json_encode([
+                    'resultado' => 403,
+                    'icon' => 'error',
+                    'mensaje' => 'Operación no permitida: el superusuario principal no puede ser modificado de ninguna forma.'
+                ]);
+                exit;
+            }
 
-					if ($_POST["peticion"] == "modificar") {
-						if (!isset($_POST["id_ingrediente"]) || RegexHelper::ValidarFormatos($_POST["id_ingrediente"], 'ID') == 0) {
-							$json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Id no válido'];
-							$bool_formulario = false;
-						}
-					}
+            $json = [];
+            $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Solicitud Incorrecta'];
+            $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Envió solicitud no válida'];
 
-					if (!isset($_POST["nombre"]) || RegexHelper::ValidarFormatos($_POST["nombre"], "NombreObjeto") == 0) {
-						$json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Nombre no válido'];
-						$bool_formulario = false;
-					}
-					if (!isset($_POST["unidad_medida"])) {
-						$json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Unidad de Medida no válida'];
-						$bool_formulario = false;
-					}
-					if (!isset($_POST["costo_unitario"]) || $_POST["costo_unitario"] < 0) {
-						$json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Costo Unitario no válido'];
-						$bool_formulario = false;
+            // ── PETICIÓN: CONSULTAR ─────────────────────────────
+            if ($_POST["peticion"] == "consultar") {
+                $json = $usuarioModel->Transaccion(['peticion' => 'consultar']);
+                header("HTTP/1.1 " . ($json['HTTP_STATUS']['codigo'] ?? 200) . " " . ($json['HTTP_STATUS']['mensaje'] ?? "OK"));
+                echo json_encode($json['response'] ?? []);
+                exit;
+            }
 
-					}
-					//Fin de las Validaciones
-					if ($bool_formulario) {
-						$id = NULL;
-						$str_mensaje = NULL;
-						//Si la petición es registrar, se generarà un ID, 
-						//en caso contrario (Modificar) solo se tomará el ID enviada por el formulario
-						if ($_POST["peticion"] == "registrar") {
-							$id = Helper::generarId("INGR");
-							$msgN = "Se registró un nuevo ingrediente con el id";
-							$str_mensaje = "registró";
-						}
+            // ── PETICIÓN: EMPLEADOS SIN USUARIO ────────────────
+            if ($_POST["peticion"] == "empleados-sin-usuario") {
+                $json = $usuarioModel->Transaccion(['peticion' => 'empleados-sin-usuario']);
+                header("HTTP/1.1 " . ($json['HTTP_STATUS']['codigo'] ?? 200) . " " . ($json['HTTP_STATUS']['mensaje'] ?? "OK"));
+                echo json_encode($json['response'] ?? []);
+                exit;
+            }
 
-						if ($_POST["peticion"] == "modificar") {
-							$id = $_POST["id_ingrediente"];
-							$msgN = "Se modificó un ingrediente con el id: " . $id;
-							$str_mensaje = "modificó";
-						}
-						$usuarioModel->setIdRol($_POST["rol"]);
-						$usuarioModel->setNombres($_POST["nombre"]);
-						$usuarioModel->setUsername($_POST["username"]);
-						$usuarioModel->setApellidos($_POST["apellido"]);
-						$usuarioModel->setCedula($_POST["cedula"]);
-						$usuarioModel->setTelefono($_POST["telefono"]);
-						$usuarioModel->setCorreo($_POST["correo"]);
-						$usuarioModel->setClave($_POST["clave"]);
-						$json = $usuarioModel->Transaccion(['peticion' => $_POST["peticion"]]);
-						
-						if ($json['estado'] == 1) {
-							$msg = "(" . $_SESSION['user']['id_usuario'] . "), Se ".$str_mensaje." un nuevo Usuario con Cédula:" . $usuarioModel->getCedula();
-						} else {
-							$msg = "(" . $_SESSION['user']['id_usuario'] . "), error al ".$_POST["peticion"]." un ingrediente";
-						}
-					}
-				} else {
-					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
-					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a un ente'];
-					$msg = "(" . $_SESSION['user']['id_usuario'] . "), permiso " . $_POST["peticion"] . " denegado";
-				}
-			}
-			//Fin del Registrar o Modificar
-//Consultar
-			if ($_POST["peticion"] == "consultar") {
-				$json = $usuarioModel->Transaccion(['peticion' => $_POST["peticion"]]);
-			}
-			//Fin del Consultar 
-//Eliminar
-			if ($_POST["peticion"] == "eliminar") {
-				$accion_permiso = true;
+            // ── PETICIÓN: ROLES ACTIVOS ──────────────────────────
+            if ($_POST["peticion"] == "roles-activos") {
+                $rolModel = new Rol();
+                $rolesResult = $rolModel->Transaccion(['peticion' => 'consultar']);
+                header("HTTP/1.1 " . ($rolesResult['HTTP_STATUS']['codigo'] ?? 200) . " " . ($rolesResult['HTTP_STATUS']['mensaje'] ?? "OK"));
+                echo json_encode($rolesResult['response'] ?? []);
+                exit;
+            }
 
-				if ($accion_permiso) {
-					$bool_formulario = true;
-					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
-					$msg = "(" . $_SESSION['user']['id_usuario'] . "), envió solicitud no válida";
-					//Validar ID del formulario
-					if (!isset($_POST["id_ingrediente"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'CEDULA') == 0) {
-						$json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Id no válido'];
-						$bool_formulario = false;
-					}
-					//Fin de la Validación
-					if ($bool_formulario) {
-						$usuarioModel->setCedula($_POST["cedula"]);
-						$json = $usuarioModel->Transaccion(['peticion' => $_POST["peticion"]]);
+            // ── PETICIÓN: REGISTRAR Y MODIFICAR ──────────────────
+            if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
+                $bool_formulario = true;
+                $peticion = $_POST["peticion"];
 
-						if ($json['estado'] == 1) {
-							$msg = "(" . $_SESSION['user']['id_usuario'] . "), Se eliminó un ingrediente con el id:" . $_POST["id_ingrediente"];
-						} else {
-							$msg = "(" . $_SESSION['user']['id_usuario'] . "), error al eliminar un ingrediente";
-						}
-					}
-				} else {
-					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
-					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a un ente'];
-					$msg = "(" . $_SESSION['user']['id_usuario'] . "), permiso " . $_POST["peticion"] . " denegado";
-				}
-			}
-			//Fin del Eliminar
+                // 1. Cédula validation format
+                if (!isset($_POST["cedula"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'Cedula') == 0) {
+                    $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Cédula no válida'];
+                    $bool_formulario = false;
+                }
 
-			//Enviar respuesta al navegador usando un encabezado HTTP
-			header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
-			echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
-			exit;
-		} //Fin de Operaciones
+                // 2. Anti-Hacking validation for Employee Cédula
+                if ($bool_formulario) {
+                    if ($peticion === 'registrar') {
+                        // Must be a valid employee without a user
+                        $empResult = $usuarioModel->Transaccion(['peticion' => 'empleados-sin-usuario']);
+                        $validSinUsuarioCedulas = [];
+                        if (isset($empResult['response']['datos']) && is_array($empResult['response']['datos'])) {
+                            foreach ($empResult['response']['datos'] as $emp) {
+                                if (isset($emp['cedula'])) {
+                                    $validSinUsuarioCedulas[] = (string)$emp['cedula'];
+                                }
+                            }
+                        }
+                        if (!in_array((string)$_POST["cedula"], $validSinUsuarioCedulas, true)) {
+                            $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => '¡Modificación detectada! El empleado seleccionado no es válido.'];
+                            $bool_formulario = false;
+                        }
+                    } else {
+                        // Must be an existing registered user
+                        $usersList = $usuarioModel->Transaccion(['peticion' => 'consultar']);
+                        $validCedulas = [];
+                        if (isset($usersList['response']['datos']) && is_array($usersList['response']['datos'])) {
+                            foreach ($usersList['response']['datos'] as $u) {
+                                if (isset($u['cedula'])) {
+                                    $validCedulas[] = (string)$u['cedula'];
+                                }
+                            }
+                        }
+                        if (!in_array((string)$_POST["cedula"], $validCedulas, true)) {
+                            $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => '¡Modificación detectada! El usuario a modificar no existe.'];
+                            $bool_formulario = false;
+                        }
+                    }
+                }
+                
+                // 3. Username validation (Strictly letters, min 3 chars, mandatory)
+                $username = isset($_POST["username"]) ? trim($_POST["username"]) : '';
+                if ($bool_formulario) {
+                    if (empty($username)) {
+                        $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El nombre de usuario es obligatorio.'];
+                        $bool_formulario = false;
+                    } elseif (mb_strlen($username) < 3) {
+                        $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El nombre de usuario debe tener al menos 3 letras.'];
+                        $bool_formulario = false;
+                    } elseif (!preg_match('/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ]+$/u', $username)) {
+                        $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El nombre de usuario debe contener solamente letras.'];
+                        $bool_formulario = false;
+                    }
+                }
 
-		Helper::cargarVista(
-			'usuario/index',
-			'Usuarios - Good Vibes'
-		);
-	}
+                // 4. Rol validation & Anti-Hacking validation
+                if ($bool_formulario) {
+                    if (!isset($_POST["rol"]) || empty(trim($_POST["rol"]))) {
+                        $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El rol es obligatorio.'];
+                        $bool_formulario = false;
+                    } else {
+                        // Fetch active roles to prevent Inspect Element spoofing
+                        $rolModel = new Rol();
+                        $rolesResult = $rolModel->Transaccion(['peticion' => 'consultar']);
+                        $validRoles = [];
+                        if (isset($rolesResult['response']['datos']) && is_array($rolesResult['response']['datos'])) {
+                            foreach ($rolesResult['response']['datos'] as $r) {
+                                if (isset($r['id_rol'])) {
+                                    $validRoles[] = (string)$r['id_rol'];
+                                }
+                            }
+                        }
+                        if (!in_array((string)$_POST["rol"], $validRoles, true)) {
+                            $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => '¡Modificación detectada! El rol seleccionado no es válido o está inactivo.'];
+                            $bool_formulario = false;
+                        }
+                    }
+                }
+
+                // 5. Clave validation (Registrar: obligatorio min 4 chars; Modificar: opcional min 4 chars)
+                if ($bool_formulario) {
+                    $clave = isset($_POST["clave"]) ? $_POST["clave"] : '';
+                    if ($peticion == "registrar") {
+                        if (empty($clave) || strlen($clave) < 4) {
+                            $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'La contraseña es obligatoria y debe tener al menos 4 caracteres.'];
+                            $bool_formulario = false;
+                        }
+                    } else { // Modificar
+                        if (!empty($clave) && strlen($clave) < 4) {
+                            $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'La nueva contraseña debe tener al menos 4 caracteres.'];
+                            $bool_formulario = false;
+                        }
+                    }
+                }
+
+                if ($bool_formulario) {
+                    $usuarioModel->setCedula($_POST["cedula"]);
+                    $usuarioModel->setUsername(trim($_POST["username"]));
+                    $usuarioModel->setIdRol($_POST["rol"]);
+                    
+                    if (isset($_POST["clave"]) && !empty($_POST["clave"])) {
+                        $usuarioModel->setClave($_POST["clave"], false);
+                    } else {
+                        $usuarioModel->setClave("", false);
+                    }
+
+                    $json = $usuarioModel->Transaccion(['peticion' => $_POST["peticion"]]);
+
+                    if (isset($json['estado']) && $json['estado'] == 1) {
+                        if ($_POST["peticion"] == "registrar") {
+                            Helper::Bitacora("REGISTRAR", "USUARIOS", "Se registró un nuevo usuario con Cédula: " . $_POST["cedula"]);
+                        } else {
+                            Helper::Bitacora("MODIFICAR", "USUARIOS", "Se modificó el usuario con Cédula: " . $_POST["cedula"]);
+                        }
+                    }
+                }
+            }
+
+            // ── PETICIÓN: FORZAR CAMBIO DE CLAVE ───────────────
+            if ($_POST["peticion"] == "forzar-clave") {
+                $bool_formulario = true;
+
+                if (!isset($_POST["cedula"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'Cedula') == 0) {
+                    $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Cédula no válida'];
+                    $bool_formulario = false;
+                }
+
+                if ($bool_formulario) {
+                    $usuarioModel->setCedula($_POST["cedula"]);
+                    $json = $usuarioModel->Transaccion(['peticion' => 'forzar-clave']);
+
+                    if (isset($json['estado']) && $json['estado'] == 1) {
+                        Helper::Bitacora("MODIFICAR", "USUARIOS", "Se forzó cambio de clave al usuario con Cédula: " . $_POST["cedula"]);
+                    }
+                }
+            }
+
+            // ── PETICIÓN: TOGGLE ESTATUS (ACTIVAR/INACTIVAR) ───
+            if ($_POST["peticion"] == "toggle-estatus") {
+                $bool_formulario = true;
+
+                if (!isset($_POST["cedula"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'Cedula') == 0) {
+                    $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Cédula no válida'];
+                    $bool_formulario = false;
+                }
+
+                if ($bool_formulario && (!isset($_POST["estatus"]) || !in_array((string)$_POST["estatus"], ['0', '1'], true))) {
+                    $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Estatus no válido'];
+                    $bool_formulario = false;
+                }
+
+                if ($bool_formulario) {
+                    $usuarioModel->setCedula($_POST["cedula"]);
+                    $usuarioModel->setEstatus($_POST["estatus"]);
+
+                    $json = $usuarioModel->Transaccion(['peticion' => 'toggle-estatus']);
+
+                    if (isset($json['estado']) && $json['estado'] == 1) {
+                        if ($_POST["estatus"] == 1) {
+                            Helper::Bitacora("MODIFICAR", "USUARIOS", "Se activó el usuario con Cédula: " . $_POST["cedula"]);
+                        } else {
+                            Helper::Bitacora("ELIMINAR", "USUARIOS", "Se eliminó (inactivó) el usuario con Cédula: " . $_POST["cedula"]);
+                        }
+                    }
+                }
+            }
+
+            header("HTTP/1.1 " . ($json['HTTP_STATUS']['codigo'] ?? 200) . " " . ($json['HTTP_STATUS']['mensaje'] ?? "OK"));
+            echo json_encode($json['response'] ?? []);
+            exit;
+        }
+
+        Helper::cargarVista(
+            'usuario/index',
+            'Usuarios - Good Vibes'
+        );
 }

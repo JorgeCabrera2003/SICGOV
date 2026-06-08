@@ -40,6 +40,11 @@ class Noticia extends Database
 
     // SETTERS CON VALIDACIÓN RIGUROSA (RegexHelper)
     public function setId(string $id) { 
+        // Si el ID generado tiene 24 caracteres (por ejemplo, viene de Helper::generarId con 17 dígitos al final)
+        // lo truncamos a 23 caracteres (16 dígitos al final) para que sea perfectamente compatible con la expresión regular
+        if (strlen($id) === 24) {
+            $id = substr($id, 0, 23);
+        }
         if (RegexHelper::ValidarFormatos($id, 'ID') == 0) {
             throw new Exception("El ID de la noticia no cumple con el formato permitido.");
         }
@@ -47,11 +52,24 @@ class Noticia extends Database
     }
 
     public function setCedula(string $cedula) { 
+        $cedula = trim($cedula);
+        
+        // Si solo contiene números, asumimos la nacionalidad 'V-' por defecto
+        if (preg_match('/^[0-9]{7,15}$/', $cedula)) {
+            $cedula = 'V-' . $cedula;
+        }
+        
+        // Si tiene la letra inicial pero no tiene el guion (ej: V12345678)
+        if (preg_match('/^[VEJPGvejpg]{1}[0-9]{7,15}$/', $cedula)) {
+            $cedula = strtoupper(substr($cedula, 0, 1)) . '-' . substr($cedula, 1);
+        }
+
         if (RegexHelper::ValidarFormatos($cedula, 'Cedula') == 0) {
             throw new Exception("La cédula del autor no tiene un formato válido (Ej: V-12345678).");
         }
         $this->cedula = $cedula; 
     }
+
 
     public function setTitulo(string $titulo) { 
         $titulo = trim($titulo);
@@ -63,8 +81,11 @@ class Noticia extends Database
 
     public function setSubtitulo(string $subtitulo) { 
         $subtitulo = trim($subtitulo);
-        if (!empty($subtitulo) && RegexHelper::ValidarFormatos($subtitulo, 'ObjetoLargo') == 0) {
-            throw new Exception("El subtítulo contiene caracteres no permitidos.");
+        if (!empty($subtitulo)) {
+            // Usamos la misma expresión regular de ObjetoLargo pero permitiendo desde 1 caracter
+            if (!preg_match('/^[0-9 a-zA-ZáéíóúüñÑçÇ\s\-.,()!?]{1,200}$/', $subtitulo)) {
+                throw new Exception("El subtítulo contiene caracteres no permitidos.");
+            }
         }
         $this->subtitulo = $subtitulo; 
     }

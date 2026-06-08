@@ -39,6 +39,19 @@ class Bitacora extends Database {
     }
 
     public function set_cedula($c) { 
+        $c = trim($c);
+        if (!empty($c) && $c !== 'Sistema') {
+            // Si solo contiene números, asumimos la nacionalidad 'V-' por defecto
+            if (preg_match('/^[0-9]{7,15}$/', $c)) {
+                $c = 'V-' . $c;
+            }
+            
+            // Si tiene la letra inicial pero no tiene el guion (ej: V12345678)
+            if (preg_match('/^[VEJPGvejpg]{1}[0-9]{7,15}$/', $c)) {
+                $c = strtoupper(substr($c, 0, 1)) . '-' . substr($c, 1);
+            }
+        }
+
         // Permitir 'Sistema' o validar formato de cédula real
         if (!empty($c) && $c !== 'Sistema' && RegexHelper::ValidarFormatos($c, 'Cedula') == 0) {
             throw new Exception("La cédula en bitácora no tiene un formato válido (Ej: V-12345678).");
@@ -77,6 +90,12 @@ class Bitacora extends Database {
         }
         return $response;
     }
+
+
+
+
+
+
 
     private function listarBitacora($filtros = []) {
         $arreglo = [];
@@ -138,6 +157,12 @@ class Bitacora extends Database {
         return $arreglo;
     }
 
+
+
+
+
+
+    
     private function Registrar() {
         $result = false;
         try {

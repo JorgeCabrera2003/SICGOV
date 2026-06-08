@@ -61,7 +61,7 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                                             </div>
                                         <?php endif; ?>
 
-                                        <form action="?page=login" method="post" id="login-form">
+                                        <form action="?page=Login" method="post" id="login-form">
                                             <div class="form-group">
                                                 <label for="CI" class="form-label">Cédula de identidad</label>
                                                 <div class="input-group">
@@ -84,7 +84,7 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                                                     </button>
                                                 </div>
                                                 <div class="text-end mt-2">
-                                                    <a href="?page=recuperar" class="text-decoration-none small text-white-50 hover-white">¿Olvidaste tu contraseña?</a>
+                                                    <a href="?page=recuperar-password" class="text-decoration-none small text-white-50 hover-white">¿Olvidaste tu contraseña?</a>
                                                 </div>
                                             </div>
 
@@ -132,7 +132,11 @@ $openRegisterSlide = $openRegisterSlide ?? false;
                                                 <?php $formContext = 'auth'; include __DIR__ . '/../partials/_user_form.php'; ?>
                                             </div>
 
-                                            <div class="d-grid gap-3 mt-4">
+                                            <div class="d-flex justify-content-center mt-4 mb-2">
+                                                <div class="g-recaptcha" data-sitekey="<?php echo $siteKey; ?>" data-theme="dark"></div>
+                                            </div>
+
+                                            <div class="d-grid gap-3">
                                                 <button type="submit" class="btn btn-primary btn-lg">
                                                     Registrarse ahora <i class="fa-solid fa-user-plus ms-2"></i>
                                                 </button>
@@ -173,6 +177,19 @@ $openRegisterSlide = $openRegisterSlide ?? false;
 <script>
     window.authOpenRegisterSlide = <?php echo json_encode($openRegisterSlide); ?>;
 </script>
+<?php if (isset($_SESSION['show_disabled_alert']) && $_SESSION['show_disabled_alert']): ?>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        Swal.fire({
+            icon: 'error',
+            title: 'Cuenta inhabilitada',
+            text: 'Su cuenta de usuario ha sido inhabilitada o se encuentra inactiva.',
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Entendido'
+        });
+    });
+</script>
+<?php unset($_SESSION['show_disabled_alert']); endif; ?>
 
 </body>
 </html>

@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const emptyGallery = document.getElementById('emptyGallery');
     const filtrosCategorias = document.querySelectorAll('.btn-filtro');
 
-    // Arrays de ingredientes seleccionados
+    // Arrays de insumos seleccionados
     let listPrincipales = [];
     let listAdicionales = [];
 
@@ -26,6 +26,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     init();
 
+
+
+
+
+
+
+
+
+
+
     function init() {
         // Capturar categorías originales válidas
         const catSelect = document.getElementById('id_categoria');
@@ -35,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        renderCatalogoIngredientes();
+        renderCatalogoInsumos();
         cargarMenu();
 
         // Listeners básicos
@@ -59,43 +69,48 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Search de ingredientes
-        const searchInput = document.querySelector('.select-ingrediente-input');
+        // Search de insumos
+        const searchInput = document.querySelector('.select-insumo-input');
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.toLowerCase();
-            const collapse = new bootstrap.Collapse(document.getElementById('catalogoIngredientes'), { toggle: false });
+            const collapse = new bootstrap.Collapse(document.getElementById('catalogoInsumos'), { toggle: false });
             collapse.show();
-            renderCatalogoIngredientes(query);
+            renderCatalogoInsumos(query);
         });
 
         // Cambio de Tabs
         document.getElementById('principales-tab').addEventListener('shown.bs.tab', () => {
-            document.getElementById('catalogoIngredientes').classList.remove('show');
+            document.getElementById('catalogoInsumos').classList.remove('show');
         });
 
         // Eventos de validación y sanitización en tiempo real
         document.getElementById('nombre').addEventListener('input', function (e) {
+            e.stopPropagation();
             this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
             validateForm();
         });
 
         document.getElementById('descripcion').addEventListener('input', function (e) {
+            e.stopPropagation();
             this.value = this.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '');
             validateForm();
         });
 
-        document.getElementById('precio').addEventListener('input', validateForm);
+        document.getElementById('precio').addEventListener('input', function (e) {
+            e.stopPropagation();
+            validateForm();
+        });
         document.getElementById('id_categoria').addEventListener('change', validateForm);
 
         document.getElementById('tipo_producto').addEventListener('change', function (e) {
-            const seccionIngredientes = document.getElementById('seccionIngredientes');
-            const seccionSinIngredientes = document.getElementById('seccionSinIngredientes');
+            const seccionInsumos = document.getElementById('seccionInsumos');
+            const seccionSinInsumos = document.getElementById('seccionSinInsumos');
             if (this.value === 'COCINA') {
-                seccionIngredientes.style.display = 'block';
-                seccionSinIngredientes.style.display = 'none';
+                seccionInsumos.style.display = 'block';
+                seccionSinInsumos.style.display = 'none';
             } else {
-                seccionIngredientes.style.display = 'none';
-                seccionSinIngredientes.style.display = 'flex';
+                seccionInsumos.style.display = 'none';
+                seccionSinInsumos.style.display = 'flex';
             }
             validateForm();
         });
@@ -130,6 +145,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (tbodyA) domObserver.observe(tbodyA, { attributes: true, childList: true, subtree: true, characterData: true });
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     function validateForm() {
         const nombre = document.getElementById('nombre').value.trim();
         const precio = document.getElementById('precio').value;
@@ -156,6 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (nombre.length > 0 && nombre.length < 3) {
             isValid = false;
+            inputNombre.setCustomValidity('El nombre debe tener al menos 3 caracteres.');
+            inputNombre.classList.remove('is-valid');
             inputNombre.classList.add('is-invalid');
             if (errorNombre) {
                 errorNombre.classList.add('invalid-tooltip', 'd-inline-block');
@@ -163,13 +202,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else if (isDuplicate) {
             isValid = false;
+            inputNombre.setCustomValidity('Ya existe un producto registrado con este nombre.');
+            inputNombre.classList.remove('is-valid');
             inputNombre.classList.add('is-invalid');
             if (errorNombre) {
                 errorNombre.classList.add('invalid-tooltip', 'd-inline-block');
                 errorNombre.textContent = 'Ya existe un producto registrado con este nombre.';
             }
-        } else {
+        } else if (nombre.length >= 3) {
+            inputNombre.setCustomValidity('');
             inputNombre.classList.remove('is-invalid');
+            inputNombre.classList.add('is-valid');
+            if (errorNombre) {
+                errorNombre.classList.remove('invalid-tooltip', 'd-inline-block');
+                errorNombre.textContent = '';
+            }
+        } else {
+            inputNombre.setCustomValidity('');
+            inputNombre.classList.remove('is-invalid', 'is-valid');
             if (errorNombre) {
                 errorNombre.classList.remove('invalid-tooltip', 'd-inline-block');
                 errorNombre.textContent = '';
@@ -213,13 +263,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const catError = catSelect ? catSelect.nextElementSibling : null;
         if (categoria && validCategorias.length > 0 && !validCategorias.includes(categoria)) {
             isValid = false;
-            catSelect.classList.add('is-invalid');
+            if (catSelect) {
+                catSelect.setCustomValidity('Categoría inválida');
+                catSelect.classList.remove('is-valid');
+                catSelect.classList.add('is-invalid');
+            }
             if (catError) {
                 catError.classList.add('invalid-tooltip', 'd-inline-block');
                 catError.textContent = 'El valor de categoría seleccionado no existe.';
             }
         } else {
-            if (catSelect) catSelect.classList.remove('is-invalid');
+            if (catSelect) {
+                catSelect.setCustomValidity('');
+                catSelect.classList.remove('is-invalid', 'is-valid');
+            }
             if (catError) {
                 catError.classList.remove('invalid-tooltip', 'd-inline-block');
                 catError.textContent = '';
@@ -233,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const allValidQty = listPrincipales.every(i => parseFloat(i.cantidad) > 0);
                 if (!allValidQty) isValid = false;
 
-                // Validar DOM e ingredientes (Principales)
+                // Validar DOM e insumos (Principales)
                 const rowsP = document.querySelectorAll('#tablaPrincipales tbody tr:not(.empty-row)');
                 rowsP.forEach(row => {
                     const rowId = row.getAttribute('data-id');
@@ -249,10 +306,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (!ingMemoria) {
                         isRowTampered = true;
-                        errorMsg = "¡ID del ingrediente no existe!";
+                        errorMsg = "¡ID del insumo no existe!";
                     } else if (!spanNombre || spanNombre.textContent !== ingMemoria.nombre) {
                         isRowTampered = true;
-                        errorMsg = "¡Nombre del ingrediente no existe!";
+                        errorMsg = "¡Nombre del insumo no existe!";
                     } else if (!select || select.getAttribute('data-id') != rowId) {
                         isRowTampered = true;
                         errorMsg = "¡ID de unidad no existe!";
@@ -308,7 +365,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
                 if (!allValidAdic) isValid = false;
 
-                // Validar DOM e ingredientes (Adicionales)
+                // Validar DOM e insumos (Adicionales)
                 const rowsA = document.querySelectorAll('#tablaAdicionales tbody tr:not(.empty-row)');
                 rowsA.forEach(row => {
                     const rowId = row.getAttribute('data-id');
@@ -325,10 +382,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (!ingMemoria) {
                         isRowTampered = true;
-                        errorMsg = "¡Fila o ID del ingrediente alterado!";
+                        errorMsg = "¡Fila o ID del insumo alterado!";
                     } else if (!spanNombre || spanNombre.textContent !== ingMemoria.nombre) {
                         isRowTampered = true;
-                        errorMsg = "¡Nombre del ingrediente alterado!";
+                        errorMsg = "¡Nombre del insumo alterado!";
                     } else if (!select || select.getAttribute('data-id') != rowId) {
                         isRowTampered = true;
                         errorMsg = "¡ID del selector de unidad alterado!";
@@ -381,6 +438,24 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btnGuardarMenu').disabled = !isValid;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // ==========================================
     // RENDERIZADO GALERIA
     // ==========================================
@@ -409,6 +484,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
+
+
+
+
+
+
+
+
     function filtrarGaleria(idCategoria) {
         galleryContainer.innerHTML = '';
         let filtrados = [];
@@ -428,6 +512,19 @@ document.addEventListener('DOMContentLoaded', () => {
             filtrados.forEach(p => renderCard(p));
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     function renderCard(p) {
         const imgUrl = (p.imagen && p.imagen !== 'default-product.png') ? `${BASE_URL}/assets/img/productos/${p.imagen}` : `${BASE_URL}/assets/img/placeholder.png`;
@@ -468,9 +565,23 @@ document.addEventListener('DOMContentLoaded', () => {
         card.querySelector('.btn-eliminar').addEventListener('click', (e) => eliminarMenu(p.id_producto));
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     // ==========================================
     // GESTIÓN DE MODAL Y RECETA
     // ==========================================
+
 
     function handlePreviewImagen(e) {
         const file = e.target.files[0];
@@ -489,6 +600,18 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsDataURL(file);
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
     function handleAbrirGaleria() {
         if (typeof MediaPicker !== 'undefined') {
             MediaPicker.open({
@@ -505,6 +628,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
+
+
+
+
+
+
+
+
     function abrirModalNuevo() {
         formMenu.reset();
         document.getElementById('id_producto').value = '';
@@ -517,20 +649,34 @@ document.addEventListener('DOMContentLoaded', () => {
         renderReceta();
 
         document.getElementById('tipo_producto').dispatchEvent(new Event('change'));
+        document.getElementById('btnGuardarMenu').innerHTML = '<i class="fas fa-save me-2"></i>Guardar Producto';
         validateForm();
 
         modalMenu.show();
     }
 
-    function renderCatalogoIngredientes(query = '') {
-        const container = document.getElementById('listaIngredientesUI');
+
+
+
+
+
+
+
+
+
+
+
+
+
+    function renderCatalogoInsumos(query = '') {
+        const container = document.getElementById('listaInsumosUI');
         container.innerHTML = '';
 
         const q = query.toLowerCase();
-        const results = ingredientesDB.filter(i => i.nombre_ingrediente.toLowerCase().includes(q));
+        const results = insumosDB.filter(i => i.nombre_insumo.toLowerCase().includes(q));
 
         if (results.length === 0) {
-            container.innerHTML = '<div class="p-3 text-center text-muted">No se encontraron ingredientes.</div>';
+            container.innerHTML = '<div class="p-3 text-center text-muted">No se encontraron insumos.</div>';
             return;
         }
 
@@ -540,7 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
             item.className = 'list-group-item d-flex justify-content-between align-items-center flex-wrap';
             item.innerHTML = `
                 <div>
-                    <strong>${ing.nombre_ingrediente}</strong> 
+                    <strong>${ing.nombre_insumo}</strong> 
                     <small class="text-muted ms-1">(${ing.nombre_unidad})</small>
                 </div>
                 <div class="btn-group btn-group-sm mt-1 mt-sm-0 shadow-sm">
@@ -552,29 +698,42 @@ document.addEventListener('DOMContentLoaded', () => {
             // Add listeners
             item.querySelector('.btn-add-principal').addEventListener('click', (e) => {
                 e.preventDefault();
-                addIngredienteTo(ing, 'principal');
+                addInsumoTo(ing, 'principal');
             });
             item.querySelector('.btn-add-adicional').addEventListener('click', (e) => {
                 e.preventDefault();
-                addIngredienteTo(ing, 'adicional');
+                addInsumoTo(ing, 'adicional');
             });
 
             container.appendChild(item);
         });
     }
 
-    function addIngredienteTo(ing, listType) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+    function addInsumoTo(ing, listType) {
         let isPrincipal = listType === 'principal';
         let targetList = isPrincipal ? listPrincipales : listAdicionales;
 
         // Evitar duplicados
-        if (targetList.find(i => i.id === ing.id_ingrediente)) {
+        if (targetList.find(i => i.id === ing.id_insumo)) {
             return;
         }
 
         targetList.push({
-            id: ing.id_ingrediente,
-            nombre: ing.nombre_ingrediente,
+            id: ing.id_insumo,
+            nombre: ing.nombre_insumo,
             cantidad: 1,
             unidad: ing.id_unidad_medida,
             default_unidad_name: ing.nombre_unidad,
@@ -589,7 +748,15 @@ document.addEventListener('DOMContentLoaded', () => {
         validateForm();
     }
 
-    function removeIngrediente(id, isPrincipal) {
+
+
+
+
+
+
+
+
+    function removeInsumo(id, isPrincipal) {
         if (isPrincipal) {
             listPrincipales = listPrincipales.filter(i => i.id !== id);
         } else {
@@ -599,6 +766,16 @@ document.addEventListener('DOMContentLoaded', () => {
         validateForm();
     }
 
+
+
+
+
+
+
+
+
+
+
     function renderReceta() {
         renderTablaReceta('tablaPrincipales', listPrincipales, true);
         renderTablaReceta('tablaAdicionales', listAdicionales, false);
@@ -607,29 +784,45 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('contAdicionales').innerText = listAdicionales.length;
     }
 
+
+
+
+
+
+
     function renderTablaReceta(tableId, list, isPrincipal) {
         const tbody = document.querySelector(`#${tableId} tbody`);
         tbody.innerHTML = '';
 
         if (list.length === 0) {
-            tbody.innerHTML = `<tr class="empty-row text-center text-muted"><td colspan="4" class="py-4">No hay ingredientes añadidos</td></tr>`;
+            tbody.innerHTML = `<tr class="empty-row text-center text-muted"><td colspan="4" class="py-4">No hay insumos añadidos</td></tr>`;
             return;
         }
-
-        // Crear options para unidades basado en unidadesDB
-        const unidadesHtml = (selectedId) => unidadesDB.map(u =>
-            `<option value="${u.id_unidad}" ${u.id_unidad == selectedId ? 'selected' : ''}>${u.abreviatura}</option>`
-        ).join('');
 
         list.forEach((ing, index) => {
             const tr = document.createElement('tr');
             tr.setAttribute('data-id', ing.id);
 
+            // Obtener el insumo correspondiente de insumosDB para saber su unidad base/tipo
+            const insumoInfo = insumosDB.find(i => i.id_insumo === ing.id);
+            const idUnidadMedida = insumoInfo ? insumoInfo.id_unidad_medida : null;
+            const unidadBase = unidadesDB.find(u => u.id_unidad === idUnidadMedida);
+            const tipoUnidad = unidadBase ? unidadBase.tipo : null;
+
+            // Filtrar unidadesDB para que solo muestre las del mismo tipo
+            const unidadesFiltradas = tipoUnidad
+                ? unidadesDB.filter(u => u.tipo === tipoUnidad)
+                : unidadesDB;
+
+            const unidadesHtml = unidadesFiltradas.map(u =>
+                `<option value="${u.id_unidad}" ${u.id_unidad == ing.unidad ? 'selected' : ''}>${u.abreviatura}</option>`
+            ).join('');
+
             let precioHtml = '';
             if (!isPrincipal) {
                 precioHtml = `
                 <td>
-                    <input type="number" step="0.01" min="0" class="form-control form-control-sm price-input" 
+                     <input type="number" step="0.01" min="0" class="form-control form-control-sm price-input" 
                         data-id="${ing.id}" data-type="adicional" value="${ing.precio || 0}" required>
                 </td>`;
             }
@@ -645,7 +838,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td class="position-relative">
                     <select class="form-select form-select-sm unit-select" data-id="${ing.id}" data-type="${isPrincipal ? 'principal' : 'adicional'}">
-                        ${unidadesHtml(ing.unidad)}
+                        ${unidadesHtml}
                     </select>
                     <span class="invalid-tooltip fw-bold" style="font-size: 0.75rem; width: fit-content;">Valor no existe</span>
                 </td>
@@ -658,32 +851,55 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
             // Listeners updates
-            tr.querySelector('.btn-remove-ing').addEventListener('click', () => removeIngrediente(ing.id, isPrincipal));
-            tr.querySelector('.qty-input').addEventListener('change', (e) => updateIngrediente(ing.id, isPrincipal, 'cantidad', e.target.value));
+            tr.querySelector('.btn-remove-ing').addEventListener('click', () => removeInsumo(ing.id, isPrincipal));
+            tr.querySelector('.qty-input').addEventListener('input', (e) => updateInsumo(ing.id, isPrincipal, 'cantidad', e.target.value));
 
             const unitSelect = tr.querySelector('.unit-select');
-            unitSelect.addEventListener('change', (e) => updateIngrediente(ing.id, isPrincipal, 'unidad', e.target.value));
+            unitSelect.addEventListener('change', (e) => updateInsumo(ing.id, isPrincipal, 'unidad', e.target.value));
 
             if (!isPrincipal) {
-                tr.querySelector('.price-input').addEventListener('change', (e) => updateIngrediente(ing.id, isPrincipal, 'precio', e.target.value));
+                tr.querySelector('.price-input').addEventListener('input', (e) => updateInsumo(ing.id, isPrincipal, 'precio', e.target.value));
             }
 
             tbody.appendChild(tr);
         });
     }
 
-    function updateIngrediente(id, isPrincipal, field, value) {
+
+
+
+
+
+
+
+
+
+
+    function updateInsumo(id, isPrincipal, field, value) {
         let list = isPrincipal ? listPrincipales : listAdicionales;
         let item = list.find(i => i.id === id);
         if (item) item[field] = value;
         validateForm();
     }
 
-    // ==========================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // CRUDS BASE DE DATOS
-    // ==========================================
 
     async function guardarMenu(e) {
+
         e.preventDefault();
 
         const btnSave = document.getElementById('btnGuardarMenu');
@@ -694,8 +910,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const formData = new FormData(formMenu);
 
             // Adjuntar recetas como string JSON
-            formData.append('ingredientes_principales', JSON.stringify(listPrincipales));
-            formData.append('ingredientes_adicionales', JSON.stringify(listAdicionales));
+            formData.append('insumos_principales', JSON.stringify(listPrincipales));
+            formData.append('insumos_adicionales', JSON.stringify(listAdicionales));
 
             const req = await fetch(`${BASE_URL}/?page=menu&action=guardar`, {
                 method: 'POST',
@@ -703,12 +919,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const res = await req.json();
 
+            const isEditing = document.getElementById('id_producto').value !== '';
+
             if (res.success) {
                 modalMenu.hide();
                 Swal.fire({
                     icon: 'success',
-                    title: '¡Guardado!',
-                    text: res.message,
+                    title: isEditing ? '¡Actualizado!' : '¡Guardado!',
+                    text: isEditing ? 'Producto Actualizado Exitosamente' : 'Producto registrado exitosamente',
                     timer: 1500,
                     showConfirmButton: false
                 });
@@ -720,9 +938,27 @@ document.addEventListener('DOMContentLoaded', () => {
             Swal.fire('Error', 'Ha ocurrido un problema de conexión', 'error');
         } finally {
             btnSave.disabled = false;
-            btnSave.innerHTML = '<i class="fas fa-save me-2"></i>Guardar Menú';
+            const isEditing = document.getElementById('id_producto').value !== '';
+            btnSave.innerHTML = isEditing ? '<i class="fas fa-save me-2"></i>Actualizar Producto' : '<i class="fas fa-save me-2"></i>Guardar Producto';
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     async function editarMenu(id) {
         try {
@@ -747,26 +983,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Cargar listas
-                listPrincipales = (p.ingredientes_principales || []).map(i => ({
-                    id: i.id_ingrediente,
-                    nombre: i.nombre_ingrediente,
+                listPrincipales = (p.insumos_principales || []).map(i => ({
+                    id: i.id_insumo,
+                    nombre: i.nombre_insumo,
                     cantidad: parseFloat(i.cantidad),
                     unidad: i.id_unidad_medida,
                     default_unidad_name: i.nombre_unidad
                 }));
 
-                listAdicionales = (p.ingredientes_adicionales || []).map(i => ({
-                    id: i.id_ingrediente,
-                    nombre: i.nombre_ingrediente,
+                listAdicionales = (p.insumos_adicionales || []).map(i => ({
+                    id: i.id_insumo,
+                    nombre: i.nombre_insumo,
                     cantidad: parseFloat(i.cantidad),
                     unidad: i.id_unidad_medida,
                     default_unidad_name: i.nombre_unidad,
-                    precio: parseFloat(i.precio_ingrediente || 0)
+                    precio: parseFloat(i.precio_insumo || 0)
                 }));
 
                 renderReceta();
 
                 document.getElementById('tipo_producto').dispatchEvent(new Event('change'));
+                document.getElementById('btnGuardarMenu').innerHTML = '<i class="fas fa-save me-2"></i>Actualizar Producto';
                 validateForm();
 
                 modalMenu.show();
@@ -778,6 +1015,16 @@ document.addEventListener('DOMContentLoaded', () => {
             Swal.fire('Error', 'No se pudo cargar la información.', 'error');
         }
     }
+
+
+
+
+
+
+
+
+
+
 
     function eliminarMenu(id) {
         Swal.fire({
@@ -819,6 +1066,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+
+
 
     // CSS para mejorar la galería por inyección
     const style = document.createElement('style');

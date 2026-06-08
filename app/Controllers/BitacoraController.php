@@ -40,8 +40,8 @@ class BitacoraController
                     $fechaFormateada = $fecha->format('d/m/Y H:i:s');
                     
                     $usuario = $reg['username'] ?? '';
-                    if (!empty($reg['nombres'])) {
-                        $usuario = $reg['nombres'] . ' ' . ($reg['apellidos'] ?? '');
+                    if (!empty($reg['nombre'])) {
+                        $usuario = $reg['nombre'] . ' ' . ($reg['apellido'] ?? '');
                     }
                     
                     $data[] = [

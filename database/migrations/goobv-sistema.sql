@@ -12,7 +12,7 @@ SET time_zone = "-04:00";
 -- --------------------------------------------------------
 
 CREATE TABLE `unidad_medida` (
-  `id_unidad` varchar(10) NOT NULL,
+  `id_unidad` varchar(30) NOT NULL,
   `nombre` varchar(30) NOT NULL COMMENT 'kg, g, litros, ml, unidades, etc.',
   `abreviatura` varchar(10) NOT NULL,
   `tipo` enum('PESO','VOLUMEN','UNIDAD','LONGITUD') NOT NULL DEFAULT 'UNIDAD',
@@ -61,7 +61,7 @@ CREATE TABLE `turno` (
   PRIMARY KEY (`id_turno`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `categoria_ingrediente` (
+CREATE TABLE `categoria_insumo` (
   `id_categoria` varchar(30) NOT NULL,
   `nombre` varchar(60) NOT NULL,
   `estatus` tinyint(1) NOT NULL DEFAULT 1,
@@ -201,20 +201,20 @@ CREATE TABLE `permiso_laboral` (
 -- 4. INVENTARIO Y CATÁLOGO
 -- --------------------------------------------------------
 
-CREATE TABLE `ingrediente` (
-  `id_ingrediente` varchar(30) NOT NULL,
+CREATE TABLE `insumo` (
+  `id_insumo` varchar(30) NOT NULL,
   `id_categoria` varchar(30) NOT NULL,
-  `nombre_ingrediente` varchar(100) NOT NULL,
-  `id_unidad_medida` varchar(10) NOT NULL DEFAULT 'UN',
+  `nombre_insumo` varchar(100) NOT NULL,
+  `id_unidad_medida` varchar(30) NOT NULL DEFAULT 'MEDIAUN23220260519200547232',
   `precio_unitario` decimal(10,2) DEFAULT 0.00,
-  `stock_actual` decimal(10,3) NOT NULL DEFAULT 0.000,
-  `stock_minimo` decimal(10,3) NOT NULL DEFAULT 0.000,
-  `stock_maximo` decimal(10,3) DEFAULT NULL,
+  `stock_actual` decimal(14,8) NOT NULL DEFAULT 0.00,
+  `stock_minimo` decimal(14,8) NOT NULL DEFAULT 0.00,
+  `stock_maximo` decimal(14,8) DEFAULT NULL,
   `estatus` tinyint(1) NOT NULL DEFAULT 1,
-  PRIMARY KEY (`id_ingrediente`),
+  PRIMARY KEY (`id_insumo`),
   KEY `fk_ing_cat` (`id_categoria`),
   KEY `fk_ing_unidad` (`id_unidad_medida`),
-  CONSTRAINT `fk_ing_cat` FOREIGN KEY (`id_categoria`) REFERENCES `categoria_ingrediente` (`id_categoria`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_ing_cat` FOREIGN KEY (`id_categoria`) REFERENCES `categoria_insumo` (`id_categoria`) ON UPDATE CASCADE,
   CONSTRAINT `fk_ing_unidad` FOREIGN KEY (`id_unidad_medida`) REFERENCES `unidad_medida` (`id_unidad`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -237,17 +237,17 @@ CREATE TABLE `producto` (
 CREATE TABLE `preparacion` (
   `id_preparacion` varchar(30) NOT NULL,
   `id_producto` varchar(30) NOT NULL,
-  `id_ingrediente` varchar(30) NOT NULL,
-  `prioridad_ingrediente` int(11) DEFAULT 1,
-  `cantidad` decimal(10,3) NOT NULL CHECK (`cantidad` > 0),
-  `id_unidad_medida` varchar(10) NOT NULL DEFAULT 'UN',
-  `precio_ingrediente` decimal(10,2) DEFAULT NULL,
+  `id_insumo` varchar(30) NOT NULL,
+  `prioridad_insumo` int(11) DEFAULT 1,
+  `cantidad` decimal(14,8) NOT NULL CHECK (`cantidad` > 0),
+  `id_unidad_medida` varchar(30) NOT NULL DEFAULT 'MEDIAUN23220260519200547232',
+  `precio_insumo` decimal(10,2) DEFAULT NULL,
   PRIMARY KEY (`id_preparacion`),
   KEY `fk_prep_prod` (`id_producto`),
-  KEY `fk_prep_ing` (`id_ingrediente`),
+  KEY `fk_prep_ins` (`id_insumo`),
   KEY `fk_prep_unidad` (`id_unidad_medida`),
   CONSTRAINT `fk_prep_prod` FOREIGN KEY (`id_producto`) REFERENCES `producto` (`id_producto`) ON DELETE CASCADE,
-  CONSTRAINT `fk_prep_ing` FOREIGN KEY (`id_ingrediente`) REFERENCES `ingrediente` (`id_ingrediente`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_prep_ins` FOREIGN KEY (`id_insumo`) REFERENCES `insumo` (`id_insumo`) ON UPDATE CASCADE,
   CONSTRAINT `fk_prep_unidad` FOREIGN KEY (`id_unidad_medida`) REFERENCES `unidad_medida` (`id_unidad`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Recetas de productos';
 
@@ -367,33 +367,47 @@ CREATE TABLE `pago` (
 -- 6. MOVIMIENTOS DE INVENTARIO
 -- --------------------------------------------------------
 
-CREATE TABLE `entrada_ingrediente` (
+CREATE TABLE `entrada_insumo` (
   `id_entrada` varchar(30) NOT NULL,
-  `id_ingrediente` varchar(30) NOT NULL,
+  `id_insumo` varchar(30) NOT NULL,
   `documento_proveedor` varchar(30) NOT NULL,
-  `cantidad` decimal(10,3) NOT NULL,
+  `cantidad` decimal(14,8) NOT NULL,
   `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_entrada`),
-  KEY `fk_ent_ing` (`id_ingrediente`),
+  KEY `fk_ent_ins` (`id_insumo`),
   KEY `fk_ent_prov` (`documento_proveedor`),
-  CONSTRAINT `fk_ent_ing` FOREIGN KEY (`id_ingrediente`) REFERENCES `ingrediente` (`id_ingrediente`) ON DELETE CASCADE,
+  CONSTRAINT `fk_ent_ins` FOREIGN KEY (`id_insumo`) REFERENCES `insumo` (`id_insumo`) ON DELETE CASCADE,
   CONSTRAINT `fk_ent_prov` FOREIGN KEY (`documento_proveedor`) REFERENCES `proveedor` (`documento_legal`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE `movimiento_ingrediente` (
+CREATE TABLE `detalle_entrada` (
+  `id_detalle` varchar(30) NOT NULL,
+  `id_entrada` varchar(30) NOT NULL,
+  `id_unidad_medida` varchar(30) NOT NULL,
+  `cantidad` decimal(14,8) NOT NULL,
+  `descripcion` varchar(255) DEFAULT NULL,
+  `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id_detalle`),
+  KEY `fk_ent` (`id_entrada`),
+  KEY `fk_uni` (`id_unidad_medida`),
+  CONSTRAINT `fk_ent` FOREIGN KEY (`id_entrada`) REFERENCES `entrada_insumo` (`id_entrada`) ON DELETE CASCADE,
+  CONSTRAINT `fk_uni` FOREIGN KEY (`id_unidad_medida`) REFERENCES `unidad_medida` (`id_unidad`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `movimiento_insumo` (
   `id_movimiento` varchar(30) NOT NULL,
-  `id_ingrediente` varchar(30) NOT NULL,
+  `id_insumo` varchar(30) NOT NULL,
   `id_detalle` varchar(30) DEFAULT NULL COMMENT 'Vinculado a la venta si es una salida automática',
-  `cantidad` decimal(10,3) NOT NULL,
-  `id_unidad_medida` varchar(10) NOT NULL DEFAULT 'UN',
+  `cantidad` decimal(14,8) NOT NULL,
+  `id_unidad_medida` varchar(30) NOT NULL DEFAULT 'MEDIAUN23220260519200547232',
   `tipo` enum('ENTRADA','SALIDA','AJUSTE','MERMA') NOT NULL,
   `descripcion` varchar(255) DEFAULT NULL,
   `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_movimiento`),
-  KEY `fk_mov_ing` (`id_ingrediente`),
+  KEY `fk_mov_ing` (`id_insumo`),
   KEY `fk_mov_det` (`id_detalle`),
   KEY `fk_mov_unidad` (`id_unidad_medida`),
-  CONSTRAINT `fk_mov_ing` FOREIGN KEY (`id_ingrediente`) REFERENCES `ingrediente` (`id_ingrediente`) ON DELETE CASCADE,
+  CONSTRAINT `fk_mov_ing` FOREIGN KEY (`id_insumo`) REFERENCES `insumo` (`id_insumo`) ON DELETE CASCADE,
   CONSTRAINT `fk_mov_det` FOREIGN KEY (`id_detalle`) REFERENCES `detalle_pedido` (`id_detalle`) ON DELETE SET NULL,
   CONSTRAINT `fk_mov_unidad` FOREIGN KEY (`id_unidad_medida`) REFERENCES `unidad_medida` (`id_unidad`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -403,10 +417,10 @@ CREATE TABLE `movimiento_ingrediente` (
 -- --------------------------------------------------------
 
 CREATE VIEW `vw_alertas_inventario` AS
-SELECT i.id_ingrediente, i.nombre_ingrediente AS nombre, c.nombre AS categoria, 
+SELECT i.id_insumo, i.nombre_insumo AS nombre, c.nombre AS categoria, 
        i.stock_actual, i.stock_minimo, um.nombre AS unidad_medida
-FROM ingrediente i
-JOIN categoria_ingrediente c ON i.id_categoria = c.id_categoria
+FROM insumo i
+JOIN categoria_insumo c ON i.id_categoria = c.id_categoria
 JOIN unidad_medida um ON i.id_unidad_medida = um.id_unidad
 WHERE i.stock_actual <= i.stock_minimo;
 
@@ -422,9 +436,9 @@ SELECT u1.id_unidad, u1.nombre, u1.abreviatura, u1.tipo,
 FROM unidad_medida u1
 LEFT JOIN unidad_medida u2 ON u1.unidad_base = u2.id_unidad;
 
-CREATE VIEW vw_ingrediente AS
-SELECT i.id_ingrediente,
-i.nombre_ingrediente,
+CREATE VIEW vw_insumo AS
+SELECT i.id_insumo,
+i.nombre_insumo,
 i.id_categoria,
 ci.nombre AS nombre_categoria,
 i.id_unidad_medida,
@@ -434,9 +448,9 @@ i.precio_unitario,
 i.stock_actual,
 i.stock_minimo,
 i.stock_maximo,
-i.estatus FROM ingrediente AS i
+i.estatus FROM insumo AS i
 INNER JOIN unidad_medida AS u ON i.id_unidad_medida = u.id_unidad
-INNER JOIN categoria_ingrediente AS ci ON i.id_categoria = ci.id_categoria;
+INNER JOIN categoria_insumo AS ci ON i.id_categoria = ci.id_categoria;
 
 -- --------------------------------------------------------
 -- 8. DISPARADORES (TRIGGERS)
@@ -444,12 +458,12 @@ INNER JOIN categoria_ingrediente AS ci ON i.id_categoria = ci.id_categoria;
 
 DELIMITER $$
 
-CREATE TRIGGER `trg_actualizar_stock_movimiento` AFTER INSERT ON `movimiento_ingrediente`
+CREATE TRIGGER `trg_actualizar_stock_movimiento` AFTER INSERT ON `movimiento_insumo`
 FOR EACH ROW BEGIN
     IF NEW.tipo = 'ENTRADA' OR NEW.tipo = 'AJUSTE' THEN
-        UPDATE ingrediente SET stock_actual = stock_actual + NEW.cantidad WHERE id_ingrediente = NEW.id_ingrediente;
+        UPDATE insumo SET stock_actual = stock_actual + NEW.cantidad WHERE id_insumo = NEW.id_insumo;
     ELSEIF NEW.tipo = 'SALIDA' OR NEW.tipo = 'MERMA' THEN
-        UPDATE ingrediente SET stock_actual = stock_actual - NEW.cantidad WHERE id_ingrediente = NEW.id_ingrediente;
+        UPDATE insumo SET stock_actual = stock_actual - NEW.cantidad WHERE id_insumo = NEW.id_insumo;
     END IF;
 END$$
 

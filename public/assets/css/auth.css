@@ -158,12 +158,28 @@ form {
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
+        &:has(.is-valid) {
+            border-color: #198754;
+        }
+
+        &:has(.is-invalid) {
+            border-color: var(--bs-danger);
+        }
+
+        .input-group-text {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            padding-left: 1.2rem;
+            padding-right: 0.5rem;
+        }
+
         .form-control, .form-select {
             background: transparent !important;
             border: none;
-            padding: 1.1rem 1.4rem;
+            padding: 0.8rem 1.2rem;
             color: #fff !important;
-            font-size: 1rem;
+            font-size: 0.95rem;
             
             &::placeholder {
                 color: rgba(255, 255, 255, 0.3) !important;
@@ -172,6 +188,15 @@ form {
             &:focus {
                 box-shadow: none;
             }
+
+            &.is-valid, &.is-invalid {
+                background-image: none !important;
+            }
+        }
+
+        .form-select option {
+            background-color: #1A1C20;
+            color: #ffffff;
         }
 
         .auth-sm-select {
@@ -250,3 +275,8 @@ form {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
+.req-met { color: #198754 !important; list-style-type: '✓ '; }
+.req-unmet { color: var(--bs-danger) !important; list-style-type: '× '; }
+.hover-white:hover { color: #fff !important; }
+

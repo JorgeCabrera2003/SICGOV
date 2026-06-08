@@ -25,65 +25,11 @@ date_default_timezone_set("America/Caracas");
 
 session_start();
 
-$page = $_GET['page'] ?? 'noticias';
-
-use App\Controllers\LoginController;
-use App\Controllers\LogOutController;
-use App\Controllers\DashboardController;
-use App\Controllers\MenuController;
-use App\Controllers\ProductoController;
-use App\Controllers\CategoriaController;
-use App\Controllers\BitacoraController;
-use App\Controllers\IngredienteController;
-use App\Controllers\ProveedorController;
-use App\Controllers\UsuarioController;
-use App\Controllers\NoticiaController;
-use App\Controllers\MediaController;
-use App\Controllers\ClienteController;
-use App\Controllers\ReservacionController;
-use App\Controllers\NotificationController;
-use App\Controllers\MesasController;
-use App\Controllers\AreasController;
-use App\Controllers\ReporteController;
-use App\Controllers\PapeleraController;
-use App\Controllers\RolController;
-use App\Controllers\AsistenciaController;
-use App\Controllers\PromocionController;
+use App\Controllers\FrontController;
 
 try {
 
-    match ($page) {
-        'login' => (new LoginController())->index(),
-        'logout' => (new LogOutController())->index(),
-        'crear-cuenta' => (new LoginController())->index(),
-        'home', 'dashboard' => (new DashboardController())->index(),
-        'usuario', 'user' => (new UsuarioController())->index(),
-        'productos' => (new ProductoController())->index(),
-        'menu' => (new MenuController())->index(),
-        'nuestro-menu' => (new MenuController())->indexPublico(),
-        'ingredientes' => (new IngredienteController())->index(),
-        'areas' => (new AreasController())->index(),
-        'proveedores' => (new ProveedorController())->index(),
-        'promocion' => (new PromocionController())->index(),
-        'mesas' => (new MesasController())->index(),
-        'categoria-ingrediente' => (new IngredienteController())->indexCategoria(),
-        'categorias' => (new CategoriaController())->index(),
-        'bitacora' => (new BitacoraController())->index(),
-        'asistencia' => (new AsistenciaController())->index(),
-        'asistencia-publica' => (new AsistenciaController())->indexPublico(),
-        'noticias-admin' => (new NoticiaController())->indexAdmin(),
-        'noticias' => (new NoticiaController())->indexPublico(),
-        'noticias-detalle' => (new NoticiaController())->detallePublico(),
-        'multimedia' => (new MediaController())->index(),
-        'clientes' => (new ClienteController())->index(),
-        'reservaciones' => (new ReservacionController())->index(),
-        'reservar' => (new ReservacionController())->index(true),
-        'reportes' => (new ReporteController())->index(),
-        'papelera' => (new PapeleraController())->index(),
-        'notificaciones' => (new NotificationController())->index(),
-        'rol' => (new RolController())->index(),
-        default => require_once BASE_PATH . '/resources/views/errors/404.php'
-    };
+    $frontController = new FrontController();
 
 } catch (Exception $e) {
     $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');

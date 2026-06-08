@@ -16,8 +16,8 @@ class Menu
     private $id_categoria;
     private $tipo_producto;
     private $imagen;
-    private $ingredientes_principales;
-    private $ingredientes_adicionales;
+    private $insumos_principales;
+    private $insumos_adicionales;
 
     public function __construct()
     {
@@ -91,56 +91,58 @@ class Menu
         $this->imagen = $imagen;
     }
 
-    public function setIngredientesPrincipales($ingredientes_json)
+    public function setInsumosPrincipales($insumos_json)
     {
         if ($this->tipo_producto === 'COCINA') {
-            $ingredientes = is_string($ingredientes_json) ? json_decode($ingredientes_json, true) : $ingredientes_json;
-            if (empty($ingredientes) || !is_array($ingredientes)) {
-                throw new Exception("El producto de cocina debe tener al menos un ingrediente principal.");
+            $insumos = is_string($insumos_json) ? json_decode($insumos_json, true) : $insumos_json;
+            if (empty($insumos) || !is_array($insumos)) {
+                throw new Exception("El producto de cocina debe tener al menos un insumo principal.");
             }
-            foreach ($ingredientes as $ing) {
+            foreach ($insumos as $ing) {
                 if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
-                    throw new Exception("Las cantidades de los ingredientes principales deben ser números mayores a 0.");
+                    throw new Exception("Las cantidades de los insumos principales deben ser números mayores a 0.");
                 }
                 if (empty($ing['unidad'])) {
-                    throw new Exception("La unidad de medida es obligatoria para los ingredientes principales.");
+                    throw new Exception("La unidad de medida es obligatoria para los insumos principales.");
                 }
                 
                 $stmt = $this->db->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
                 $stmt->execute([$ing['unidad']]);
                 if ($stmt->rowCount() === 0) {
-                    throw new Exception("La unidad de medida seleccionada para el ingrediente no existe en la base de datos.");
+                    throw new Exception("La unidad de medida seleccionada para el insumo no existe en la base de datos.");
                 }
             }
         }
-        $this->ingredientes_principales = $ingredientes_json;
+        $this->insumos_principales = $insumos_json;
     }
 
-    public function setIngredientesAdicionales($ingredientes_json)
+
+    
+    public function setInsumosAdicionales($insumos_json)
     {
         if ($this->tipo_producto === 'COCINA') {
-            $ingredientes = is_string($ingredientes_json) ? json_decode($ingredientes_json, true) : $ingredientes_json;
-            if (!empty($ingredientes) && is_array($ingredientes)) {
-                foreach ($ingredientes as $ing) {
+            $insumos = is_string($insumos_json) ? json_decode($insumos_json, true) : $insumos_json;
+            if (!empty($insumos) && is_array($insumos)) {
+                foreach ($insumos as $ing) {
                     if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
-                        throw new Exception("Las cantidades de los ingredientes adicionales deben ser números mayores a 0.");
+                        throw new Exception("Las cantidades de los insumos adicionales deben ser números mayores a 0.");
                     }
                     if (!isset($ing['precio']) || !is_numeric($ing['precio']) || $ing['precio'] <= 0) {
-                        throw new Exception("El precio de los ingredientes adicionales debe ser un número válido mayor a 0.");
+                        throw new Exception("El precio de los insumos adicionales debe ser un número válido mayor a 0.");
                     }
                     if (empty($ing['unidad'])) {
-                        throw new Exception("La unidad de medida es obligatoria para los ingredientes adicionales.");
+                        throw new Exception("La unidad de medida es obligatoria para los insumos adicionales.");
                     }
                     
                     $stmt = $this->db->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
                     $stmt->execute([$ing['unidad']]);
                     if ($stmt->rowCount() === 0) {
-                        throw new Exception("La unidad de medida seleccionada para el ingrediente adicional no existe en la base de datos.");
+                        throw new Exception("La unidad de medida seleccionada para el insumo adicional no existe en la base de datos.");
                     }
                 }
             }
         }
-        $this->ingredientes_adicionales = $ingredientes_json;
+        $this->insumos_adicionales = $insumos_json;
     }
 
 
@@ -182,14 +184,14 @@ class Menu
         return $this->imagen;
     }
 
-    public function getIngredientesPrincipales()
+    public function getInsumosPrincipales()
     {
-        return $this->ingredientes_principales;
+        return $this->insumos_principales;
     }
 
-    public function getIngredientesAdicionales()
+    public function getInsumosAdicionales()
     {
-        return $this->ingredientes_adicionales;
+        return $this->insumos_adicionales;
     }
 
 //#########################################################################################
@@ -208,7 +210,7 @@ class Menu
                     'buscar'       => $this->buscarMenu(),
                     'eliminar'     => $this->eliminarMenu(),
                     'categorias'   => $this->listarCategorias(),
-                    'ingredientes' => $this->listarIngredientes(),
+                    'insumos' => $this->listarInsumos(),
                     'unidades'     => $this->listarUnidades(),
                     default        => ['success' => false, 'message' => 'Petición no válida']
                 };
@@ -301,16 +303,16 @@ class Menu
 //#########################################################################################
 
 
-    private function listarIngredientes()
+    private function listarInsumos()
     {
         try {
-            $sql = "SELECT id_ingrediente, nombre_ingrediente, id_unidad_medida, unidad_medida as nombre_unidad 
-                    FROM vw_ingrediente WHERE estatus = 1 ORDER BY nombre_ingrediente";
+            $sql = "SELECT id_insumo, nombre_insumo, id_unidad_medida, unidad_medida as nombre_unidad 
+                    FROM vw_insumo WHERE estatus = 1 ORDER BY nombre_insumo";
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
-            error_log("Error en listarIngredientes: " . $e->getMessage());
+            error_log("Error en listarInsumos: " . $e->getMessage());
             return [];
         }
     }
@@ -339,7 +341,7 @@ class Menu
     private function listarUnidades()
     {
         try {
-            $sql = "SELECT id_unidad, nombre, abreviatura FROM unidad_medida ORDER BY nombre";
+            $sql = "SELECT id_unidad, nombre, abreviatura, tipo FROM unidad_medida ORDER BY nombre";
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -397,13 +399,13 @@ class Menu
             $stmt->execute($params);
 
             // Insertar Principales (prioridad 1)
-            if (!empty($this->getIngredientesPrincipales())) {
-                $this->insertarPreparacion($this->getIdProducto(), $this->getIngredientesPrincipales(), 1);
+            if (!empty($this->getInsumosPrincipales())) {
+                $this->insertarPreparacion($this->getIdProducto(), $this->getInsumosPrincipales(), 1);
             }
 
             // Insertar Adicionales (prioridad 2)
-            if (!empty($this->getIngredientesAdicionales())) {
-                $this->insertarPreparacion($this->getIdProducto(), $this->getIngredientesAdicionales(), 2);
+            if (!empty($this->getInsumosAdicionales())) {
+                $this->insertarPreparacion($this->getIdProducto(), $this->getInsumosAdicionales(), 2);
             }
 
             $this->db->commit();
@@ -477,13 +479,13 @@ class Menu
             $del->execute(['id_producto' => $this->getIdProducto()]);
 
             // Insertar Principales (prioridad 1)
-            if (!empty($this->getIngredientesPrincipales())) {
-                $this->insertarPreparacion($this->getIdProducto(), $this->getIngredientesPrincipales(), 1);
+            if (!empty($this->getInsumosPrincipales())) {
+                $this->insertarPreparacion($this->getIdProducto(), $this->getInsumosPrincipales(), 1);
             }
 
             // Insertar Adicionales (prioridad 2)
-            if (!empty($this->getIngredientesAdicionales())) {
-                $this->insertarPreparacion($this->getIdProducto(), $this->getIngredientesAdicionales(), 2);
+            if (!empty($this->getInsumosAdicionales())) {
+                $this->insertarPreparacion($this->getIdProducto(), $this->getInsumosAdicionales(), 2);
             }
 
             $this->db->commit();
@@ -519,29 +521,29 @@ class Menu
 //#########################################################################################
 
 
-    private function insertarPreparacion($id_producto, $ingredientes_json, $prioridad)
+    private function insertarPreparacion($id_producto, $insumos_json, $prioridad)
     {
-        error_log("Recibido ingredientes_json para prioridad $prioridad: " . print_r($ingredientes_json, true));
-        $ingredientes = is_string($ingredientes_json) ? json_decode($ingredientes_json, true) : $ingredientes_json;
-        if (!is_array($ingredientes)) {
-            error_log("Error: ingredientes no es un array valido. Valor: " . json_last_error_msg());
+        error_log("Recibido insumos_json para prioridad $prioridad: " . print_r($insumos_json, true));
+        $insumos = is_string($insumos_json) ? json_decode($insumos_json, true) : $insumos_json;
+        if (!is_array($insumos)) {
+            error_log("Error: insumos no es un array valido. Valor: " . json_last_error_msg());
             return;
         }
 
-        $sql = "INSERT INTO preparacion (id_preparacion, id_producto, id_ingrediente, prioridad_ingrediente, cantidad, id_unidad_medida, precio_ingrediente) 
-                VALUES (:id_preparacion, :id_producto, :id_ingrediente, :prioridad, :cantidad, :id_unidad, :precio_ingrediente)";
+        $sql = "INSERT INTO preparacion (id_preparacion, id_producto, id_insumo, prioridad_insumo, cantidad, id_unidad_medida, precio_insumo) 
+                VALUES (:id_preparacion, :id_producto, :id_insumo, :prioridad, :cantidad, :id_unidad, :precio_insumo)";
         $stmt = $this->db->prepare($sql);
 
-        foreach ($ingredientes as $ing) {
+        foreach ($insumos as $ing) {
             $id_preparacion = 'PREP' . date('YmdHis') . rand(100, 999);
             $stmt->execute([
                 'id_preparacion' => $id_preparacion,
                 'id_producto' => $id_producto,
-                'id_ingrediente' => $ing['id'],
+                'id_insumo' => $ing['id'],
                 'prioridad' => $prioridad,
                 'cantidad' => $ing['cantidad'] ?? 1,
                 'id_unidad' => $ing['unidad'] ?? 'UN',
-                'precio_ingrediente' => !empty($ing['precio']) ? (float)$ing['precio'] : 0
+                'precio_insumo' => !empty($ing['precio']) ? (float)$ing['precio'] : 0
             ]);
             usleep(1000); // Pequeña pausa para asegurar id_preparacion único si se insertan muy rápido
         }
@@ -574,10 +576,10 @@ class Menu
             $producto = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($producto) {
-                // Obtener ingredientes
-                $sqlPrep = "SELECT pr.*, i.nombre_ingrediente, u.nombre as nombre_unidad 
+                // Obtener insumos
+                $sqlPrep = "SELECT pr.*, i.nombre_insumo, u.nombre as nombre_unidad 
                             FROM preparacion pr
-                            JOIN ingrediente i ON pr.id_ingrediente = i.id_ingrediente
+                            JOIN insumo i ON pr.id_insumo = i.id_insumo
                             JOIN unidad_medida u ON pr.id_unidad_medida = u.id_unidad
                             WHERE pr.id_producto = :id_producto";
                 $stPrep = $this->db->prepare($sqlPrep);
@@ -587,15 +589,15 @@ class Menu
                 $principales = [];
                 $adicionales = [];
                 foreach ($preparacion as $prep) {
-                    if ($prep['prioridad_ingrediente'] == 1) {
+                    if ($prep['prioridad_insumo'] == 1) {
                         $principales[] = $prep;
-                    } else if ($prep['prioridad_ingrediente'] == 2) {
+                    } else if ($prep['prioridad_insumo'] == 2) {
                         $adicionales[] = $prep;
                     }
                 }
                 
-                $producto['ingredientes_principales'] = $principales;
-                $producto['ingredientes_adicionales'] = $adicionales;
+                $producto['insumos_principales'] = $principales;
+                $producto['insumos_adicionales'] = $adicionales;
             }
 
             return $producto;
@@ -661,6 +663,8 @@ class Menu
     {
         return 'PROD' . date('YmdHis') . rand(1000, 9999);
     }
+
+    
 
     public function subirImagen($archivo)
     {

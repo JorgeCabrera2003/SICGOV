@@ -1,511 +1,716 @@
-//MODULO DE INGREDIENTES
+// ==========================================
+// MÓDULO DE USUARIOS - GOOD VIBES
+// JS / AJAX & DATATABLE LOGIC
+// ==========================================
 
-//-------INICIALIZACIÖN-------
+// Listas de control anti-hackeo (pobladas desde el servidor al cargar)
+let rolesValidosList = [];
+let empleadosValidosList = [];
+let cedulaEdicionOriginal = '';
 
-//Interfaz de Acceso a los Elementos(inputs y span del formulario)
-function etiquetasFormulario(etiquetas) {
-  let referencia = null
+// Observador del DOM (anti-hackeo via Inspect Element)
+let domObserver;
 
-  const inputUsuario = {
-    username: $('#username'),
-    nacionalidad: $('#nacionalidad'),
-    cedula: $('#cedula'),
-    nombre: $('#nombre'),
-    apellido: $('#apellido'),
-    correo: $('#correo'),
-    telefono: $('#telefono'),
-    clave: $('#clave'),
-    rclave: $('#rclave')
-  }
-
-  const spanUsuario = {
-    username: $('#susername'),
-    nacionalidad: $('#snacionalidad'),
-    cedula: $('#scedula'),
-    nombre: $('#snombre'),
-    apellido: $('#sapellido'),
-    correo: $('#scorreo'),
-    telefono: $('#stelefono'),
-    clave: $('#sclave'),
-    rclave: $('#srclave')
-  }
-
-  if (etiquetas === "input") {
-    referencia = inputUsuario
-  }
-
-  if (etiquetas === "span") {
-    referencia = spanUsuario
-  }
-
-  return referencia
+// Interfaz de Acceso a Elementos del Formulario
+function etiquetasFormulario() {
+    return {
+        peticion: $('#peticionUsuario'),
+        cedula: $('#cedula'),
+        cedula_editar: $('#cedula_editar'),
+        username: $('#username'),
+        rol: $('#rol'),
+        clave: $('#clave'),
+        rclave: $('#rclave')
+    };
 }
-//Fin de Interfaz de Acceso a los Elementos(inputs y span del formulario)
 
-//Interfaz de Acceso a los Elementos(modal)
-function etiquetasModal(etiquetas) {
-  let referencia = null
-
-  const modalPrincipal = {
-    modal: $('#modalUsuario'),
-    titulo: $('#modalTitleTextUsuario'),
-    boton: $('#btnUsuarioForm')
-  }
-
-  if (etiquetas === "principal") {
-    referencia = modalPrincipal
-  }
-
-  return referencia
+// Interfaz de Acceso al Modal Principal
+function etiquetasModal() {
+    return {
+        modal: $('#modalUsuario'),
+        titulo: $('#modalTitleTextUsuario'),
+        boton: $('#btnUsuarioForm'),
+        formulario: $('#formUsuario')
+    };
 }
-//Fin de Interfaz de Acceso
 
-//Función para editar textos visuales del modal
+// Editar la configuración visual del Modal dependiendo de la operación
 function editarModal(operacion) {
-  let titulo
-  let boton
-  let etiqueta_modal = null
+    let titulo = "";
+    let boton = "";
+    let eti = etiquetasModal();
 
-  if (operacion == 'registrar') {
-    titulo = "Nuevo Usuario"
-    boton = "Nuevo"
-    etiqueta_modal = etiquetasModal("principal");
-  }
-
-  if (operacion == 'modificar') {
-    titulo = "Actualizar Usuario"
-    boton = "Actualizar"
-    etiqueta_modal = etiquetasModal("principal");
-  }
-
-  if (operacion == 'eliminar') {
-    titulo = "Borrar Usuario"
-    boton = "Borrar"
-    etiqueta_modal = etiquetasModal("principal");
-  }
-  etiqueta_modal.titulo.text(titulo)
-  etiqueta_modal.boton.text(boton)
-  etiqueta_modal.modal.modal("show")
-}
-//Fin de la Función de editarModal
-
-//Función para manejar el cambio de estado del formulario
-function manejarCambioEstado(formularioValido) {
-  let input = etiquetasFormulario("input");
-  let span = etiquetasFormulario("span");
-  let modal = etiquetasModal("principal");
-  const accion = modal.boton.text();
-
-  if (accion === "Eliminar") {
-    // Para eliminar solo validamos el ID
-    const idValido = validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_ingrediente.val(), span.id_ingrediente, '');
-    modal.boton.prop('disabled', !idValido);
-  } else {
-    // Para registrar y modificar validamos todos los campos
-    modal.boton.prop('disabled', !formularioValido);
-  }
-  modal = null;
-  input = null;
-  span = null;
-}
-
-$(document).ready(function () {
-  crearDataTable();
-  registrarEntrada();
-  capaValidar();
-
-  // Inicializar sistema de validación con callback
-  SistemaValidacion.inicializar(etiquetasFormulario('input'), manejarCambioEstado);
-
-  // Validar estado inicial del formulario
-  manejarCambioEstado(false);
-});
-
-async function enviarDatos(operacion) {
-
-  let input = etiquetasFormulario('input');
-  let span = etiquetasFormulario('span');
-  let modal = etiquetasModal("principal");
-
-  let confirmacion = false;
-  let str_acccion = "";
-  let accion = "";
-  let btn_formulario = false;
-  let estado_peticion = null;
-  let peticion = new FormData();
-  //Registrar y Modificar
-  if (operacion == "registrar" || operacion == "modificar") {
-
-    if (operacion == "registrar") {
-      str_acccion = "registrará";
-      accion = "registrar"
+    if (operacion === 'registrar') {
+        titulo = "Nuevo Usuario";
+        boton = "Guardar Usuario";
     }
 
-    if (operacion == "modificar") {
-      str_acccion = "actualizará";
-      accion = "modificar";
-      peticion.append('id_ingrediente', input.id_ingrediente.val());
+    if (operacion === 'modificar') {
+        titulo = "Actualizar Usuario";
+        boton = "Actualizar Usuario";
     }
 
-    if (validarenvio()) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} un Usuario`, "¿Está seguro de realizar la acción?", "question");
+    eti.titulo.text(titulo);
+    eti.boton.html(`<i class="fas fa-save me-2"></i>${boton}`);
+    eti.modal.modal("show");
+}
 
-      if (confirmacion) {
-        peticion.append('peticion', accion);
-        peticion.append('username', input.username.val());
-        peticion.append('cedula', input.nacionalidad.val()+input.cedula.val());
-        peticion.append('nombre', input.nombre.val());
-        peticion.append('apellido', input.apellido.val());
-        peticion.append('telefono', input.telefono.val());
-        peticion.append('correo', input.correo.val());
-        peticion.append('clave', input.clave.val());
-        btn_formulario = true;
-      }
+// Limpiar el formulario y reestablecer su estado inicial
+function limpiar() {
+    let input = etiquetasFormulario();
+    let eti = etiquetasModal();
+
+    eti.formulario[0].reset();
+    input.peticion.val("registrar");
+
+    eti.formulario.removeClass('was-validated');
+
+    // Resetear estilos de validación
+    input.cedula.val("").prop("disabled", false).removeClass('is-valid is-invalid');
+    input.username.val("").removeClass('is-valid is-invalid');
+    input.rol.val("").prop("disabled", false).removeClass('is-valid is-invalid');
+    input.clave.val("").removeClass('is-valid is-invalid');
+    input.rclave.val("").removeClass('is-valid is-invalid');
+
+    // Restablecer vistas de selección vs detalles
+    $('#grupo-seleccion-empleado').removeClass('d-none');
+    $('#grupo-detalle-empleado').addClass('d-none');
+    $('#txt-empleado-nombre').text('');
+    $('#txt-empleado-cedula').text('');
+    input.cedula_editar.val('');
+
+    // Restablecer obligatoriedad de contraseñas
+    $('#help-clave').addClass('d-none');
+    $('#req-clave').removeClass('d-none');
+    $('#req-rclave').removeClass('d-none');
+    input.clave.attr('required', true);
+    input.rclave.attr('required', true);
+
+    // Limpiar feedbacks flotantes
+    $('#feedback_cedula').removeClass('invalid-tooltip d-inline-block').text('');
+    $('#feedback_cedula_editar').removeClass('invalid-tooltip d-inline-block').text('');
+    $('#feedback_rol').removeClass('invalid-tooltip d-inline-block').text('');
+    $('#feedback_username').removeClass('invalid-tooltip d-inline-block').text('');
+    $('#feedback_clave').removeClass('invalid-tooltip d-inline-block').text('');
+    $('#feedback_rclave').removeClass('invalid-tooltip d-inline-block').text('');
+
+    // Resetear variable de control anti-hackeo para cédula
+    cedulaEdicionOriginal = '';
+
+    // Deshabilitar botón (formulario vacío = inválido)
+    eti.boton.prop('disabled', true);
+
+    // Cargar listas desplegables dinámicas (roles se cargan una única vez al iniciar)
+    cargarEmpleadosSinUsuario();
+}
+
+/**
+ * Aplica estilos de validación en los campos y muestra mensajes de feedback.
+ */
+function aplicarEstilosCampo($campo, $feedback, esValido, mensaje, forzar = false) {
+    const val = $campo.val() ? $campo.val().trim() : '';
+    if (!forzar && val === '') {
+        $campo.removeClass('is-valid is-invalid');
+        $feedback.removeClass('invalid-tooltip d-inline-block').text('');
+        return;
+    }
+
+    if (esValido) {
+        $campo.addClass('is-valid').removeClass('is-invalid');
+        $campo[0].setCustomValidity('');
+        $feedback.removeClass('invalid-tooltip d-inline-block').text('');
     } else {
-      btn_formulario = false;
-      mensajes("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.");
+        $campo.addClass('is-invalid').removeClass('is-valid');
+        $campo[0].setCustomValidity(mensaje);
+        $feedback.addClass('invalid-tooltip d-inline-block').text(mensaje);
     }
-  } //Fin del Registrar y Modificar
-  //Eliminar
-  if (operacion == "eliminar") {
-
-    if (validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.nacionalidad.val()+input.cedula.val(), span.cedula, '')) {
-      confirmacion = await confirmarAccion("Se eliminará un Usuario", "¿Está seguro de realizar la acción?", "warning");
-
-      if (confirmacion) {
-        peticion.append('peticion', 'eliminar');
-        peticion.append('cedula', input.nacionalidad.val()+input.cedula.val());
-        btn_formulario = true;
-      }
-    } else {
-      btn_formulario = false;
-      mensajes("error", 10000, "Error de Validación", "El ID del usuario no es válido.");
-    }
-  }//Fin del Eliminar
-
-  if (btn_formulario) {
-    modal.boton.prop('disabled', true);
-    json = await enviaAjax(peticion);
-
-    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-      modal.modal.modal("hide");
-      crearDataTable();
-      mensajes(json.icon, 10000, json.mensaje, null);
-    }
-    modal.boton.prop('disabled', false);
-  }
-
-  if (!confirmacion) {
-    modal.boton.prop('disabled', false);
-  }
-
-  input = null;
-  modal = null;
 }
 
-//Manejo de envio de datos desde el modal
-$("#btnUsuarioForm").on("click", async function () {
-  let accion = null;
-  const MANEJADOR = {
-    'Nuevo': 'registrar',
-    'Actualizar': 'modificar',
-    'Borrar': 'eliminar'
-  }
-  const DEFAULT = null
+/**
+ * Valida el estado de todos los inputs en tiempo real y gestiona el botón Guardar.
+ */
+function verificarEstadoBoton() {
+    const input = etiquetasFormulario();
+    const boton = etiquetasModal().boton;
+    const peticion = input.peticion.val();
 
-  accion = MANEJADOR[$(this).text()] || DEFAULT
+    // ── 1. Evaluar Empleado/Cédula ───────────────────────────
+    let cedulaValida = true;
+    let mensajeCedula = '';
+    if (peticion === 'registrar') {
+        const ced = input.cedula.val();
+        if (!ced || ced === "") {
+            // Sin selección: deshabilita el botón sin mostrar tooltip (campo virgen)
+            cedulaValida = false;
+            aplicarEstilosCampo(input.cedula, $('#feedback_cedula'), false, '', false);
+        } else if (empleadosValidosList.length > 0 && !empleadosValidosList.includes(String(ced))) {
+            // Valor manipulado con Inspeccionar: mostrar tooltip de inmediato
+            cedulaValida = false;
+            mensajeCedula = 'El valor del empleado seleccionado no existe.';
+            aplicarEstilosCampo(input.cedula, $('#feedback_cedula'), false, mensajeCedula, true);
+        } else {
+            // Válido
+            aplicarEstilosCampo(input.cedula, $('#feedback_cedula'), true, '', false);
+        }
+    } else {
+        // En modo modificar, verificar que cedula_editar no haya sido alterada
+        const cedulaActual = input.cedula_editar.val();
+        if (cedulaEdicionOriginal && cedulaActual !== cedulaEdicionOriginal) {
+            cedulaValida = false;
+            mensajeCedula = 'El valor del empleado seleccionado no existe.';
+            // Mostrar el mensaje en el área visible del detalle de empleado
+            $('#feedback_cedula_editar').addClass('invalid-tooltip d-inline-block').text(mensajeCedula);
+        } else {
+            $('#feedback_cedula_editar').removeClass('invalid-tooltip d-inline-block').text('');
+        }
+    }
 
-  if (accion != null) {
-    enviarDatos(accion)
-  } else {
-    console.log("Error, acción no válida")
-  }
-});
+    // ── 2. Evaluar Nombre de Usuario ─────────────────────────
+    const username = input.username.val() ? input.username.val().trim() : '';
+    let usernameValido = true;
+    let mensajeUsername = '';
 
-$("#btn-nuevo").on("click", function () {
-  limpia();
-  editarModal("registrar")
-  // El botón se habilita automáticamente mediante el callback cuando los campos sean válidos
-});
+    const regexSoloLetras = /^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ]+$/;
 
-//Iniciar Tabla de Eliminadas (Papelera) usando evento click del botón
-$("#btn-consultar-eliminados").on("click", function () {
-  iniciarTablaEliminadas();
-});
+    if (!username) {
+        usernameValido = false;
+        mensajeUsername = 'El nombre de usuario es obligatorio.';
+    } else if (username.length < 3) {
+        usernameValido = false;
+        mensajeUsername = 'Debe tener al menos 3 letras.';
+    } else if (!regexSoloLetras.test(username)) {
+        usernameValido = false;
+        mensajeUsername = 'Debe contener solamente letras.';
+    }
 
-// Aplicar capitalización automática cuando el modal se muestra
-$('#modalUsuario').on('shown.bs.modal', function () {
-  // Forzar validación inicial cuando se abre el modal
-  setTimeout(() => {
-    SistemaValidacion.validarFormulario(etiquetasFormulario('input'));
-  }, 100);
-});
+    aplicarEstilosCampo(input.username, $('#feedback_username'), usernameValido, mensajeUsername);
 
-async function vistaPermiso() {
-  let botones = "";
-  let btn_modificar = "";
-  let btn_eliminar = "";
-  let permisos = [];
-  /* 
+    // ── 3. Evaluar Rol del Sistema ───────────────────────────
+    const rol = input.rol.val();
+    let rolValido = true;
+    let mensajeRol = '';
+
+    if (!rol) {
+        // Sin selección: deshabilita el botón sin mostrar tooltip (campo virgen)
+        rolValido = false;
+        aplicarEstilosCampo(input.rol, $('#feedback_rol'), false, '', false);
+    } else if (rolesValidosList.length > 0 && !rolesValidosList.includes(String(rol))) {
+        // Valor manipulado con Inspeccionar: mostrar tooltip de inmediato
+        rolValido = false;
+        mensajeRol = 'El rol seleccionado no es válido.';
+        aplicarEstilosCampo(input.rol, $('#feedback_rol'), false, mensajeRol, true);
+    } else {
+        // Válido
+        aplicarEstilosCampo(input.rol, $('#feedback_rol'), true, '', false);
+    }
+
+    // ── 4. Evaluar Contraseña ────────────────────────────────
+    const clave = input.clave.val() || '';
+    const rclave = input.rclave.val() || '';
+
+    let claveValida = true;
+    let mensajeClave = '';
+    let rclaveValida = true;
+    let mensajeRclave = '';
+
+    if (peticion === 'registrar') {
+        // Obligatorio en registrar
+        if (!clave) {
+            claveValida = false;
+            mensajeClave = 'La contraseña es obligatoria.';
+        } else if (clave.length < 4) {
+            claveValida = false;
+            mensajeClave = 'Debe tener al menos 4 caracteres.';
+        }
+
+        if (!rclave) {
+            rclaveValida = false;
+            mensajeRclave = 'Por favor confirme la contraseña.';
+        } else if (clave !== rclave) {
+            rclaveValida = false;
+            mensajeRclave = 'Las contraseñas no coinciden.';
+        }
+    } else {
+        // Opcional en modificar
+        if (clave !== '') {
+            if (clave.length < 4) {
+                claveValida = false;
+                mensajeClave = 'Debe tener al menos 4 caracteres.';
+            }
+
+            if (!rclave) {
+                rclaveValida = false;
+                mensajeRclave = 'Por favor confirme la contraseña.';
+            } else if (clave !== rclave) {
+                rclaveValida = false;
+                mensajeRclave = 'Las contraseñas no coinciden.';
+            }
+        } else {
+            if (rclave !== '') {
+                rclaveValida = false;
+                mensajeRclave = 'Debe ingresar la contraseña primero.';
+            }
+        }
+    }
+
+    aplicarEstilosCampo(input.clave, $('#feedback_clave'), claveValida, mensajeClave);
+    aplicarEstilosCampo(input.rclave, $('#feedback_rclave'), rclaveValida, mensajeRclave);
+
+    const formularioValido = cedulaValida && usernameValido && rolValido && claveValida && rclaveValida;
+    boton.prop('disabled', !formularioValido);
+}
+
+// Carga asíncrona de los roles activos del sistema
+async function cargarRolesActivos() {
     try {
-      peticion = new FormData();
-      peticion.append('permisos', 'permisos');
-      json = await enviaAjax(peticion);
-      json = JSON.parse(json);
-      permisos = json.permisos;
-    } catch (error) {
-      botones = "";
-      console.log(error);
-      return botones;
-    }
-  
-    if (Array.isArray(permisos) || Object.keys(permisos).length == 0 || permisos == null) {
-      btn_modificar = "";
-      btn_eliminar = "";
-    } else {
-      if (permisos['ente']['modificar']['estado'] == '1') {
-        btn_modificar = `<button onclick="rellenar(this, 0)" class="btn btn-update modificar">
-                          <i class="fa-solid fa-pen-to-square"></i>
-                        </button>`;
-      }
-  
-      if (permisos['ente']['eliminar']['estado'] == '1') {
-        btn_eliminar = `<button onclick="rellenar(this, 1)" class="btn btn-danger eliminar">
-                          <i class="fa-solid fa-trash"></i>
-                        </button>`;
-      }
-    }*/
+        let peticion = new FormData();
+        peticion.append('peticion', 'roles-activos');
+        let json = await enviaAjax(peticion);
 
-  btn_modificar = `<button onclick="rellenar(this, 0)" class="btn btn-primary modificar">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                      </button>`;
+        let $rolSelect = $('#rol');
+        $rolSelect.empty();
+        $rolSelect.append('<option value="" selected disabled>Seleccione un rol...</option>');
 
-  btn_eliminar = `<button onclick="rellenar(this, 1)" class="btn btn-danger eliminar">
-                        <i class="fa-solid fa-trash"></i>
-                      </button>`;
-  botones = btn_modificar + btn_eliminar;
-  console.log(botones)
-  return botones;
-}
+        // Resetear lista de control anti-hackeo
+        rolesValidosList = [];
 
-/* 
-async function botonReactivar() {
-  let botones = "";
-  let permisos = [];
-
-  try {
-    peticion = new FormData();
-    peticion.append('permisos', 'permisos');
-    json = await enviaAjax(peticion);
-    json = JSON.parse(json);
-    permisos = json.permisos;
-  } catch (error) {
-    botones = "";
-    console.log(error);
-    return botones;
-  }
-
-  if (Array.isArray(permisos) || Object.keys(permisos).length == 0 || permisos == null) {
-    btn_reactivar = "";
-  } else {
-    if (permisos['ente']['reactivar']['estado'] == '1') {
-      btn_reactivar = `<button onclick="reactivarEnte(this)" class="btn btn-success reactivar">
-                  <i class="fa-solid fa-recycle"></i>
-                  </button>`;
-    }
-  }
-  console.log(btn_reactivar)
-  return btn_reactivar;
-}
-*/
-function capaValidar() {
-  let input = etiquetasFormulario("input")
-  // Validación con formato en tiempo real
-  input.nombre.on("keypress", function (e) {
-    validarKeyPress(/^[0-9 a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ -.\b]*$/, e);
-  });
-
-  input.costo_unitario.on("keypress", function (e) {
-    validarKeyPress(/^[0-9.\b]*$/, e);
-  });
-
-  // Aplicar capitalización en tiempo real para nombre y responsable
-  input.nombre.on("input", function () {
-    // Capitalizar mientras escribe (opcional)
-    const valor = $(this).val();
-    if (valor.length === 1) {
-      $(this).val(valor.toUpperCase());
-    }
-  });
-}
-
-function validarenvio() {
-  return SistemaValidacion.validarFormulario(etiquetasFormulario('input'));
-}
-
-async function crearDataTable() {
-  let peticion = new FormData();
-  let json = null;
-  let arreglo = [];
-  let botones = '';
-  botones = await vistaPermiso();
-
-  try {
-    peticion.append('peticion', 'consultar');
-    json = await enviaAjax(peticion);
-    arreglo = json.datos;
-  } catch (error) {
-    arreglo = [];
-  }
-
-  if ($.fn.DataTable.isDataTable('#tabla-usuario')) {
-    $('#tabla-usuario').DataTable().destroy();
-  }
-
-  $('#tabla-usuario').DataTable({
-    processing: true,
-    data: arreglo,
-    columns: [
-      {
-        data: 'id_ingrediente',
-        visible: false
-      },
-      { data: 'nombre_ingrediente' },
-      { data: 'unidad_medida' },
-      { data: 'precio_unitario' },
-      {
-        data: null,
-        render: function () {
-          return botones;
+        if (json && json.datos) {
+            json.datos.forEach(rol => {
+                $rolSelect.append(`<option value="${rol.id_rol}">${rol.nombre_rol}</option>`);
+                rolesValidosList.push(String(rol.id_rol));
+            });
         }
-      }
-    ],
-    order: [[1, 'asc']],
-    language: { url: idiomaTabla }
-  });
+    } catch (e) {
+        console.error("Error al cargar roles:", e);
+    }
 }
 
-async function iniciarTablaEliminadas() {
-  let peticion = new FormData();
-  let json = null;
-  let arreglo = [];
-  let boton = '';
+// Carga asíncrona de empleados que no tienen cuenta de usuario creada
+async function cargarEmpleadosSinUsuario() {
+    try {
+        let peticion = new FormData();
+        peticion.append('peticion', 'empleados-sin-usuario');
+        let json = await enviaAjax(peticion);
 
-  try {
-    peticion.append('peticion', 'consultar_eliminadas');
-    json = await enviaAjax(peticion);
-    console.log(json);
-    json = JSON.parse(json);
-    arreglo = json.datos;
-    boton = await botonReactivar();
-    $("#modalEliminadas").modal("show");
-  } catch (error) {
-    arreglo = [];
-    console.log(error);
-  }
+        let $cedulaSelect = $('#cedula');
+        $cedulaSelect.empty();
+        $cedulaSelect.append('<option value="" selected disabled>Seleccione un empleado...</option>');
 
+        // Resetear lista de control anti-hackeo
+        empleadosValidosList = [];
 
-  if ($.fn.DataTable.isDataTable('#tablaEliminadas')) {
-    $('#tablaEliminadas').DataTable().destroy();
-  }
-
-  $('#tablaEliminadas').DataTable({
-    data: arreglo,
-    columns: [
-      {
-        data: 'id',
-        visible: false
-      },
-      { data: 'nombre' },
-      { data: 'nombre_responsable' },
-      { data: 'telefono' },
-      { data: 'direccion' },
-      { data: 'tipo_ente' },
-      {
-        data: null,
-        render: function () {
-          return boton;
+        if (json && json.datos && json.datos.length > 0) {
+            json.datos.forEach(emp => {
+                $cedulaSelect.append(`<option value="${emp.cedula}">${emp.nombre} ${emp.apellido} (Cédula: ${emp.cedula})</option>`);
+                empleadosValidosList.push(String(emp.cedula));
+            });
+        } else {
+            $cedulaSelect.append('<option value="" disabled>No hay empleados disponibles sin usuario</option>');
         }
-      }
-    ],
-    order: [[1, 'asc']],
-    language: { url: idiomaTabla }
-  });
+    } catch (e) {
+        console.error("Error al cargar empleados sin usuario:", e);
+    }
 }
 
-function limpia() {
-  SistemaValidacion.limpiarValidacion(etiquetasFormulario('input'));
+// Inicialización de Listeners de Eventos en Inputs
+function inicializarInputListeners() {
+    const input = etiquetasFormulario();
 
-  let input = etiquetasFormulario('input')
-  let span = etiquetasFormulario('span')
+    input.cedula.on('change', verificarEstadoBoton);
+    input.rol.on('change', verificarEstadoBoton);
 
-  input.id_ingrediente.val("").prop("readOnly", true)
-  input.nombre.val("").prop("readOnly", false)
-  input.costo_unitario.val("").prop("readOnly", false)
-  input.unidad_medida.val("default").prop("disabled", false)
+    // Detectar si el campo oculto cedula_editar es alterado desde Inspeccionar
+    input.cedula_editar.on('input change', verificarEstadoBoton);
 
-  // Deshabilitar el botón al limpiar (se habilitará automáticamente cuando los campos sean válidos)
-  $('#enviar').prop('disabled', true);
-  input = null;
+    input.username.on('keypress', function (e) {
+        const char = String.fromCharCode(e.which);
+        if (!/[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ]/.test(char)) {
+            e.preventDefault();
+        }
+    });
+
+    input.username.on('input', verificarEstadoBoton);
+    input.clave.on('input', verificarEstadoBoton);
+    input.rclave.on('input', verificarEstadoBoton);
+
+    // Alternar visibilidad de contraseñas (Eye Icon Toggle)
+    $('.btn-pwd-toggle').off('click').on('click', function () {
+        const targetSelector = $(this).attr('data-target');
+        const $input = $(targetSelector);
+        const $icon = $(this).find('i');
+
+        if ($input.attr('type') === 'password') {
+            $input.attr('type', 'text');
+            $icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        } else {
+            $input.attr('type', 'password');
+            $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        }
+    });
 }
 
+// Enviar datos del formulario al backend mediante AJAX
+async function enviarDatos(operacion) {
+    let input = etiquetasFormulario();
+    let modal = etiquetasModal();
+    let form = modal.formulario[0];
+
+    // Verificar validez una última vez
+    verificarEstadoBoton();
+    if (modal.boton.prop('disabled')) {
+        mensajes("error", 5000, "Error de Validación", "Por favor completa correctamente los campos obligatorios.");
+        return;
+    }
+
+    let confirmacion = false;
+    let tituloAccion = "";
+    if (operacion === "registrar") tituloAccion = "Se registrará un nuevo Usuario";
+    if (operacion === "modificar") tituloAccion = "Se actualizará el Usuario";
+
+    confirmacion = await confirmarAccion(tituloAccion, "¿Está seguro de realizar la acción?", "question");
+
+    if (confirmacion) {
+        modal.boton.prop('disabled', true);
+
+        let peticionData = new FormData(form);
+        peticionData.set('peticion', operacion);
+
+        if (operacion === 'modificar') {
+            peticionData.set('cedula', input.cedula_editar.val());
+        }
+
+        try {
+            let json = await enviaAjax(peticionData);
+
+            if (json && json.resultado >= 200 && json.resultado < 300) {
+                modal.modal.modal("hide");
+                crearDataTable();
+                mensajes("success", 3000, "Éxito", json.mensaje);
+            } else {
+                mensajes("error", 5000, "Error", (json && json.mensaje) || "Ocurrió un error inesperado.");
+            }
+        } catch (error) {
+            mensajes("error", 5000, "Error", "Error de comunicación con el servidor.");
+        } finally {
+            modal.boton.prop('disabled', false);
+        }
+    }
+}
+
+// Rellenar datos en el modal para operación de Modificar (Edición)
 function rellenar(pos, accion) {
-  limpia();
-  let input = etiquetasFormulario('input')
-  const linea = $(pos).closest('tr');
-  const tabla = $('#tablaIngrediente').DataTable();
-  const datosFila = tabla.row(linea).data();
+    limpiar();
 
-  // Usar los datos directamente de DataTable (más confiable)
-  input.id_ingrediente.val(datosFila.id_ingrediente);
-  input.nombre.val(capitalizarTexto(datosFila.nombre_ingrediente));
-  input.costo_unitario.val((datosFila.precio_unitario));
-  buscarSelect(input.unidad_medida, datosFila.unidad_medida, "value");
+    let input = etiquetasFormulario();
+    const linea = $(pos).closest('tr');
+    const tabla = $('#tabla-usuario').DataTable();
+    const datosFila = tabla.row(linea).data();
 
-  if (accion == 0) {
-    editarModal("modificar")
-  } else {
-    input.id_ingrediente.prop("readOnly", true);
-    input.nombre.prop("readOnly", true);
-    input.costo_unitario.prop("readOnly", true);
-    input.unidad_medida.prop("disabled", true);
-    editarModal("eliminar")
-  }
+    // Rellenar datos clave
+    input.cedula_editar.val(datosFila.cedula);
+    input.username.val(datosFila.username);
 
-  // Habilitar el botón inmediatamente para Modificar/Eliminar ya que los datos vienen pre-validados
-  $('#btnIngredienteForm').prop('disabled', false);
+    // Guardar la cédula original para detectar manipulaciones en modo editar
+    cedulaEdicionOriginal = String(datosFila.cedula);
+
+    // Asignar el rol usando helper del sistema
+    buscarSelect(input.rol, datosFila.id_rol, "value");
+
+    // Configurar modo de Modificación
+    input.peticion.val("modificar");
+
+    // Intercambiar visibilidades de sección empleado
+    $('#grupo-seleccion-empleado').addClass('d-none');
+    $('#grupo-detalle-empleado').removeClass('d-none');
+    $('#txt-empleado-nombre').text(`${datosFila.nombre} ${datosFila.apellido}`);
+    $('#txt-empleado-cedula').text(`Cédula: ${datosFila.cedula}`);
+
+    // Configurar contraseñas como opcionales
+    $('#help-clave').removeClass('d-none');
+    $('#req-clave').addClass('d-none');
+    $('#req-rclave').addClass('d-none');
+    input.clave.removeAttr('required');
+    input.rclave.removeAttr('required');
+
+    if (accion === 0) {
+        editarModal("modificar");
+    }
+
+    // Revalidar campos pre-cargados
+    verificarEstadoBoton();
 }
-//Fin Manejo de Envío de Datos
 
-async function reactivarEnte(boton) {
-  const linea = $(boton).closest('tr');
-  const tabla = $('#tablaEliminadas').DataTable();
-  const datosFila = tabla.row(linea).data();
-  const id = datosFila.id;
-  const regex = new RegExp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/)
-  let peticion = new FormData();
-  let json = null;
+// Cambiar el estatus del usuario (Activo 1 / Inactivo 0) directamente
+async function toggleEstatus(pos, targetEstatus) {
+    const linea = $(pos).closest('tr');
+    const tabla = $('#tabla-usuario').DataTable();
+    const datosFila = tabla.row(linea).data();
 
+    const nombreCompleto = `${datosFila.nombre} ${datosFila.apellido}`;
+    const textoConfirmacion = targetEstatus == 1
+        ? `¿Está seguro de activar al usuario ${nombreCompleto}?`
+        : `¿Está seguro de inactivar al usuario ${nombreCompleto}?`;
 
-  confirmacion = await confirmarAccion(`Se reactivará un Ente`, "¿Está seguro de realizar la acción?", "question");
+    let confirmacion = await confirmarAccion(
+        targetEstatus == 1 ? "Activar Usuario" : "Inactivar Usuario",
+        textoConfirmacion,
+        targetEstatus == 1 ? "question" : "warning"
+    );
 
-  if (confirmacion) {
+    if (confirmacion) {
+        let peticionData = new FormData();
+        peticionData.append('peticion', 'toggle-estatus');
+        peticionData.append('cedula', datosFila.cedula);
+        peticionData.append('estatus', targetEstatus);
 
-    if (!regex.test(id)) {
-      console.log('Error');
-      return;
+        try {
+            let json = await enviaAjax(peticionData);
+
+            if (json && json.resultado >= 200 && json.resultado < 300) {
+                crearDataTable();
+                mensajes("success", 3000, "Éxito", json.mensaje);
+            } else {
+                mensajes("error", 5000, "Error", (json && json.mensaje) || "Ocurrió un error inesperado.");
+            }
+        } catch (error) {
+            mensajes("error", 5000, "Error", "Error de comunicación con el servidor.");
+        }
     }
-    peticion.append('peticion', 'reactivar');
-    peticion.append('id_ente', id);
-    json = await enviaAjax(peticion);
-    json = JSON.parse(json)
-  }
+}
 
-  if (json != null) {
-    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-      mensajes(json.icon, 10000, json.mensaje, null);
-      crearDataTable();
-      iniciarTablaEliminadas();
+// Forzar cambio de clave
+async function forzarCambioClave(pos) {
+    const linea = $(pos).closest('tr');
+    const tabla = $('#tabla-usuario').DataTable();
+    const datosFila = tabla.row(linea).data();
+
+    const nombreUsuario = datosFila.username;
+    const textoConfirmacion = `¿Está seguro de forzar a ${nombreUsuario} a cambiar su contraseña en su próximo inicio de sesión?`;
+
+    let confirmacion = await confirmarAccion(
+        "Forzar Cambio de Clave",
+        textoConfirmacion,
+        "warning"
+    );
+
+    if (confirmacion) {
+        let peticionData = new FormData();
+        peticionData.append('peticion', 'forzar-clave');
+        peticionData.append('cedula', datosFila.cedula);
+
+        try {
+            let json = await enviaAjax(peticionData);
+
+            if (json && json.resultado >= 200 && json.resultado < 300) {
+                mensajes("success", 3000, "Éxito", json.mensaje);
+            } else {
+                mensajes("error", 5000, "Error", (json && json.mensaje) || "Ocurrió un error inesperado.");
+            }
+        } catch (error) {
+            mensajes("error", 5000, "Error", "Error de comunicación con el servidor.");
+        }
     }
-  }
+}
+
+// Inicialización de la DataTable principal
+async function crearDataTable() {
+    let peticion = new FormData();
+    let arreglo = [];
+
+    try {
+        peticion.append('peticion', 'consultar');
+        let json = await enviaAjax(peticion);
+        arreglo = json.datos || [];
+    } catch (error) {
+        arreglo = [];
+    }
+
+    if ($.fn.DataTable.isDataTable('#tabla-usuario')) {
+        $('#tabla-usuario').DataTable().destroy();
+    }
+
+    $('#tabla-usuario').DataTable({
+        responsive: true,
+        processing: true,
+        data: arreglo,
+        columns: [
+            {
+                data: 'username',
+                render: function (data) {
+                    return `<strong>${data}</strong>`;
+                }
+            },
+            { data: 'rol' },
+            {
+                data: 'estatus',
+                render: function (data) {
+                    if (data == 1) {
+                        return '<span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1.5 rounded-pill"><i class="fas fa-circle-check me-1"></i>Activo</span>';
+                    } else {
+                        return '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-1.5 rounded-pill"><i class="fas fa-circle-xmark me-1"></i>Inactivo</span>';
+                    }
+                }
+            },
+            {
+                data: null,
+                className: 'text-end',
+                render: function (data, type, row) {
+                    const dropdown = $('<div>').addClass('dropdown');
+                    const boton = $('<button>').addClass('btn btn-sm bg-body text-body border dropdown-toggle')
+                        .attr('type', 'button')
+                        .attr('data-bs-toggle', 'dropdown')
+                        .html('<i class="fas fa-ellipsis-v me-2"></i>Acciones');
+
+                    const menu = $('<ul>').addClass('dropdown-menu dropdown-menu-end');
+
+                    const itemEditar = $('<li>');
+                    const linkEditar = $('<a>')
+                        .addClass('dropdown-item text-primary')
+                        .attr('href', '#')
+                        .attr('onclick', 'rellenar(this, 0)')
+                        .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
+                    itemEditar.append(linkEditar);
+
+                    const separador = $('<li>').html('<hr class="dropdown-divider">');
+
+                    // Cambiar estado (Activar / Inactivar)
+                    const itemToggle = $('<li>');
+                    const esActivo = row.estatus == 1;
+                    const claseTexto = esActivo ? 'text-warning' : 'text-success';
+                    const icono = esActivo ? 'fa-user-slash' : 'fa-user-check';
+                    const textoAccion = esActivo ? 'Inactivar' : 'Activar';
+
+                    const linkToggle = $('<a>')
+                        .addClass(`dropdown-item ${claseTexto}`)
+                        .attr('href', '#')
+                        .attr('onclick', `toggleEstatus(this, ${esActivo ? 0 : 1})`)
+                        .html(`<i class="fa-solid ${icono} me-2"></i>${textoAccion}`);
+                    itemToggle.append(linkToggle);
+
+                    // Forzar cambio de clave
+                    const itemForzarClave = $('<li>');
+                    const linkForzarClave = $('<a>')
+                        .addClass('dropdown-item text-danger')
+                        .attr('href', '#')
+                        .attr('onclick', 'forzarCambioClave(this)')
+                        .html('<i class="fa-solid fa-key me-2"></i>Forzar cambio de clave');
+                    itemForzarClave.append(linkForzarClave);
+
+                    menu.append(itemEditar, separador, itemToggle, itemForzarClave);
+                    dropdown.append(boton, menu);
+
+                    return dropdown.prop('outerHTML');
+                }
+            }
+        ],
+        order: [[0, 'asc']],
+        language: { url: idiomaTabla }
+    });
+}
+
+// DOM Ready
+$(document).ready(function () {
+    crearDataTable();
+    inicializarInputListeners();
+    inicializarObservadorDOM(); // Observador de mutaciones anti-hackeo
+    cargarRolesActivos(); // Carga de roles de forma segura una única vez al iniciar
+
+    // Evento Click para botón de Registro
+    $("#btn-nuevo").on("click", function () {
+        limpiar();
+        editarModal("registrar");
+    });
+
+    // Guardar/Actualizar
+    $("#btnUsuarioForm").on("click", function (e) {
+        e.preventDefault();
+        let peticion = $('#peticionUsuario').val();
+        enviarDatos(peticion);
+    });
+
+    // Asegurar validación al abrir modal
+    $('#modalUsuario').on('show.bs.modal', function () {
+        const peticion = $('#peticionUsuario').val();
+        if (peticion === 'registrar') {
+            $('#btnUsuarioForm').prop('disabled', true);
+        }
+    });
+
+    // Reconectar el observador al mostrar el modal (los selects pueden haber cambiado)
+    $('#modalUsuario').on('shown.bs.modal', function () {
+        reconectarObservadorDOM();
+    });
+
+    // Desconectar el observador al cerrar el modal (limpieza)
+    $('#modalUsuario').on('hidden.bs.modal', function () {
+        if (domObserver) {
+            domObserver.disconnect();
+        }
+    });
+});
+
+/**
+ * Inicializa el MutationObserver para detectar manipulaciones del DOM
+ * en los selects de rol y cédula (incluso desde Inspeccionar del navegador).
+ * Mismo patrón que el módulo de Menú.
+ */
+function inicializarObservadorDOM() {
+    domObserver = new MutationObserver((mutationsList) => {
+        let shouldValidate = false;
+        for (let mutation of mutationsList) {
+            // Ignorar cambios de class/style para evitar bucle infinito
+            // (verificarEstadoBoton agrega/quita is-valid, is-invalid, etc.)
+            if (
+                mutation.type === 'attributes' &&
+                (mutation.attributeName === 'class' || mutation.attributeName === 'style')
+            ) {
+                continue;
+            }
+            shouldValidate = true;
+            break;
+        }
+        if (shouldValidate) {
+            verificarEstadoBoton();
+            // Limpiar la cola de mutaciones generadas por verificarEstadoBoton
+            // para evitar un bucle infinito
+            domObserver.takeRecords();
+        }
+    });
+
+    reconectarObservadorDOM();
+}
+
+/**
+ * Reconecta el observador a los elementos del formulario.
+ * Se llama al inicializar y cada vez que se abre el modal.
+ */
+function reconectarObservadorDOM() {
+    if (!domObserver) return;
+
+    domObserver.disconnect();
+
+    const opcionesObserver = {
+        attributes: true,
+        childList: true,
+        subtree: true,
+        characterData: true
+    };
+
+    // Observar el select de empleado (cedula) — solo visible al registrar
+    const selectCedula = document.getElementById('cedula');
+    if (selectCedula) {
+        domObserver.observe(selectCedula, opcionesObserver);
+    }
+
+    // Observar el select de rol
+    const selectRol = document.getElementById('rol');
+    if (selectRol) {
+        domObserver.observe(selectRol, opcionesObserver);
+    }
+
+    // Observar el campo oculto cedula_editar — visible en modo modificar
+    const inputCedulaEditar = document.getElementById('cedula_editar');
+    if (inputCedulaEditar) {
+        domObserver.observe(inputCedulaEditar, opcionesObserver);
+    }
 }

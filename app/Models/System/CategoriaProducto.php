@@ -12,7 +12,6 @@ class CategoriaProducto
     private $db;
     private $id_categoria;
     private $nombre_categoria;
-    private $descripcion;
     private $estatus;
 
     public function __construct()
@@ -47,25 +46,6 @@ class CategoriaProducto
         $this->nombre_categoria = $nombre;
     }
     
-    public function setDescripcion($desc)
-    {
-        $desc = trim($desc ?? '');
-        if (empty($desc)) {
-            $this->descripcion = '';
-            return;
-        }
-        if (mb_strlen($desc) < 2) {
-            throw new Exception("La descripción debe tener al menos 2 caracteres.");
-        }
-        if (!preg_match('/^[A-ZÁÉÍÓÚÑ]/', $desc)) {
-            throw new Exception("La descripción debe comenzar con una letra mayúscula.");
-        }
-        if (RegexHelper::ValidarFormatos($desc, 'CategoriaMenuDesc') == 0) {
-            throw new Exception("La descripción solo puede contener letras y espacios (2 a 200 caracteres).");
-        }
-        $this->descripcion = $desc;
-    }
-    
     public function setEstatus($estatus)
     {
         if (!in_array((string)$estatus, ['0', '1'], true)) {
@@ -86,10 +66,6 @@ class CategoriaProducto
     public function getNombreCategoria() 
     { 
         return $this->nombre_categoria; 
-    }
-    public function getDescripcion() 
-    { 
-        return $this->descripcion; 
     }
     public function getEstatus() 
     { 
@@ -206,20 +182,17 @@ class CategoriaProducto
             $sql = "INSERT INTO categoria_producto (
                     id_categoria, 
                     nombre_categoria, 
-                    descripcion, 
                     estatus
                 ) VALUES (
                     :id_categoria,
                     :nombre_categoria, 
-                    :descripcion, 
                     1
                 )";
 
             $stmt = $this->db->prepare($sql);
             $result = $stmt->execute([
                 'id_categoria'     => $this->getIdCategoria(),
-                'nombre_categoria' => $this->getNombreCategoria(),
-                'descripcion'      => $this->getDescripcion() ?? ''
+                'nombre_categoria' => $this->getNombreCategoria()
             ]);
 
             if ($result) {
@@ -263,7 +236,6 @@ class CategoriaProducto
             $this->db->beginTransaction();
             $sql = "UPDATE categoria_producto SET 
                     nombre_categoria = :nombre_categoria,
-                    descripcion = :descripcion,
                     estatus = :estatus
                     WHERE id_categoria = :id_categoria";
 
@@ -271,7 +243,6 @@ class CategoriaProducto
             $result = $stmt->execute([
                 'id_categoria'     => $this->getIdCategoria(),
                 'nombre_categoria' => $this->getNombreCategoria(),
-                'descripcion'      => $this->getDescripcion(),
                 'estatus'          => $this->getEstatus()
             ]);
 
