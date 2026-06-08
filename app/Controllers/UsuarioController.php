@@ -9,7 +9,9 @@ use App\Models\Security\Rol;
 
 $type = $_REQUEST['type'] ?? 'index';
 
+
 if ($type === 'index') {
+
         Helper::verificarSesion();
 
         $usuarioModel = new Usuario();
@@ -31,6 +33,8 @@ if ($type === 'index') {
             $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Solicitud Incorrecta'];
             $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Envió solicitud no válida'];
 
+
+
             // ── PETICIÓN: CONSULTAR ─────────────────────────────
             if ($_POST["peticion"] == "consultar") {
                 $json = $usuarioModel->Transaccion(['peticion' => 'consultar']);
@@ -39,6 +43,8 @@ if ($type === 'index') {
                 exit;
             }
 
+
+
             // ── PETICIÓN: EMPLEADOS SIN USUARIO ────────────────
             if ($_POST["peticion"] == "empleados-sin-usuario") {
                 $json = $usuarioModel->Transaccion(['peticion' => 'empleados-sin-usuario']);
@@ -46,6 +52,8 @@ if ($type === 'index') {
                 echo json_encode($json['response'] ?? []);
                 exit;
             }
+
+
 
             // ── PETICIÓN: ROLES ACTIVOS ──────────────────────────
             if ($_POST["peticion"] == "roles-activos") {
@@ -56,10 +64,14 @@ if ($type === 'index') {
                 exit;
             }
 
+
+
             // ── PETICIÓN: REGISTRAR Y MODIFICAR ──────────────────
             if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
                 $bool_formulario = true;
                 $peticion = $_POST["peticion"];
+
+
 
                 // 1. Cédula validation format
                 if (!isset($_POST["cedula"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'Cedula') == 0) {
@@ -67,10 +79,11 @@ if ($type === 'index') {
                     $bool_formulario = false;
                 }
 
-                // 2. Anti-Hacking validation for Employee Cédula
+
+                
                 if ($bool_formulario) {
                     if ($peticion === 'registrar') {
-                        // Must be a valid employee without a user
+                        
                         $empResult = $usuarioModel->Transaccion(['peticion' => 'empleados-sin-usuario']);
                         $validSinUsuarioCedulas = [];
                         if (isset($empResult['response']['datos']) && is_array($empResult['response']['datos'])) {
@@ -85,7 +98,7 @@ if ($type === 'index') {
                             $bool_formulario = false;
                         }
                     } else {
-                        // Must be an existing registered user
+                        
                         $usersList = $usuarioModel->Transaccion(['peticion' => 'consultar']);
                         $validCedulas = [];
                         if (isset($usersList['response']['datos']) && is_array($usersList['response']['datos'])) {
@@ -102,7 +115,7 @@ if ($type === 'index') {
                     }
                 }
                 
-                // 3. Username validation (Strictly letters, min 3 chars, mandatory)
+                
                 $username = isset($_POST["username"]) ? trim($_POST["username"]) : '';
                 if ($bool_formulario) {
                     if (empty($username)) {
@@ -117,13 +130,13 @@ if ($type === 'index') {
                     }
                 }
 
-                // 4. Rol validation & Anti-Hacking validation
+                
                 if ($bool_formulario) {
                     if (!isset($_POST["rol"]) || empty(trim($_POST["rol"]))) {
                         $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El rol es obligatorio.'];
                         $bool_formulario = false;
                     } else {
-                        // Fetch active roles to prevent Inspect Element spoofing
+                        
                         $rolModel = new Rol();
                         $rolesResult = $rolModel->Transaccion(['peticion' => 'consultar']);
                         $validRoles = [];
@@ -141,7 +154,7 @@ if ($type === 'index') {
                     }
                 }
 
-                // 5. Clave validation (Registrar: obligatorio min 4 chars; Modificar: opcional min 4 chars)
+                
                 if ($bool_formulario) {
                     $clave = isset($_POST["clave"]) ? $_POST["clave"] : '';
                     if ($peticion == "registrar") {
@@ -180,6 +193,8 @@ if ($type === 'index') {
                 }
             }
 
+
+
             // ── PETICIÓN: FORZAR CAMBIO DE CLAVE ───────────────
             if ($_POST["peticion"] == "forzar-clave") {
                 $bool_formulario = true;
@@ -198,6 +213,8 @@ if ($type === 'index') {
                     }
                 }
             }
+
+            
 
             // ── PETICIÓN: TOGGLE ESTATUS (ACTIVAR/INACTIVAR) ───
             if ($_POST["peticion"] == "toggle-estatus") {

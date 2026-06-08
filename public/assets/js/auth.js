@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Validation functions
     function aplicarValidacion(input, span, isValid, mensaje) {
         if (!span || !input) return;
-        
+
         input.classList.remove('is-valid', 'is-invalid');
         span.className = '';
         span.innerHTML = '';
@@ -153,11 +153,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const hiddenTelefono = document.getElementById('telefono');
 
         // Prevent invalid chars on input
-        if(inputs.nombre) inputs.nombre.addEventListener('keypress', soloLetras);
-        if(inputs.apellido) inputs.apellido.addEventListener('keypress', soloLetras);
-        if(inputs.cedula) inputs.cedula.addEventListener('input', function() { this.value = this.value.replace(/\D/g, ''); });
-        if(inputs.numero_telefono) inputs.numero_telefono.addEventListener('input', function() { this.value = this.value.replace(/\D/g, ''); });
-        if(inputs.username) inputs.username.addEventListener('input', function() { this.value = this.value.replace(/[^a-zA-Z]/g, ''); });
+        if (inputs.nombre) inputs.nombre.addEventListener('keypress', soloLetras);
+        if (inputs.apellido) inputs.apellido.addEventListener('keypress', soloLetras);
+        if (inputs.cedula) inputs.cedula.addEventListener('input', function () { this.value = this.value.replace(/\D/g, ''); });
+        if (inputs.numero_telefono) inputs.numero_telefono.addEventListener('input', function () { this.value = this.value.replace(/\D/g, ''); });
+        if (inputs.username) inputs.username.addEventListener('input', function () { this.value = this.value.replace(/[^a-zA-Z]/g, ''); });
 
         let cedulaDisponible = true;
         let cedulaEnChequeo = '';
@@ -169,14 +169,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (ced.length >= 7 && ced.length <= 9 && nac !== '') {
                     const checkStr = nac + '-' + ced;
                     if (cedulaEnChequeo === checkStr) return;
-                    
+
                     cedulaEnChequeo = checkStr;
-                    
+
                     const formData = new FormData();
                     formData.append('peticion', 'verificar_cedula');
                     formData.append('nacionalidad', nac);
                     formData.append('cedula', ced);
-                    
+
                     try {
                         // El form action de login manda a ?page=login (o BASE_URL si es index)
                         const res = await fetch(BASE_URL + '/?page=login', {
@@ -195,8 +195,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        if(inputs.cedula) inputs.cedula.addEventListener('blur', chequearCedula);
-        if(inputs.nacionalidad) inputs.nacionalidad.addEventListener('change', chequearCedula);
+        if (inputs.cedula) inputs.cedula.addEventListener('blur', chequearCedula);
+        if (inputs.nacionalidad) inputs.nacionalidad.addEventListener('change', chequearCedula);
 
         function validarFormulario() {
             let isValid = true;
@@ -251,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 let numValid = inputs.numero_telefono.value.trim().length === 7;
                 let prefValid = inputs.prefijo_telefono.value !== '';
                 let valid = numValid && prefValid;
-                
+
                 if (valid && hiddenTelefono) {
                     hiddenTelefono.value = inputs.prefijo_telefono.value + '-' + inputs.numero_telefono.value.trim();
                 } else if (hiddenTelefono) {
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Initialize state
         validarFormulario();
-        
+
         regForm.addEventListener('submit', function (event) {
             if (btnReg && btnReg.disabled) {
                 event.preventDefault();
@@ -316,5 +316,82 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
         });
+    }
+
+    // Validaciones para la pantalla de restablecer contraseña (nueva_password.php)
+    const claveReset = document.getElementById('clave');
+    const rclaveReset = document.getElementById('rclave');
+    const reqLength = document.getElementById('req-length');
+    const reqUpper = document.getElementById('req-upper');
+    const reqNumber = document.getElementById('req-number');
+    const reqSpecial = document.getElementById('req-special');
+    const matchError = document.getElementById('match-error');
+    const btnSubmitReset = document.getElementById('btn-submit');
+
+    if (claveReset && rclaveReset && reqLength && reqUpper && reqNumber && reqSpecial && btnSubmitReset && matchError) {
+        function validateResetPassword() {
+            const val = claveReset.value;
+            let isValid = true;
+
+            // Al menos 8 caracteres
+            if (val.length >= 8) {
+                reqLength.classList.remove('req-unmet');
+                reqLength.classList.add('req-met');
+            } else {
+                reqLength.classList.remove('req-met');
+                reqLength.classList.add('req-unmet');
+                isValid = false;
+            }
+
+            // Al menos una mayúscula
+            if (/[A-Z]/.test(val)) {
+                reqUpper.classList.remove('req-unmet');
+                reqUpper.classList.add('req-met');
+            } else {
+                reqUpper.classList.remove('req-met');
+                reqUpper.classList.add('req-unmet');
+                isValid = false;
+            }
+
+            // Al menos un número
+            if (/[0-9]/.test(val)) {
+                reqNumber.classList.remove('req-unmet');
+                reqNumber.classList.add('req-met');
+            } else {
+                reqNumber.classList.remove('req-met');
+                reqNumber.classList.add('req-unmet');
+                isValid = false;
+            }
+
+            // Al menos un carácter especial
+            if (/[\W_]/.test(val)) {
+                reqSpecial.classList.remove('req-unmet');
+                reqSpecial.classList.add('req-met');
+            } else {
+                reqSpecial.classList.remove('req-met');
+                reqSpecial.classList.add('req-unmet');
+                isValid = false;
+            }
+
+            // Confirmar contraseña coincide
+            const confirmVal = rclaveReset.value;
+            if (confirmVal.length > 0 && val !== confirmVal) {
+                matchError.classList.remove('d-none');
+                isValid = false;
+            } else {
+                matchError.classList.add('d-none');
+                if (confirmVal.length === 0) {
+                    isValid = false;
+                }
+            }
+
+            btnSubmitReset.disabled = !isValid;
+        }
+
+        claveReset.addEventListener('input', validateResetPassword);
+        rclaveReset.addEventListener('input', validateResetPassword);
+
+        // Estado inicial
+        validateResetPassword();
     }
 });

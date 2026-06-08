@@ -9,53 +9,6 @@ $(document).ready(function () {
         $(targetId).addClass('show');
     });
 
-    // 3. Avatar Upload Trigger
-    $('#btnEditarAvatar').on('click', function () {
-        $('#inputAvatar').click();
-    });
-
-    $('#inputAvatar').on('change', async function () {
-        const file = this.files[0];
-        if (!file) return;
-
-        // Visual validation before sending
-        const allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'jfif'];
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (!allowed.includes(ext)) {
-            mensajes("error", 5000, "Formato no permitido", "Por favor seleccione una imagen válida (JPG, PNG, WEBP, GIF).");
-            return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-            mensajes("error", 5000, "Archivo muy grande", "La imagen no debe superar los 5 MB de tamaño.");
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('peticion', 'subir-avatar');
-        formData.append('foto', file);
-
-        // Show loading toast
-        mensajes("info", 2000, "Procesando", "Comprimiendo y convirtiendo imagen a WebP...");
-
-        try {
-            const res = await enviaAjax(formData);
-            if (res && res.resultado === 200) {
-                // Update local profile avatar
-                $('#imgAvatar').attr('src', res.url);
-
-                // Update global sidebar and navbar avatars immediately
-                $('.user-avatar img').attr('src', res.url);
-
-                mensajes("success", 3000, "Éxito", "Foto de perfil actualizada exitosamente.");
-            } else {
-                mensajes("error", 5000, "Error", res.mensaje || "No se pudo actualizar la foto de perfil.");
-            }
-        } catch (err) {
-            mensajes("error", 5000, "Error", "Ocurrió un error al cargar la imagen al servidor.");
-        }
-    });
-
     // 4. Update Username Form & Validation
     const inputUsername = $('#username_input');
     const spanUsername = $('#susername_input');

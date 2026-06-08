@@ -9,11 +9,7 @@
         <div class="d-flex align-items-center flex-column flex-md-row gap-4 mb-4">
             <!-- Foto de Perfil (Avatar) -->
             <div class="position-relative" style="width: 140px; height: 140px;">
-                <img src="<?= $datos['foto'] ?>" alt="Foto de perfil" id="imgAvatar" class="rounded-circle shadow-sm" style="width: 100%; height: 100%; object-fit: cover; border: 4px solid var(--color-border);">
-                <div class="position-absolute d-flex justify-content-center align-items-center rounded-circle" id="btnEditarAvatar" role="button" aria-label="Cambiar foto de perfil" style="top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); color: white; opacity: 0; transition: opacity 0.3s; cursor: pointer;">
-                    <i class="bi bi-camera-fill fs-3"></i>
-                </div>
-                <input type="file" id="inputAvatar" class="d-none" accept="image/*">
+                <img src="<?= BASE_URL . 'assets/img/default.jpg' ?>" alt="Foto de perfil" id="imgAvatar" class="rounded-circle shadow-sm" style="width: 100%; height: 100%; object-fit: cover; border: 4px solid var(--color-border);">
             </div>
 
             <!-- Nombres, Apellidos y Rol -->
@@ -28,9 +24,6 @@
             </div>
         </div>
         
-        <style>
-            #btnEditarAvatar:hover { opacity: 1 !important; }
-        </style>
 
         <!-- Navegación de Pestañas (Tabs) -->
         <div class="profile-tabs-wrapper">
