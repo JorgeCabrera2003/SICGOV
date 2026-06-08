@@ -35,8 +35,11 @@ if (isset($_POST["peticion"])) {
 				if ($bool_formulario) {
 					$array_permisos = json_decode($_POST['permisos']);
 					$permisos = Helper::convertirJSON($array_permisos);
+
+
 					$str_mensaje = NULL;
 					$str_accion = "DESCONOCIDA";
+					$contador = 0;
 					if ($_POST["peticion"] == "registrar") {
 						$id = Helper::generarId("ROLS");
 						$str_mensaje = "registró";
@@ -54,6 +57,15 @@ if (isset($_POST["peticion"])) {
 					$json = $rolModel->Transaccion(['peticion' => $_POST["peticion"]]);
 					if ($json['estado'] == 1) {
 
+						foreach ($permisos as &$i) {
+							foreach ($i['permisos'] as &$j) {
+								$contador++;
+								if ($j['id'] == NULL) {
+									$j['id'] = Helper::generarId($rolModel->getId(), $j['accion'], $contador);
+								}
+							}
+						}
+						$permisoModel->setIdRol($rolModel->getId());
 						$permisoModel->Transaccion(['peticion' => 'cargar', 'permisos' => $permisos]);
 						$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un rol con el ID: " . $rolModel->getId();
 					} else {
@@ -109,6 +121,11 @@ if (isset($_POST["peticion"])) {
 		Helper::Bitacora('ELIMINAR', 'ROL', $msg, $json['datos_anteriores'], $json['datos_nuevos']);
 	}
 	//Fin del Eliminar
+
+	if($_POST["peticion"] == "filtrar_permiso"){
+		$permisoModel->setIdRol($_POST['id_rol']);
+		$json = $permisoModel->Transaccion(['peticion' => 'filtrar', 'parametro' => $_POST['parametro']]);
+	}
 	//Enviar respuesta al navegador usando un encabezado HTTP
 
 	header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
