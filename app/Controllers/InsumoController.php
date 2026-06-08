@@ -216,7 +216,7 @@ class InsumoController
 			echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
 			exit;
 		} //Fin de Operaciones
-		header("Location: ?url=Dashboard");
+		header("Location: ?page=Dashboard");
 	}
 
 	public function indexUnidadMedida()

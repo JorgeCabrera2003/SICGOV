@@ -9,9 +9,23 @@
 
         public function __construct() {
 
+            if (!isset($_REQUEST["page"]) || empty($_REQUEST["page"])) {
+                $_REQUEST["page"] = "Noticia";
+                if (!isset($_REQUEST["type"])) {
+                    $_REQUEST["type"] = "publico";
+                }
+            }
+
             if (isset($_REQUEST["page"])) {
 
-                $this->url = $_REQUEST["page"];
+                if ($_REQUEST["page"] === 'nuestro-menu') {
+                    $this->url = 'Menu';
+                    $_REQUEST["type"] = 'publico';
+                } elseif ($_REQUEST["page"] === 'pedidos') {
+                    $this->url = 'Pedido';
+                } else {
+                    $this->url = $_REQUEST["page"];
+                }
 
                 $this->dir = BASE_PATH . '/app/Controllers/';
 

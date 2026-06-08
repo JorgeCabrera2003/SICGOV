@@ -102,7 +102,7 @@ if (!function_exists('App\Controllers\generarReporte')) {
         };
 
         if (!$configReporte) {
-            header("Location: " . BASE_URL . "/?url=Reporte&type=reportes&error=tipo_invalido");
+            header("Location: " . BASE_URL . "/?page=Reporte&type=reportes&error=tipo_invalido");
             return;
         }
 

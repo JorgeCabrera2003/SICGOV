@@ -51,7 +51,7 @@
                 <h5 class="modal-title fw-bold" id="modalReservacionLabel">Detalle de Reservación</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="formReservacion" method="POST" action="<?= BASE_URL ?>/?url=Reservacion">
+            <form id="formReservacion" method="POST" action="<?= BASE_URL ?>/?page=Reservacion">
                 <div class="modal-body p-4">
                     <input type="hidden" name="peticion" id="peticion" value="registrar">
                     <input type="hidden" name="id_reservacion" id="id_reservacion">
