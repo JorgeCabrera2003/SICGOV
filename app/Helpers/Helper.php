@@ -30,7 +30,7 @@ class Helper
         }
         $milisegundo = $milisegundo + $contador;
         // Componer el ID
-        $fecha = date('YmdHms');
+        $fecha = date('YmdHis');
         $id = $prefijo . $clave . $fecha . $milisegundo;
 
         return $id;
@@ -281,9 +281,6 @@ class Helper
             }
 
 
-            if (!$image)
-                return false;
-
             // Asegurar que el directorio destino existe
             $dir = dirname($destination);
             if (!is_dir($dir))
@@ -309,7 +306,7 @@ class Helper
                     $valor = self::convertirJSON($valor);
                 } elseif (is_array($valor)) {
                     $valor = array_map(function ($item) {
-                        return is_object($item) ? self::convertirJSON($item) : $item;
+                        return (is_object($item) || is_array($item)) ? self::convertirJSON($item) : $item;
                     }, $valor);
                 }
             }
@@ -318,7 +315,7 @@ class Helper
 
         if (is_array($objeto)) {
             return array_map(function ($valor) {
-                return is_object($valor) ? self::convertirJSON($valor) : $valor;
+                return (is_object($valor) || is_array($valor)) ? self::convertirJSON($valor) : $valor;
             }, $objeto);
         }
 

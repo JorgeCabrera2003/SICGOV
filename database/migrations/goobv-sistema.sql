@@ -255,6 +255,7 @@ CREATE TABLE `promocion` (
   `id_promocion` varchar(30) NOT NULL,
   `nombre` varchar(100) NOT NULL,
   `tipo_descuento` enum('PORCENTAJE','MONTO_FIJO') NOT NULL,
+  `valor_descuento` decimal(10,2) NOT NULL DEFAULT 0.00,
   `descripcion` text DEFAULT NULL,
   `fecha_inicio` date NOT NULL,
   `fecha_fin` date DEFAULT NULL,
