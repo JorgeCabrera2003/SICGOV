@@ -19,7 +19,9 @@ namespace App\Models\Security;
 
 use App\Core\Database;
 use App\Helpers\Helper;
+use App\Helpers\RegexHelper;
 use PDO;
+use Exception;
 use DateTime;
 
 class Permiso extends Database
@@ -42,26 +44,41 @@ class Permiso extends Database
     //SETTERS
     public function setId(string $id)
     {
+        if (RegexHelper::ValidarFormatos($id, "ID") == 0) {
+            throw new Exception('ID no válido.');
+        }
         $this->id = $id;
     }
 
     public function setIdRol(string $id_rol)
     {
+        if (RegexHelper::ValidarFormatos($id_rol, "ID") == 0) {
+            throw new Exception('ID no válido.');
+        }
         $this->id_rol = $id_rol;
     }
 
     public function setIdModulo(string $id)
     {
+        if (RegexHelper::ValidarFormatos($id, "ID") == 0) {
+            throw new Exception('ID no válido.');
+        }
         $this->modulo = $id;
     }
 
     public function setAccion(string $accion)
     {
+        if (RegexHelper::ValidarFormatos($accion, "Objeto") == 0) {
+            throw new Exception('Acción no válida.');
+        }
         $this->accion = $accion;
     }
 
     public function setEstado(string $estado)
     {
+        if($estado != 1 && $estado != 0){
+            throw new Exception('Estado no válidao.');
+        }
         $this->estado = $estado;
     }
     //FIN DE SETTERS

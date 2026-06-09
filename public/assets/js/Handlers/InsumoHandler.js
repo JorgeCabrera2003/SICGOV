@@ -125,9 +125,12 @@ export async function EnviarDatos(operacion) {
   let peticion = new FormData();
   let json = { resultado: 0};
 
+  peticion.append("modulo", "Insumo");
+
   //Registrar y Modificar
   if (operacion == "registrar" || operacion == "modificar") {
     let bool_peticion = true;
+    let stock_maximo = input.stock_maximo.val();
     if (operacion == "registrar") {
       str_acccion = "registrará";
       accion = "registrar"
@@ -145,6 +148,10 @@ export async function EnviarDatos(operacion) {
       peticion.append('id_insumo', input.id_insumo.val());
     }
 
+if (input.stock_maximo.val() == "" || input.stock_maximo.val() == null){
+  stock_maximo = 0;
+}
+
     if (Validarenvio() && bool_peticion) {
       confirmacion = await confirmarAccion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
 
@@ -153,7 +160,7 @@ export async function EnviarDatos(operacion) {
         peticion.append('nombre', input.nombre.val());
         peticion.append('unidad_medida', input.unidad_medida.val());
         peticion.append('costo_unitario', input.costo_unitario.val());
-        peticion.append('stock_maximo', input.stock_maximo.val());
+        peticion.append('stock_maximo', stock_maximo);
         peticion.append('stock_minimo', input.stock_minimo.val());
         peticion.append('id_categoria', input.categoria_id.val());
         peticion.append('id_proveedor', input.proveedor.val());
@@ -237,7 +244,7 @@ export async function CrearSelectProveedores() {
   let json = null;
   let datos = new FormData();
   let input = EtiquetasFormulario('input');
-  const endpoint = "?page=proveedores";
+  const endpoint = "?page=Proveedor";
   const mensaje = "Seleccione un Proveedor"
   let arreglo = [];
   datos.append("peticion", "consultar")
@@ -263,9 +270,11 @@ export async function CrearSelectUnidadMedida() {
   let json = null;
   let datos = new FormData();
   let input = EtiquetasFormulario('input');
-  const endpoint = "?page=unidad-medida";
+  const endpoint = "?page=Insumo";
+  const modulo = "UnidadMedida";
   const mensaje = "Seleccione una Unidad de Medida"
   let arreglo = [];
+  datos.append("modulo", modulo);
   datos.append("peticion", "consultar")
 
   try {
@@ -290,7 +299,7 @@ export async function CrearSelectCategoria() {
   let json = null;
   let datos = new FormData();
   let input = EtiquetasFormulario('input');
-  const endpoint = "?page=categoria-insumo";
+  const endpoint = "?page=CategoriaInsumo";
   const mensaje = "Seleccione una Categoría"
   let arreglo = [];
   datos.append("peticion", "consultar")

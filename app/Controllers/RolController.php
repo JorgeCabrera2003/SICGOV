@@ -66,12 +66,16 @@ if (isset($_POST["peticion"])) {
 							}
 						}
 						$permisoModel->setIdRol($rolModel->getId());
-						$permisoModel->Transaccion(['peticion' => 'cargar', 'permisos' => $permisos]);
-						$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un rol con el ID: " . $rolModel->getId();
+						$responsePermiso = $permisoModel->Transaccion(['peticion' => 'cargar', 'permisos' => $permisos]);
+
+						$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un rol con el ID: " . $rolModel->getId(). ". Pero hubo un fallo al cargar los permisos";
+
+						if ($responsePermiso['estado'] == 1) {
+							$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un rol con el ID: " . $rolModel->getId();	
+						}
 					} else {
 						$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un rol";
 					}
-					$json['response']['permisos'] = $permisos;
 				}
 			} catch (Exception $exception) {
 				$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
@@ -122,7 +126,7 @@ if (isset($_POST["peticion"])) {
 	}
 	//Fin del Eliminar
 
-	if($_POST["peticion"] == "filtrar_permiso"){
+	if ($_POST["peticion"] == "filtrar_permiso") {
 		$permisoModel->setIdRol($_POST['id_rol']);
 		$json = $permisoModel->Transaccion(['peticion' => 'filtrar', 'parametro' => $_POST['parametro']]);
 	}

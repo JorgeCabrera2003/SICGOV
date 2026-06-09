@@ -16,8 +16,6 @@ $("#btnProveedorForm").on("click", async function () {
   let respuesta = null;
   respuesta = await proveedor.EnviarFormulario($(this).text());
 
-  console.log(respuesta);
-
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
     crearDataTable();
   };
