@@ -172,13 +172,56 @@
             </div>
             <div class="row mt-2 mb-5">
                 <div class="col-md-6">
+                    <!-- Grupo Permisos Laborales -->
+                    <fieldset class="permission-group">
+                        <legend class="group-header">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input group-checkbox" type="checkbox"
+                                    id="group-permiso_laboral" data-modulo="PERML0011420260519200547232">
+                                <label class="form-check-label" for="group-permiso_laboral">Gestionar Permisos
+                                    Laborales</label>
+                            </div>
+                        </legend>
+                        <div class="row permission-options" data-modulo-string="PERML0011420260519200547232">
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="registrar" id="permiso_laboral-registrar">
+                                    <label class="form-check-label" for="permiso_laboral-registrar">Registrar</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="ver" id="permiso_laboral-ver">
+                                    <label class="form-check-label" for="permiso_laboral-ver">Ver</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="modificar" id="permiso_laboral-modificar">
+                                    <label class="form-check-label" for="permiso_laboral-modificar">Modificar</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="eliminar" id="permiso_laboral-eliminar">
+                                    <label class="form-check-label" for="permiso_laboral-eliminar">Eliminar</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="col-md-6">
                     <!-- Grupo Turnos -->
                     <fieldset class="permission-group">
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input group-checkbox" type="checkbox" id="group-horario"
+                                <input class="form-check-input group-checkbox" type="checkbox" id="group-turno"
                                     data-modulo="TURNO0001420260519200547232">
-                                <label class="form-check-label" for="group-horario">Gestionar Turnos</label>
+                                <label class="form-check-label" for="group-turno">Gestionar Turnos</label>
                             </div>
                         </legend>
                         <div class="row permission-options" data-modulo-string="TURNO0001420260519200547232">
@@ -208,6 +251,50 @@
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
                                         type="checkbox" role="switch" value="eliminar" id="turno-eliminar">
                                     <label class="form-check-label" for="turno-eliminar">Eliminar</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="row mt-2 mb-5">
+                <div class="col-md-6">
+                    <!-- Grupo Tipo Permiso -->
+                    <fieldset class="permission-group">
+                        <legend class="group-header">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input group-checkbox" type="checkbox" id="group-tipo_permiso"
+                                    data-modulo="TIPOP0021420260519200547232">
+                                <label class="form-check-label" for="group-tipo_permiso">Gestionar Tipos de Permisos</label>
+                            </div>
+                        </legend>
+                        <div class="row permission-options" data-modulo-string="TIPOP0021420260519200547232">
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="registrar" id="tipo_permiso-registrar">
+                                    <label class="form-check-label" for="tipo_permiso-registrar">Registrar</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="ver" id="tipo_permiso-ver">
+                                    <label class="form-check-label" for="tipo_permiso-ver">Ver</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="modificar" id="tipo_permiso-modificar">
+                                    <label class="form-check-label" for="tipo_permiso-modificar">Modificar</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="eliminar" id="tipo_permiso-eliminar">
+                                    <label class="form-check-label" for="tipo_permiso-eliminar">Eliminar</label>
                                 </div>
                             </div>
                         </div>
