@@ -67,7 +67,7 @@
                 
                 <div class="row g-3 mb-3">
                     <div class="col-12">
-                        <label class="form-label fw-semibold text-muted mb-0">Fecha de Ingreso en el Sistema</label>
+                        <label class="form-label fw-semibold text-muted mb-0">Fecha de Ingreso</label>
                         <p class="fs-6 fw-bold" id="c_fecha_ingreso"></p>
                     </div>
                 </div>

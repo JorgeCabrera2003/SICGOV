@@ -111,7 +111,7 @@ CREATE TABLE `empleado` (
   `cedula` varchar(15) NOT NULL,
   `id_cargo` varchar(30) NOT NULL,
   `fecha_ingreso` date NOT NULL,
-  `fecha_egreso` date DEFAULT NULL,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`cedula`),
   KEY `fk_emp_cargo` (`id_cargo`),
   CONSTRAINT `fk_emp_persona` FOREIGN KEY (`cedula`) REFERENCES `persona` (`cedula`) ON DELETE CASCADE,

@@ -9,6 +9,7 @@ use App\Models\System\Empleado;
 Helper::verificarSesion();
 
 $empleadoModel = new Empleado();
+
 if (isset($_POST["peticion"])) {
 
 
@@ -127,7 +128,7 @@ if (isset($_POST["peticion"])) {
                 $json = $empleadoModel->Transaccion(['peticion' => $_POST["peticion"]]);
                 if (isset($json['estado']) && $json['estado'] == 1) {
                     $accion_texto = ($_POST["estatus"] == 1) ? "activó" : "desactivó";
-                    Helper::Bitacora("CAMBIAR_ESTATUS", "EMPLEADOS", "Se {$accion_texto} al empleado con cédula: " . $_POST["cedula"]);
+                    Helper::Bitacora("CAMBIAR ESTATUS", "EMPLEADOS", "Se {$accion_texto} al empleado con cédula: " . $_POST["cedula"]);
                 }
             }
         } else {

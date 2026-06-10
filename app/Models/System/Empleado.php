@@ -82,7 +82,7 @@ class Empleado extends Persona
             $db = $this->LlamarConexion();
             $sql = "SELECT p.cedula, p.nombre, p.apellido, p.fecha_nacimiento, 
                            p.telefono, p.correo, p.direccion, p.sexo, 
-                           e.id_cargo, c.nombre_cargo as cargo, e.fecha_ingreso, e.fecha_egreso, e.estatus 
+                           e.id_cargo, c.nombre_cargo as cargo, e.fecha_ingreso, e.estatus 
                     FROM empleado e 
                     INNER JOIN persona p ON e.cedula = p.cedula
                     LEFT JOIN cargo c ON e.id_cargo = c.id_cargo

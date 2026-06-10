@@ -358,7 +358,7 @@
                 <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                     <div class="user-avatar" style="width: 36px; height: 36px;">
-                        <img src="<?php echo !empty($datos['foto']) ? BASE_URL . ltrim($datos['foto'], '/') : BASE_URL . 'assets/img/default.jpg'; ?>"
+                        <img src="<?php echo BASE_URL . 'assets/img/default.jpg'; ?>"
                             alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
                     </div>
                     <span
