@@ -1,5 +1,5 @@
 <!-- ==========================================
-    MODAL DEl FORMULARIO CATEGORÍA INGREDIENTE - REUTILIZABLE
+    MODAL DEl FORMULARIO TIPO PERMISO- REUTILIZABLE
     ========================================== -->
 
 <div class="modal fade" id="modal-formtipo_permiso" tabindex="-1" aria-labelledby="modal-TipoPermisoFormLabel"
