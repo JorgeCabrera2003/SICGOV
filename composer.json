@@ -5,7 +5,10 @@
         "psr-4": {
             "App\\": "app/",
             "App\\Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+            "config/modulo_sistema.php"
+        ]
     },
     "require": {
         "php": "^8.1",

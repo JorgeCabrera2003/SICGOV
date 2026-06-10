@@ -60,11 +60,18 @@ function iniciarValidaciones() {
 }
 
 async function crearDataTable(controlador = "insumos") {
+  const MODULOS = {
+    'insumos': 'Insumo',
+    'categoria-insumo': 'CategoriaInsumo',
+  }
+  const DEFAULT = null
+  let modulo = MODULOS[controlador] || DEFAULT;
   const peticion = new FormData();
   let json = null;
   let arreglo = [];
-  let endpoint = "?page=" + controlador;
+  let endpoint = "?page=" + modulo;
   peticion.append("peticion", "consultar");
+  peticion.append("modulo", modulo)
 
   try {
     json = await AjaxHelper.enviaAjax(peticion, endpoint);

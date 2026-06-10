@@ -13,26 +13,25 @@ class Helper
      * @param string $prefijo Prefijo del ID (ej: 'BITA', 'PROD', 'PEDI')
      * @return string ID generado
      */
-    public static function generarId($prefijo, $clave = NULL)
+    public static function generarId($prefijo, $clave = NULL, $contador = 0)
     {
         // Formatear Parámetros
         $id = NULL;
         $prefijo = preg_replace('/[^A-Za-z0-9]/', '', $prefijo);
-        $prefijo = strtoupper(substr(trim($prefijo), 0, 4));
+        $prefijo = strtoupper(substr(trim($prefijo), 0, 5));
         $milisegundo = number_format(microtime(true) * 1000, 0, '', '');
-        $milisegundo = substr($milisegundo, -3);
+        $milisegundo = substr($milisegundo, -4);
 
         if ($clave == NULL) {
-            $clave = substr($milisegundo, -3);
+            $clave = substr($milisegundo, -5);
         } else {
             $clave = preg_replace('/[^A-Za-z0-9]/', '', $clave);
-            $clave = strtoupper(substr(trim($clave), 0, 3));
+            $clave = strtoupper(substr(trim($clave), 0, 5));
         }
-
+        $milisegundo = $milisegundo + $contador;
         // Componer el ID
         $fecha = date('YmdHis');
         $id = $prefijo . $clave . $fecha . $milisegundo;
-        usleep(30000);
 
         return $id;
     }

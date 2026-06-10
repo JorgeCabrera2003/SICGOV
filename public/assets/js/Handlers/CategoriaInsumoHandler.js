@@ -122,7 +122,7 @@ export function MostrarModalTabla() {
 
 //-------FUNNCIONES-------
 
-async function EnviarDatos(operacion) {
+async function EnviarDatos(operacion, modulo = "Categoria") {
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
@@ -137,6 +137,15 @@ async function EnviarDatos(operacion) {
   let endpoint = "";
   let peticion = new FormData();
   let json = null;
+
+  
+  if(modulo == "Insumo"){
+    endpoint = "Insumo";
+    peticion.append("modulo", "CategoriaInsumo")
+} else {
+  endpoint = "CategoriaInsumo";
+}
+
   //Registrar y Modificar
   if (operacion == "registrar" || operacion == "modificar") {
 
@@ -183,7 +192,7 @@ async function EnviarDatos(operacion) {
 
   if (btn_formulario) {
     modal.boton.prop('disabled', true);
-    json = await AjaxHelper.enviaAjax(peticion, "?page=categoria-insumo");
+    json = await AjaxHelper.enviaAjax(peticion, "?page="+endpoint);
     modal.boton.prop('disabled', false);
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       MensajeriaHelper.GenerarMensaje(json.icon, 10000, json.mensaje, null);
@@ -199,7 +208,7 @@ async function EnviarDatos(operacion) {
   return json;
 }
 
-export async function EnviarFormulario(etiqueta_boton) {
+export async function EnviarFormulario(etiqueta_boton, modulo = "CategoriaInsumo") {
   let accion = null;
   let respuesta = null;
   const MANEJADOR = {
@@ -212,7 +221,7 @@ export async function EnviarFormulario(etiqueta_boton) {
   accion = MANEJADOR[etiqueta_boton.text()] || DEFAULT
 
   if (accion != null) {
-    respuesta = await EnviarDatos(accion)
+    respuesta = await EnviarDatos(accion, modulo);
   } else {
     respuesta = { resultado: 0 }
     MensajeriaHelper.GenerarMensaje("danger", 10000, "Error, acción no válida", "")
