@@ -30,9 +30,18 @@ export function extraerHora(datetimeStr) {
 
 export function formatarEstadoCliente(state) {
     if (!state.id) return state.text;
+    
+    // Obtener la URL del avatar desde el atributo data-avatar (si no existe, usa un icono por defecto o imagen genérica)
+    const avatarUrl = (state.element && state.element.dataset.avatar) ? state.element.dataset.avatar : null;
+    
+    // Generar el HTML para el icono o la imagen
+    const iconHtml = avatarUrl 
+        ? `<img src="${avatarUrl}" alt="Avatar" class="rounded-circle me-3 border border-2 border-white shadow-sm" style="width: 32px; height: 32px; object-fit: cover;">`
+        : `<i class="bi bi-person-circle me-3 text-primary fs-3 shadow-sm rounded-circle"></i>`;
+
     return $(`
         <div class="d-flex align-items-center py-1">
-            <i class="bi bi-person-circle me-3 text-primary fs-5"></i>
+            ${iconHtml}
             <div><span class="fw-medium">${state.text}</span></div>
         </div>
     `);

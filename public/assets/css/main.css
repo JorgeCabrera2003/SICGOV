@@ -226,6 +226,40 @@ body {
 }
 
 /* ==========================================
+   SELECT2 (Global / Light Mode Fixes)
+========================================== */
+.select2-container--bootstrap-5 .select2-dropdown {
+    border-radius: var(--border-radius-base);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.select2-container--bootstrap-5 .select2-search__field {
+    border-radius: var(--border-radius-base) !important;
+    border: 1px solid var(--color-border) !important;
+    padding: 0.5rem 0.75rem !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.select2-container--bootstrap-5 .select2-search__field:focus {
+    border-color: var(--color-acento) !important;
+    box-shadow: 0 0 0 0.25rem rgba(255, 214, 0, 0.15) !important;
+}
+
+.select2-container--bootstrap-5 .select2-results__option {
+    padding: 10px 15px;
+    transition: background-color 0.2s ease;
+}
+
+.select2-container--bootstrap-5 .select2-results__option--highlighted[aria-selected] {
+    background-color: rgba(255, 214, 0, 0.2) !important;
+    color: var(--color-sidebar) !important;
+    font-weight: 600;
+}
+
+/* ==========================================
    MODO OSCURO (Adaptación global)
 ========================================= */
 .dark {

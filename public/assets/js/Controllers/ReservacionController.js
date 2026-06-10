@@ -12,7 +12,9 @@ $(document).ready(function() {
     if ($selectCliente.length) {
         $selectCliente.select2({
             theme: 'bootstrap-5',
+            dropdownParent: $('#modalReservacion'),
             placeholder: 'Seleccione un cliente',
+            width: '100%',
             templateResult: handler.formatarEstadoCliente,
             templateSelection: handler.formatarEstadoCliente
         });

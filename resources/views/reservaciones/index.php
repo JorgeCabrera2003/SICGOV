@@ -57,11 +57,18 @@
                     <input type="hidden" name="id_reservacion" id="id_reservacion">
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-uppercase">Seleccionar Cliente</label>
+                        <label class="form-label small fw-bold text-uppercase d-block">Seleccionar Cliente</label>
                         <select class="form-select select2-cliente" name="cedula_cliente" id="cedula_cliente" required>
                             <option value="">Buscar por nombre o cédula...</option>
-                            <?php foreach($clientes as $c): ?>
-                                <option value="<?= $c['cedula'] ?>">
+                            <?php foreach($clientes as $c): 
+                                $localImagePath = "assets/img/perfil/" . $c['cedula'] . ".png";
+                                if (file_exists($_SERVER['DOCUMENT_ROOT'] . parse_url(BASE_URL, PHP_URL_PATH) . $localImagePath) || file_exists(__DIR__ . '/../../../public/' . $localImagePath)) {
+                                    $avatarUrl = BASE_URL . $localImagePath;
+                                } else {
+                                    $avatarUrl = "https://ui-avatars.com/api/?name=" . urlencode($c['nombre'] . ' ' . $c['apellido']) . "&background=random&color=fff&rounded=true&bold=true";
+                                }
+                            ?>
+                                <option value="<?= $c['cedula'] ?>" data-avatar="<?= $avatarUrl ?>">
                                     <?= "{$c['nombre']} {$c['apellido']} - {$c['cedula']}" ?>
                                 </option>
                             <?php endforeach; ?>
