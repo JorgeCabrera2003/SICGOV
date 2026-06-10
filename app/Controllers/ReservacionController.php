@@ -141,6 +141,8 @@ if (!function_exists('App\Controllers\ListarPropiasReservaciones')) {
                         
                         $resModel->setHora($hora);
                         $resModel->setHoraFin($hora_fin);
+                        $resModel->setCedulaCliente($registro['cedula_cliente'] ?? '');
+                        $resModel->setIdMesa(!empty($registro['id_mesa']) ? $registro['id_mesa'] : null);
                         $resModel->setEstado($registro['estado'] ?? 'PENDIENTE');
                         
                         $json = $resModel->Transaccion(['peticion' => 'modificar']);
@@ -180,9 +182,50 @@ if (!function_exists('App\Controllers\ListarPropiasReservaciones')) {
                 'https://cdn.jsdelivr.net/npm/flatpickr',
                 'https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js'
             ],
-            'extra_js_modules' => [
-                BASE_URL . '/assets/js/Controllers/ReservacionController.js'
-            ]
+            'extra_js_inline_module' => '
+                import * as handler from "' . BASE_URL . '/assets/js/Handlers/ReservacionHandler.js?v=' . time() . '";
+                
+                document.addEventListener("DOMContentLoaded", function() {
+                    const $ = window.$;
+                    const calendarEl = document.getElementById("calendarPublico");
+                    if (!calendarEl) return;
+
+                    const pickers = handler.inicializarPickers();
+                    const $selectCliente = $("#cedula_cliente");
+                    if ($selectCliente.length) {
+                        $selectCliente.select2({
+                            theme: "bootstrap-5",
+                            dropdownParent: $("#modalReservacion"),
+                            placeholder: "Seleccione un cliente",
+                            width: "100%",
+                            templateResult: handler.formatarEstadoCliente,
+                            templateSelection: handler.formatarEstadoCliente
+                        });
+                    }
+
+                    const calendar = handler.inicializarCalendario(calendarEl, pickers);
+                    const esPublico = window.location.search.includes("type=publico");
+                    if (!esPublico) {
+                        calendar.setOption("editable", true);
+                        calendar.setOption("eventResizableFromStart", true);
+                    }
+
+                    $("#formReservacion, #formReservarPublico").on("submit", function(e) {
+                        e.preventDefault();
+                        handler.GestionarEnvio(this, calendar);
+                    });
+
+                    $("#btnEliminar").on("click", function() {
+                        const id = $("#id_reservacion").val();
+                        handler.EliminarReservacion(id, calendar);
+                    });
+
+                    $("#btnNuevaReservacion, #btnNuevaReservacionMobile").on("click", function() {
+                        const hoy = new Date().toISOString().split("T")[0];
+                        calendar.select(hoy);
+                    });
+                });
+            '
         ]);
 
 

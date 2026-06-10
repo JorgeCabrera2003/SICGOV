@@ -22,6 +22,13 @@ $(document).ready(function() {
 
     // Inicializar Calendario
     const calendar = handler.inicializarCalendario(calendarEl, pickers);
+    
+    // Habilitar drag & drop en la vista admin (no público)
+    const esPublico = window.location.search.includes('type=publico');
+    if (!esPublico) {
+        calendar.setOption('editable', true);
+        calendar.setOption('eventResizableFromStart', true);
+    }
 
     // Eventos de formulario
     $('#formReservacion, #formReservarPublico').on('submit', function(e) {

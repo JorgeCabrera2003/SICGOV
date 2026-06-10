@@ -91,6 +91,8 @@ export function inicializarCalendario(calendarEl, pickers) {
         themeSystem: 'bootstrap5',
         selectable: true,
         unselectAuto: false,
+        editable: !ES_PUBLICO,           // Drag & drop solo en vista admin
+        eventResizableFromStart: true,   // Redimensionar desde inicio o fin
 
         events: async function (fetchInfo, successCallback, failureCallback) {
             const formData = new FormData();
@@ -210,7 +212,7 @@ function prepararNuevaReservacion(info, tpInicio, tpFin, calendar) {
 }
 
 function abrirDetalleReservacion(event, props, tpInicio, tpFin, calendar) {
-    const esEditable = props.estado === 'PENDIENTE' && !ES_PUBLICO;
+    const esEditable = (props.estado === 'PENDIENTE' || props.estado === 'CONFIRMADA') && !ES_PUBLICO;
     const $form = $(IDs.form);
     const fecha = event.startStr.split('T')[0];
 

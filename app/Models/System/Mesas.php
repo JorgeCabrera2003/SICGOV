@@ -143,7 +143,7 @@ public function getEstatus() {
                         SELECT 1 FROM reservacion r 
                         WHERE r.id_mesa = m.id_mesa 
                         AND r.fecha = :fechaActual 
-                        AND :horaActual BETWEEN r.hora AND r.hora_fin
+                        AND :horaActual <= r.hora_fin
                         AND r.estado IN ('PENDIENTE', 'CONFIRMADA')
                     ) THEN 'OCUPADA'
                     ELSE m.estado 
