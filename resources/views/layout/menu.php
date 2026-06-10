@@ -197,15 +197,18 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Gestión del Personal</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Asistencia', 'Cargo']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Asistencia', 'Cargo', 'Empleado']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#personal-submenu" role="button">
                     <i class="bi bi-people fs-5"></i>
                     <span class="flex-grow-1">Equipo y Horario</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['Asistencia', 'Cargo']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo in_array($page, ['Asistencia', 'Cargo', 'Empleado']) ? 'show' : ''; ?>"
                     id="personal-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
+                        <a href="?page=Empleado" class="nav-link <?php echo ($page == 'Empleado') ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-person-badge me-2"></i>Empleados
+                        </a>
                         <a href="?page=Asistencia"
                             class="nav-link <?php echo ($page == 'Asistencia') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-check2-square me-2"></i>Asistencia
