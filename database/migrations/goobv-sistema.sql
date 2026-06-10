@@ -48,6 +48,7 @@ CREATE TABLE `cargo` (
 CREATE TABLE `tipo_permiso` (
   `id_tipo_permiso` varchar(30) NOT NULL,
   `nombre` varchar(60) NOT NULL COMMENT 'Ej: Reposo médico, Vacaciones, Personal',
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_tipo_permiso`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -86,6 +87,7 @@ CREATE TABLE `area_mesa` (
 CREATE TABLE `metodo_pago` (
   `id_metodo_pago` varchar(30) NOT NULL,
   `nombre` varchar(50) NOT NULL,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_metodo_pago`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -190,6 +192,7 @@ CREATE TABLE `permiso_laboral` (
   `fecha_solicitud` timestamp NOT NULL DEFAULT current_timestamp(),
   `fecha_aprobacion` timestamp NULL DEFAULT NULL,
   `estado` enum('PENDIENTE','APROBADO','RECHAZADO') DEFAULT 'PENDIENTE',
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_permiso`),
   KEY `fk_perm_tipo` (`id_tipo_permiso`),
   KEY `fk_perm_emp` (`cedula_empleado`),
