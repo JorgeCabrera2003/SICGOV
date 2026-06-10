@@ -356,7 +356,7 @@ async function enviarDatos(operacion) {
         peticion.append('fecha_nacimiento', input.fecha_nacimiento.val());
         let telefonoFull = "";
         if (input.prefijo_telefono.val() && input.prefijo_telefono.val() !== 'default' && input.telefono.val()) {
-           telefonoFull = input.prefijo_telefono.val() + input.telefono.val();
+           telefonoFull = input.prefijo_telefono.val() + '-' + input.telefono.val();
         } else {
            telefonoFull = input.telefono.val() || "";
         }
@@ -609,7 +609,10 @@ async function crearDataTable() {
           if (!data || data.trim() === '') {
             return type === 'display' ? '<span class="text-muted">N/A</span>' : '';
           }
-          const formatted = (data.length >= 5) ? data.substring(0, 4) + '-' + data.substring(4) : data;
+          let formatted = data;
+          if (data.indexOf('-') === -1 && data.length >= 5) {
+             formatted = data.substring(0, 4) + '-' + data.substring(4);
+          }
           if (type === 'display') return formatted;
           if (type === 'filter') return data + ' ' + formatted;
           return data;
@@ -699,12 +702,18 @@ function rellenar(pos, accion) {
   input.nombre.val(capitalizarTexto(datosFila.nombre));
   input.apellido.val(capitalizarTexto(datosFila.apellido));
   input.fecha_nacimiento.val(datosFila.fecha_nacimiento);
-  if (datosFila.telefono && datosFila.telefono.length === 11) {
-     buscarSelect(input.prefijo_telefono, datosFila.telefono.substring(0, 4), "value");
-     input.telefono.val(datosFila.telefono.substring(4));
+  if (datosFila.telefono) {
+     let telLimpio = datosFila.telefono.replace('-', '');
+     if (telLimpio.length === 11) {
+         buscarSelect(input.prefijo_telefono, telLimpio.substring(0, 4), "value");
+         input.telefono.val(telLimpio.substring(4));
+     } else {
+         input.prefijo_telefono.val("default");
+         input.telefono.val(datosFila.telefono);
+     }
   } else {
      input.prefijo_telefono.val("default");
-     input.telefono.val(datosFila.telefono || "");
+     input.telefono.val("");
   }
   input.correo.val(datosFila.correo);
   input.direccion.val(datosFila.direccion);
@@ -791,7 +800,7 @@ function consultarFila(pos) {
   }
   
   let telefonoFormateado = datosFila.telefono;
-  if(telefonoFormateado && telefonoFormateado.length >= 5) {
+  if(telefonoFormateado && telefonoFormateado.indexOf('-') === -1 && telefonoFormateado.length >= 5) {
      telefonoFormateado = telefonoFormateado.substring(0, 4) + '-' + telefonoFormateado.substring(4);
   }
 

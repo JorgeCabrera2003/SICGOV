@@ -1,20 +1,5 @@
 <?php
 
-/*
-MODELO DE USUARIOS
-
-OPERACIONES A BASE DE DATOS:
-    REGISTRAR
-    CONSULTAR
-    MODIFICAR
-    ELIMINAR (LÓGICO)
-    VALIDAR
-    INICIAR SESIÓN
-    TRAER PERFIL DE USUARIO
-    EDITAR PERFIL DE USUARIO
-*/
-
-
 namespace App\Models\Security;
 
 use App\Core\Database;
@@ -33,7 +18,6 @@ class Usuario extends \App\Models\System\Persona
     private $fecha_registro;
     private $estatus;
     private $estatus_clave;
-    private $db;
 
     public function __construct()
     {
@@ -47,28 +31,11 @@ class Usuario extends \App\Models\System\Persona
         $this->fecha_registro = "";
         $this->estatus = 1;
         $this->estatus_clave = 0;
-        $this->db = NULL;
     }
 
-    private function LlamarConexion($nombreBD = 'security', PDO &$pdo = NULL)
-    {
-        if ($pdo != NULL) {
-            $this->db = $pdo;
-        }
-        if ($this->db == NULL) {
-            $this->db = Database::getConnection($nombreBD);
-        }
-        return $this->db;
-    }
 
-    private function DestruirConexion($bool = true)
-    {
-        if ($bool) {
-            $this->db = NULL;
-        }
-    }
 
-    //SETTERS
+    
     public function setIdRol(string $id_rol)
     {
         $this->id_rol = $id_rol;
@@ -124,9 +91,9 @@ class Usuario extends \App\Models\System\Persona
     {
         $this->estatus_clave = $estatus_clave;
     }
-    //FIN DE SETTERS
+    
 
-    //GETTERS
+    
     public function getIdRol()
     {
         return $this->id_rol;
@@ -165,9 +132,14 @@ class Usuario extends \App\Models\System\Persona
     {
         return $this->estatus;
     }
-    //FIN DE GETTERS
+   
 
-    //MANEJADOR DE OPERACIONES
+    
+
+
+
+
+
     public function Transaccion($peticion)
     {
         $response = [];
@@ -197,7 +169,12 @@ class Usuario extends \App\Models\System\Persona
         }
         return $response;
     }
-    //FIN DE MANEJADOR DE OPERACIONES
+    
+
+
+
+
+
 
     //OPERACIONES A BASE DE DATOS
     private function ValidarUsuario()
@@ -239,6 +216,19 @@ class Usuario extends \App\Models\System\Persona
         $this->DestruirConexion();
         return $dato;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
     private function IniciarSesion()
     {
         $dato = [];
@@ -274,6 +264,13 @@ class Usuario extends \App\Models\System\Persona
         return $dato;
     }
 
+
+
+
+
+
+
+
     private function TraerPerfilUsuario()
     {
         $dato = [];
@@ -304,6 +301,11 @@ class Usuario extends \App\Models\System\Persona
         $this->DestruirConexion();
         return $dato;
     }
+
+
+
+
+
 
     private function RegistrarUsuario()
     {
@@ -347,17 +349,34 @@ class Usuario extends \App\Models\System\Persona
         return $dato;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     private function ConsultarUsuario()
     {
         $dato = [];
         $arreglo = [];
 
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        $session_cedula = $_SESSION['user']['cedula'] ?? '';
+
         try {
             $this->LlamarConexion("security");
             $this->LlamarConexion()->beginTransaction();
-            $query = "SELECT p.*, u.estatus FROM vw_perfil_usuario p JOIN usuario u ON p.cedula = u.cedula WHERE u.cedula != 'V-00000000'";
+            $query = "SELECT p.*, u.estatus FROM vw_perfil_usuario p JOIN usuario u ON p.cedula = u.cedula WHERE u.cedula != 'V-00000000' AND u.cedula != :session_cedula";
 
             $stm = $this->LlamarConexion()->prepare($query);
+            $stm->bindParam(':session_cedula', $session_cedula);
             $stm->execute();
             if ($stm->rowCount() > 0) {
                 $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
@@ -379,6 +398,13 @@ class Usuario extends \App\Models\System\Persona
         $this->DestruirConexion();
         return $dato;
     }
+
+
+
+
+
+
+
 
     private function empleadosSinUsuario()
     {
@@ -418,6 +444,13 @@ class Usuario extends \App\Models\System\Persona
         return $dato;
     }
 
+
+
+
+
+
+
+
     private function actualizarUsuario()
     {
         $dato = [];
@@ -456,6 +489,17 @@ class Usuario extends \App\Models\System\Persona
         return $dato;
     }
 
+
+
+
+
+
+
+
+
+
+
+
     public function actualizarSoloClave()
     {
         $dato = [];
@@ -486,6 +530,18 @@ class Usuario extends \App\Models\System\Persona
         return $dato;
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
     private function toggleEstatus()
     {
         $dato = [];
@@ -515,6 +571,16 @@ class Usuario extends \App\Models\System\Persona
         return $dato;
     }
 
+
+
+
+
+
+
+
+
+
+
     private function forzarCambioClave()
     {
         $dato = [];
@@ -543,6 +609,15 @@ class Usuario extends \App\Models\System\Persona
         return $dato;
     }
 
+
+
+
+
+
+
+
+
+
     private function guardarCodigoRecuperacion($codigo)
     {
         $dato = [];
@@ -569,6 +644,17 @@ class Usuario extends \App\Models\System\Persona
         $this->DestruirConexion();
         return $dato;
     }
+
+
+
+
+
+
+
+
+
+
+
 
     private function validarCodigoRecuperacion($codigo)
     {
@@ -598,6 +684,17 @@ class Usuario extends \App\Models\System\Persona
         return $dato;
     }
 
+
+
+
+
+
+
+
+
+
+
+
     private function limpiarCodigoRecuperacion()
     {
         $dato = [];
@@ -621,5 +718,5 @@ class Usuario extends \App\Models\System\Persona
         $this->DestruirConexion();
         return $dato;
     }
-    //FIN DE OPERACIONES A BASE DE DATOS
+
 }

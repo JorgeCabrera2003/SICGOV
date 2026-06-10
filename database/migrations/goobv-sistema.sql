@@ -48,6 +48,7 @@ CREATE TABLE `cargo` (
 CREATE TABLE `tipo_permiso` (
   `id_tipo_permiso` varchar(30) NOT NULL,
   `nombre` varchar(60) NOT NULL COMMENT 'Ej: Reposo médico, Vacaciones, Personal',
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_tipo_permiso`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -86,6 +87,7 @@ CREATE TABLE `area_mesa` (
 CREATE TABLE `metodo_pago` (
   `id_metodo_pago` varchar(30) NOT NULL,
   `nombre` varchar(50) NOT NULL,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_metodo_pago`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -111,7 +113,7 @@ CREATE TABLE `empleado` (
   `cedula` varchar(15) NOT NULL,
   `id_cargo` varchar(30) NOT NULL,
   `fecha_ingreso` date NOT NULL,
-  `fecha_egreso` date DEFAULT NULL,
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`cedula`),
   KEY `fk_emp_cargo` (`id_cargo`),
   CONSTRAINT `fk_emp_persona` FOREIGN KEY (`cedula`) REFERENCES `persona` (`cedula`) ON DELETE CASCADE,
@@ -190,6 +192,7 @@ CREATE TABLE `permiso_laboral` (
   `fecha_solicitud` timestamp NOT NULL DEFAULT current_timestamp(),
   `fecha_aprobacion` timestamp NULL DEFAULT NULL,
   `estado` enum('PENDIENTE','APROBADO','RECHAZADO') DEFAULT 'PENDIENTE',
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_permiso`),
   KEY `fk_perm_tipo` (`id_tipo_permiso`),
   KEY `fk_perm_emp` (`cedula_empleado`),
@@ -255,6 +258,7 @@ CREATE TABLE `promocion` (
   `id_promocion` varchar(30) NOT NULL,
   `nombre` varchar(100) NOT NULL,
   `tipo_descuento` enum('PORCENTAJE','MONTO_FIJO') NOT NULL,
+  `valor_descuento` decimal(10,2) NOT NULL DEFAULT 0.00,
   `descripcion` text DEFAULT NULL,
   `fecha_inicio` date NOT NULL,
   `fecha_fin` date DEFAULT NULL,
