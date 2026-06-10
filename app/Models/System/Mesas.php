@@ -132,12 +132,28 @@ public function getEstatus() {
         $this->LlamarConexion();
         $this->LlamarConexion()->beginTransaction();
 
-        $sql = "SELECT m.*, a.nombre as area_nombre 
+        $timezone = new \DateTimeZone('America/Caracas');
+        $datetime = new \DateTime('now', $timezone);
+        $fechaActual = $datetime->format('Y-m-d');
+        $horaActual = $datetime->format('H:i:s');
+
+        $sql = "SELECT m.id_mesa, m.id_area, m.numero_mesa, m.capacidad, m.estatus, a.nombre as area_nombre,
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM reservacion r 
+                        WHERE r.id_mesa = m.id_mesa 
+                        AND r.fecha = :fechaActual 
+                        AND :horaActual BETWEEN r.hora AND r.hora_fin
+                        AND r.estado IN ('PENDIENTE', 'CONFIRMADA')
+                    ) THEN 'OCUPADA'
+                    ELSE m.estado 
+                END as estado
                 FROM mesa m 
                 LEFT JOIN area_mesa a ON m.id_area = a.id_area
-                -- WHERE m.estatus = 1
                 ORDER BY m.numero_mesa ASC";
         $stm = $this->LlamarConexion()->prepare($sql);
+        $stm->bindValue(':fechaActual', $fechaActual);
+        $stm->bindValue(':horaActual', $horaActual);
         $stm->execute();
         if ($stm->rowCount() > 0) {
             $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);

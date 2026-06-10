@@ -145,30 +145,34 @@ export function inicializarCalendario(calendarEl, pickers) {
  * Lógica Interna
  */
 
-function obtenerRangosOcupados(fecha, calendar, idActual = null) {
+function obtenerRangosOcupados(fecha, calendar, idActual = null, idMesa = null) {
     return calendar.getEvents()
         .filter(event => {
             const esMismaFecha = event.startStr.startsWith(fecha);
             const noEsMismaReservacion = event.id !== idActual;
             const estaOcupado = event.extendedProps.estado !== 'CANCELADA';
-            return esMismaFecha && noEsMismaReservacion && estaOcupado;
+            const chocaMesa = idMesa ? (event.extendedProps.id_mesa === idMesa) : false;
+            
+            return esMismaFecha && noEsMismaReservacion && estaOcupado && chocaMesa;
         })
-        .map(event => ({
-            from: extraerHora(event.startStr),
-            to: extraerHora(event.endStr)
-        }));
+        .map(event => {
+            const f = extraerHora(event.startStr);
+            const t = extraerHora(event.endStr);
+            if (!f || !t) return null;
+            return { from: f, to: t };
+        }).filter(r => r !== null);
 }
 
-function actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, idActual = null) {
-    const rangos = obtenerRangosOcupados(fecha, calendar, idActual);
+function actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, idActual = null, idMesa = null) {
+    const rangos = obtenerRangosOcupados(fecha, calendar, idActual, idMesa);
     
     // Configuración para deshabilitar rangos en Flatpickr
-    const configDisable = {
-        disable: rangos.map(r => ({ from: r.from, to: r.to }))
-    };
-
-    tpInicio.set("disable", rangos);
-    tpFin.set("disable", rangos);
+    try {
+        tpInicio.set("disable", rangos);
+        tpFin.set("disable", rangos);
+    } catch(e) {
+        console.warn("Flatpickr disable error:", e);
+    }
 }
 
 function prepararNuevaReservacion(info, tpInicio, tpFin, calendar) {
@@ -186,11 +190,14 @@ function prepararNuevaReservacion(info, tpInicio, tpFin, calendar) {
     $(IDs.fecha).val(fecha);
 
     // Actualizar bloqueos de tiempo para esta fecha
-    actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin);
+    const mesaSel = $('#id_mesa').val();
+    actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, null, mesaSel);
 
     if (info.view.type !== 'dayGridMonth') {
-        tpInicio.setDate(info.start.toTimeString().split(' ')[0].substring(0, 5));
-        tpFin.setDate(info.end.toTimeString().split(' ')[0].substring(0, 5));
+        try {
+            tpInicio.setDate(info.start.toTimeString().split(' ')[0].substring(0, 5));
+            tpFin.setDate(info.end.toTimeString().split(' ')[0].substring(0, 5));
+        } catch(e){}
     } else {
         tpInicio.clear();
         tpFin.clear();
@@ -217,13 +224,17 @@ function abrirDetalleReservacion(event, props, tpInicio, tpFin, calendar) {
     $(IDs.fecha).val(fecha);
 
     // Actualizar bloqueos de tiempo (excluyendo la actual)
-    actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, event.id);
+    actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, event.id, props.id_mesa);
 
     const hInicio = extraerHora(event.startStr);
     const hFin = extraerHora(event.endStr);
     
-    tpInicio.setDate(hInicio || '');
-    tpFin.setDate(hFin || '');
+    try {
+        tpInicio.setDate(hInicio || '');
+        tpFin.setDate(hFin || '');
+    } catch (e) {
+        console.warn("SetDate error:", e);
+    }
 
     if (!ES_PUBLICO) $('#estado').val(props.estado);
     
