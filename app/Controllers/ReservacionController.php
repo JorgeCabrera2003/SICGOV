@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Helpers\Helper;
 use App\Models\System\Reservacion;
 use App\Models\System\Cliente;
+use App\Models\System\Mesas;
 use Exception;
 
 $type = $_REQUEST['type'] ?? 'admin';
@@ -99,6 +100,7 @@ if (!function_exists('App\Controllers\ListarPropiasReservaciones')) {
                         
                         $resModel->setId($id);
                         $resModel->setCedulaCliente($_POST['cedula_cliente'] ?? '');
+                        $resModel->setIdMesa(!empty($_POST['id_mesa']) ? $_POST['id_mesa'] : null);
                         $resModel->setFecha($_POST['fecha'] ?? '');
                         $resModel->setHora($_POST['hora'] ?? '');
                         $resModel->setHoraFin($_POST['hora_fin'] ?? '');
@@ -161,8 +163,12 @@ if (!function_exists('App\Controllers\ListarPropiasReservaciones')) {
         $vista = $esPublico ? 'reservar/index' : 'reservaciones/index';
         $titulo = $esPublico ? 'Mis Reservaciones' : 'Gestión de Reservaciones';
 
+        $mesasModel = new Mesas();
+        $mesasList = $mesasModel->Transaccion(['peticion' => 'consultar']);
+
         Helper::cargarVista($vista, $titulo, [
             'clientes' => $esPublico ? [] : $resModel->ObtenerClientes(),
+            'mesas' => ($mesasList['estado'] == 1) ? $mesasList['response']['datos'] : [],
             'extra_css' => [
                 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css',
                 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css',

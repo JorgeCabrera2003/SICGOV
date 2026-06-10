@@ -178,7 +178,10 @@ function prepararNuevaReservacion(info, tpInicio, tpFin, calendar) {
     const fecha = info.startStr.split('T')[0];
     $('#peticion').val('registrar');
     $('#id_reservacion').val('');
-    if (!ES_PUBLICO) $('#cedula_cliente').val('').trigger('change');
+    if (!ES_PUBLICO) {
+        $('#cedula_cliente').val('').trigger('change');
+        $('#id_mesa').val('');
+    }
     
     $(IDs.fecha).val(fecha);
 
@@ -206,7 +209,10 @@ function abrirDetalleReservacion(event, props, tpInicio, tpFin, calendar) {
 
     $('#peticion').val('modificar');
     $('#id_reservacion').val(event.id);
-    if (!ES_PUBLICO) $('#cedula_cliente').val(props.cedula).trigger('change');
+    if (!ES_PUBLICO) {
+        $('#cedula_cliente').val(props.cedula).trigger('change');
+        $('#id_mesa').val(props.id_mesa || '');
+    }
     
     $(IDs.fecha).val(fecha);
 
