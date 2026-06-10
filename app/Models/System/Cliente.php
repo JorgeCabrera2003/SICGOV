@@ -11,32 +11,14 @@ use Exception;
 class Cliente extends Persona
 {
     private $estatus;
-    private $db;
 
     public function __construct()
     {
         parent::__construct();
         $this->estatus = 1;
-        $this->db = NULL;
     }
 
-    private function LlamarConexion(PDO &$db = NULL)
-    {
-        if ($db != NULL) {
-            $this->db = $db;
-        }
 
-        if ($this->db == NULL) {
-            $this->db = Database::getConnection('business');
-        }
-
-        return $this->db;
-    }
-
-    private function DestruirConexion()
-    {
-        $this->db = NULL;
-    }
 
     
     public function setEstatus(int $estatus)
@@ -177,10 +159,10 @@ class Cliente extends Persona
 
     private function RegistrarCliente()
     {
-        $db = $this->LlamarConexion();
         try {
+            $this->LlamarConexion();
             // Primero verificar si ya existe como cliente (sin transacción)
-            $stmCheck = $db->prepare(
+            $stmCheck = $this->LlamarConexion()->prepare(
                 "SELECT c.cedula FROM cliente c WHERE c.cedula = :cedula"
             );
             $stmCheck->execute([':cedula' => $this->cedula]);
@@ -192,14 +174,14 @@ class Cliente extends Persona
                 ];
             }
 
-            $db->beginTransaction();
+            $this->LlamarConexion()->beginTransaction();
 
             // Upsert en persona
-            $stmPCheck = $db->prepare("SELECT cedula FROM persona WHERE cedula = :cedula");
+            $stmPCheck = $this->LlamarConexion()->prepare("SELECT cedula FROM persona WHERE cedula = :cedula");
             $stmPCheck->execute([':cedula' => $this->cedula]);
 
             if ($stmPCheck->rowCount() === 0) {
-                $db->prepare(
+                $this->LlamarConexion()->prepare(
                     "INSERT INTO persona (cedula, nombre, apellido, fecha_nacimiento, telefono, correo, direccion, sexo)
                      VALUES (:cedula, :nombre, :apellido, :fecha_nacimiento, :telefono, :correo, :direccion, :sexo)"
                 )->execute([
@@ -213,7 +195,7 @@ class Cliente extends Persona
                     ':sexo'             => $this->sexo,
                 ]);
             } else {
-                $db->prepare(
+                $this->LlamarConexion()->prepare(
                     "UPDATE persona SET nombre = :nombre, apellido = :apellido,
                      fecha_nacimiento = :fecha_nacimiento, telefono = :telefono,
                      correo = :correo, direccion = :direccion, sexo = :sexo
@@ -230,10 +212,10 @@ class Cliente extends Persona
                 ]);
             }
 
-            $db->prepare("INSERT INTO cliente (cedula) VALUES (:cedula)")
+            $this->LlamarConexion()->prepare("INSERT INTO cliente (cedula) VALUES (:cedula)")
                ->execute([':cedula' => $this->cedula]);
 
-            $db->commit();
+            $this->LlamarConexion()->commit();
 
             return [
                 'estado'      => 1,
@@ -242,7 +224,7 @@ class Cliente extends Persona
             ];
 
         } catch (\PDOException $e) {
-            if ($db->inTransaction()) $db->rollBack();
+            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
             
             if ($e->getCode() == 23000 && strpos($e->getMessage(), 'correo') !== false) {
                 return [
@@ -293,11 +275,11 @@ class Cliente extends Persona
 
     private function ModificarCliente()
     {
-        $db = $this->LlamarConexion();
         try {
-            $db->beginTransaction();
+            $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
 
-            $db->prepare(
+            $this->LlamarConexion()->prepare(
                 "UPDATE persona SET nombre = :nombre, apellido = :apellido,
                  fecha_nacimiento = :fecha_nacimiento, telefono = :telefono,
                  correo = :correo, direccion = :direccion, sexo = :sexo
@@ -313,7 +295,7 @@ class Cliente extends Persona
                 ':sexo'             => $this->sexo,
             ]);
 
-            $db->commit();
+            $this->LlamarConexion()->commit();
 
             return [
                 'estado'      => 1,
@@ -322,7 +304,7 @@ class Cliente extends Persona
             ];
 
         } catch (\PDOException $e) {
-            if ($db->inTransaction()) $db->rollBack();
+            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
 
             if ($e->getCode() == 23000 && strpos($e->getMessage(), 'correo') !== false) {
                 return [
@@ -365,10 +347,10 @@ class Cliente extends Persona
 
     private function EliminarCliente()
     {
-        $db = $this->LlamarConexion();
         try {
+            $this->LlamarConexion();
             // Verificar existencia sin transacción
-            $stmCheck = $db->prepare(
+            $stmCheck = $this->LlamarConexion()->prepare(
                 "SELECT c.cedula FROM cliente c WHERE c.cedula = :cedula"
             );
             $stmCheck->execute([':cedula' => $this->cedula]);
@@ -380,12 +362,12 @@ class Cliente extends Persona
                 ];
             }
 
-            $db->beginTransaction();
+            $this->LlamarConexion()->beginTransaction();
 
-            $db->prepare("UPDATE cliente SET estatus = 0 WHERE cedula = :cedula")
+            $this->LlamarConexion()->prepare("UPDATE cliente SET estatus = 0 WHERE cedula = :cedula")
                ->execute([':cedula' => $this->cedula]);
 
-            $db->commit();
+            $this->LlamarConexion()->commit();
 
             return [
                 'estado'      => 1,
@@ -394,7 +376,7 @@ class Cliente extends Persona
             ];
 
         } catch (\PDOException $e) {
-            if ($db->inTransaction()) $db->rollBack();
+            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             return [
                 'estado'      => -1,
@@ -421,10 +403,10 @@ class Cliente extends Persona
 
     private function CambiarEstatusCliente()
     {
-        $db = $this->LlamarConexion();
         try {
+            $this->LlamarConexion();
             // Verificar existencia sin transacción
-            $stmCheck = $db->prepare(
+            $stmCheck = $this->LlamarConexion()->prepare(
                 "SELECT c.cedula FROM cliente c WHERE c.cedula = :cedula"
             );
             $stmCheck->execute([':cedula' => $this->cedula]);
@@ -436,12 +418,12 @@ class Cliente extends Persona
                 ];
             }
 
-            $db->beginTransaction();
+            $this->LlamarConexion()->beginTransaction();
 
-            $db->prepare("UPDATE cliente SET estatus = :estatus WHERE cedula = :cedula")
+            $this->LlamarConexion()->prepare("UPDATE cliente SET estatus = :estatus WHERE cedula = :cedula")
                ->execute([':estatus' => $this->estatus, ':cedula' => $this->cedula]);
 
-            $db->commit();
+            $this->LlamarConexion()->commit();
 
             $mensaje = $this->estatus == 1 ? 'Cliente reactivado.' : 'Cliente desactivado.';
             return [
@@ -451,7 +433,7 @@ class Cliente extends Persona
             ];
 
         } catch (\PDOException $e) {
-            if ($db->inTransaction()) $db->rollBack();
+            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             return [
                 'estado'      => -1,
@@ -483,9 +465,9 @@ class Cliente extends Persona
     private function ValidarCliente()
     {
         try {
-            $db   = $this->LlamarConexion();
+            $this->LlamarConexion();
             $sql  = "SELECT c.cedula FROM cliente c WHERE c.cedula = :cedula";
-            $stm  = $db->prepare($sql);
+            $stm  = $this->LlamarConexion()->prepare($sql);
             $stm->execute([':cedula' => $this->cedula]);
 
             $dato['bool']        = $stm->rowCount() > 0 ? 1 : 0;
@@ -514,8 +496,8 @@ class Cliente extends Persona
     private function verificarCedulaExiste()
     {
         try {
-            $db  = $this->LlamarConexion();
-            $stm = $db->prepare("SELECT cedula FROM cliente WHERE cedula = :cedula LIMIT 1");
+            $this->LlamarConexion();
+            $stm = $this->LlamarConexion()->prepare("SELECT cedula FROM cliente WHERE cedula = :cedula LIMIT 1");
             $stm->execute([':cedula' => $this->cedula]);
 
             $existe = $stm->rowCount() > 0;
@@ -547,13 +529,13 @@ class Cliente extends Persona
      */
     public function AsegurarCliente($cedula)
     {
-        $db = $this->LlamarConexion();
         try {
-            $stm = $db->prepare("SELECT COUNT(*) FROM cliente WHERE cedula = ?");
+            $this->LlamarConexion();
+            $stm = $this->LlamarConexion()->prepare("SELECT COUNT(*) FROM cliente WHERE cedula = ?");
             $stm->execute([$cedula]);
             
             if ($stm->fetchColumn() == 0) {
-                $stm = $db->prepare("INSERT INTO cliente (cedula, estatus) VALUES (?, 1)");
+                $stm = $this->LlamarConexion()->prepare("INSERT INTO cliente (cedula, estatus) VALUES (?, 1)");
                 $stm->execute([$cedula]);
             }
         } catch (\PDOException $e) {

@@ -7,17 +7,13 @@ use App\Helpers\RegexHelper;
 use PDO;
 use Exception;
 
-class CategoriaProducto
+class CategoriaProducto extends Database
 {
-    private $db;
     private $id_categoria;
     private $nombre_categoria;
     private $estatus;
 
-    public function __construct()
-    {
-        $this->db = Database::getConnection('business');
-    }
+  
 
     // Getters y Setters
     public function setIdCategoria($id)
@@ -123,13 +119,16 @@ class CategoriaProducto
     private function listarCategorias()
     {
         try {
+            $db = $this->LlamarConexion('business');
             $sql = "SELECT * FROM categoria_producto WHERE estatus = 1 ORDER BY nombre_categoria";
-            $stmt = $this->db->prepare($sql);
+            $stmt = $db->prepare($sql);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             error_log("Error en listarCategorias: " . $e->getMessage());
             return [];
+        } finally {
+            $this->DestruirConexion();
         }
     }
 
@@ -148,13 +147,16 @@ class CategoriaProducto
     private function listarTodasCategorias()
     {
         try {
+            $db = $this->LlamarConexion('business');
             $sql = "SELECT * FROM categoria_producto WHERE estatus = 1 ORDER BY nombre_categoria";
-            $stmt = $this->db->prepare($sql);
+            $stmt = $db->prepare($sql);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             error_log("Error en listarTodasCategorias: " . $e->getMessage());
             return [];
+        } finally {
+            $this->DestruirConexion();
         }
     }
 
@@ -176,7 +178,8 @@ class CategoriaProducto
     private function guardarCategoria()
     {
         try {
-            $this->db->beginTransaction();
+            $db = $this->LlamarConexion('business');
+            $db->beginTransaction();
             $this->id_categoria = $this->generarIdCategoria();
 
             $sql = "INSERT INTO categoria_producto (
@@ -189,26 +192,28 @@ class CategoriaProducto
                     1
                 )";
 
-            $stmt = $this->db->prepare($sql);
+            $stmt = $db->prepare($sql);
             $result = $stmt->execute([
                 'id_categoria'     => $this->getIdCategoria(),
                 'nombre_categoria' => $this->getNombreCategoria()
             ]);
 
             if ($result) {
-                $this->db->commit();
+                $db->commit();
                 return ['success' => true, 'id' => $this->getIdCategoria(), 'message' => 'Categoría guardada exitosamente'];
             }
             
-            $this->db->rollBack();
+            $db->rollBack();
             return ['success' => false, 'message' => 'Error al guardar la categoría'];
             
         } catch (\PDOException $e) {
-            $this->db->rollBack();
+            if (isset($db)) $db->rollBack();
             if ($e->errorInfo[1] == 1062) {
                 return ['success' => false, 'message' => 'Ya existe una categoría con ese nombre'];
             }
             return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+        } finally {
+            $this->DestruirConexion();
         }
     }
 
@@ -233,13 +238,14 @@ class CategoriaProducto
     private function actualizarCategoria()
     {
         try {
-            $this->db->beginTransaction();
+            $db = $this->LlamarConexion('business');
+            $db->beginTransaction();
             $sql = "UPDATE categoria_producto SET 
                     nombre_categoria = :nombre_categoria,
                     estatus = :estatus
                     WHERE id_categoria = :id_categoria";
 
-            $stmt = $this->db->prepare($sql);
+            $stmt = $db->prepare($sql);
             $result = $stmt->execute([
                 'id_categoria'     => $this->getIdCategoria(),
                 'nombre_categoria' => $this->getNombreCategoria(),
@@ -247,16 +253,18 @@ class CategoriaProducto
             ]);
 
             if ($result) {
-                $this->db->commit();
+                $db->commit();
                 return ['success' => true, 'message' => 'Categoría actualizada'];
             }
             
-            $this->db->rollBack();
+            $db->rollBack();
             return ['success' => false, 'message' => 'Error al actualizar'];
             
         } catch (\PDOException $e) {
-            $this->db->rollBack();
+            if (isset($db)) $db->rollBack();
             return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+        } finally {
+            $this->DestruirConexion();
         }
     }
 
@@ -278,32 +286,35 @@ class CategoriaProducto
     private function eliminarCategoria()
     {
         try {
-            $this->db->beginTransaction();
+            $db = $this->LlamarConexion('business');
+            $db->beginTransaction();
             $checkSql = "SELECT COUNT(*) as total FROM producto WHERE id_categoria = :id_categoria";
-            $checkStmt = $this->db->prepare($checkSql);
+            $checkStmt = $db->prepare($checkSql);
             $checkStmt->execute(['id_categoria' => $this->getIdCategoria()]);
             $result = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
             if ($result['total'] > 0) {
-                $this->db->rollBack();
+                $db->rollBack();
                 return ['success' => false, 'message' => 'No se puede eliminar: Hay productos usando esta categoría'];
             }
 
             $sql = "UPDATE categoria_producto SET estatus = 0 WHERE id_categoria = :id_categoria";
-            $stmt = $this->db->prepare($sql);
+            $stmt = $db->prepare($sql);
             $result = $stmt->execute(['id_categoria' => $this->getIdCategoria()]);
 
             if ($result) {
-                $this->db->commit();
+                $db->commit();
                 return ['success' => true, 'message' => 'Categoría eliminada'];
             }
             
-            $this->db->rollBack();
+            $db->rollBack();
             return ['success' => false, 'message' => 'Error al eliminar'];
             
         } catch (\PDOException $e) {
-            $this->db->rollBack();
+            if (isset($db)) $db->rollBack();
             return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+        } finally {
+            $this->DestruirConexion();
         }
     }
 
@@ -324,13 +335,16 @@ class CategoriaProducto
     private function buscarCategoria()
     {
         try {
+            $db = $this->LlamarConexion('business');
             $sql = "SELECT * FROM categoria_producto WHERE id_categoria = :id_categoria";
-            $stmt = $this->db->prepare($sql);
+            $stmt = $db->prepare($sql);
             $stmt->execute(['id_categoria' => $this->getIdCategoria()]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             error_log("Error en buscarCategoria: " . $e->getMessage());
             return null;
+        } finally {
+            $this->DestruirConexion();
         }
     }
 
@@ -348,6 +362,7 @@ class CategoriaProducto
     private function verificarNombreExiste(?string $id_excluir = null): array
     {
         try {
+            $db = $this->LlamarConexion('business');
             if (empty($this->nombre_categoria)) {
                 return ['existe' => false, 'message' => ''];
             }
@@ -358,7 +373,7 @@ class CategoriaProducto
                         WHERE LOWER(nombre_categoria) = LOWER(:nombre)
                           AND estatus = 1
                           AND id_categoria != :id_excluir";
-                $stmt = $this->db->prepare($sql);
+                $stmt = $db->prepare($sql);
                 $stmt->execute([
                     'nombre'     => $this->nombre_categoria,
                     'id_excluir' => $id_excluir
@@ -368,7 +383,7 @@ class CategoriaProducto
                 $sql = "SELECT COUNT(*) as total FROM categoria_producto
                         WHERE LOWER(nombre_categoria) = LOWER(:nombre)
                           AND estatus = 1";
-                $stmt = $this->db->prepare($sql);
+                $stmt = $db->prepare($sql);
                 $stmt->execute(['nombre' => $this->nombre_categoria]);
             }
 
@@ -383,6 +398,8 @@ class CategoriaProducto
         } catch (\PDOException $e) {
             error_log("Error en verificarNombreExiste: " . $e->getMessage());
             return ['existe' => false, 'message' => 'Error al verificar el nombre.'];
+        } finally {
+            $this->DestruirConexion();
         }
     }
 
