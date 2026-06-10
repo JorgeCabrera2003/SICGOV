@@ -33,7 +33,6 @@ class Usuario extends \App\Models\System\Persona
     private $fecha_registro;
     private $estatus;
     private $estatus_clave;
-    private $db;
 
     public function __construct()
     {
@@ -47,26 +46,9 @@ class Usuario extends \App\Models\System\Persona
         $this->fecha_registro = "";
         $this->estatus = 1;
         $this->estatus_clave = 0;
-        $this->db = NULL;
     }
 
-    private function LlamarConexion($nombreBD = 'security', PDO &$pdo = NULL)
-    {
-        if ($pdo != NULL) {
-            $this->db = $pdo;
-        }
-        if ($this->db == NULL) {
-            $this->db = Database::getConnection($nombreBD);
-        }
-        return $this->db;
-    }
 
-    private function DestruirConexion($bool = true)
-    {
-        if ($bool) {
-            $this->db = NULL;
-        }
-    }
 
     //SETTERS
     public function setIdRol(string $id_rol)
