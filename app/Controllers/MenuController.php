@@ -13,7 +13,7 @@ if ($type === 'admin') {
 
 
     Helper::verificarSesion();
-    $menuModel = new Menu();
+    $objMenu = new Menu();
     
     $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
     
@@ -32,14 +32,14 @@ if ($type === 'admin') {
 
         if ($peticion == 'guardar' || $peticion == 'registrar' || $peticion == 'modificar') {
             try {
-                $menuModel->setIdProducto($_POST['id_producto'] ?? '');
-                $menuModel->setNombreProducto($_POST['nombre'] ?? '');
-                $menuModel->setDescripcion($_POST['descripcion'] ?? '');
-                $menuModel->setPrecio($_POST['precio'] ?? 0);
-                $menuModel->setIdCategoria($_POST['id_categoria'] ?? null);
-                $menuModel->setTipoProducto($_POST['tipo_producto'] ?? 'COCINA');
-                $menuModel->setInsumosPrincipales($_POST['insumos_principales'] ?? '[]');
-                $menuModel->setInsumosAdicionales($_POST['insumos_adicionales'] ?? '[]');
+                $objMenu->setIdProducto($_POST['id_producto'] ?? '');
+                $objMenu->setNombreProducto($_POST['nombre'] ?? '');
+                $objMenu->setDescripcion($_POST['descripcion'] ?? '');
+                $objMenu->setPrecio($_POST['precio'] ?? 0);
+                $objMenu->setIdCategoria($_POST['id_categoria'] ?? null);
+                $objMenu->setTipoProducto($_POST['tipo_producto'] ?? 'COCINA');
+                $objMenu->setInsumosPrincipales($_POST['insumos_principales'] ?? '[]');
+                $objMenu->setInsumosAdicionales($_POST['insumos_adicionales'] ?? '[]');
 
                 $imagen_nombre = null;
                 // Prioridad 1: Imagen seleccionada de la galería
@@ -49,7 +49,7 @@ if ($type === 'admin') {
                 // Prioridad 2: Nueva subida de archivo
                 elseif (isset($_FILES['imagen'])) {
                     if ($_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
-                        $imagen_subida = $menuModel->subirImagen($_FILES['imagen']);
+                        $imagen_subida = $objMenu->subirImagen($_FILES['imagen']);
                         if ($imagen_subida) {
                             $imagen_nombre = $imagen_subida;
                         }
@@ -57,11 +57,11 @@ if ($type === 'admin') {
                 }
 
                 if ($imagen_nombre) {
-                    $menuModel->setImagen($imagen_nombre);
+                    $objMenu->setImagen($imagen_nombre);
                 }
 
                 $pet = empty($_POST['id_producto']) ? 'registrar' : 'modificar';
-                $result = $menuModel->Transaccion(['peticion' => $pet]);
+                $result = $objMenu->Transaccion(['peticion' => $pet]);
 
                 if (isset($result['success']) && $result['success']) {
                     $es_nuevo = empty($_POST['id_producto']);
@@ -95,8 +95,8 @@ if ($type === 'admin') {
                     exit;
                 }
 
-                $menuModel->setIdProducto($id);
-                $data = $menuModel->Transaccion(['peticion' => 'buscar']);
+                $objMenu->setIdProducto($id);
+                $data = $objMenu->Transaccion(['peticion' => 'buscar']);
 
                 if ($data) {
                     echo json_encode(['success' => true, 'data' => $data]);
@@ -128,8 +128,8 @@ if ($type === 'admin') {
                     exit;
                 }
 
-                $menuModel->setIdProducto($_POST['id']);
-                $result = $menuModel->Transaccion(['peticion' => 'eliminar']);
+                $objMenu->setIdProducto($_POST['id']);
+                $result = $objMenu->Transaccion(['peticion' => 'eliminar']);
 
                 if (isset($result['success']) && $result['success']) {
                     Helper::Bitacora("ELIMINAR", "MENU", "Se eliminó el producto del menú con ID: " . $_POST['id']);
@@ -150,7 +150,7 @@ if ($type === 'admin') {
 
         if ($peticion == 'listarJson' || $peticion == 'listar') {
             try {
-                $menus = $menuModel->Transaccion(['peticion' => 'listar']) ?: [];
+                $menus = $objMenu->Transaccion(['peticion' => 'listar']) ?: [];
                 echo json_encode(['data' => $menus]);
                 exit;
             } catch (\Exception $e) {
@@ -160,10 +160,10 @@ if ($type === 'admin') {
         }
     }
 
-    $menus = $menuModel->Transaccion(['peticion' => 'listar']);
-    $categorias = $menuModel->Transaccion(['peticion' => 'categorias']);
-    $insumos = $menuModel->Transaccion(['peticion' => 'insumos']);
-    $unidades = $menuModel->Transaccion(['peticion' => 'unidades']);
+    $menus = $objMenu->Transaccion(['peticion' => 'listar']);
+    $categorias = $objMenu->Transaccion(['peticion' => 'categorias']);
+    $insumos = $objMenu->Transaccion(['peticion' => 'insumos']);
+    $unidades = $objMenu->Transaccion(['peticion' => 'unidades']);
 
     Helper::cargarVista(
         'menu/index',
@@ -177,9 +177,9 @@ if ($type === 'admin') {
 
 
 } elseif ($type === 'publico') {
-    $menuModel = new Menu();
-    $menus = $menuModel->Transaccion(['peticion' => 'listar']) ?: [];
-    $categorias = $menuModel->Transaccion(['peticion' => 'categorias']) ?: [];
+    $objMenu = new Menu();
+    $menus = $objMenu->Transaccion(['peticion' => 'listar']) ?: [];
+    $categorias = $objMenu->Transaccion(['peticion' => 'categorias']) ?: [];
 
     $page = 'menu_publico';
     $titulo = 'Nuestro Menú - Good Vibes';

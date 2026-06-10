@@ -7,7 +7,7 @@ use App\Models\System\CategoriaProducto;
 
 $peticion = $_POST['peticion'] ?? $_POST['action'] ?? $_GET['action'] ?? '';
 
-// Si no hay petición específica, asumimos que es cargar la vista (equivalente al antiguo index sin POST)
+
 if (empty($peticion) && !isset($_POST["peticion"])) {
     Helper::verificarSesion();
     Helper::cargarVista(
@@ -19,7 +19,7 @@ if (empty($peticion) && !isset($_POST["peticion"])) {
 
 $categoriaModel = new CategoriaProducto();
 
-// Entrada
+
 if ($peticion == "entrada") {
     $json['HTTP_STATUS'] = ['codigo' => 204, 'mensaje' => ''];
     $json['response'] = ['resultado' => 204, 'mensaje' => 'No hay contenido'];
@@ -29,7 +29,12 @@ if ($peticion == "entrada") {
     exit;
 }
 
-// Listar (fusionando el antiguo listar() y consultar)
+
+
+
+
+
+
 if ($peticion == "listar" || $peticion == "consultar") {
     header('Content-Type: application/json');
     if ($peticion == "listar") {
@@ -53,7 +58,13 @@ if ($peticion == "listar" || $peticion == "consultar") {
     exit;
 }
 
-// Verificar nombre duplicado (llamada asíncrona del frontend)
+
+
+
+
+
+
+
 if ($peticion == "verificar") {
     try {
         $nombre = trim($_POST["nombre_categoria"] ?? '');
@@ -86,7 +97,14 @@ if ($peticion == "verificar") {
     exit;
 }
 
-// Registrar, Guardar y Modificar
+
+
+
+
+
+
+
+
 if ($peticion == "guardar" || $peticion == "registrar" || $peticion == "modificar") {
     header('Content-Type: application/json');
     $accion_permiso = true; 
@@ -116,7 +134,7 @@ if ($peticion == "guardar" || $peticion == "registrar" || $peticion == "modifica
             }
 
             if ($peticion == "guardar") {
-                // Formato legacy
+                
                 echo json_encode($jsonResult);
             } else {
                 if ($success) {
@@ -148,7 +166,17 @@ if ($peticion == "guardar" || $peticion == "registrar" || $peticion == "modifica
     exit;
 }
 
-// Eliminado Lógico
+
+
+
+
+
+
+
+
+
+
+
 if ($peticion == "eliminar") {
     header('Content-Type: application/json');
     $accion_permiso = true;
@@ -198,7 +226,11 @@ if ($peticion == "eliminar") {
     exit;
 }
 
-// Fallback por si la petición no coincide con ninguna
+
+
+
+
+// por si la petición no coincide con ninguna
 $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Peticion no valida'];
 $json['response'] = ['resultado' => 400, 'mensaje' => 'Petición no válida o no especificada'];
 header("Content-Type: application/json");

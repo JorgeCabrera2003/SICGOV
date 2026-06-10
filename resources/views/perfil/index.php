@@ -200,7 +200,7 @@
                                 <div class="col-md-6 position-relative">
                                     <label for="telefono" class="form-label fw-bold">Teléfono Celular <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <select class="form-select" id="prefijo_telefono" name="prefijo_telefono" style="max-width: 90px;" required>
+                                        <select class="form-select" id="prefijo_telefono" name="prefijo_telefono" style="flex: 0 0 auto; width: 120px;" required>
                                             <option value="0412" <?= (substr($perfil['telefono'] ?? '', 0, 4) === '0412') ? 'selected' : '' ?>>0412</option>
                                             <option value="0414" <?= (substr($perfil['telefono'] ?? '', 0, 4) === '0414') ? 'selected' : '' ?>>0414</option>
                                             <option value="0424" <?= (substr($perfil['telefono'] ?? '', 0, 4) === '0424') ? 'selected' : '' ?>>0424</option>
