@@ -42,7 +42,7 @@
             <div class="user-info">
                 <div class="user-name fw-semibold"><?php echo $datos['username'] ?? ($datos['nombre'] ?? 'Usuario'); ?>
                 </div>
-                <div class="user-role small text-muted"><?php echo $datos['Rol'] ?? 'Sin Rol'; ?></div>
+                <div class="user-role small text-muted"><?php echo $datos['rol'] ?? 'Sin Rol'; ?></div>
             </div>
         </div>
 
