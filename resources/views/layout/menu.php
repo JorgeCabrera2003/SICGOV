@@ -58,10 +58,11 @@
 
             <!-- CATEGORÍA: ATENCIÓN AL CLIENTE -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Atención al Cliente</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido', 'pedidos', 'pos']) ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#cliente-submenu" role="button">
+                    data-bs-toggle="collapse" href="#cliente-submenu" role="button"
+                    data-bs-tooltip-title="Servicio y Citas" title="Servicio y Citas">
                     <i class="bi bi-person-heart fs-5"></i>
                     <span class="flex-grow-1">Servicio y Citas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
@@ -93,10 +94,11 @@
 
             <!-- CATEGORÍA: GESTIÓN DEL SALÓN -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Gestión del Salón</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Areas', 'Mesas']) ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#salon-submenu" role="button">
+                    data-bs-toggle="collapse" href="#salon-submenu" role="button"
+                    data-bs-tooltip-title="Áreas y Mesas" title="Áreas y Mesas">
                     <i class="bi bi-houses fs-5"></i>
                     <span class="flex-grow-1">Áreas y Mesas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
@@ -115,10 +117,11 @@
 
             <!-- CATEGORÍA: COCINA E INVENTARIO -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Cocina e Inventario</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Categoria', 'CategoriaInsumo', 'Insumo', 'Menu']) ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#cocina-submenu" role="button">
+                    data-bs-toggle="collapse" href="#cocina-submenu" role="button"
+                    data-bs-tooltip-title="Menú y Recetas" title="Menú y Recetas">
                     <i class="bi bi-egg-fried fs-5"></i>
                     <span class="flex-grow-1">Menú y Recetas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
@@ -146,10 +149,11 @@
 
             <!-- CATEGORÍA: LOGÍSTICA Y ALMACÉN -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Logística y Almacén</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['bien', 'equipo', 'material', 'Producto']) ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#logistica-submenu" role="button">
+                    data-bs-toggle="collapse" href="#logistica-submenu" role="button"
+                    data-bs-tooltip-title="Suministros y Activos" title="Suministros y Activos">
                     <i class="bi bi-truck fs-5"></i>
                     <span class="flex-grow-1">Suministros y Activos</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
@@ -172,10 +176,11 @@
 
             <!-- CATEGORÍA: MARKETING Y CONTENIDO -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Marketing y Contenido</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Media', 'Noticia']) ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#marketing-submenu" role="button">
+                    data-bs-toggle="collapse" href="#marketing-submenu" role="button"
+                    data-bs-tooltip-title="Difusión Digital" title="Difusión Digital">
                     <i class="bi bi-megaphone fs-5"></i>
                     <span class="flex-grow-1">Difusión Digital</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
@@ -195,10 +200,11 @@
 
             <!-- CATEGORÍA: GESTIÓN DEL PERSONAL -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Gestión del Personal</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Asistencia', 'Cargo', 'Empleado']) ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#personal-submenu" role="button">
+                    data-bs-toggle="collapse" href="#personal-submenu" role="button"
+                    data-bs-tooltip-title="Equipo y Horario" title="Equipo y Horario">
                     <i class="bi bi-people fs-5"></i>
                     <span class="flex-grow-1">Equipo y Horario</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
@@ -225,10 +231,11 @@
 
             <!-- CATEGORÍA: INTELIGENCIA DE NEGOCIO -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Inteligencia de Negocio</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reporte') ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#reportes-submenu" role="button">
+                    data-bs-toggle="collapse" href="#reportes-submenu" role="button"
+                    data-bs-tooltip-title="Análisis y PDF" title="Análisis y PDF">
                     <i class="bi bi-graph-up-arrow fs-5"></i>
                     <span class="flex-grow-1">Análisis y PDF</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
@@ -252,10 +259,11 @@
 
             <!-- CATEGORÍA: SEGURIDAD Y AUDITORÍA -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Seguridad y Auditoría</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Bitacora', 'Papelera', 'Usuario']) ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#seguridad-submenu" role="button">
+                    data-bs-toggle="collapse" href="#seguridad-submenu" role="button"
+                    data-bs-tooltip-title="Control de Acceso" title="Control de Acceso">
                     <i class="bi bi-shield-lock fs-5"></i>
                     <span class="flex-grow-1">Control de Acceso</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
