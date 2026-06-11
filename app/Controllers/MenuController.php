@@ -41,27 +41,32 @@ if ($type === 'admin') {
                 $objMenu->setInsumosPrincipales($_POST['insumos_principales'] ?? '[]');
                 $objMenu->setInsumosAdicionales($_POST['insumos_adicionales'] ?? '[]');
 
-                $imagen_nombre = null;
-                // Prioridad 1: Imagen seleccionada de la galería
-                if (!empty($_POST['imagen_galeria'])) {
-                    $imagen_nombre = basename($_POST['imagen_galeria']);
-                } 
-                // Prioridad 2: Nueva subida de archivo
-                elseif (isset($_FILES['imagen'])) {
-                    if ($_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
-                        $imagen_subida = $objMenu->subirImagen($_FILES['imagen']);
-                        if ($imagen_subida) {
-                            $imagen_nombre = $imagen_subida;
-                        }
+            $imagen_nombre = null;
+            // Prioridad 1: Imagen seleccionada de la galería
+            if (!empty($_POST['imagen_galeria'])) {
+                $imagen_nombre = basename($_POST['imagen_galeria']);
+                error_log("Imagen seleccionada de galeria: " . $imagen_nombre);
+            } 
+            // Prioridad 2: Nueva subida de archivo
+            elseif (isset($_FILES['imagen'])) {
+                error_log("FILES imagen detectado. Error code: " . $_FILES['imagen']['error']);
+                if ($_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
+                    $imagen_subida = $menu->subirImagen($_FILES['imagen']);
+                    if ($imagen_subida) {
+                        $imagen_nombre = $imagen_subida;
+                        error_log("Imagen subida exitosamente: " . $imagen_subida);
+                    } else {
+                        error_log("subirImagen() devolvio false");
                     }
                 }
 
-                if ($imagen_nombre) {
-                    $objMenu->setImagen($imagen_nombre);
-                }
+            if ($imagen_nombre) {
+                $menu->setImagen($imagen_nombre);
+            }
 
-                $pet = empty($_POST['id_producto']) ? 'registrar' : 'modificar';
-                $result = $objMenu->Transaccion(['peticion' => $pet]);
+            $peticion = empty($_POST['id_producto']) ? 'registrar' : 'modificar';
+
+            $result = $menu->Transaccion(['peticion' => $peticion]);
 
                 if (isset($result['success']) && $result['success']) {
                     $es_nuevo = empty($_POST['id_producto']);
@@ -72,14 +77,33 @@ if ($type === 'admin') {
                     Helper::Bitacora($accion_bitacora, "MENU", $detalle);
                 }
 
-                echo json_encode($result);
-                exit;
+            return $result;
+        });
+    }
 
-            } catch (\Exception $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-                exit;
+
+
+
+
+
+    public function buscar()
+    {
+        $this->responderJson(function() {
+            Helper::verificarSesion();
+
+            if (empty($_GET['id'])) {
+                return ['success' => false, 'message' => 'ID no proporcionado'];
             }
-        }
+
+            $menu = new Menu();
+            $menu->setIdProducto($_GET['id']);
+            $data = $menu->Transaccion(['peticion' => 'buscar']);
+
+            return $data 
+                ? ['success' => true, 'data' => $data]
+                : ['success' => false, 'message' => 'Producto no encontrado'];
+        });
+    }
 
 
 
@@ -87,99 +111,58 @@ if ($type === 'admin') {
 
 
 
-        if ($peticion == 'buscar' || $peticion == 'consultar') {
-            try {
-                $id = $_GET['id'] ?? $_POST['id'] ?? '';
-                if (empty($id)) {
-                    echo json_encode(['success' => false, 'message' => 'ID no proporcionado']);
-                    exit;
-                }
 
-                $objMenu->setIdProducto($id);
-                $data = $objMenu->Transaccion(['peticion' => 'buscar']);
 
-                if ($data) {
-                    echo json_encode(['success' => true, 'data' => $data]);
-                } else {
-                    echo json_encode(['success' => false, 'message' => 'Producto no encontrado']);
-                }
-                exit;
 
-            } catch (\Exception $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-                exit;
+    public function eliminar()
+    {
+        $this->responderJson(function() {
+            Helper::verificarSesion();
+
+            if (empty($_POST['id'])) {
+                return ['success' => false, 'message' => 'ID no proporcionado'];
             }
-        }
 
-
-
-
-
-
-
-
-
-
-
-        if ($peticion == 'eliminar') {
-            try {
-                if (empty($_POST['id'])) {
-                    echo json_encode(['success' => false, 'message' => 'ID no proporcionado']);
-                    exit;
-                }
-
-                $objMenu->setIdProducto($_POST['id']);
-                $result = $objMenu->Transaccion(['peticion' => 'eliminar']);
+            $menu = new Menu();
+            $menu->setIdProducto($_POST['id']);
+            $result = $menu->Transaccion(['peticion' => 'eliminar']);
 
                 if (isset($result['success']) && $result['success']) {
                     Helper::Bitacora("ELIMINAR", "MENU", "Se eliminó el producto del menú con ID: " . $_POST['id']);
                 }
 
-                echo json_encode($result);
-                exit;
-
-            } catch (\Exception $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-                exit;
-            }
-        }
-
-
-
-
-
-        if ($peticion == 'listarJson' || $peticion == 'listar') {
-            try {
-                $menus = $objMenu->Transaccion(['peticion' => 'listar']) ?: [];
-                echo json_encode(['data' => $menus]);
-                exit;
-            } catch (\Exception $e) {
-                echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-                exit;
-            }
-        }
+            return $result;
+        });
     }
 
-    $menus = $objMenu->Transaccion(['peticion' => 'listar']);
-    $categorias = $objMenu->Transaccion(['peticion' => 'categorias']);
-    $insumos = $objMenu->Transaccion(['peticion' => 'insumos']);
-    $unidades = $objMenu->Transaccion(['peticion' => 'unidades']);
-
-    Helper::cargarVista(
-        'menu/index',
-        'Menú - Good Vibes',
-        compact('menus', 'categorias', 'insumos', 'unidades')
-    );
 
 
 
 
 
+    public function listarJson()
+    {
+        $this->responderJson(function() {
+            Helper::verificarSesion();
+            $menuModel = new Menu();
+            $menus = $menuModel->Transaccion(['peticion' => 'listar']) ?: [];
+            return ['data' => $menus];
+        });
+    }
 
-} elseif ($type === 'publico') {
-    $objMenu = new Menu();
-    $menus = $objMenu->Transaccion(['peticion' => 'listar']) ?: [];
-    $categorias = $objMenu->Transaccion(['peticion' => 'categorias']) ?: [];
+
+
+
+
+
+
+    
+    public function indexPublico()
+    {
+        $menuModel = new Menu();
+        // Usamos listarMenu() indirectamente a través de Transaccion(['peticion' => 'listar'])
+        $menus = $menuModel->Transaccion(['peticion' => 'listar']) ?: [];
+        $categorias = $menuModel->Transaccion(['peticion' => 'categorias']) ?: [];
 
     $page = 'menu_publico';
     $titulo = 'Nuestro Menú - Good Vibes';

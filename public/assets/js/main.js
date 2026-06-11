@@ -85,6 +85,83 @@ const SICGOV = (function($) {
     // SIDEBAR COLAPSABLE
     // ==========================================
     
+    // ==========================================
+    // FLYOUT DE SUBMENÚS (sidebar colapsado)
+    // ==========================================
+
+    let _flyoutHideTimer = null;
+    let _$activeFlyout = null;
+
+    function initCollapsedFlyouts() {
+        const $sidebar = $('#sidebar');
+
+        // Crear el panel flyout compartido
+        const $flyout = $('<div id="sidebar-flyout" role="menu"></div>').appendTo('body');
+
+        function showFlyout($navItem) {
+            clearTimeout(_flyoutHideTimer);
+
+            const $trigger  = $navItem.find('[data-bs-tooltip-title]').first();
+            const $collapse = $navItem.find('.collapse').first();
+            if (!$trigger.length || !$collapse.length) return;
+
+            const title = $trigger.attr('data-bs-tooltip-title');
+            const rect  = $trigger[0].getBoundingClientRect();
+
+            // Clonar los enlaces del submenú
+            const $links = $collapse.find('a').clone(true, true);
+
+            $flyout.empty().append(
+                `<div class="sidebar-flyout__title">${title}</div>`
+            );
+            $links.each(function() {
+                $(this).removeClass('py-1').addClass('sidebar-flyout__link');
+                $flyout.append(this);
+            });
+
+            // Posicionar: justo a la derecha del sidebar, alineado con el ícono
+            const sidebarW = $sidebar.outerWidth();
+            $flyout.css({
+                top: Math.max(rect.top, 10) + 'px',
+                left: sidebarW + 'px'
+            }).addClass('show');
+
+            _$activeFlyout = $flyout;
+        }
+
+        function hideFlyout(delay = 120) {
+            _flyoutHideTimer = setTimeout(() => {
+                $flyout.removeClass('show');
+                _$activeFlyout = null;
+            }, delay);
+        }
+
+        // Hover sobre nav-items con submenú
+        $('#sidebar').on('mouseenter', '.nav-item', function() {
+            if (!$sidebar.hasClass('collapsed')) return;
+            showFlyout($(this));
+        }).on('mouseleave', '.nav-item', function() {
+            if (!$sidebar.hasClass('collapsed')) return;
+            hideFlyout();
+        });
+
+        // Mantener flyout visible mientras el cursor está sobre él
+        $flyout.on('mouseenter', function() {
+            clearTimeout(_flyoutHideTimer);
+        }).on('mouseleave', function() {
+            hideFlyout();
+        });
+
+        // Cerrar al expandir el sidebar
+        $(document).on('click', CONFIG.selectors.collapseBtn, function() {
+            $flyout.removeClass('show');
+        });
+    }
+
+    // ==========================================
+    // SIDEBAR COLAPSABLE
+    // ==========================================
+    
     function initSidebar() {
         const $sidebar = $(CONFIG.selectors.sidebar);
         const $mainContent = $(CONFIG.selectors.mainContent);
@@ -102,7 +179,10 @@ const SICGOV = (function($) {
                 updateChevron($collapseBtn, true);
             }
 
-            // Evento colapsar
+            // Inicializar flyout siempre (para cuando el usuario colapse)
+            initCollapsedFlyouts();
+
+            // Evento colapsar/expandir
             $collapseBtn.on('click', function() {
                 $sidebar.toggleClass(CONFIG.classes.collapsed);
                 $mainContent.toggleClass(CONFIG.classes.expanded);
@@ -113,7 +193,7 @@ const SICGOV = (function($) {
                 
                 updateChevron($(this), isCollapsed);
 
-                // Trigger resize for components like FullCalendar
+                // Notificar a componentes como FullCalendar
                 setTimeout(() => {
                     window.dispatchEvent(new Event('resize'));
                 }, 310);

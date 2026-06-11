@@ -10,11 +10,13 @@
             <i class="fas fa-box me-2 text-warning"></i>
             Gestión de Categorías de Insumos
         </h1>
+        <?php if(isset($permisos['categoria_insumo']['registrar']) && $permisos['categoria_insumo']['registrar'] == 1){ ?>
         <div class="btn-group" role="group" aria-label="Acciones de insumo">
             <button class="btn btn-warning text-dark fw-semibold" id="btnNuevaCategoria">
                 <i class="fas fa-plus me-2"></i>Nueva Categoría
             </button>
         </div>
+        <?php } ?>
     </header>
 
     <!-- Tabla de productos (section semántica) -->

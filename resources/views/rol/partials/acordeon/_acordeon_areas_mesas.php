@@ -20,7 +20,7 @@
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input group-checkbox" type="checkbox" id="group-area_mesa"
-                                    data-modulo="ROL0000220251001">
+                                    data-modulo="AREAM0000720260519200547232">
                                 <label class="form-check-label" for="group-area_mesa">Gestionar Áreas de las
                                     Mesas</label>
                             </div>
