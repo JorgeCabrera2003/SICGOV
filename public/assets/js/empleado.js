@@ -76,13 +76,13 @@ function editarModal(operacion) {
 
   if (operacion == 'registrar') {
     titulo = "Nuevo Empleado"
-    boton = "Nuevo"
+    boton = "Guardar Empleado"
     etiqueta_modal = etiquetasModal("principal");
   }
 
   if (operacion == 'modificar') {
     titulo = "Actualizar Empleado"
-    boton = "Actualizar"
+    boton = "Actualizar Empleado"
     etiqueta_modal = etiquetasModal("principal");
   }
 
@@ -107,7 +107,7 @@ const verificarCedulaDuplicada = debounce(async function (tipoCedula, numCedula)
     const accion   = etiquetasModal('principal').boton.text();
 
     // Solo verificar en modo registrar y si la cédula es formalmente válida
-    if (accion !== 'Nuevo') return;
+    if (accion !== 'Guardar Empleado') return;
     if (!tipoCedula || tipoCedula === 'default') return;
     if (!numCedula || numCedula.length < 7 || numCedula.length > 9) return;
 
@@ -460,8 +460,8 @@ async function enviarDatos(operacion) {
 $("#btnEmpleadoForm").on("click", async function () {
   let accion = null;
   const MANEJADOR = {
-    'Nuevo': 'registrar',
-    'Actualizar': 'modificar',
+    'Guardar Empleado': 'registrar',
+    'Actualizar Empleado': 'modificar',
     'Borrar': 'eliminar'
   }
   const DEFAULT = null
@@ -516,15 +516,15 @@ async function vistaPermiso() {
 
     const separador = $('<li>').html('<hr class="dropdown-divider">');
 
-    const itemEstatus = $('<li>');
-    const linkEstatus = $('<a>')
+    const itemEliminar = $('<li>');
+    const linkEliminar = $('<a>')
         .addClass('dropdown-item text-danger')
         .attr('href', '#')
-        .attr('onclick', 'cambiarEstatus(this)')
-        .html('<i class="fa-solid fa-power-off me-2"></i>Cambiar Estatus');
-    itemEstatus.append(linkEstatus);
+        .attr('onclick', 'eliminarEmpleadoDirecto(this)')
+        .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
+    itemEliminar.append(linkEliminar);
 
-    menu.append(itemConsultar, itemEditar, separador, itemEstatus);
+    menu.append(itemConsultar, itemEditar, separador, itemEliminar);
     dropdown.append(boton, menu);
 
     return dropdown.prop('outerHTML');
@@ -671,14 +671,7 @@ async function crearDataTable() {
           return edad + " años";
         }
       },
-      { 
-        data: 'estatus',
-        render: function(data) {
-            return data == 1 
-                ? '<span class="badge bg-success">Activo</span>'
-                : '<span class="badge bg-danger">Inactivo</span>';
-        }
-      },
+
       {
         data: null,
         render: function () {
@@ -780,23 +773,23 @@ function rellenar(pos, accion) {
   $('#btnEmpleadoForm').prop('disabled', false);
 }
 
-// Función exclusiva para Cambiar Estatus directamente sin Modal
-async function cambiarEstatus(pos) {
+// Función exclusiva para Eliminar Empleado directamente sin Modal
+async function eliminarEmpleadoDirecto(pos) {
     const linea = $(pos).closest('tr');
     const tabla = $('#tablaEmpleado').DataTable();
     const datosFila = tabla.row(linea).data();
     
-    let nuevoEstatus = datosFila.estatus == 1 ? 0 : 1;
-    let textoAccion = datosFila.estatus == 1 ? "desactivará" : "reactivará";
-    
-    let confirmacion = await confirmarAccion(`Se ${textoAccion} al Empleado`, "¿Está seguro de realizar la acción?", "warning");
+    let confirmacion = await confirmarAccion(`Se eliminará al Empleado`, "¿Está seguro de realizar la acción?", "warning");
     
     if (confirmacion) {
         let peticionData = new FormData();
-        peticionData.append('peticion', 'cambiar_estatus');
-        // cédula is expected by backend instead of id_categoria
-        peticionData.append('cedula', datosFila.cedula);
-        peticionData.append('estatus', nuevoEstatus);
+        peticionData.append('peticion', 'eliminar');
+        
+        let cedulaFormateada = datosFila.cedula;
+        if(cedulaFormateada && cedulaFormateada.indexOf('-') === -1 && cedulaFormateada.length > 1) {
+             cedulaFormateada = cedulaFormateada.charAt(0) + '-' + cedulaFormateada.slice(1);
+        }
+        peticionData.append('cedula', cedulaFormateada);
         
         try {
             let json = await enviaAjax(peticionData);

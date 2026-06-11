@@ -5,10 +5,7 @@ namespace App\Controllers;
 use App\Helpers\Helper;
 use App\Models\System\Papelera;
 
-class PapeleraController
-{
-    public function index()
-    {
+
         Helper::verificarSesion();
         
         $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
@@ -26,5 +23,5 @@ class PapeleraController
         }
 
         Helper::cargarVista('papelera/index', 'Papelera de Reciclaje - Good Vibes');
-    }
-}
+    
+

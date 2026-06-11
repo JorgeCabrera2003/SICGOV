@@ -15,7 +15,7 @@ class CategoriaProducto extends Database
 
   
 
-    // Getters y Setters
+    
     public function setIdCategoria($id)
     {
         if (empty($id) || RegexHelper::ValidarFormatos($id, 'ID') == 0) {
@@ -180,7 +180,11 @@ class CategoriaProducto extends Database
         try {
             $db = $this->LlamarConexion('business');
             $db->beginTransaction();
-            $this->id_categoria = $this->generarIdCategoria();
+            
+            $prefijo = 'CAT';
+            $fecha = date('YmdHis');
+            $random = rand(1000, 9999);
+            $this->id_categoria = $prefijo . $fecha . $random;
 
             $sql = "INSERT INTO categoria_producto (
                     id_categoria, 
@@ -349,16 +353,22 @@ class CategoriaProducto extends Database
     }
 
 
+
+
+
+
+
+
+
+
+
+
+
+    
+
 //#########################################################################################
 
 
-    /**
-     * Verifica si ya existe una categoría activa con el mismo nombre.
-     * Al editar, se excluye el propio registro usando $id_excluir.
-     *
-     * @param string|null $id_excluir ID de la categoría que se está editando (null al registrar)
-     * @return array ['existe' => bool, 'message' => string]
-     */
     private function verificarNombreExiste(?string $id_excluir = null): array
     {
         try {
@@ -368,7 +378,7 @@ class CategoriaProducto extends Database
             }
 
             if ($id_excluir) {
-                // Al editar: excluir el registro actual para permitir guardar sin cambiar nombre
+                
                 $sql = "SELECT COUNT(*) as total FROM categoria_producto
                         WHERE LOWER(nombre_categoria) = LOWER(:nombre)
                           AND estatus = 1
@@ -379,7 +389,7 @@ class CategoriaProducto extends Database
                     'id_excluir' => $id_excluir
                 ]);
             } else {
-                // Al registrar: buscar cualquier coincidencia activa
+                
                 $sql = "SELECT COUNT(*) as total FROM categoria_producto
                         WHERE LOWER(nombre_categoria) = LOWER(:nombre)
                           AND estatus = 1";
