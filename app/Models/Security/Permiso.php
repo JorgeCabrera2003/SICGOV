@@ -121,7 +121,7 @@ class Permiso extends Database
 
             $response = match ($peticion['peticion']) {
                 'cargar' => $this->CargarPermiso($peticion['permisos']),
-                'filtrar' => $this->FiltrarPermiso($peticion['parametro']),
+                'filtrar' => $this->FiltrarPermiso($peticion['parametro'], $peticion['modulo']),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'danger', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
@@ -134,10 +134,10 @@ class Permiso extends Database
 
     //OPERACIONES A BASE DE DATOS
 
-    private function FiltrarPermiso($filtro = "nombre_modulo")
+    private function FiltrarPermiso($filtro = "nombre_modulo", $modulo = NULL)
     {
         if ($filtro == "nombre_modulo") {
-            $columna = "nombre_modulo";
+            $columna = "nombre";
         } else {
             $columna = "id_modulo";
         }
@@ -151,9 +151,15 @@ class Permiso extends Database
             INNER JOIN modulo AS m ON p.id_modulo = m.id_modulo
             WHERE p.id_rol = :rol";
 
-
+            if($modulo != NULL){
+                $query .= " AND m.nombre = :modulo";
+            }
             $stm = $this->LlamarConexion()->prepare($query);
             $stm->bindParam(':rol', $this->id_rol);
+            if($modulo != NULL){
+                $stm->bindParam(':modulo', $modulo);
+            }
+
             $stm->execute();
             $this->LlamarConexion()->commit();
             $resultadoQuery = $stm->fetchAll(PDO::FETCH_ASSOC);
@@ -167,10 +173,16 @@ class Permiso extends Database
                 if (!isset($permisos[$modulo])) {
                     $permisos[$modulo] = [];
                 }
-                $permisos[$modulo][$accion] = [
+
+                if($columna == "nombre"){
+                    $permisos[$modulo][$accion] = $estado; 
+                } else {
+                    $permisos[$modulo][$accion] = [
                     'estado' => $estado,
                     'id' => $fila['id_permiso']
                 ];
+                }
+                
             }
             $dato['response'] = ['resultado' => 200, 'permiso' => $permisos];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
