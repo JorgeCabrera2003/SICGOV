@@ -429,7 +429,7 @@ JOIN unidad_medida um ON i.id_unidad_medida = um.id_unidad
 WHERE i.stock_actual <= i.stock_minimo;
 
 CREATE VIEW `vw_directorio_empleados` AS
-SELECT p.cedula, p.nombre, p.apellido, p.telefono, c.nombre_cargo AS cargo, e.fecha_ingreso, e.fecha_egreso
+SELECT p.cedula, p.nombre, p.apellido, p.telefono, c.nombre_cargo AS cargo, e.fecha_ingreso
 FROM empleado e
 JOIN persona p ON e.cedula = p.cedula
 JOIN cargo c ON e.id_cargo = c.id_cargo;
