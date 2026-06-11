@@ -2,6 +2,7 @@ import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js"
 import * as AjaxHelper from "../Helpers/AjaxHelper.js"
 import * as ValidadorHelper from "../Helpers/ValidadorHelper.js"
 import * as SelectHelper from "../Helpers/SelectHelper.js"
+import * as PermisoHelper from "../Helpers/PermisoHelper.js"
 
 //MODULO DE INGREDIENTES
 
@@ -123,7 +124,7 @@ export async function EnviarDatos(operacion) {
   let mensajeConfirmacion = "¿Está seguro de realizar esta acción?";
   let endpoint = "";
   let peticion = new FormData();
-  let json = { resultado: 0};
+  let json = { resultado: 0 };
 
   peticion.append("modulo", "Insumo");
 
@@ -148,9 +149,9 @@ export async function EnviarDatos(operacion) {
       peticion.append('id_insumo', input.id_insumo.val());
     }
 
-if (input.stock_maximo.val() == "" || input.stock_maximo.val() == null){
-  stock_maximo = 0;
-}
+    if (input.stock_maximo.val() == "" || input.stock_maximo.val() == null) {
+      stock_maximo = 0;
+    }
 
     if (Validarenvio() && bool_peticion) {
       confirmacion = await confirmarAccion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
@@ -465,6 +466,43 @@ function Validarenvio() {
 
 async function RenderPermisoBotones(modulo = "Insumo") {
 
+  const permisos = await PermisoHelper.LlamarPermiso("insumo");
+  let bool = false;
+  let btn_eliminar = "";
+  let btn_modificar = "";
+  let separadorHTML = "";
+
+  if (permisos['insumo']['modificar'] != undefined && permisos['insumo']['modificar'] == 1) {
+    const itemEditar = $('<li>');
+    const linkEditar = $('<a>')
+      .addClass('dropdown-item btn-editar text-primary')
+      .attr('href', '#')
+      .attr('data-accion', 0)
+      .attr('data-modulo', modulo)
+      .html('<i class="fas fa-edit me-2"></i>Editar');
+    itemEditar.append(linkEditar);
+    btn_modificar = itemEditar;
+    bool = true;
+  }
+
+  if (permisos['insumo']['eliminar'] != undefined && permisos['insumo']['modificar'] == 1) {
+    const itemEliminar = $('<li>');
+    const linkEliminar = $('<a>')
+      .addClass('dropdown-item btn-eliminar text-danger')
+      .attr('href', '#')
+      .attr('data-accion', 1)
+      .attr('data-modulo', modulo)
+      .html('<i class="fas fa-trash me-2" me-2"></i>Eliminar');
+    itemEliminar.append(linkEliminar);
+    btn_eliminar = itemEliminar;
+    bool = true;
+  }
+
+  if (btn_modificar != "" && btn_eliminar != "") {
+    const separador = $('<li>').html('<hr class="dropdown-divider">');
+    separadorHTML = separador;
+  }
+
   const dropdown = $('<div>').addClass('dropdown');
   const boton = $('<button>').addClass('btn btn-sm btn-light border dropdown-toggle')
     .attr('type', 'button')
@@ -472,30 +510,14 @@ async function RenderPermisoBotones(modulo = "Insumo") {
     .html('<i class="fas fa-ellipsis-v me-3"></i>Acciones');
 
   const menu = $('<ul>').addClass('dropdown-menu');
-  const separador = $('<li>').html('<hr class="dropdown-divider">');
 
-  const itemEditar = $('<li>');
-  const linkEditar = $('<a>')
-    .addClass('dropdown-item btn-editar text-primary')
-    .attr('href', '#')
-    .attr('data-accion', 0)
-    .attr('data-modulo', modulo)
-    .html('<i class="fas fa-edit me-2"></i>Editar');
-  itemEditar.append(linkEditar);
 
-  const itemEliminar = $('<li>');
-  const linkEliminar = $('<a>')
-    .addClass('dropdown-item btn-eliminar text-danger')
-    .attr('href', '#')
-    .attr('data-accion', 1)
-    .attr('data-modulo', modulo)
-    .html('<i class="fas fa-trash me-2" me-2"></i>Eliminar');
-  itemEliminar.append(linkEliminar);
-
-  menu.append(itemEditar, separador, itemEliminar);
+  menu.append(btn_modificar, separadorHTML, btn_eliminar);
   dropdown.append(boton, menu);
 
-  console.log(dropdown)
+  if (!bool) {
+    dropdown.empty(); //Destruye la Etiqueta por si no hay botones que renderizar
+  }
   return dropdown.prop('outerHTML');
 }
 
