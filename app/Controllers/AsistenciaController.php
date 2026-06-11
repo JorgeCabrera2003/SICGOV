@@ -16,23 +16,23 @@ class AsistenciaController {
 
 		$AsistenciaModel = new Asistencia();
 
-		if (isset($_POST["peticion"])) {
+		if (isset($_POST['peticion'])) {
 			$json = [
 				'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Solicitud no válida'],
 				'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Solicitud no válida']
 			];
 
-			//Entrada
-			if ($_POST["peticion"] == "entrada") {
+			// Entrada
+			if ($_POST['peticion'] == 'entrada') {
 				$json['HTTP_STATUS'] = ['codigo' => 204, 'mensaje' => ''];
 				$json['response'] = ['resultado' => 204, 'mensaje' => 'No hay contenido'];
 			}
 
-			if ($_POST["peticion"] == "registrar") {
+			// Registrar
+			if ($_POST['peticion'] == 'registrar') {
 				$accion_permiso = true;
 
 				if ($accion_permiso) {
-
 					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 					$msg = "(" . $_SESSION['user']['cedula'] . "), envió solicitud no válida";
 
@@ -41,20 +41,20 @@ class AsistenciaController {
 						$idAsistencia = Helper::generarId('ASIS');
 						$horaActual = date('H:i:s');
 						$fechaHoy = date('Y-m-d');
-						$cedulaCompleta = $_POST['tipo_doc'] . $_POST['cedula_empleado'];
+						$cedulaCompleta = trim(($_POST['tipo_doc'] ?? '') . ($_POST['cedula_empleado'] ?? ''));
 
 						$AsistenciaModel->setIdAsistencia($idAsistencia);
 						$AsistenciaModel->setCedulaEmpleado($cedulaCompleta);
-						$AsistenciaModel->setTipoMarcacion($_POST['tipo_marcacion']);
+						$AsistenciaModel->setTipoMarcacion($_POST['tipo_marcacion'] ?? '');
 						$AsistenciaModel->setFecha($fechaHoy);
 						$AsistenciaModel->setHora($horaActual);
-						$AsistenciaModel->setEstado($AsistenciaModel->calcularEstadoAsistencia($_POST['tipo_marcacion'], $horaActual));
-						$AsistenciaModel->setObservacion($_POST['observacion']);
+						$AsistenciaModel->setEstado($AsistenciaModel->calcularEstadoAsistencia($_POST['tipo_marcacion'] ?? '', $horaActual));
+						$AsistenciaModel->setObservacion($_POST['observacion'] ?? '');
 
-						$json = $AsistenciaModel->Transaccion(['peticion' => $_POST["peticion"]]);
+						$json = $AsistenciaModel->Transaccion(['peticion' => 'registrar']);
 
-						if ($json['estado'] == 1) {
-							Helper::Bitacora('REGISTRAR', 'ASISTENCIA', "Registro de asistencia {$idAsistencia} para {$cedulaCompleta} (Tipo de MArcación: {$_POST['tipo_marcacion']} - Observaciones: {$_POST['observacion']})");
+						if (isset($json['estado']) && $json['estado'] == 1) {
+							Helper::Bitacora('REGISTRAR', 'ASISTENCIA', "Registro de asistencia {$idAsistencia} para {$cedulaCompleta} (Tipo de Marcación: {$_POST['tipo_marcacion']} - Observaciones: {$_POST['observacion']})");
 						}
 
 					} catch (Exception $e) {
@@ -64,13 +64,14 @@ class AsistenciaController {
 						];
 					}
 				} else {
-					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
-					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' una asistencia'];
-					$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
+					$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST['peticion']];
+					$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST['peticion'] . ' una asistencia'];
+					$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST['peticion'] . " denegado";
 				}
 			}
 
-			if ($_POST["peticion"] == "agregar_observacion") {
+			// Agregar observación
+			if ($_POST['peticion'] == 'agregar_observacion') {
 				try {
 					$idAsistencia = trim($_POST['id_asistencia'] ?? '');
 					$observacion = trim($_POST['observacion'] ?? '');
@@ -83,59 +84,61 @@ class AsistenciaController {
 					}
 
 					$AsistenciaModel->setIdAsistencia($idAsistencia);
-                    $AsistenciaModel->setObservacion('- ' . $observacion);
+					$AsistenciaModel->setObservacion('- ' . $observacion);
 
-                    $json = $AsistenciaModel->Transaccion(['peticion' => 'agregar_observacion']);
-                    if ($json['estado'] == 1) {
-                        Helper::Bitacora('ACTUALIZAR', 'ASISTENCIA', "Agregó observación a asistencia {$idAsistencia}");
-                    }
-                } catch (Exception $e) {
-                    $json = [
-                        'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Datos no válidos'],
-                        'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()]
-                    ];
-                }
-            }
+					$json = $AsistenciaModel->Transaccion(['peticion' => 'agregar_observacion']);
+					if (isset($json['estado']) && $json['estado'] == 1) {
+						Helper::Bitacora('ACTUALIZAR', 'ASISTENCIA', "Agregó observación a asistencia {$idAsistencia}");
+					}
+				} catch (Exception $e) {
+					$json = [
+						'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Datos no válidos'],
+						'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()]
+					];
+				}
+			}
 
-            if ($_POST["peticion"] == "eliminar_observacion") {
-                try {
-                    $idAsistencia = trim($_POST['id_asistencia'] ?? '');
-                    $indice = isset($_POST['indice']) ? (int)$_POST['indice'] : -1;
+			// Eliminar observación
+			if ($_POST['peticion'] == 'eliminar_observacion') {
+				try {
+					$idAsistencia = trim($_POST['id_asistencia'] ?? '');
+					$indice = isset($_POST['indice']) ? (int) $_POST['indice'] : -1;
 
-                    if (empty($idAsistencia)) {
-                        throw new Exception('Identificador de asistencia inválido.');
-                    }
-                    if ($indice < 0) {
-                        throw new Exception('Índice de observación inválido.');
-                    }
+					if (empty($idAsistencia)) {
+						throw new Exception('Identificador de asistencia inválido.');
+					}
+					if ($indice < 0) {
+						throw new Exception('Índice de observación inválido.');
+					}
 
-                    $AsistenciaModel->setIdAsistencia($idAsistencia);
-                    $AsistenciaModel->setIndiceObservacion($indice);
+					$AsistenciaModel->setIdAsistencia($idAsistencia);
+					$AsistenciaModel->setIndiceObservacion($indice);
 
-                    $json = $AsistenciaModel->Transaccion(['peticion' => 'eliminar_observacion']);
-                    if ($json['estado'] == 1) {
-                        Helper::Bitacora('ACTUALIZAR', 'ASISTENCIA', "Eliminó observación de asistencia {$idAsistencia}");
-                    }
-                } catch (Exception $e) {
-                    $json = [
-                        'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Datos no válidos'],
-                        'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()]
-                    ];
-                }
-            }
+					$json = $AsistenciaModel->Transaccion(['peticion' => 'eliminar_observacion']);
+					if (isset($json['estado']) && $json['estado'] == 1) {
+						Helper::Bitacora('ACTUALIZAR', 'ASISTENCIA', "Eliminó observación de asistencia {$idAsistencia}");
+					}
+				} catch (Exception $e) {
+					$json = [
+						'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Datos no válidos'],
+						'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()]
+					];
+				}
+			}
 
-            if ($_POST["peticion"] == "consultar") {
-                $json = $AsistenciaModel->Transaccion(['peticion' => $_POST["peticion"]]);
-            }
+			// Consultas
+			if ($_POST['peticion'] == 'consultar' || $_POST['peticion'] == 'consultar_hoy') {
+				$json = $AsistenciaModel->Transaccion(['peticion' => $_POST['peticion']]);
+			}
 
-            if ($_POST["peticion"] == "consultar_hoy") {
-                $json = $AsistenciaModel->Transaccion(['peticion' => $_POST["peticion"]]);
-            }
-            //Fin del Consultar
-			echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
+			// Enviar respuesta con encabezado HTTP (compatibilidad con estructura de CategoriaInsumoController)
+			$httpCode = $json['HTTP_STATUS']['codigo'] ?? 200;
+			$httpMsg = $json['HTTP_STATUS']['mensaje'] ?? 'OK';
+			header('Content-Type: application/json');
+			header("HTTP/1.1 {$httpCode} {$httpMsg}");
+			echo json_encode($json['response']);
 			exit;
-			
-		} //Fin de Operaciones
+		}
 
 		Helper::cargarVista(
 			'asistencia/index',
@@ -216,7 +219,10 @@ class AsistenciaController {
 				}
 			}
 
+			$httpCode = $json['HTTP_STATUS']['codigo'] ?? 200;
+			$httpMsg = $json['HTTP_STATUS']['mensaje'] ?? 'OK';
 			header('Content-Type: application/json');
+			header("HTTP/1.1 {$httpCode} {$httpMsg}");
 			echo json_encode($json['response']);
 			exit;
 		}
@@ -239,4 +245,14 @@ class AsistenciaController {
 		require_once BASE_PATH . '/resources/views/layout/footer.php';
 	}
 
+}
+
+$type = $_REQUEST['type'] ?? 'index';
+
+if ($type === 'index') {
+	$controller = new AsistenciaController();
+	$controller->index();
+} elseif ($type === 'publico') {
+	$controller = new AsistenciaController();
+	$controller->indexPublico();
 }
