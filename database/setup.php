@@ -5,6 +5,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use App\Core\Database;
 use App\Database\Seeders\SecuritySeeder;
 use App\Database\Seeders\BusinessSeeder;
+use App\Database\Seeders\PermisosSeeder;
 
 /**
  * GoodVibes Core-Deployer 
@@ -63,6 +64,7 @@ class GoodVibesInstallerService
 
             if ($runSecSeed) {
                 $this->runSecuritySeeder();
+                $this->runPermisosSeeder();
             }
 
             $this->printFooter();
@@ -86,7 +88,7 @@ class GoodVibesInstallerService
      */
     private function resetDatabases()
     {
-        $this->info("[1/4] Reseteando bases de datos en el servidor...");
+        $this->info("[1/5] Reseteando bases de datos en el servidor...");
         $this->rawDb = Database::getRawConnection();
 
         $dbUsers = $_ENV['DB_NAME_USER'] ?? 'goobv-usuarios';
@@ -107,7 +109,7 @@ class GoodVibesInstallerService
      */
     private function runMigrations()
     {
-        $this->info("\n[2/4] Ejecutando Migraciones (SQL)...");
+        $this->info("\n[2/5] Ejecutando Migraciones (SQL)...");
 
         $rutaMigracionSistema = __DIR__ . '/migrations/goobv-sistema.sql';
         $rutaMigracionUsuarios = __DIR__ . '/migrations/goobv-usuarios.sql';
@@ -123,7 +125,7 @@ class GoodVibesInstallerService
      */
     private function runBusinessSeeder()
     {
-        $this->info("\n[3/4] Ejecutando Business Seeder (Faker)...");
+        $this->info("\n[3/5] Ejecutando Business Seeder (Faker)...");
         $this->dbBusiness->beginTransaction(); // Optimización: Transacciones para inserciones masivas
         try {
             $businessSeeder = new BusinessSeeder($this->dbBusiness);
@@ -143,10 +145,18 @@ class GoodVibesInstallerService
      */
     private function runSecuritySeeder()
     {
-        $this->info("\n[4/4] Ejecutando Security Seeder...");
+        $this->info("\n[5/5] Ejecutando Security Seeder...");
         $securitySeeder = new SecuritySeeder($this->dbSecurity);
         $securitySeeder->run();
         $this->success("      Datos de seguridad inyectados.");
+    }
+
+        private function runPermisosSeeder()
+    {
+        $this->info("\n[4/5] Ejecutando Permisos Seeder...");
+        $permisosSeeder = new PermisosSeeder($this->dbSecurity);
+        $permisosSeeder->run();
+        $this->success("      Datos de permisos inyectados.");
     }
 
     /**
