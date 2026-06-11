@@ -57,11 +57,18 @@
                     <input type="hidden" name="id_reservacion" id="id_reservacion">
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-uppercase">Seleccionar Cliente</label>
+                        <label class="form-label small fw-bold text-uppercase d-block">Seleccionar Cliente</label>
                         <select class="form-select select2-cliente" name="cedula_cliente" id="cedula_cliente" required>
                             <option value="">Buscar por nombre o cédula...</option>
-                            <?php foreach($clientes as $c): ?>
-                                <option value="<?= $c['cedula'] ?>">
+                            <?php foreach($clientes as $c): 
+                                $localImagePath = "assets/img/perfil/" . $c['cedula'] . ".png";
+                                if (file_exists($_SERVER['DOCUMENT_ROOT'] . parse_url(BASE_URL, PHP_URL_PATH) . $localImagePath) || file_exists(__DIR__ . '/../../../public/' . $localImagePath)) {
+                                    $avatarUrl = BASE_URL . $localImagePath;
+                                } else {
+                                    $avatarUrl = "https://ui-avatars.com/api/?name=" . urlencode($c['nombre'] . ' ' . $c['apellido']) . "&background=random&color=fff&rounded=true&bold=true";
+                                }
+                            ?>
+                                <option value="<?= $c['cedula'] ?>" data-avatar="<?= $avatarUrl ?>">
                                     <?= "{$c['nombre']} {$c['apellido']} - {$c['cedula']}" ?>
                                 </option>
                             <?php endforeach; ?>
@@ -87,14 +94,29 @@
                         </div>
                     </div>
 
-                    <div class="mb-0">
-                        <label class="form-label small fw-bold text-uppercase">Estado</label>
-                        <select class="form-select bg-light" name="estado" id="estado">
-                            <option value="PENDIENTE">PENDIENTE</option>
-                            <option value="CONFIRMADA">CONFIRMADA</option>
-                            <option value="COMPLETADA">COMPLETADA</option>
-                            <option value="CANCELADA">CANCELADA</option>
-                        </select>
+                    <div class="row mb-0">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label small fw-bold text-uppercase">Mesa (Opcional)</label>
+                            <select class="form-select bg-light" name="id_mesa" id="id_mesa">
+                                <option value="">Sin Asignar</option>
+                                <?php if (!empty($mesas)): ?>
+                                    <?php foreach($mesas as $m): ?>
+                                        <option value="<?= $m['id_mesa'] ?>">
+                                            Mesa <?= $m['numero_mesa'] ?> - <?= $m['area_nombre'] ?? 'General' ?> (Capacidad: <?= $m['capacidad'] ?>)
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-uppercase">Estado</label>
+                            <select class="form-select bg-light" name="estado" id="estado">
+                                <option value="PENDIENTE">PENDIENTE</option>
+                                <option value="CONFIRMADA">CONFIRMADA</option>
+                                <option value="COMPLETADA">COMPLETADA</option>
+                                <option value="CANCELADA">CANCELADA</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer bg-light border-0 p-4">

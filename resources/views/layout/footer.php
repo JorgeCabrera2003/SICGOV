@@ -72,8 +72,14 @@
 <!-- 10. ES Modules — scripts con import/export (requieren type="module") -->
 <?php if (!empty($extra_js_modules) && is_array($extra_js_modules)): ?>
     <?php foreach ($extra_js_modules as $modulePath): ?>
-        <script type="module" src="<?php echo htmlspecialchars($modulePath, ENT_QUOTES, 'UTF-8'); ?>"></script>
+        <script type="module" src="<?php echo htmlspecialchars($modulePath, ENT_QUOTES, 'UTF-8'); ?>?v=<?php echo time(); ?>"></script>
     <?php endforeach; ?>
+<?php endif; ?>
+
+<?php if (!empty($extra_js_inline_module)): ?>
+    <script type="module">
+        <?php echo $extra_js_inline_module; ?>
+    </script>
 <?php endif; ?>
 
 <!-- Script para quitar el loader -->
