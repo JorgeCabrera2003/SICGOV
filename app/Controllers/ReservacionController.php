@@ -13,6 +13,7 @@ $esPublico = ($type === 'publico');
 Helper::verificarSesion();
         $datos = Helper::getDatosUsuario();
         $resModel = new Reservacion();
+        $permisosReservacion = Helper::TraerPermisos("reservacion");
 
         // VALIDACIÓN DE SEGURIDAD PARA LA VISTA ADMIN (Agenda Global)
         if (!$esPublico && !in_array(strtoupper($datos['rol']), ['ADMINISTRADOR', 'VENTAS', 'SUPERUSUARIO'])) {
@@ -92,8 +93,19 @@ if (!function_exists('App\Controllers\ListarPropiasReservaciones')) {
                             $clienteModel = new Cliente();
                             $clienteModel->AsegurarCliente($datos['cedula']);
                         } else {
-
                             $peticion = $_POST['peticion'];
+                            $accion_permiso = false;
+                            
+                            if (isset($permisosReservacion['reservacion']['registrar']) && $permisosReservacion['reservacion']['registrar'] == 1 && $peticion == "registrar") {
+                                $accion_permiso = true;
+                            }
+                            if (isset($permisosReservacion['reservacion']['modificar']) && $permisosReservacion['reservacion']['modificar'] == 1 && $peticion == "modificar") {
+                                $accion_permiso = true;
+                            }
+
+                            if (!$accion_permiso) {
+                                throw new Exception("Error, No tienes permiso para " . $peticion . " una Reservación");
+                            }
                         }
 
                         $id = ($peticion == 'registrar') ? Helper::generarId('RES') : ($_POST['id_reservacion'] ?? '');
@@ -132,6 +144,10 @@ if (!function_exists('App\Controllers\ListarPropiasReservaciones')) {
                             if ($registro['estado'] !== 'PENDIENTE') {
                                 throw new Exception("Solo se pueden mover reservaciones que están pendientes.");
                             }
+                        } else {
+                            if (!isset($permisosReservacion['reservacion']['modificar']) || $permisosReservacion['reservacion']['modificar'] != 1) {
+                                throw new Exception("Error, No tienes permiso para mover (modificar) una Reservación");
+                            }
                         }
 
                         $resModel->setFecha($_POST['fecha']);
@@ -150,6 +166,10 @@ if (!function_exists('App\Controllers\ListarPropiasReservaciones')) {
 
                     case 'eliminar':
                         if ($esPublico) throw new Exception("Acción no permitida");
+                        
+                        if (!isset($permisosReservacion['reservacion']['eliminar']) || $permisosReservacion['reservacion']['eliminar'] != 1) {
+                            throw new Exception("Error, No tienes permiso para eliminar una Reservación");
+                        }
                         $resModel->setId($_POST['id_reservacion'] ?? '');
                         $json = $resModel->Transaccion(['peticion' => 'eliminar']);
                         break;
