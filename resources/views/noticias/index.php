@@ -14,7 +14,7 @@
             <button class="btn btn-primary fw-semibold shadow-sm" id="btnNuevaNoticia">
                 <i class="fas fa-plus me-2"></i>Nueva Noticia
             </button>
-            <a href="<?= BASE_URL ?>?page=noticias" target="_blank" class="btn btn-outline-primary shadow-sm" id="btnVerBlog">
+            <a href="<?= BASE_URL ?>?page=Noticia&type=publico" target="_blank" class="btn btn-outline-primary shadow-sm" id="btnVerBlog">
                 <i class="fas fa-external-link-alt me-2"></i>Ver Blog Público
             </a>
         </div>
@@ -51,5 +51,5 @@
 ?>
 
 <!-- Recursos específicos de la página -->
-<script src="<?= BASE_URL ?>/assets/js/media-picker.js" defer></script>
-<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/NoticiasController.js" defer></script>
+<script src="<?= BASE_URL ?>assets/js/media-picker.js?v=<?= time() ?>" defer></script>
+<script type="module" src="<?= BASE_URL ?>assets/js/Controllers/NoticiasController.js?v=<?= time() ?>" defer></script>
