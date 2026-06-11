@@ -33,7 +33,7 @@ class Papelera extends Database
             'label' => 'CONCAT(p.nombre, " ", p.apellido)',
             'db' => 'business',
             'join' => 'INNER JOIN persona p ON c.cedula = p.cedula',
-            'where' => 'estatus = 0'
+            'where' => 'c.estatus = 0'
         ],
 
         'PRODUCTOS' => [
@@ -53,6 +53,14 @@ class Papelera extends Database
             'pk' => 'id_mesa',
             'label' => 'CONCAT("Mesa #", numero_mesa)',
             'db' => 'business'
+        ],
+        'EMPLEADOS' => [
+            'tabla' => 'empleado e',
+            'pk' => 'e.cedula',
+            'label' => 'CONCAT(p.nombre, " ", p.apellido)',
+            'db' => 'business',
+            'join' => 'INNER JOIN persona p ON e.cedula = p.cedula',
+            'where' => 'e.estatus = 0'
         ]
 
     ];

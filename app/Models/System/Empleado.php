@@ -52,7 +52,7 @@ class Empleado extends Persona
                 'registrar'       => $this->RegistrarEmpleado(),
                 'consultar'       => $this->ConsultarEmpleado(),
                 'actualizar', 'modificar' => $this->ModificarEmpleado(),
-                'cambiar_estatus' => $this->CambiarEstatusEmpleado(),
+                'eliminar'        => $this->EliminarEmpleado(),
                 'verificar_cedula'=> $this->verificarCedulaExiste(),
                 default => [
                     'response'    => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
@@ -86,6 +86,7 @@ class Empleado extends Persona
                     FROM empleado e 
                     INNER JOIN persona p ON e.cedula = p.cedula
                     LEFT JOIN cargo c ON e.id_cargo = c.id_cargo
+                    WHERE e.estatus = 1
                     ORDER BY p.nombre ASC";
                     
             $stm = $db->prepare($sql);
@@ -318,20 +319,19 @@ class Empleado extends Persona
 
 
 
-    private function CambiarEstatusEmpleado()
+    private function EliminarEmpleado()
     {
         try {
             $db = $this->LlamarConexion();
-            $sql = "UPDATE empleado SET estatus = :estatus WHERE cedula = :cedula";
+            $sql = "UPDATE empleado SET estatus = 0 WHERE cedula = :cedula";
             $stm = $db->prepare($sql);
             $stm->execute([
-                ':estatus' => $this->estatus,
                 ':cedula'  => $this->cedula
             ]);
 
             return [
                 'estado'      => 1,
-                'response'    => ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Estatus cambiado exitosamente.'],
+                'response'    => ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Empleado eliminado exitosamente.'],
                 'HTTP_STATUS' => ['codigo' => 200, 'mensaje' => 'OK'],
             ];
 

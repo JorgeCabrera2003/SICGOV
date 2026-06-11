@@ -469,15 +469,15 @@ async function vistaPermiso() {
 
     const separador = $('<li>').html('<hr class="dropdown-divider">');
 
-    const itemEstatus = $('<li>');
-    const linkEstatus = $('<a>')
+    const itemEliminar = $('<li>');
+    const linkEliminar = $('<a>')
         .addClass('dropdown-item text-danger')
         .attr('href', '#')
-        .attr('onclick', 'cambiarEstatus(this)')
-        .html('<i class="fa-solid fa-power-off me-2"></i>Cambiar Estatus');
-    itemEstatus.append(linkEstatus);
+        .attr('onclick', 'eliminarClienteDirecto(this)')
+        .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
+    itemEliminar.append(linkEliminar);
 
-    menu.append(itemConsultar, itemEditar, separador, itemEstatus);
+    menu.append(itemConsultar, itemEditar, separador, itemEliminar);
     dropdown.append(boton, menu);
 
     return dropdown.prop('outerHTML');
@@ -634,14 +634,7 @@ async function crearDataTable() {
           return edad + " años";
         }
       },
-      { 
-        data: 'estatus',
-        render: function(data) {
-            return data == 1 
-                ? '<span class="badge bg-success">Activo</span>'
-                : '<span class="badge bg-danger">Inactivo</span>';
-        }
-      },
+
       {
         data: null,
         render: function () {
@@ -740,23 +733,23 @@ function rellenar(pos, accion) {
   $('#btnClienteForm').prop('disabled', false);
 }
 
-// Función exclusiva para Cambiar Estatus directamente sin Modal
-async function cambiarEstatus(pos) {
+// Función exclusiva para Eliminar Cliente directamente sin Modal
+async function eliminarClienteDirecto(pos) {
     const linea = $(pos).closest('tr');
     const tabla = $('#tablaCliente').DataTable();
     const datosFila = tabla.row(linea).data();
     
-    let nuevoEstatus = datosFila.estatus == 1 ? 0 : 1;
-    let textoAccion = datosFila.estatus == 1 ? "desactivará" : "reactivará";
-    
-    let confirmacion = await confirmarAccion(`Se ${textoAccion} al Cliente`, "¿Está seguro de realizar la acción?", "warning");
+    let confirmacion = await confirmarAccion(`Se eliminará al Cliente`, "¿Está seguro de realizar la acción?", "warning");
     
     if (confirmacion) {
         let peticionData = new FormData();
-        peticionData.append('peticion', 'cambiar_estatus');
-        // cédula is expected by backend instead of id_categoria
-        peticionData.append('cedula', datosFila.cedula);
-        peticionData.append('estatus', nuevoEstatus);
+        peticionData.append('peticion', 'eliminar');
+        
+        let cedulaFormateada = datosFila.cedula;
+        if(cedulaFormateada && cedulaFormateada.indexOf('-') === -1 && cedulaFormateada.length > 1) {
+             cedulaFormateada = cedulaFormateada.charAt(0) + '-' + cedulaFormateada.slice(1);
+        }
+        peticionData.append('cedula', cedulaFormateada);
         
         try {
             let json = await enviaAjax(peticionData);
