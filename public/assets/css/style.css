@@ -305,12 +305,15 @@
     transition: var(--transition-base);
     cursor: pointer;
     text-decoration: none;
+    position: relative;
+    z-index: 1;
     
     &:hover, &:focus, &.show {
         background-color: var(--color-acento);
         color: #1A1C20 !important;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(255, 214, 0, 0.3);
+        z-index: 1050; /* Z-index elevado para evitar que la fila siguiente lo tape */
     }
 
     &::after {
@@ -319,6 +322,46 @@
 
     & i {
         font-size: 1.1rem;
+    }
+}
+
+/* Hover de los botones de Acción de DataTable (.btn-light.dropdown-toggle) */
+.table .dropdown .btn.dropdown-toggle {
+    transition: all 0.2s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.table .dropdown .btn.dropdown-toggle:hover,
+.table .dropdown .btn.dropdown-toggle:focus,
+.table .dropdown .btn.dropdown-toggle.show {
+    background-color: var(--color-acento) !important;
+    border-color: var(--color-acento) !important;
+    color: #1A1C20 !important;
+    box-shadow: 0 4px 12px rgba(255, 214, 0, 0.3);
+    z-index: 1050;
+    transform: translateY(-2px);
+}
+
+.table .dropdown .btn.dropdown-toggle i {
+    transition: color 0.2s ease;
+}
+
+.table .dropdown .btn.dropdown-toggle:hover i,
+.table .dropdown .btn.dropdown-toggle.show i {
+    color: #1A1C20 !important;
+}
+
+/* ==========================================
+   FIX: EVITAR RECORTE DE DROPDOWNS EN TABLAS
+   Permitir overflow visible en pantallas grandes (Desktop)
+   para que los menús desplegables no se corten
+========================================== */
+@media (min-width: 992px) {
+    .table-responsive,
+    .dataTables_scrollBody,
+    .dataTables_wrapper {
+        overflow: visible !important;
     }
 }
 

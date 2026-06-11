@@ -300,6 +300,7 @@ CREATE TABLE `reservacion` (
   `fecha` date NOT NULL,
   `hora` time NOT NULL,
   `hora_fin` time NOT NULL,
+  `id_mesa` varchar(30) DEFAULT NULL,
   `estado` enum('PENDIENTE','CONFIRMADA','CANCELADA','COMPLETADA') DEFAULT 'PENDIENTE',
   PRIMARY KEY (`id_reservacion`),
   KEY `fk_res_cli` (`cedula_cliente`),
