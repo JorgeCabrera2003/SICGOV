@@ -1,3 +1,5 @@
+import * as AjaxHelper from "./Helpers/AjaxHelper.js"
+
 /**
  * Módulo de Notificaciones para SICGOV
  * Estilo BEM + jQuery Seguro + ES6 Modules
@@ -33,7 +35,7 @@ async function cargarNotificaciones() {
         const formData = new FormData();
         formData.append('peticion', 'listar');
 
-        const response = await enviaAjax(formData, ENDPOINT);
+        const response = await AjaxHelper.enviaAjax(formData, ENDPOINT);
 
         if (response && response.success) {
             renderNotificaciones(response.data);
@@ -173,7 +175,7 @@ async function marcarComoLeida(id, $itemElement) {
         formData.append('peticion', 'marcar-leida');
         formData.append('id_notificacion', id);
 
-        const response = await enviaAjax(formData, ENDPOINT);
+        const response = await AjaxHelper.enviaAjax(formData, ENDPOINT);
 
         if (response && response.success) {
             // Transición visual elegante
@@ -199,7 +201,7 @@ async function marcarTodasComoLeidas() {
         const formData = new FormData();
         formData.append('peticion', 'marcar-todas');
 
-        const response = await enviaAjax(formData, ENDPOINT);
+        const response = await AjaxHelper.enviaAjax(formData, ENDPOINT);
 
         if (response && response.success) {
             await cargarNotificaciones();
