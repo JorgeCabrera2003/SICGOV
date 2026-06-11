@@ -1,5 +1,5 @@
 <?php
-// Expresiones Regulares
+
 const MODULOS = [
     [
         'id' => 'USUAR0000120260519200547232',
@@ -90,3 +90,5 @@ const MODULOS = [
         'modulo' => 'reservacion'
     ]
 ];
+return MODULOS;
+?>

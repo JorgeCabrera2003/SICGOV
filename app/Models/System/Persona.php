@@ -3,8 +3,9 @@
 namespace App\Models\System;
 
 use Exception;
+use App\Core\Database;
 
-class Persona
+class Persona extends Database
 {
     protected $cedula;
     protected $nombre;

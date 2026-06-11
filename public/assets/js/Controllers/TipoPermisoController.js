@@ -1,4 +1,4 @@
-import * as proveedor from "../Handlers/ProveedorHandler.js"
+import * as tipoPermiso from "../Handlers/TipoPermisoHandler.js"
 import * as AjaxHelper from "../Helpers/AjaxHelper.js"
 
 //MODULO DE PROVEEDORES
@@ -12,24 +12,28 @@ $(document).ready(function () {
 });
 
 //EVENTOS CLICK DE LOS BOTONES DE LA INTERFAZ
-$("#btnProveedorForm").on("click", async function () {
+$("#btn-TipoPermisoForm").on("click", async function () {
   let respuesta = null;
-  respuesta = await proveedor.EnviarFormulario($(this).text());
+  respuesta = await tipoPermiso.EnviarFormulario($(this));
+
+  console.log(respuesta);
 
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
     crearDataTable();
+    tipoPermiso.CancelarFormulario();
   };
 });
 
-$("#btnNuevoProveedor").on("click", function () {
-  proveedor.LimpiarFormulario();
-  proveedor.EditarModal("registrar");
+$("#btnNuevoTipo").on("click", function () {
+  tipoPermiso.Limpiar();
+  tipoPermiso.EditarModal("registrar");
 });
 
 //CAPA DE VALIDACIÓN
 
 function iniciarValidaciones() {
-  proveedor.CapaValidar();
+  tipoPermiso.KeyPressTipoPermiso();
+  tipoPermiso.KeyUpTipoPermiso();
 }
 
 async function crearDataTable(controlador = "") {
@@ -47,19 +51,28 @@ async function crearDataTable(controlador = "") {
 
   if (Array.isArray(arreglo)) {
 
-    proveedor.DataTablePrincipal(arreglo);
+    tipoPermiso.DataTableTipoPermiso(arreglo);
 
   } else {
     console.log("falso");
   }
 }
 
-async function rellenar(pos, accion, modulo = "Proveedor") {
+async function rellenar(pos, accion, modulo = "TipoPermiso") {
   const linea = $(pos).closest('tr');
   const tabla = $('#tabla' + modulo).DataTable();
   const datosFila = tabla.row(linea).data();
+  let str_accion = null;
 
-  proveedor.EditarFormProveedor(datosFila, accion)
+  if (accion == 0) {
+    str_accion = "modificar";
+  }
+
+  if (accion == 1) {
+    str_accion = "eliminar";
+  }
+
+  tipoPermiso.EditarFormTipoPermiso(datosFila, str_accion)
 }
 
 $(document).on('click', '.btn-editar', function () {

@@ -10,22 +10,22 @@ import * as ValidadorHelper from "../Helpers/ValidadorHelper.js"
 function EtiquetasFormulario(etiquetas) {
   let referencia = null
 
-  const inputCategoria = {
-    nombre: $('#categoria-nombre'),
-    id_categoria: $('#id_categoria')
+  const inputTipoPermiso = {
+    nombre: $('#tipo_permiso-nombre'),
+    id_tipo_permiso: $('#id_tipo_permiso')
   }
 
-  const spanCategoria = {
-    nombre: $('#scategoria-nombre'),
-    id_categoria: $('#sid_categoria')
+  const spanTipoPermiso = {
+    nombre: $('#stipo_permiso-nombre'),
+    id_tipo_permiso: $('#sid_tipo_permiso')
   }
 
   if (etiquetas === "input") {
-    referencia = inputCategoria;
+    referencia = inputTipoPermiso;
   }
 
   if (etiquetas === "span") {
-    referencia = spanCategoria
+    referencia = spanTipoPermiso
   }
 
   return referencia
@@ -34,24 +34,24 @@ function EtiquetasFormulario(etiquetas) {
 function EtiquetasModal(etiqueta) {
   let referencia = null
 
-  const modalCategoriaTabla = {
-    modal: $('#modalCategoria'),
-    titulo: $('#modalTitleTextCategoria'),
-    boton: $('#btn-CategoriaPCancel')
+  const modalTipoPermisoTabla = {
+    modal: $('#modalTipoPermiso'),
+    titulo: $('#modalTitleTextTipoPermiso'),
+    boton: $('#btn-TipoPermisoPCancel')
   }
 
-  const modalCategoria = {
-    modal: $('#modal-formcategoria'),
-    titulo: $('#modalTitleText-Form-Categoria'),
-    boton: $('#btn-CategoriaForm')
+  const modalTipoPermiso = {
+    modal: $('#modal-formtipo_permiso'),
+    titulo: $('#modalTitleText-Form-TipoPermiso'),
+    boton: $('#btn-TipoPermisoForm')
   }
 
-  if (etiqueta === "TablaCategoria") {
-    referencia = modalCategoriaTabla;
+  if (etiqueta === "TablaTipoPermiso") {
+    referencia = modalTipoPermisoTabla;
   }
 
-  if (etiqueta === "Categoria") {
-    referencia = modalCategoria;
+  if (etiqueta === "TipoPermiso") {
+    referencia = modalTipoPermiso;
   }
 
   return referencia;
@@ -60,20 +60,20 @@ function EtiquetasModal(etiqueta) {
 export function EditarModal(operacion) {
   let titulo;
   let boton;
-  let etiqueta_modal = EtiquetasModal("Categoria");
+  let etiqueta_modal = EtiquetasModal("TipoPermiso");
 
   if (operacion == 'registrar') {
-    titulo = "Nueva Categoría";
+    titulo = "Nueva Tipo de Permiso";
     boton = "Nuevo";
   }
 
   if (operacion == 'modificar') {
-    titulo = "Actualizar Categoría";
+    titulo = "Actualizar Tipo de Permiso";
     boton = "Actualizar";
   }
 
   if (operacion == 'eliminar') {
-    titulo = "Borrar Categoría";
+    titulo = "Borrar Tipo de Permiso";
     boton = "Borrar";
   }
 
@@ -83,9 +83,9 @@ export function EditarModal(operacion) {
 }
 
 //-------LÓGICA DE CAMBIO ENTRE MODALES------
-export function FormNuevaCategoria() {
-  let modal_tabla = EtiquetasModal("TablaCategoria");
-  let modal_form = EtiquetasModal("Categoria");
+export function FormNuevaTipoPermiso() {
+  let modal_tabla = EtiquetasModal("TablaTipoPermiso");
+  let modal_form = EtiquetasModal("TipoPermiso");
   modal_tabla.modal.modal("hide");
   Limpiar();
   EditarModal("registrar");
@@ -95,8 +95,8 @@ export function FormNuevaCategoria() {
 }
 
 export function CancelarFormulario() {
-  let modal_form = EtiquetasModal("Categoria");
-  let modal_tabla = EtiquetasModal("TablaCategoria");
+  let modal_form = EtiquetasModal("TipoPermiso");
+  let modal_tabla = EtiquetasModal("TablaTipoPermiso");
   modal_form.modal.modal("hide");
   modal_tabla.modal.modal("show");
 
@@ -105,15 +105,15 @@ export function CancelarFormulario() {
 }
 
 export function CerrarFormulario() {
-  let modal_form = EtiquetasModal("Categoria");
+  let modal_form = EtiquetasModal("TipoPermiso");
 
   modal_form.modal.modal("hide");
   modal_form = null;
 }
 
 export function MostrarModalTabla() {
-  let modal_tabla = EtiquetasModal("TablaCategoria");
-  let modal_form = EtiquetasModal("Categoria");
+  let modal_tabla = EtiquetasModal("TablaTipoPermiso");
+  let modal_form = EtiquetasModal("TipoPermiso");
   modal_form.modal.modal("hide");
   modal_tabla.modal.modal("show");
 
@@ -122,11 +122,11 @@ export function MostrarModalTabla() {
 
 //-------FUNNCIONES-------
 
-async function EnviarDatos(operacion, modulo = "Categoria") {
+async function EnviarDatos(operacion, modulo = "TipoPermiso") {
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
-  let modal = EtiquetasModal("Categoria");
+  let modal = EtiquetasModal("TipoPermiso");
 
   let confirmacion = false;
   let str_acccion = "";
@@ -139,11 +139,11 @@ async function EnviarDatos(operacion, modulo = "Categoria") {
   let json = null;
 
   
-  if(modulo == "Insumo"){
-    endpoint = "Insumo";
-    peticion.append("modulo", "CategoriaInsumo")
+  if(modulo == "Permiso"){
+    endpoint = "Permiso";
+    peticion.append("modulo", "TipoPermiso")
 } else {
-  endpoint = "CategoriaInsumo";
+  endpoint = "TipoPermiso";
 }
 
   //Registrar y Modificar
@@ -157,11 +157,11 @@ async function EnviarDatos(operacion, modulo = "Categoria") {
     if (operacion == "modificar") {
       str_acccion = "actualizará";
       accion = "modificar";
-      peticion.append('id_categoria', input.id_categoria.val());
+      peticion.append('id_tipo_permiso', input.id_tipo_permiso.val());
     }
 
     if (ValidarEnvio()) {
-      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} una Categoria`, mensajeConfirmacion, "question");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} un Tipo de Permiso`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', accion);
@@ -176,17 +176,17 @@ async function EnviarDatos(operacion, modulo = "Categoria") {
   //Eliminar
   if (operacion == "eliminar") {
 
-    if (ValidadorHelper.ValidarCampo("ID", input.id_categoria, span.id_categoria)) {
-      confirmacion = await MensajeriaHelper.MostrarConfirmacion("Se eliminará una Categoría", mensajeConfirmacion, "warning");
+    if (ValidadorHelper.ValidarCampo("ID", input.id_tipo_permiso, span.id_tipo_permiso)) {
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion("Se eliminará una Tipo de Permiso", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
-        peticion.append('id_categoria', input.id_categoria.val());
+        peticion.append('id_tipo_permiso', input.id_tipo_permiso.val());
         btn_formulario = true;
       }
     } else {
       btn_formulario = false;
-      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "El ID de la Categoría no es válido.");
+      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "El ID de la Tipo de Permiso no es válido.");
     }
   }//Fin del Eliminar
 
@@ -208,7 +208,7 @@ async function EnviarDatos(operacion, modulo = "Categoria") {
   return json;
 }
 
-export async function EnviarFormulario(etiqueta_boton, modulo = "CategoriaInsumo") {
+export async function EnviarFormulario(etiqueta_boton, modulo = "TipoPermiso") {
   let accion = null;
   let respuesta = null;
   const MANEJADOR = {
@@ -229,12 +229,12 @@ export async function EnviarFormulario(etiqueta_boton, modulo = "CategoriaInsumo
   return respuesta;
 };
 
-export function KeyPressCategoria() {
+export function KeyPressTipoPermiso() {
   let input = EtiquetasFormulario("input");
   $(input.nombre).on("keypress", function (e) { ValidadorHelper.ValidarTecla("NombreObjeto", e); })
 }
 
-export function KeyUpCategoria() {
+export function KeyUpTipoPermiso() {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
 
@@ -256,7 +256,7 @@ export function ValidarEnvio() {
   return bool;
 }
 
-async function VistaPermiso(modulo = "Categoria") {
+async function VistaPermiso(modulo = "TipoPermiso") {
 
   const dropdown = $('<div>').addClass('dropdown');
   const boton = $('<button>').addClass('btn btn-sm btn-light border dropdown-toggle')
@@ -294,18 +294,18 @@ async function VistaPermiso(modulo = "Categoria") {
 
 function RecargarDataTable() {
 
-  DataTableCategoria(arreglo);
+  DataTableTipoPermiso(arreglo);
 };
 
-export async function DataTableCategoria(arreglo) {
+export async function DataTableTipoPermiso(arreglo) {
   let botones = '';
-  botones = await VistaPermiso("Categoria");
+  botones = await VistaPermiso("TipoPermiso");
 
-  if ($.fn.DataTable.isDataTable('#tablaCategoria')) {
-    $('#tablaCategoria').DataTable().destroy();
+  if ($.fn.DataTable.isDataTable('#tablaTipoPermiso')) {
+    $('#tablaTipoPermiso').DataTable().destroy();
   }
 
-  $('#tablaCategoria').DataTable({
+  $('#tablaTipoPermiso').DataTable({
     processing: true,
     data: arreglo,
     columns: [
@@ -323,16 +323,16 @@ export async function DataTableCategoria(arreglo) {
   return true;
 }
 
-export async function EditarFormCategoria(datos, accion) {
+export async function EditarFormTipoPermiso(datos, accion) {
   Limpiar();
   let input = EtiquetasFormulario("input");
   let bool = false;
-  let modal_tabla = EtiquetasModal("TablaCategoria");
-  let modal_formulario = EtiquetasModal("Categoria")
+  let modal_tabla = EtiquetasModal("TablaTipoPermiso");
+  let modal_formulario = EtiquetasModal("TipoPermiso")
 
   if (accion == "eliminar") { bool = true; }
 
-  input.id_categoria.val(datos.id_categoria).prop("disabled", true);
+  input.id_tipo_permiso.val(datos.id_tipo_permiso).prop("disabled", true);
   input.nombre.val(datos.nombre).prop("disabled", bool);
   modal_tabla.modal.modal("hide");
   modal_formulario.boton.prop('disabled', false);
@@ -342,9 +342,9 @@ export async function EditarFormCategoria(datos, accion) {
 export function Limpiar() {
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
-  let modal = EtiquetasModal("Categoria");
+  let modal = EtiquetasModal("TipoPermiso");
 
   modal.boton.prop('disabled', false);
-  input.id_categoria.val("").prop("readOnly", true);
-  input.nombre.val("").prop("readOnly", false)
+  input.id_tipo_permiso.val("").prop("readOnly", true);
+  input.nombre.val("").prop("readOnly", false).prop("disabled", false);
 }

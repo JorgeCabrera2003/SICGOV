@@ -1,7 +1,10 @@
-//MODULO DE CLIENTES
+//MODULO DE EmpleadoS
 
 /** Estado global: true si la cédula ya existe en la BD */
 let _cedulaDuplicada = false;
+
+/** Lista de IDs de cargo válidos al cargar la página */
+let _validCargos = [];
 
 //-------INICIALIZACIÖN-------
 
@@ -9,7 +12,7 @@ let _cedulaDuplicada = false;
 function etiquetasFormulario(etiquetas) {
   let referencia = null
 
-  const inputCliente = {
+  const inputEmpleado = {
     tipo_doc: $('#tipo_doc'),
     cedula: $('#cedula'),
     nombre: $('#nombre'),
@@ -19,10 +22,11 @@ function etiquetasFormulario(etiquetas) {
     telefono: $('#telefono'),
     correo: $('#correo'),
     direccion: $('#direccion'),
-    sexo: $('#sexo')
+    sexo: $('#sexo'),
+    id_cargo: $('#id_cargo')
   }
 
-  const spanCliente = {
+  const spanEmpleado = {
     scedula: $('#scedula'),
     snombre: $('#snombre'),
     sapellido: $('#sapellido'),
@@ -30,15 +34,16 @@ function etiquetasFormulario(etiquetas) {
     stelefono: $('#stelefono'),
     scorreo: $('#scorreo'),
     sdireccion: $('#sdireccion'),
-    ssexo: $('#ssexo')
+    ssexo: $('#ssexo'),
+    sid_cargo: $('#sid_cargo')
   }
 
   if (etiquetas === "input") {
-    referencia = inputCliente
+    referencia = inputEmpleado
   }
 
   if (etiquetas === "span") {
-    referencia = spanCliente
+    referencia = spanEmpleado
   }
 
   return referencia
@@ -50,9 +55,9 @@ function etiquetasModal(etiquetas) {
   let referencia = null
 
   const modalPrincipal = {
-    modal: $('#modalCliente'),
-    titulo: $('#modalTitleTextCliente'),
-    boton: $('#btnClienteForm')
+    modal: $('#modalEmpleado'),
+    titulo: $('#modalTitleTextEmpleado'),
+    boton: $('#btnEmpleadoForm')
   }
 
   if (etiquetas === "principal") {
@@ -70,19 +75,19 @@ function editarModal(operacion) {
   let etiqueta_modal = null
 
   if (operacion == 'registrar') {
-    titulo = "Nuevo Cliente"
+    titulo = "Nuevo Empleado"
     boton = "Nuevo"
     etiqueta_modal = etiquetasModal("principal");
   }
 
   if (operacion == 'modificar') {
-    titulo = "Actualizar Cliente"
+    titulo = "Actualizar Empleado"
     boton = "Actualizar"
     etiqueta_modal = etiquetasModal("principal");
   }
 
   if (operacion == 'eliminar') {
-    titulo = "Borrar Cliente"
+    titulo = "Borrar Empleado"
     boton = "Borrar"
     etiqueta_modal = etiquetasModal("principal");
   }
@@ -118,7 +123,7 @@ const verificarCedulaDuplicada = debounce(async function (tipoCedula, numCedula)
         if (json && json.existe) {
             _cedulaDuplicada = true;
             input.cedula.addClass('is-invalid').removeClass('is-valid');
-            $span.text(json.mensaje || 'Ya existe un cliente con esta cédula.');
+            $span.text(json.mensaje || 'Ya existe un Empleado con esta cédula.');
         } else {
             _cedulaDuplicada = false;
         }
@@ -126,15 +131,15 @@ const verificarCedulaDuplicada = debounce(async function (tipoCedula, numCedula)
         _cedulaDuplicada = false;
     }
 
-    validarCamposCliente();
+    validarCamposEmpleado();
 }, 500);
 
 /**
- * Valida todos los campos del formulario de cliente en tiempo real.
+ * Valida todos los campos del formulario de Empleado en tiempo real.
  * Aplica estilos is-valid / is-invalid a cada campo y
  * habilita o deshabilita el botón según el resultado global.
  */
-function validarCamposCliente() {
+function validarCamposEmpleado() {
     const input = etiquetasFormulario('input');
     const modal = etiquetasModal('principal');
     const accion = modal.boton.text();
@@ -223,13 +228,13 @@ function validarCamposCliente() {
 
     // ── Nombre ───────────────────────────────────────────
     const nombre = input.nombre.val().trim();
-    const nombreValido = nombre.length >= 2;
-    aplicar(input.nombre, $('#snombre'), nombreValido, 'El nombre debe tener al menos 2 caracteres.');
+    const nombreValido = nombre.length >= 3;
+    aplicar(input.nombre, $('#snombre'), nombreValido, 'El nombre debe tener al menos 3 caracteres.');
 
     // ── Apellido ─────────────────────────────────────────
     const apellido = input.apellido.val().trim();
-    const apellidoValido = apellido.length >= 2;
-    aplicar(input.apellido, $('#sapellido'), apellidoValido, 'El apellido debe tener al menos 2 caracteres.');
+    const apellidoValido = apellido.length >= 3;
+    aplicar(input.apellido, $('#sapellido'), apellidoValido, 'El apellido debe tener al menos 3 caracteres.');
 
     // ── Fecha de Nacimiento ─────────────────────────────
     const fechaNac = input.fecha_nacimiento.val();
@@ -283,6 +288,19 @@ function validarCamposCliente() {
     const sexoValido = sexoVal && sexoVal !== 'default';
     aplicar(input.sexo, $('#ssexo'), sexoValido, 'El sexo es obligatorio.');
 
+    // ── Cargo (obligatorio y verificado) ──────────────────────────────
+    const cargoVal   = input.id_cargo.val();
+    let cargoValido = false;
+    let msgCargo = 'El cargo es obligatorio.';
+    if (cargoVal && cargoVal !== 'default') {
+        if (_validCargos.length > 0 && !_validCargos.includes(cargoVal)) {
+            msgCargo = 'El cargo seleccionado no es válido.';
+        } else {
+            cargoValido = true;
+        }
+    }
+    aplicar(input.id_cargo, $('#sid_cargo'), cargoValido, msgCargo);
+
     // ── Correo (opcional) ──────────────────────────────
     const correoVal = input.correo.val().trim();
     const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -304,10 +322,38 @@ function validarCamposCliente() {
 
 //Función para manejar el cambio de estado del formulario (mantener compatibilidad con SistemaValidacion)
 function manejarCambioEstado(formularioValido) {
-    validarCamposCliente();
+    validarCamposEmpleado();
 }
 
 $(document).ready(function () {
+  // Inicializar _validCargos
+  $('#id_cargo option').each(function() {
+      if ($(this).val() !== 'default') {
+          _validCargos.push($(this).val());
+      }
+  });
+
+  // Observador de mutaciones para validar si manipulan el select de cargo desde Inspect Element
+  const domObserver = new MutationObserver((mutationsList) => {
+      let shouldValidate = false;
+      for (let mutation of mutationsList) {
+          if (mutation.type === 'attributes' && (mutation.attributeName === 'class' || mutation.attributeName === 'style')) {
+              continue;
+          }
+          shouldValidate = true;
+          break;
+      }
+      if (shouldValidate) {
+          validarCamposEmpleado();
+          domObserver.takeRecords();
+      }
+  });
+
+  const catSelectObserver = document.getElementById('id_cargo');
+  if (catSelectObserver) {
+      domObserver.observe(catSelectObserver, { attributes: true, childList: true, subtree: true, characterData: true });
+  }
+
   crearDataTable();
   registrarEntrada();
   capaValidar();
@@ -346,7 +392,7 @@ async function enviarDatos(operacion) {
     }
 
     if (validarenvio()) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} un Cliente`, "¿Está seguro de realizar la acción?", "question");
+      confirmacion = await confirmarAccion(`Se ${str_acccion} un Empleado`, "¿Está seguro de realizar la acción?", "question");
 
       if (confirmacion) {
         peticion.append('peticion', accion);
@@ -364,6 +410,7 @@ async function enviarDatos(operacion) {
         peticion.append('correo', input.correo.val());
         peticion.append('direccion', input.direccion.val());
         peticion.append('sexo', input.sexo.val());
+        peticion.append('id_cargo', input.id_cargo.val());
         btn_formulario = true;
       }
     } else {
@@ -376,7 +423,7 @@ async function enviarDatos(operacion) {
   if (operacion == "eliminar") {
 
     if (input.tipo_doc.val() !== null && input.tipo_doc.val() !== "default" && input.cedula.val().length >= 5) {
-      confirmacion = await confirmarAccion("Se eliminará un Cliente", "¿Está seguro de realizar la acción?", "warning");
+      confirmacion = await confirmarAccion("Se eliminará un Empleado", "¿Está seguro de realizar la acción?", "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
@@ -410,7 +457,7 @@ async function enviarDatos(operacion) {
 }
 
 //Manejo de envio de datos desde el modal
-$("#btnClienteForm").on("click", async function () {
+$("#btnEmpleadoForm").on("click", async function () {
   let accion = null;
   const MANEJADOR = {
     'Nuevo': 'registrar',
@@ -428,14 +475,14 @@ $("#btnClienteForm").on("click", async function () {
   }
 });
 
-$("#btnNuevoCliente").on("click", function () {
+$("#btnNuevoEmpleado").on("click", function () {
   limpia();
   editarModal("registrar")
   // El botón se habilita automáticamente mediante el callback cuando los campos sean válidos
 });
 
 // Aplicar capitalización automática cuando el modal se muestra
-$('#modalCliente').on('shown.bs.modal', function () {
+$('#modalEmpleado').on('shown.bs.modal', function () {
   // Forzar validación inicial cuando se abre el modal
   setTimeout(() => {
     SistemaValidacion.validarFormulario(etiquetasFormulario('input'));
@@ -489,7 +536,7 @@ function capaValidar() {
   // Marcar como tocado y validar al interactuar
   function marcarYValidar() {
       $(this).data('touched', true);
-      validarCamposCliente();
+      validarCamposEmpleado();
   }
 
   // Bloqueo de teclas
@@ -523,7 +570,7 @@ function capaValidar() {
       $(this).data('touched', true);
       // Resetear estado duplicado al cambiar el número
       _cedulaDuplicada = false;
-      validarCamposCliente();
+      validarCamposEmpleado();
       // Disparar verificación async
       const tipo = input.tipo_doc.val();
       verificarCedulaDuplicada(tipo, $(this).val().trim());
@@ -545,7 +592,7 @@ function capaValidar() {
       input.cedula.data('touched', true);
       // Resetear duplicado al cambiar el tipo
       _cedulaDuplicada = false;
-      validarCamposCliente();
+      validarCamposEmpleado();
       // Disparar verificación async con el nuevo tipo
       const num = input.cedula.val().trim();
       verificarCedulaDuplicada($(this).val(), num);
@@ -553,11 +600,15 @@ function capaValidar() {
   input.prefijo_telefono.on('change', function () {
       $(this).data('touched', true);
       input.telefono.data('touched', true);
-      validarCamposCliente();
+      validarCamposEmpleado();
   });
   input.sexo.on('change', function () {
       $(this).data('touched', true);
-      validarCamposCliente();
+      validarCamposEmpleado();
+  });
+  input.id_cargo.on('change', function () {
+      $(this).data('touched', true);
+      validarCamposEmpleado();
   });
 }
 
@@ -580,11 +631,11 @@ async function crearDataTable() {
     arreglo = [];
   }
 
-  if ($.fn.DataTable.isDataTable('#tablaCliente')) {
-    $('#tablaCliente').DataTable().destroy();
+  if ($.fn.DataTable.isDataTable('#tablaEmpleado')) {
+    $('#tablaEmpleado').DataTable().destroy();
   }
 
-  $('#tablaCliente').DataTable({
+  $('#tablaEmpleado').DataTable({
     processing: true,
     data: arreglo,
     columns: [
@@ -603,21 +654,7 @@ async function crearDataTable() {
       },
       { data: 'nombre' },
       { data: 'apellido' },
-      { 
-        data: 'telefono',
-        render: function (data, type) {
-          if (!data || data.trim() === '') {
-            return type === 'display' ? '<span class="text-muted">N/A</span>' : '';
-          }
-          let formatted = data;
-          if (data.indexOf('-') === -1 && data.length >= 5) {
-             formatted = data.substring(0, 4) + '-' + data.substring(4);
-          }
-          if (type === 'display') return formatted;
-          if (type === 'filter') return data + ' ' + formatted;
-          return data;
-        }
-      },
+      { data: 'cargo', defaultContent: 'No asignado' },
       { 
         data: 'fecha_nacimiento',
         render: function(data) {
@@ -669,6 +706,7 @@ function limpia() {
   input.correo.val("").prop("readOnly", false);
   input.direccion.val("").prop("readOnly", false);
   input.sexo.val("default").prop("disabled", false);
+  input.id_cargo.val("default").prop("disabled", false);
 
   // Resetear estado visual de validación y flags 'touched'
   Object.values(input).forEach(function ($el) {
@@ -676,13 +714,13 @@ function limpia() {
           $el.removeClass('is-valid is-invalid').removeData('touched');
       }
   });
-  // Limpiar solo los spans de feedback del formulario de clientes
-  $('#scedula, #snombre, #sapellido, #sfecha_nacimiento, #stelefono, #ssexo, #scorreo, #sdireccion')
+  // Limpiar solo los spans de feedback del formulario de Empleados
+  $('#scedula, #snombre, #sapellido, #sfecha_nacimiento, #stelefono, #ssexo, #scorreo, #sdireccion, #sid_cargo')
       .removeClass('invalid-tooltip d-inline-block')
       .text('');
 
   // Deshabilitar el botón al limpiar
-  $('#btnClienteForm').prop('disabled', true);
+  $('#btnEmpleadoForm').prop('disabled', true);
   input = null;
 }
 
@@ -690,7 +728,7 @@ function rellenar(pos, accion) {
   limpia();
   let input = etiquetasFormulario('input')
   const linea = $(pos).closest('tr');
-  const tabla = $('#tablaCliente').DataTable();
+  const tabla = $('#tablaEmpleado').DataTable();
   const datosFila = tabla.row(linea).data();
 
   // Usar los datos directamente de DataTable
@@ -718,6 +756,7 @@ function rellenar(pos, accion) {
   input.correo.val(datosFila.correo);
   input.direccion.val(datosFila.direccion);
   buscarSelect(input.sexo, datosFila.sexo, "value");
+  buscarSelect(input.id_cargo, datosFila.id_cargo, "value");
 
   input.tipo_doc.prop("disabled", true);
   input.cedula.prop("readOnly", true); // La cédula no se modifica
@@ -733,23 +772,24 @@ function rellenar(pos, accion) {
     input.correo.prop("readOnly", true);
     input.direccion.prop("readOnly", true);
     input.sexo.prop("disabled", true);
+    input.id_cargo.prop("disabled", true);
     editarModal("eliminar")
   }
 
   // Habilitar el botón inmediatamente para Modificar/Eliminar ya que los datos vienen pre-validados
-  $('#btnClienteForm').prop('disabled', false);
+  $('#btnEmpleadoForm').prop('disabled', false);
 }
 
 // Función exclusiva para Cambiar Estatus directamente sin Modal
 async function cambiarEstatus(pos) {
     const linea = $(pos).closest('tr');
-    const tabla = $('#tablaCliente').DataTable();
+    const tabla = $('#tablaEmpleado').DataTable();
     const datosFila = tabla.row(linea).data();
     
     let nuevoEstatus = datosFila.estatus == 1 ? 0 : 1;
     let textoAccion = datosFila.estatus == 1 ? "desactivará" : "reactivará";
     
-    let confirmacion = await confirmarAccion(`Se ${textoAccion} al Cliente`, "¿Está seguro de realizar la acción?", "warning");
+    let confirmacion = await confirmarAccion(`Se ${textoAccion} al Empleado`, "¿Está seguro de realizar la acción?", "warning");
     
     if (confirmacion) {
         let peticionData = new FormData();
@@ -775,7 +815,7 @@ async function cambiarEstatus(pos) {
 
 function consultarFila(pos) {
   const linea = $(pos).closest('tr');
-  const tabla = $('#tablaCliente').DataTable();
+  const tabla = $('#tablaEmpleado').DataTable();
   const datosFila = tabla.row(linea).data();
 
   // Calcular edad
@@ -806,22 +846,17 @@ function consultarFila(pos) {
 
   let sexoTxt = datosFila.sexo === 'M' ? 'Masculino' : (datosFila.sexo === 'F' ? 'Femenino' : 'No especificado');
 
-  let fechaRegistroTxt = 'N/A';
-  if (datosFila.fecha_registro) {
-    let parts = datosFila.fecha_registro.split(/[- :]/);
-    if (parts.length >= 6) {
+  let fechaIngresoTxt = 'N/A';
+  if (datosFila.fecha_ingreso) {
+    let parts = datosFila.fecha_ingreso.split(/[- :]/);
+    if (parts.length >= 3) {
       const meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
       const dia = parseInt(parts[2], 10);
       const mes = meses[parseInt(parts[1], 10) - 1];
       const anio = parts[0];
-      let hora = parseInt(parts[3], 10);
-      const minuto = parts[4].padStart(2, '0');
-      const ampm = hora >= 12 ? 'PM' : 'AM';
-      hora = hora % 12;
-      hora = hora ? hora : 12;
-      fechaRegistroTxt = `${dia} de ${mes} del ${anio} a las ${hora}:${minuto} ${ampm}`;
+      fechaIngresoTxt = `${dia} de ${mes} del ${anio}`;
     } else {
-      fechaRegistroTxt = datosFila.fecha_registro;
+      fechaIngresoTxt = datosFila.fecha_ingreso;
     }
   }
 
@@ -829,11 +864,12 @@ function consultarFila(pos) {
   $('#c_fecha_nacimiento').text(datosFila.fecha_nacimiento ? formatearFecha(datosFila.fecha_nacimiento) : 'N/A');
   $('#c_nombre_apellido').text(capitalizarTexto(datosFila.nombre) + ' ' + capitalizarTexto(datosFila.apellido));
   $('#c_edad').text(edadTexto);
+  $('#c_cargo').text(datosFila.cargo || 'No asignado');
   $('#c_telefono').text(telefonoFormateado || 'N/A');
   $('#c_sexo').text(sexoTxt);
   $('#c_correo').text(datosFila.correo || 'N/A');
   $('#c_direccion').text(datosFila.direccion || 'N/A');
-  $('#c_fecha_registro').text(fechaRegistroTxt);
+  $('#c_fecha_ingreso').text(fechaIngresoTxt);
 
-  $('#modalConsultarCliente').modal('show');
+  $('#modalConsultarEmpleado').modal('show');
 }

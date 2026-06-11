@@ -36,7 +36,7 @@
         <!-- Perfil de Usuario -->
         <div class="user-profile d-flex align-items-center gap-3 px-3 py-2 border-bottom">
             <div class="user-avatar" style="width: 36px; height: 36px;">
-                <img src="<?php echo $datos['foto'] ?? (BASE_URL . 'assets/img/default.jpg'); ?>" alt="Avatar"
+                <img src="<?php echo BASE_URL . 'assets/img/default.jpg'; ?>" alt="Avatar"
                     class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
             </div>
             <div class="user-info">
@@ -72,7 +72,8 @@
                         <a href="?page=Cliente" class="nav-link <?php echo ($page == 'Cliente') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-people me-2"></i>Clientes
                         </a>
-                        <a href="?page=pedidos" class="nav-link <?php echo ($page == 'pedidos' || $page == 'Pedido') ? 'active' : ''; ?> py-1">
+                        <a href="?page=pedidos"
+                            class="nav-link <?php echo ($page == 'pedidos' || $page == 'Pedido') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-receipt me-2"></i>Gestión de Pedidos
                         </a>
                         <a href="?page=pos" class="nav-link <?php echo ($page == 'pos') ? 'active' : ''; ?> py-1">
@@ -156,8 +157,7 @@
                 <div class="collapse <?php echo in_array($page, ['Producto', 'Proveedor']) ? 'show' : ''; ?>"
                     id="logistica-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=Producto"
-                            class="nav-link <?php echo ($page == 'Producto') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Producto" class="nav-link <?php echo ($page == 'Producto') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-box-seam me-2"></i>Otros Productos
                         </a>
                     </div>
@@ -183,12 +183,10 @@
                 <div class="collapse <?php echo in_array($page, ['Media', 'Noticia']) ? 'show' : ''; ?>"
                     id="marketing-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=Media"
-                            class="nav-link <?php echo ($page == 'Media') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Media" class="nav-link <?php echo ($page == 'Media') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-images me-2"></i>Galería Multimedia
                         </a>
-                        <a href="?page=Noticia"
-                            class="nav-link <?php echo ($page == 'Noticia') ? 'active' : ''; ?> py-1">
+                        <a href="?page=Noticia" class="nav-link <?php echo ($page == 'Noticia') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-newspaper me-2"></i>Blog / Noticias
                         </a>
                     </div>
@@ -199,20 +197,27 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Gestión del Personal</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Asistencia', 'Cargo']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Asistencia', 'Cargo', 'Empleado']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#personal-submenu" role="button">
                     <i class="bi bi-people fs-5"></i>
                     <span class="flex-grow-1">Equipo y Horario</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['Asistencia', 'Cargo']) ? 'show' : ''; ?>" id="personal-submenu">
+                <div class="collapse <?php echo in_array($page, ['Asistencia', 'Cargo', 'Empleado']) ? 'show' : ''; ?>"
+                    id="personal-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
+                        <a href="?page=Empleado" class="nav-link <?php echo ($page == 'Empleado') ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-person-badge me-2"></i>Empleados
+                        </a>
                         <a href="?page=Asistencia"
                             class="nav-link <?php echo ($page == 'Asistencia') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-check2-square me-2"></i>Asistencia
                         </a>
                         <a href="?page=Cargo" class="nav-link <?php echo ($page == 'Cargo') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-journal-text me-2"></i>Cargos
+                        </a>
+                        <a href="?page=TipoPermiso" class="nav-link <?php echo ($page == 'TipoPermiso') ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-journal-text me-2"></i>Tipos de Permisos
                         </a>
                     </div>
                 </div>
@@ -353,7 +358,7 @@
                 <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                     <div class="user-avatar" style="width: 36px; height: 36px;">
-                        <img src="<?php echo !empty($datos['foto']) ? BASE_URL . ltrim($datos['foto'], '/') : BASE_URL . 'assets/img/default.jpg'; ?>"
+                        <img src="<?php echo BASE_URL . 'assets/img/default.jpg'; ?>"
                             alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
                     </div>
                     <span

@@ -3,12 +3,12 @@
 namespace App\Controllers;
 
 use App\Helpers\Helper;
-use App\Models\System\CategoriaInsumo;
+use App\Models\System\TipoPermiso;
 use Exception;
 
 Helper::verificarSesion();
 
-$categoriaInsumoModel = new CategoriaInsumo();
+$tipoPermisoModel = new TipoPermiso();
 if (isset($_POST["peticion"])) {
 
 	//Entrada
@@ -31,20 +31,22 @@ if (isset($_POST["peticion"])) {
 				if ($_POST["peticion"] == "registrar") {
 					$id = Helper::generarId("INGR");
 					$str_mensaje = "registró";
+					$accion_bitacora = "REGISTRAR";
 				}
 
 				if ($_POST["peticion"] == "modificar") {
-					$id = $_POST["id_categoria"];
+					$id = $_POST["id_tipo_permiso"];
 					$str_mensaje = "modificó";
+					$accion_bitacora = "MODIFICAR";
 				}
 
-				$categoriaInsumoModel->setId($id);
-				$categoriaInsumoModel->setNombre($_POST["nombre"]);
-				$json = $categoriaInsumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
+				$tipoPermisoModel->setId($id);
+				$tipoPermisoModel->setNombre($_POST["nombre"]);
+				$json = $tipoPermisoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 				if ($json['estado'] == 1) {
-					$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " una nueva categoria insumo con ID:" . $categoriaInsumoModel->getId();
+					$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un nuevo tipo de permiso con ID:" . $tipoPermisoModel->getId();
 				} else {
-					$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un insumo";
+					$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un tipo de permiso";
 				}
 			} catch (Exception $exception) {
 				$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
@@ -56,11 +58,12 @@ if (isset($_POST["peticion"])) {
 			$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a una Categoría'];
 			$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
 		}
+		Helper::Bitacora($accion_bitacora, 'TIPO DE PERMISO', $msg);
 	}
 	//Fin del Registrar o Modificar
 //Consultar
 	if ($_POST["peticion"] == "consultar") {
-		$json = $categoriaInsumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
+		$json = $tipoPermisoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 	}
 	//Fin del Consultar 
 //Eliminar
@@ -72,14 +75,14 @@ if (isset($_POST["peticion"])) {
 			$msg = "(" . $_SESSION['user']['cedula'] . "), envió solicitud no válida";
 
 			try {
-				$categoriaInsumoModel->setId($_POST["id_categoria"]);
-				$json = $categoriaInsumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
+				$tipoPermisoModel->setId($_POST["id_tipo_permiso"]);
+				$json = $tipoPermisoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 				if ($json['estado'] == 1) {
-					$msg = "Se eliminó una categoría de insumo con el ID: " . $_POST["id_categoria"];
+					$msg = "Se eliminó una categoría de insumo con el ID: " . $_POST["id_tipo_permiso"];
 				} else {
 					$msg = "Error al eliminar una categoría de insumo";
 				}
-				Helper::Bitacora('ELIMINAR', 'INGREDIENTE/CATEGORÍA DE INGREDIENTE', $msg);
+				Helper::Bitacora('ELIMINAR', 'TIPO DE PERMISO', $msg);
 			} catch (Exception $exception) {
 				$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 				$json['response'] = ['resultado' => 400, 'mensaje' => $exception->getMessage()];
@@ -99,6 +102,6 @@ if (isset($_POST["peticion"])) {
 	exit;
 } //Fin de Operaciones
 Helper::cargarVista(
-	'categoria_insumo/index',
-	'Categorías de Insumos - Good Vibes'
+	'tipo_permiso/index',
+	'Tipos de Permisos - Good Vibes'
 );

@@ -6,9 +6,8 @@ use App\Core\Database;
 use PDO;
 use Exception;
 
-class Menu
+class Menu extends Database
 {
-    private $db;
     private $id_producto;
     private $nombre_producto;
     private $descripcion;
@@ -18,11 +17,6 @@ class Menu
     private $imagen;
     private $insumos_principales;
     private $insumos_adicionales;
-
-    public function __construct()
-    {
-        $this->db = Database::getConnection('business');
-    }
 
     
     public function setIdProducto($id)
@@ -68,9 +62,12 @@ class Menu
             throw new Exception("La categoría es obligatoria.");
         }
         
-        $stmt = $this->db->prepare("SELECT id_categoria FROM categoria_producto WHERE id_categoria = ?");
+        $stmt = $this->LlamarConexion()->prepare("SELECT id_categoria FROM categoria_producto WHERE id_categoria = ?");
         $stmt->execute([$id_categoria]);
-        if ($stmt->rowCount() === 0) {
+        $rowCount = $stmt->rowCount();
+        $this->DestruirConexion();
+
+        if ($rowCount === 0) {
             throw new Exception("La categoría seleccionada no existe en la base de datos.");
         }
 
@@ -98,19 +95,23 @@ class Menu
             if (empty($insumos) || !is_array($insumos)) {
                 throw new Exception("El producto de cocina debe tener al menos un insumo principal.");
             }
-            foreach ($insumos as $ing) {
-                if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
-                    throw new Exception("Las cantidades de los insumos principales deben ser números mayores a 0.");
+            try {
+                foreach ($insumos as $ing) {
+                    if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
+                        throw new Exception("Las cantidades de los insumos principales deben ser números mayores a 0.");
+                    }
+                    if (empty($ing['unidad'])) {
+                        throw new Exception("La unidad de medida es obligatoria para los insumos principales.");
+                    }
+                    
+                    $stmt = $this->LlamarConexion()->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
+                    $stmt->execute([$ing['unidad']]);
+                    if ($stmt->rowCount() === 0) {
+                        throw new Exception("La unidad de medida seleccionada para el insumo no existe en la base de datos.");
+                    }
                 }
-                if (empty($ing['unidad'])) {
-                    throw new Exception("La unidad de medida es obligatoria para los insumos principales.");
-                }
-                
-                $stmt = $this->db->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
-                $stmt->execute([$ing['unidad']]);
-                if ($stmt->rowCount() === 0) {
-                    throw new Exception("La unidad de medida seleccionada para el insumo no existe en la base de datos.");
-                }
+            } finally {
+                $this->DestruirConexion();
             }
         }
         $this->insumos_principales = $insumos_json;
@@ -123,22 +124,26 @@ class Menu
         if ($this->tipo_producto === 'COCINA') {
             $insumos = is_string($insumos_json) ? json_decode($insumos_json, true) : $insumos_json;
             if (!empty($insumos) && is_array($insumos)) {
-                foreach ($insumos as $ing) {
-                    if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
-                        throw new Exception("Las cantidades de los insumos adicionales deben ser números mayores a 0.");
+                try {
+                    foreach ($insumos as $ing) {
+                        if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
+                            throw new Exception("Las cantidades de los insumos adicionales deben ser números mayores a 0.");
+                        }
+                        if (!isset($ing['precio']) || !is_numeric($ing['precio']) || $ing['precio'] <= 0) {
+                            throw new Exception("El precio de los insumos adicionales debe ser un número válido mayor a 0.");
+                        }
+                        if (empty($ing['unidad'])) {
+                            throw new Exception("La unidad de medida es obligatoria para los insumos adicionales.");
+                        }
+                        
+                        $stmt = $this->LlamarConexion()->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
+                        $stmt->execute([$ing['unidad']]);
+                        if ($stmt->rowCount() === 0) {
+                            throw new Exception("La unidad de medida seleccionada para el insumo adicional no existe en la base de datos.");
+                        }
                     }
-                    if (!isset($ing['precio']) || !is_numeric($ing['precio']) || $ing['precio'] <= 0) {
-                        throw new Exception("El precio de los insumos adicionales debe ser un número válido mayor a 0.");
-                    }
-                    if (empty($ing['unidad'])) {
-                        throw new Exception("La unidad de medida es obligatoria para los insumos adicionales.");
-                    }
-                    
-                    $stmt = $this->db->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
-                    $stmt->execute([$ing['unidad']]);
-                    if ($stmt->rowCount() === 0) {
-                        throw new Exception("La unidad de medida seleccionada para el insumo adicional no existe en la base de datos.");
-                    }
+                } finally {
+                    $this->DestruirConexion();
                 }
             }
         }
@@ -237,17 +242,21 @@ class Menu
     private function listarMenu()
     {
         try {
+            $this->LlamarConexion();
             $sql = "SELECT p.*, c.nombre_categoria as categoria_nombre 
                     FROM producto p
                     LEFT JOIN categoria_producto c ON p.id_categoria = c.id_categoria
                     WHERE p.tipo_producto IN ('COCINA', 'BARRA', 'POSTRE')
                     AND p.estatus = 1
                     ORDER BY p.fecha_creacion DESC";
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->LlamarConexion()->prepare($sql);
             $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $this->DestruirConexion();
+            return $result;
         } catch (\PDOException $e) {
             error_log("Error en listarMenu: " . $e->getMessage());
+            $this->DestruirConexion();
             return [];
         }
     }
@@ -274,12 +283,16 @@ class Menu
     private function listarCategorias()
     {
         try {
+            $this->LlamarConexion();
             $sql = "SELECT id_categoria, nombre_categoria FROM categoria_producto WHERE estatus = 1 ORDER BY nombre_categoria";
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->LlamarConexion()->prepare($sql);
             $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $this->DestruirConexion();
+            return $result;
         } catch (\PDOException $e) {
             error_log("Error en listarCategorias: " . $e->getMessage());
+            $this->DestruirConexion();
             return [];
         }
     }
@@ -306,13 +319,17 @@ class Menu
     private function listarInsumos()
     {
         try {
+            $this->LlamarConexion();
             $sql = "SELECT id_insumo, nombre_insumo, id_unidad_medida, unidad_medida as nombre_unidad 
                     FROM vw_insumo WHERE estatus = 1 ORDER BY nombre_insumo";
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->LlamarConexion()->prepare($sql);
             $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $this->DestruirConexion();
+            return $result;
         } catch (\PDOException $e) {
             error_log("Error en listarInsumos: " . $e->getMessage());
+            $this->DestruirConexion();
             return [];
         }
     }
@@ -341,12 +358,16 @@ class Menu
     private function listarUnidades()
     {
         try {
+            $this->LlamarConexion();
             $sql = "SELECT id_unidad, nombre, abreviatura, tipo FROM unidad_medida ORDER BY nombre";
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->LlamarConexion()->prepare($sql);
             $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $this->DestruirConexion();
+            return $result;
         } catch (\PDOException $e) {
             error_log("Error en listarUnidades: " . $e->getMessage());
+            $this->DestruirConexion();
             return [];
         }
     }
@@ -373,9 +394,10 @@ class Menu
     private function registrarMenu()
     {
         try {
-            $this->db->beginTransaction();
+            $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
             
-            $this->id_producto = $this->generarIdProducto();
+            $this->id_producto = 'PROD' . date('YmdHis') . rand(1000, 9999);
 
             $sql = "INSERT INTO producto (
                     id_producto, nombre_producto, descripcion, precio, 
@@ -385,7 +407,7 @@ class Menu
                     :id_categoria, :imagen, 1, 1, :tipo_producto
                 )";
 
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->LlamarConexion()->prepare($sql);
             $params = [
                 'id_producto' => $this->getIdProducto(),
                 'nombre' => $this->getNombreProducto(),
@@ -408,12 +430,14 @@ class Menu
                 $this->insertarPreparacion($this->getIdProducto(), $this->getInsumosAdicionales(), 2);
             }
 
-            $this->db->commit();
+            $this->LlamarConexion()->commit();
+            $this->DestruirConexion();
             return ['success' => true, 'id' => $this->getIdProducto(), 'message' => 'Menú registrado exitosamente'];
 
         } catch (\PDOException $e) {
-            $this->db->rollBack();
+            $this->LlamarConexion()->rollBack();
             error_log("Error en registrarMenu: " . $e->getMessage());
+            $this->DestruirConexion();
             return ['success' => false, 'message' => 'Error al registrar el menú: ' . $e->getMessage()];
         }
     }
@@ -444,7 +468,8 @@ class Menu
     private function modificarMenu()
     {
         try {
-            $this->db->beginTransaction();
+            $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
             
             $sql = "UPDATE producto SET 
                     nombre_producto = :nombre,
@@ -458,7 +483,7 @@ class Menu
             }
             $sql .= " WHERE id_producto = :id_producto";
 
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->LlamarConexion()->prepare($sql);
             $params = [
                 'id_producto' => $this->getIdProducto(),
                 'nombre' => $this->getNombreProducto(),
@@ -475,7 +500,7 @@ class Menu
             $stmt->execute($params);
 
             // Limpiar receta si es edición
-            $del = $this->db->prepare("DELETE FROM preparacion WHERE id_producto = :id_producto");
+            $del = $this->LlamarConexion()->prepare("DELETE FROM preparacion WHERE id_producto = :id_producto");
             $del->execute(['id_producto' => $this->getIdProducto()]);
 
             // Insertar Principales (prioridad 1)
@@ -488,12 +513,14 @@ class Menu
                 $this->insertarPreparacion($this->getIdProducto(), $this->getInsumosAdicionales(), 2);
             }
 
-            $this->db->commit();
+            $this->LlamarConexion()->commit();
+            $this->DestruirConexion();
             return ['success' => true, 'id' => $this->getIdProducto(), 'message' => 'Menú guardado exitosamente'];
 
         } catch (\PDOException $e) {
-            $this->db->rollBack();
+            $this->LlamarConexion()->rollBack();
             error_log("Error en modificarMenu: " . $e->getMessage());
+            $this->DestruirConexion();
             return ['success' => false, 'message' => 'Error al modificar el menú: ' . $e->getMessage()];
         }
     }
@@ -532,7 +559,7 @@ class Menu
 
         $sql = "INSERT INTO preparacion (id_preparacion, id_producto, id_insumo, prioridad_insumo, cantidad, id_unidad_medida, precio_insumo) 
                 VALUES (:id_preparacion, :id_producto, :id_insumo, :prioridad, :cantidad, :id_unidad, :precio_insumo)";
-        $stmt = $this->db->prepare($sql);
+        $stmt = $this->LlamarConexion()->prepare($sql);
 
         foreach ($insumos as $ing) {
             $id_preparacion = 'PREP' . date('YmdHis') . rand(100, 999);
@@ -567,11 +594,12 @@ class Menu
     private function buscarMenu()
     {
         try {
+            $this->LlamarConexion();
             $sql = "SELECT p.*, c.nombre_categoria 
                     FROM producto p
                     LEFT JOIN categoria_producto c ON p.id_categoria = c.id_categoria
                     WHERE p.id_producto = :id";
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->LlamarConexion()->prepare($sql);
             $stmt->execute(['id' => $this->getIdProducto()]);
             $producto = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -582,7 +610,7 @@ class Menu
                             JOIN insumo i ON pr.id_insumo = i.id_insumo
                             JOIN unidad_medida u ON pr.id_unidad_medida = u.id_unidad
                             WHERE pr.id_producto = :id_producto";
-                $stPrep = $this->db->prepare($sqlPrep);
+                $stPrep = $this->LlamarConexion()->prepare($sqlPrep);
                 $stPrep->execute(['id_producto' => $this->getIdProducto()]);
                 $preparacion = $stPrep->fetchAll(PDO::FETCH_ASSOC);
 
@@ -600,9 +628,11 @@ class Menu
                 $producto['insumos_adicionales'] = $adicionales;
             }
 
+            $this->DestruirConexion();
             return $producto;
         } catch (\PDOException $e) {
             error_log("Error en buscarMenu: " . $e->getMessage());
+            $this->DestruirConexion();
             return null;
         }
     }
@@ -629,11 +659,14 @@ class Menu
     private function eliminarMenu()
     {
         try {
+            $this->LlamarConexion();
             $sql = "UPDATE producto SET estatus = 0 WHERE id_producto = :id_producto";
-            $stmt = $this->db->prepare($sql);
+            $stmt = $this->LlamarConexion()->prepare($sql);
             $result = $stmt->execute(['id_producto' => $this->getIdProducto()]);
+            $this->DestruirConexion();
             return ['success' => $result, 'message' => $result ? 'Producto eliminado' : 'Error al eliminar'];
         } catch (\PDOException $e) {
+            $this->DestruirConexion();
             return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
         }
     }
@@ -659,10 +692,6 @@ class Menu
 //#########################################################################################
 
 
-    private function generarIdProducto()
-    {
-        return 'PROD' . date('YmdHis') . rand(1000, 9999);
-    }
 
     
 
