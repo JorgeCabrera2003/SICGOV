@@ -59,7 +59,6 @@ class Cliente extends Persona
                 'consultar'       => $this->ConsultarCliente(),
                 'actualizar', 'modificar' => $this->ModificarCliente(),
                 'eliminar'        => $this->EliminarCliente(),
-                'cambiar_estatus' => $this->CambiarEstatusCliente(),
                 'validar'         => $this->ValidarCliente(),
                 'verificar_cedula' => $this->verificarCedulaExiste(),
                 default => [
@@ -104,7 +103,7 @@ class Cliente extends Persona
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT p.*, c.fecha_registro, c.estatus FROM persona p INNER JOIN cliente c ON p.cedula = c.cedula";
+            $sql = "SELECT p.*, c.fecha_registro, c.estatus FROM persona p INNER JOIN cliente c ON p.cedula = c.cedula WHERE c.estatus = 1";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute();
             if ($stm->rowCount() > 0) {
@@ -401,49 +400,7 @@ class Cliente extends Persona
 //########################################################################################
 
 
-    private function CambiarEstatusCliente()
-    {
-        try {
-            $this->LlamarConexion();
-            // Verificar existencia sin transacción
-            $stmCheck = $this->LlamarConexion()->prepare(
-                "SELECT c.cedula FROM cliente c WHERE c.cedula = :cedula"
-            );
-            $stmCheck->execute([':cedula' => $this->cedula]);
-            if ($stmCheck->rowCount() === 0) {
-                return [
-                    'estado'      => -1,
-                    'response'    => ['resultado' => 404, 'icon' => 'error', 'mensaje' => 'Registro no encontrado.'],
-                    'HTTP_STATUS' => ['codigo' => 404, 'mensaje' => 'No encontrado'],
-                ];
-            }
 
-            $this->LlamarConexion()->beginTransaction();
-
-            $this->LlamarConexion()->prepare("UPDATE cliente SET estatus = :estatus WHERE cedula = :cedula")
-               ->execute([':estatus' => $this->estatus, ':cedula' => $this->cedula]);
-
-            $this->LlamarConexion()->commit();
-
-            $mensaje = $this->estatus == 1 ? 'Cliente reactivado.' : 'Cliente desactivado.';
-            return [
-                'estado'      => 1,
-                'response'    => ['resultado' => 200, 'icon' => 'success', 'mensaje' => $mensaje],
-                'HTTP_STATUS' => ['codigo' => 200, 'mensaje' => 'OK'],
-            ];
-
-        } catch (\PDOException $e) {
-            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
-            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
-            return [
-                'estado'      => -1,
-                'response'    => ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Error interno del servidor.'],
-                'HTTP_STATUS' => ['codigo' => 500, 'mensaje' => 'Error interno del servidor'],
-            ];
-        } finally {
-            $this->DestruirConexion();
-        }
-    }
 
 
 
