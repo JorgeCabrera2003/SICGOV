@@ -11,6 +11,7 @@ class Reservacion extends Database
 {
     private $id_reservacion;
     private $cedula_cliente;
+    private $id_mesa;
     private $fecha;
     private $hora;
     private $hora_fin;
@@ -20,6 +21,7 @@ class Reservacion extends Database
     {
         $this->id_reservacion = "";
         $this->cedula_cliente = "";
+        $this->id_mesa = null;
         $this->fecha = "";
         $this->hora = "";
         $this->hora_fin = "";
@@ -39,6 +41,13 @@ class Reservacion extends Database
             throw new Exception("La cédula del cliente no es válida.");
         }
         $this->cedula_cliente = $cedula; 
+    }
+
+    public function setIdMesa(?string $id_mesa) { 
+        if (!empty($id_mesa) && RegexHelper::ValidarFormatos($id_mesa, 'ID') == 0) {
+            throw new Exception("El ID de la mesa no es válido.");
+        }
+        $this->id_mesa = empty($id_mesa) ? null : $id_mesa; 
     }
 
     public function setFecha(string $fecha) { 
@@ -114,13 +123,14 @@ class Reservacion extends Database
             $this->ValidarDisponibilidad($this->fecha, $this->hora);
 
             $this->LlamarConexion()->beginTransaction();
-            $sql = "INSERT INTO reservacion(id_reservacion, cedula_cliente, fecha, hora, hora_fin, estado) 
-                    VALUES (:id, :cedula, :fecha, :hora, :hora_fin, :estado)";
+            $sql = "INSERT INTO reservacion(id_reservacion, cedula_cliente, id_mesa, fecha, hora, hora_fin, estado) 
+                    VALUES (:id, :cedula, :id_mesa, :fecha, :hora, :hora_fin, :estado)";
             
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute([
                 ':id' => $this->id_reservacion,
                 ':cedula' => $this->cedula_cliente,
+                ':id_mesa' => $this->id_mesa,
                 ':fecha' => $this->fecha,
                 ':hora' => $this->hora,
                 ':hora_fin' => $this->hora_fin,
@@ -142,12 +152,13 @@ class Reservacion extends Database
             $this->ValidarDisponibilidad($this->fecha, $this->hora, $this->id_reservacion);
 
             $this->LlamarConexion()->beginTransaction();
-            $sql = "UPDATE reservacion SET fecha = :fecha, hora = :hora, hora_fin = :hora_fin, estado = :estado 
+            $sql = "UPDATE reservacion SET id_mesa = :id_mesa, fecha = :fecha, hora = :hora, hora_fin = :hora_fin, estado = :estado 
                     WHERE id_reservacion = :id";
             
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute([
                 ':id' => $this->id_reservacion,
+                ':id_mesa' => $this->id_mesa,
                 ':fecha' => $this->fecha,
                 ':hora' => $this->hora,
                 ':hora_fin' => $this->hora_fin,
@@ -169,23 +180,47 @@ class Reservacion extends Database
             throw new Exception("La hora de fin debe ser mayor a la hora de inicio.");
         }
 
-        $sql = "SELECT COUNT(*) FROM reservacion 
-                WHERE fecha = :fecha 
-                AND ((hora < :hora_fin AND hora_fin > :hora))";
+        // Si se seleccionó una mesa, validamos que no esté ocupada en ese horario
+        if (!empty($this->id_mesa)) {
+            $sql = "SELECT COUNT(*) FROM reservacion 
+                    WHERE fecha = :fecha 
+                    AND id_mesa = :id_mesa 
+                    AND estado != 'CANCELADA'
+                    AND ((hora < :hora_fin AND hora_fin > :hora))";
+            $params = [
+                ':fecha' => $fecha, 
+                ':id_mesa' => $this->id_mesa,
+                ':hora' => $this->hora,
+                ':hora_fin' => $this->hora_fin
+            ];
+        } else {
+            // Si no se seleccionó mesa, validamos que el mismo cliente no tenga otra reserva en ese horario
+            $sql = "SELECT COUNT(*) FROM reservacion 
+                    WHERE fecha = :fecha 
+                    AND cedula_cliente = :cedula 
+                    AND estado != 'CANCELADA'
+                    AND ((hora < :hora_fin AND hora_fin > :hora))";
+            $params = [
+                ':fecha' => $fecha, 
+                ':cedula' => $this->cedula_cliente,
+                ':hora' => $this->hora,
+                ':hora_fin' => $this->hora_fin
+            ];
+        }
+
         if ($id_excluir) {
             $sql .= " AND id_reservacion != :id";
+            $params[':id'] = $id_excluir;
         }
+
         $stm = $this->LlamarConexion()->prepare($sql);
-        $params = [
-            ':fecha' => $fecha, 
-            ':hora' => $this->hora,
-            ':hora_fin' => $this->hora_fin
-        ];
-        if ($id_excluir) $params[':id'] = $id_excluir;
-        
         $stm->execute($params);
         if ($stm->fetchColumn() > 0) {
-            throw new Exception("El horario seleccionado ya se encuentra ocupado por otra reservación.");
+            if (!empty($this->id_mesa)) {
+                throw new Exception("La mesa seleccionada ya se encuentra reservada en este horario.");
+            } else {
+                throw new Exception("El cliente ya tiene una reservación que interfiere con este horario.");
+            }
         }
     }
 
@@ -208,9 +243,10 @@ class Reservacion extends Database
 
     private function ListarEventos($filtros = [])
     {
-        $sql = "SELECT r.*, p.nombre, p.apellido, p.telefono 
+        $sql = "SELECT r.*, p.nombre, p.apellido, p.telefono, m.numero_mesa 
                 FROM reservacion r 
                 JOIN persona p ON r.cedula_cliente = p.cedula 
+                LEFT JOIN mesa m ON r.id_mesa = m.id_mesa
                 WHERE 1=1";
         
         $params = [];
@@ -229,14 +265,16 @@ class Reservacion extends Database
             // FullCalendar format
             $eventos[] = [
                 'id' => $r['id_reservacion'],
-                'title' => $r['nombre'] . ' ' . $r['apellido'],
+                'title' => $r['nombre'] . ' ' . $r['apellido'] . ($r['numero_mesa'] ? " (Mesa {$r['numero_mesa']})" : ""),
                 'start' => $r['fecha'] . 'T' . $r['hora'],
                 'end' => $r['fecha'] . 'T' . $r['hora_fin'],
                 'editable' => ($r['estado'] === 'PENDIENTE'), // Solo se mueven las pendientes
                 'extendedProps' => [
                     'cedula' => $r['cedula_cliente'],
                     'telefono' => $r['telefono'],
-                    'estado' => $r['estado']
+                    'estado' => $r['estado'],
+                    'id_mesa' => $r['id_mesa'],
+                    'numero_mesa' => $r['numero_mesa']
                 ],
                 'className' => 'status-' . strtolower($r['estado'])
             ];
@@ -248,9 +286,10 @@ class Reservacion extends Database
 
     private function ObtenerDetalle()
     {
-        $sql = "SELECT r.*, p.nombre, p.apellido, p.telefono, p.correo 
+        $sql = "SELECT r.*, p.nombre, p.apellido, p.telefono, p.correo, m.numero_mesa 
                 FROM reservacion r 
                 JOIN persona p ON r.cedula_cliente = p.cedula 
+                LEFT JOIN mesa m ON r.id_mesa = m.id_mesa
                 WHERE r.id_reservacion = :id";
         
         $stm = $this->LlamarConexion()->prepare($sql);

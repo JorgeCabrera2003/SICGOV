@@ -6,11 +6,8 @@ use App\Helpers\Helper;
 use App\Helpers\RegexHelper;
 use App\Models\System\Mesas;
 
-class MesasController
-{
-    public function index()
-    {
-        Helper::verificarSesion();
+Helper::verificarSesion();
+
 
         $mesaModel = new Mesas();  
 
@@ -186,8 +183,10 @@ class MesasController
 
         Helper::cargarVista(
             'mesas/index',
-            'Gestión de Mesas - Good Vibes'
+            'Gestión de Mesas - Good Vibes',
+            [
+                'extra_js' => [
+                    BASE_URL . '/assets/js/mesas.js'
+                ]
+            ]
         );
-    }
-
-}

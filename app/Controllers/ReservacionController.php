@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Helpers\Helper;
 use App\Models\System\Reservacion;
 use App\Models\System\Cliente;
+use App\Models\System\Mesas;
 use Exception;
 
 $type = $_REQUEST['type'] ?? 'admin';
@@ -99,6 +100,7 @@ if (!function_exists('App\Controllers\ListarPropiasReservaciones')) {
                         
                         $resModel->setId($id);
                         $resModel->setCedulaCliente($_POST['cedula_cliente'] ?? '');
+                        $resModel->setIdMesa(!empty($_POST['id_mesa']) ? $_POST['id_mesa'] : null);
                         $resModel->setFecha($_POST['fecha'] ?? '');
                         $resModel->setHora($_POST['hora'] ?? '');
                         $resModel->setHoraFin($_POST['hora_fin'] ?? '');
@@ -139,6 +141,8 @@ if (!function_exists('App\Controllers\ListarPropiasReservaciones')) {
                         
                         $resModel->setHora($hora);
                         $resModel->setHoraFin($hora_fin);
+                        $resModel->setCedulaCliente($registro['cedula_cliente'] ?? '');
+                        $resModel->setIdMesa(!empty($registro['id_mesa']) ? $registro['id_mesa'] : null);
                         $resModel->setEstado($registro['estado'] ?? 'PENDIENTE');
                         
                         $json = $resModel->Transaccion(['peticion' => 'modificar']);
@@ -161,8 +165,12 @@ if (!function_exists('App\Controllers\ListarPropiasReservaciones')) {
         $vista = $esPublico ? 'reservar/index' : 'reservaciones/index';
         $titulo = $esPublico ? 'Mis Reservaciones' : 'Gestión de Reservaciones';
 
+        $mesasModel = new Mesas();
+        $mesasList = $mesasModel->Transaccion(['peticion' => 'consultar']);
+
         Helper::cargarVista($vista, $titulo, [
             'clientes' => $esPublico ? [] : $resModel->ObtenerClientes(),
+            'mesas' => ($mesasList['estado'] == 1) ? $mesasList['response']['datos'] : [],
             'extra_css' => [
                 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css',
                 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css',
@@ -174,9 +182,50 @@ if (!function_exists('App\Controllers\ListarPropiasReservaciones')) {
                 'https://cdn.jsdelivr.net/npm/flatpickr',
                 'https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js'
             ],
-            'extra_js_modules' => [
-                BASE_URL . '/assets/js/Controllers/ReservacionController.js'
-            ]
+            'extra_js_inline_module' => '
+                import * as handler from "' . BASE_URL . '/assets/js/Handlers/ReservacionHandler.js?v=' . time() . '";
+                
+                document.addEventListener("DOMContentLoaded", function() {
+                    const $ = window.$;
+                    const calendarEl = document.getElementById("calendarPublico");
+                    if (!calendarEl) return;
+
+                    const pickers = handler.inicializarPickers();
+                    const $selectCliente = $("#cedula_cliente");
+                    if ($selectCliente.length) {
+                        $selectCliente.select2({
+                            theme: "bootstrap-5",
+                            dropdownParent: $("#modalReservacion"),
+                            placeholder: "Seleccione un cliente",
+                            width: "100%",
+                            templateResult: handler.formatarEstadoCliente,
+                            templateSelection: handler.formatarEstadoCliente
+                        });
+                    }
+
+                    const calendar = handler.inicializarCalendario(calendarEl, pickers);
+                    const esPublico = window.location.search.includes("type=publico");
+                    if (!esPublico) {
+                        calendar.setOption("editable", true);
+                        calendar.setOption("eventResizableFromStart", true);
+                    }
+
+                    $("#formReservacion, #formReservarPublico").on("submit", function(e) {
+                        e.preventDefault();
+                        handler.GestionarEnvio(this, calendar);
+                    });
+
+                    $("#btnEliminar").on("click", function() {
+                        const id = $("#id_reservacion").val();
+                        handler.EliminarReservacion(id, calendar);
+                    });
+
+                    $("#btnNuevaReservacion, #btnNuevaReservacionMobile").on("click", function() {
+                        const hoy = new Date().toISOString().split("T")[0];
+                        calendar.select(hoy);
+                    });
+                });
+            '
         ]);
 
 
