@@ -9,6 +9,8 @@ use Exception;
 Helper::verificarSesion();
 
 $categoriaInsumoModel = new CategoriaInsumo();
+$permisosCategoriaInsumo = Helper::TraerPermisos("categoria_insumo");
+
 if (isset($_POST["peticion"])) {
 
 	//Entrada
@@ -19,7 +21,14 @@ if (isset($_POST["peticion"])) {
 
 	//Registrar y Modificar
 	if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
-		$accion_permiso = true;
+		$accion_permiso = false;
+
+		if (isset($permisosCategoriaInsumo['categoria_insumo']['registrar']) && $permisosCategoriaInsumo['categoria_insumo']['registrar'] == 1 && $_POST["peticion"] == "registrar") {
+			$accion_permiso = true;
+		}
+		if (isset($permisosCategoriaInsumo['categoria_insumo']['modificar']) && $permisosCategoriaInsumo['categoria_insumo']['modificar'] == 1 && $_POST["peticion"] == "modificar") {
+			$accion_permiso = true;
+		}
 
 		//Validaciones
 		if ($accion_permiso) {
@@ -65,7 +74,11 @@ if (isset($_POST["peticion"])) {
 	//Fin del Consultar 
 //Eliminar
 	if ($_POST["peticion"] == "eliminar") {
-		$accion_permiso = true;
+		$accion_permiso = false;
+
+		if (isset($permisosCategoriaInsumo['categoria_insumo']['eliminar']) && $permisosCategoriaInsumo['categoria_insumo']['eliminar'] == 1) {
+			$accion_permiso = true;
+		}
 
 		if ($accion_permiso) {
 			$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];

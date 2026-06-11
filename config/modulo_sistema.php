@@ -54,6 +54,14 @@ const MODULOS = [
         'modulo' => 'horario'
     ],
     [
+        'id' => 'PERML0011420260519200547232',
+        'modulo' => 'permiso_laboral'
+    ],
+    [
+        'id' => 'TIPOP0021420260519200547232',
+        'modulo' => 'tipo_permiso'
+    ],
+    [
         'id' => 'TURNO0001420260519200547232',
         'modulo' => 'turno'
     ],
@@ -82,8 +90,20 @@ const MODULOS = [
         'modulo' => 'cliente'
     ],
     [
+        'id' => 'METOP0032020260519200547232',
+        'modulo' => 'metodo_pago'
+    ],
+    [
+        'id' => 'PAGOC0022020260519200547232',
+        'modulo' => 'pago'
+    ],
+    [
         'id' => 'PEDID0002020260519200547232',
         'modulo' => 'pedido'
+    ],
+    [
+        'id' => 'PROMO0012020260519200547232',
+        'modulo' => 'promocion'
     ],
     [
         'id' => 'RESER0002120260519200547232',

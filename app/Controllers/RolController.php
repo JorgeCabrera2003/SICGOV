@@ -128,7 +128,7 @@ if (isset($_POST["peticion"])) {
 
 	if ($_POST["peticion"] == "filtrar_permiso") {
 		$permisoModel->setIdRol($_POST['id_rol']);
-		$json = $permisoModel->Transaccion(['peticion' => 'filtrar', 'parametro' => $_POST['parametro']]);
+		$json = $permisoModel->Transaccion(['peticion' => 'filtrar', 'parametro' => "id_modulo", 'modulo' => NULL]);
 	}
 	//Enviar respuesta al navegador usando un encabezado HTTP
 

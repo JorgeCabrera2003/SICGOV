@@ -133,13 +133,19 @@
                             class="nav-link <?php echo ($page == 'Categoria') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-tags me-2"></i>Categorías del Menú
                         </a>
+                        <?php if(isset($permisos['categoria_insumo']['ver']) && $permisos['categoria_insumo']['ver'] == 1){ ?>
                         <a href="?page=CategoriaInsumo"
                             class="nav-link <?php echo ($page == 'CategoriaInsumo') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-tags me-2"></i>Categorías de Insumos
                         </a>
+                        <?php }
+                        
+                        if(isset($permisos['insumo']['ver']) && $permisos['insumo']['ver'] == 1){
+                        ?>
                         <a href="?page=Insumo" class="nav-link <?php echo ($page == 'Insumo') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-droplet me-2"></i>Insumos
                         </a>
+                        <?php } ?>
                         <a href="?page=Menu" class="nav-link <?php echo ($page == 'Menu') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-journal-text me-2"></i>Carta / Menú
                         </a>
