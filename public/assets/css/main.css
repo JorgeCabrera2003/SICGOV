@@ -654,3 +654,16 @@ body {
         & i { color: #1A1C20 !important; }
     }
 }
+
+/* ==========================================
+   FIX GLOBAL: EVITAR RECORTE DE DROPDOWNS EN TABLAS
+   Permitir overflow visible en pantallas grandes (Desktop)
+   para que los menús desplegables no se corten
+========================================== */
+@media (min-width: 992px) {
+    .table-responsive,
+    .dataTables_scrollBody,
+    .dataTables_wrapper {
+        overflow: visible !important;
+    }
+}
