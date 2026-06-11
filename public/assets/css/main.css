@@ -667,3 +667,12 @@ body {
         overflow: visible !important;
     }
 }
+
+/* ==========================================
+   INTERACCIÓN: ABRIR DROPDOWNS ON HOVER
+   Hacer que los botones de acción de las tablas abran en hover
+========================================== */
+.table .dropdown:hover .dropdown-menu {
+    display: block;
+    margin-top: 0;
+}
