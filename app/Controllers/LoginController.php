@@ -5,16 +5,15 @@ namespace App\Controllers;
 use App\Models\Security\Usuario;
 use App\Models\Security\LoginSettings;
 
-class LoginController
-{
-    public function index()
-    {
+$type = $_REQUEST['type'] ?? 'index';
+
+if ($type === 'index') {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
 
         if (isset($_SESSION['user'])) {
-            header("Location: " . BASE_URL . "/?page=home");
+            header("Location: " . BASE_URL . "?page=Dashboard");
             exit();
         }
 
@@ -26,43 +25,79 @@ class LoginController
         $openRegisterSlide = $currentPage === 'crear-cuenta';
 
         if (isset($_POST['peticion'])) {
+            if ($_POST['peticion'] == 'verificar_cedula') {
+                header('Content-Type: application/json');
+                $cedula = ($_POST['nacionalidad'] ?? '') . "-" . ($_POST['cedula'] ?? '');
+                
+                try {
+                    $clienteModel = new \App\Models\System\Cliente();
+                    $clienteModel->setCedula($cedula);
+                    $resultado = $clienteModel->Transaccion(['peticion' => 'verificar_cedula']);
+                    echo json_encode($resultado['response'] ?? ['resultado' => 500, 'existe' => false]);
+                } catch (\Exception $e) {
+                    echo json_encode(['resultado' => 500, 'existe' => false, 'mensaje' => $e->getMessage()]);
+                }
+                exit();
+            }
 
             if ($_POST['peticion'] == 'registrar') {
                 $openRegisterSlide = true;
                 $recaptcha = $_POST['g-recaptcha-response'] ?? '';
                 if (empty($recaptcha)) {
                     $_SESSION['error_register'] = 'Por favor, complete el reCAPTCHA';
-                } elseif (empty($_POST['nacionalidad'] ?? '') || empty($_POST['cedula'] ?? '') || empty($_POST['username'] ?? '') || empty($_POST['nombre'] ?? '') || empty($_POST['apellido'] ?? '') || empty($_POST['correo'] ?? '') || empty($_POST['clave'] ?? '') || empty($_POST['rclave'] ?? '')) {
+                } elseif (empty($_POST['nacionalidad'] ?? '') || empty($_POST['cedula'] ?? '') || empty($_POST['fecha_nacimiento'] ?? '') || empty($_POST['sexo'] ?? '') || empty($_POST['direccion'] ?? '') || empty($_POST['username'] ?? '') || empty($_POST['nombre'] ?? '') || empty($_POST['apellido'] ?? '') || empty($_POST['correo'] ?? '') || empty($_POST['clave'] ?? '') || empty($_POST['rclave'] ?? '')) {
                     $_SESSION['error_register'] = 'Por favor, complete todos los campos';
                 } elseif ($_POST['clave'] !== $_POST['rclave']) {
                     $_SESSION['error_register'] = 'Las contraseñas no coinciden';
                 } else {
-                    $cedula = ($_POST['nacionalidad'] ?? '') . ($_POST['cedula'] ?? '');
-                    $usuarioModel = new Usuario();
-                    $usuarioModel->setCedula($cedula);
-                    $usuarioModel->setIdRol('CLIE00420251001');
-                    $usuarioModel->setUsername($_POST['username']);
-                    $usuarioModel->setNombres($_POST['nombre']);
-                    $usuarioModel->setApellidos($_POST['apellido']);
-                    $usuarioModel->setTelefono($_POST['telefono'] ?? '');
-                    $usuarioModel->setCorreo($_POST['correo']);
-                    $usuarioModel->setClave($_POST['clave']);
+                    $cedula = ($_POST['nacionalidad'] ?? '') . "-" . ($_POST['cedula'] ?? '');
+                    
+                    // Paso 1: Registrar Cliente (Persona y Cliente)
+                    $clienteModel = new \App\Models\System\Cliente();
+                    $clienteModel->setCedula($cedula);
+                    $clienteModel->setNombre($_POST['nombre']);
+                    $clienteModel->setApellido($_POST['apellido']);
+                    $clienteModel->setFechaNacimiento($_POST['fecha_nacimiento']);
+                    $clienteModel->setSexo($_POST['sexo']);
+                    $clienteModel->setDireccion($_POST['direccion']);
+                    $clienteModel->setTelefono($_POST['telefono'] ?? '');
+                    $clienteModel->setCorreo($_POST['correo']);
+                    
+                    $registroCliente = $clienteModel->Transaccion(['peticion' => 'registrar']);
 
-                    $registro = $usuarioModel->Transaccion(['peticion' => 'registrar']);
-                    if (isset($registro['estado']) && $registro['estado'] == 1) {
-                        $validacion = $usuarioModel->Transaccion(['peticion' => 'sesion']);
-                        if (isset($validacion['response']['verificacion']) && $validacion['response']['verificacion']) {
-                            $datos = $usuarioModel->Transaccion(['peticion' => 'perfil']);
-                            if ($datos && isset($datos['response']['datos'])) {
-                                $_SESSION['user'] = $datos['response']['datos'];
-                                unset($_SESSION['error_register']);
-                                header('Location: ' . BASE_URL . '/?page=home');
-                                exit();
+                    if (isset($registroCliente['estado']) && $registroCliente['estado'] == 1) {
+                        // Paso 2: Registrar Usuario
+                        $usuarioModel = new Usuario();
+                        $usuarioModel->setCedula($cedula);
+                        $usuarioModel->setIdRol('ROLS74320260602130629743');
+                        $usuarioModel->setUsername($_POST['username']);
+                        $usuarioModel->setClave($_POST['clave']);
+                        $usuarioModel->setEstatusClave(1);
+
+                        $registroUsuario = $usuarioModel->Transaccion(['peticion' => 'registrar']);
+
+                        if (isset($registroUsuario['estado']) && $registroUsuario['estado'] == 1) {
+                            $validacion = $usuarioModel->Transaccion(['peticion' => 'sesion']);
+                            if (isset($validacion['response']['verificacion']) && $validacion['response']['verificacion']) {
+                                $datos = $usuarioModel->Transaccion(['peticion' => 'perfil']);
+                                if ($datos && isset($datos['response']['datos'])) {
+                                    
+                                    $_SESSION['user'] = $datos['response']['datos'];
+                                    
+                                    // Set estatus_clave for the session correctly
+                                    $_SESSION['user']['estatus_clave'] = 1;
+
+                                    unset($_SESSION['error_register']);
+                                    header('Location: ' . BASE_URL . '/?page=Dashboard');
+                                    exit();
+                                }
                             }
+                            $_SESSION['error_register'] = 'Usuario registrado pero no se pudo iniciar sesión automáticamente';
+                        } else {
+                            $_SESSION['error_register'] = $registroUsuario['response']['mensaje'] ?? 'Error al registrar credenciales de usuario';
                         }
-                        $_SESSION['error_register'] = 'Usuario registrado pero no se pudo iniciar sesión automáticamente';
                     } else {
-                        $_SESSION['error_register'] = $registro['response']['mensaje'] ?? 'Error al registrar usuario';
+                        $_SESSION['error_register'] = $registroCliente['response']['mensaje'] ?? 'Error al registrar los datos del cliente';
                     }
                 }
             }
@@ -71,41 +106,90 @@ class LoginController
                 $recaptcha = $_POST['g-recaptcha-response'] ?? '';
                 if (empty($recaptcha)) {
                     $_SESSION['error_login'] = 'Por favor, complete el reCAPTCHA';
-                    header('Location: ' . BASE_URL . '/?page=login');
+                    header('Location: ' . BASE_URL . '?page=Login');
                     exit();
                 }
 
                 if (empty($_POST['CI'] ?? '') || empty($_POST['password'] ?? '')) {
                     $_SESSION['error_login'] = 'Por favor, complete todos los campos';
-                    header('Location: ' . BASE_URL . '/?page=login');
+                    header('Location: ' . BASE_URL . '/?page=Login');
                     exit();
                 }
 
                 $particle = $_POST['particle'] ?? 'V-';
                 $ci = $_POST['CI'] ?? '';
-                $cedula = $particle . $ci;
+                $cedula = $particle ."-". $ci;
                 $pass = $_POST['password'] ?? '';
 
                 $usuarioModel = new Usuario();
                 $usuarioModel->setCedula($cedula);
-                $usuarioModel->setClave($pass);
+                $usuarioModel->setClave($pass, false);
                 $validacion = $usuarioModel->Transaccion(['peticion' => 'sesion']);
 
                 if (isset($validacion['response']['verificacion']) && $validacion['response']['verificacion']) {
+                    if (isset($validacion['response']['estatus']) && $validacion['response']['estatus'] == 0) {
+                        $_SESSION['error_login'] = 'Su cuenta de usuario se encuentra inhabilitada.';
+                        $_SESSION['show_disabled_alert'] = true;
+                        \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Intento de inicio de sesión fallido: Cuenta inhabilitada', null, null, $cedula);
+                        header('Location: ' . BASE_URL . '/?page=login');
+                        exit();
+                    }
+
+                    unset($_SESSION['login_attempts'][$cedula]);
                     $datos = $usuarioModel->Transaccion(['peticion' => 'perfil']);
                     if ($datos && isset($datos['response']['datos'])) {
                         $_SESSION['user'] = $datos['response']['datos'];
+                        
+                        // Asegurar que tenemos el estatus_clave actualizado
+                        try {
+                            $dbSec = \App\Core\Database::getConnection('security');
+                            $stmtSt = $dbSec->prepare("SELECT estatus_clave FROM usuario WHERE cedula = ?");
+                            $stmtSt->execute([$cedula]);
+                            if ($resSt = $stmtSt->fetch(\PDO::FETCH_ASSOC)) {
+                                $_SESSION['user']['estatus_clave'] = $resSt['estatus_clave'];
+                            }
+                        } catch (\Exception $e) { }
+
+                        \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Inicio de sesión exitoso', null, null, $cedula);
+
                         unset($_SESSION['error_login']);
-                        header('Location: ' . BASE_URL . '/?page=home');
+                        header('Location: ' . BASE_URL . '?page=Dashboard');
+                        exit();
                     } else {
                         $_SESSION['error_login'] = 'Error al cargar datos del usuario';
                     }
                 } else {
-                    $_SESSION['error_login'] = 'Cédula o contraseña incorrectos';
+                    if (isset($validacion['response']['usuario_existe']) && $validacion['response']['usuario_existe']) {
+                        if (isset($validacion['response']['estatus']) && $validacion['response']['estatus'] == 0) {
+                            $_SESSION['error_login'] = 'Su cuenta de usuario se encuentra inhabilitada.';
+                            $_SESSION['show_disabled_alert'] = true;
+                            \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Intento de inicio de sesión fallido: Cuenta inhabilitada (Contraseña incorrecta)', null, null, $cedula);
+                        } else {
+                            if (!isset($_SESSION['login_attempts'][$cedula])) {
+                                $_SESSION['login_attempts'][$cedula] = 0;
+                            }
+                            $_SESSION['login_attempts'][$cedula]++;
+
+                            if ($_SESSION['login_attempts'][$cedula] >= 4) {
+                                $usuarioModel->setEstatus(0);
+                                $usuarioModel->Transaccion(['peticion' => 'toggle-estatus']);
+                                $_SESSION['error_login'] = 'Su cuenta de usuario ha sido inhabilitada por muchos intentos fallidos.';
+                                $_SESSION['show_disabled_alert'] = true;
+                                unset($_SESSION['login_attempts'][$cedula]);
+                                \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Cuenta inhabilitada por exceso de intentos fallidos', null, null, $cedula);
+                            } else {
+                                $intentos = 4 - $_SESSION['login_attempts'][$cedula];
+                                $_SESSION['error_login'] = "Cédula o contraseña incorrectos. Le quedan $intentos intento(s).";
+                                \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Intento de inicio de sesión fallido: Contraseña incorrecta', null, null, $cedula);
+                            }
+                        }
+                    } else {
+                        $_SESSION['error_login'] = 'Cédula o contraseña incorrectos';
+                        \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Intento de inicio de sesión fallido: Usuario no existe', null, null, $cedula);
+                    }
                 }
             }
         }
         $titulo = 'Login - Good Vibes';
         require_once BASE_PATH . '/resources/views/auth/login.php';
-    }
 }

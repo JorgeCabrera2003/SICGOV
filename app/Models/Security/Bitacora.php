@@ -2,119 +2,218 @@
 namespace App\Models\Security;
 
 use App\Core\Database;
+use App\Helpers\Helper;
+use App\Helpers\RegexHelper;
 use PDO;
+use Exception;
 
-class Bitacora {
-    private $db;
+class Bitacora extends Database {
     private $id_bitacora;
-    private $usuario;
+    private $cedula;
     private $modulo;
     private $accion;
-    private $detalles;
+    private $detalle;
     private $ip_address;
+    private $valores_anteriores;
+    private $valores_nuevos;
     private $fecha;
 
     public function __construct() {
-        $this->db = Database::getConnection('security');
+        $this->id_bitacora = "";
+        $this->cedula = "";
+        $this->modulo = "";
+        $this->accion = "";
+        $this->detalle = "";
+        $this->ip_address = "";
+        $this->valores_anteriores = NULL;
+        $this->valores_nuevos = NULL;
+        $this->fecha = "";
     }
 
-    public function setIdBitacora($id) { $this->id_bitacora = $id; }
-    public function set_usuario($u) { $this->usuario = $u; }
-    public function set_modulo($m) { $this->modulo = $m; }
-    public function set_accion($a) { $this->accion = $a; }
-    public function set_detalles($d) { $this->detalles = $d; }
+    // SETTERS CON VALIDACIÓN (RegexHelper)
+    public function setIdBitacora($id) { 
+        if (!empty($id) && RegexHelper::ValidarFormatos($id, 'ID') == 0) {
+            throw new Exception("El ID de bitácora no tiene un formato válido.");
+        }
+        $this->id_bitacora = $id; 
+    }
+
+    public function set_cedula($c) { 
+        $c = trim($c);
+        if (!empty($c) && $c !== 'Sistema') {
+            // Si solo contiene números, asumimos la nacionalidad 'V-' por defecto
+            if (preg_match('/^[0-9]{7,15}$/', $c)) {
+                $c = 'V-' . $c;
+            }
+            
+            // Si tiene la letra inicial pero no tiene el guion (ej: V12345678)
+            if (preg_match('/^[VEJPGvejpg]{1}[0-9]{7,15}$/', $c)) {
+                $c = strtoupper(substr($c, 0, 1)) . '-' . substr($c, 1);
+            }
+        }
+
+        // Permitir 'Sistema' o validar formato de cédula real
+        if (!empty($c) && $c !== 'Sistema' && RegexHelper::ValidarFormatos($c, 'Cedula') == 0) {
+            throw new Exception("La cédula en bitácora no tiene un formato válido (Ej: V-12345678).");
+        }
+        $this->cedula = $c; 
+    }
+
+    public function set_modulo($m) { 
+        if (RegexHelper::ValidarFormatos($m, 'Titulo') == 0) {
+            throw new Exception("El nombre del módulo no es válido.");
+        }
+        $this->modulo = $m; 
+    }
+
+    public function set_accion($a) { 
+        if (RegexHelper::ValidarFormatos($a, 'Objeto') == 0) {
+            throw new Exception("La acción no cumple con el formato permitido.");
+        }
+        $this->accion = $a; 
+    }
+
+    public function set_detalle($d) { $this->detalle = $d; }
     public function set_ip_address($ip) { $this->ip_address = $ip; }
+    public function set_anteriores($val) { $this->valores_anteriores = $val; }
+    public function set_nuevos($val) { $this->valores_nuevos = $val; }
     public function set_fecha($f) { $this->fecha = $f; }
 
     public function Transaccion($peticion) {
-        switch ($peticion['peticion']) {
-            case 'listar':
-                return $this->listarBitacora();
-            case 'registrar':
-                return $this->Registrar();
-            default:
-                return false;
+        $response = false;
+        if (isset($peticion['peticion'])) {
+            $response = match ($peticion['peticion']) {
+                'listar' => $this->listarBitacora($peticion['filtros'] ?? []),
+                'registrar' => $this->Registrar(),
+                default => false
+            };
         }
+        return $response;
     }
 
-    private function listarBitacora() {
+
+
+
+
+
+
+    private function listarBitacora($filtros = []) {
+        $arreglo = [];
         try {
+            $this->LlamarConexion("security");
+            $this->LlamarConexion()->beginTransaction();
+
             $sql = "SELECT 
                         b.id_bitacora,
                         b.modulo,
                         b.accion,
-                        b.detalles,
+                        b.detalle,
                         b.ip_address,
                         b.fecha,
+                        b.valores_anteriores,
+                        b.valores_nuevos,
                         u.username,
-                        u.nombres,
-                        u.apellidos,
-                        u.cedula
+                        u.cedula,
+                        r.nombre_rol as rol
                     FROM bitacora b
-                    LEFT JOIN usuario u ON b.id_usuario = u.id_usuario
-                    ORDER BY b.fecha DESC";
+                    LEFT JOIN usuario u ON b.cedula = u.cedula
+                    LEFT JOIN rol r ON u.id_rol = r.id_rol";
             
-            $stmt = $this->db->prepare($sql);
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $where = [];
+            $params = [];
+
+            if (!empty($filtros['modulo'])) {
+                $where[] = "b.modulo = :modulo";
+                $params['modulo'] = $filtros['modulo'];
+            }
+
+            if (!empty($filtros['desde'])) {
+                $where[] = "b.fecha >= :desde";
+                $params['desde'] = $filtros['desde'] . " 00:00:00";
+            }
+
+            if (!empty($filtros['hasta'])) {
+                $where[] = "b.fecha <= :hasta";
+                $params['hasta'] = $filtros['hasta'] . " 23:59:59";
+            }
+
+            if (count($where) > 0) {
+                $sql .= " WHERE " . implode(" AND ", $where);
+            }
+
+            $sql .= " ORDER BY b.fecha DESC";
             
+            $stmt = $this->LlamarConexion()->prepare($sql);
+            $stmt->execute($params);
+            $arreglo = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            $this->LlamarConexion()->commit();
         } catch (\PDOException $e) {
-            error_log("Error en listarBitacora: " . $e->getMessage());
-            return [];
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog("Error en listarBitacora: " . $e->getMessage());
+            $arreglo = [];
         }
+        $this->DestruirConexion();
+        return $arreglo;
     }
 
+
+
+
+
+
+    
     private function Registrar() {
+        $result = false;
         try {
-            $this->ip_address = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+            $this->LlamarConexion("security");
+            $this->LlamarConexion()->beginTransaction();
+
+            $this->ip_address = $this->ip_address ?: ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
             
             $sql = "INSERT INTO bitacora (
                         id_bitacora, 
-                        id_usuario, 
+                        cedula, 
                         modulo, 
                         accion, 
-                        detalles,
+                        detalle,
                         ip_address,
+                        valores_anteriores,
+                        valores_nuevos,
                         fecha
                     ) VALUES (
                         :id_bitacora,
-                        (SELECT id_usuario FROM usuario WHERE cedula = :cedula OR id_usuario = :id_usuario LIMIT 1), 
+                        :cedula, 
                         :modulo, 
                         :accion,
-                        :detalles,
+                        :detalle,
                         :ip_address,
+                        :old,
+                        :new,
                         :fecha
                     )";
 
-            $stmt = $this->db->prepare($sql);
-            
-            $idUsuario = null;
-            $cedula = null;
-            
-            if (isset($this->usuario)) {
-                if (strpos($this->usuario, 'V-') === 0 || strpos($this->usuario, 'E-') === 0) {
-                    $cedula = $this->usuario;
-                } else {
-                    $idUsuario = $this->usuario;
-                }
-            }
+            $stmt = $this->LlamarConexion()->prepare($sql);
             
             $result = $stmt->execute([
                 'id_bitacora' => $this->id_bitacora,
-                'cedula' => $cedula,
-                'id_usuario' => $idUsuario,
+                'cedula' => $this->cedula,
                 'modulo' => $this->modulo,
                 'accion' => $this->accion,
-                'detalles' => $this->detalles ?? null,
+                'detalle' => $this->detalle ?? null,
                 'ip_address' => $this->ip_address,
+                'old' => $this->valores_anteriores ?? null,
+                'new' => $this->valores_nuevos ?? null,
                 'fecha' => $this->fecha ?? date('Y-m-d H:i:s')
             ]);
             
-            return $result;
-            
+            $this->LlamarConexion()->commit();
         } catch (\PDOException $e) {
-            error_log("Error en Bitacora::Registrar: " . $e->getMessage());
-            return false;
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog("Error en Bitacora::Registrar: " . $e->getMessage());
+            $result = false;
         }
+        $this->DestruirConexion();
+        return $result;
     }
 }

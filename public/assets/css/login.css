@@ -1,44 +1,38 @@
-#particle{
-	background: transparent;
-	border: none;
-	margin: 1px;
-}
+/* ==========================================
+   COMPONENTE: Login Clásico (Legado)
+   Metodología: BEM
+========================================== */
 
-#logo{
-	width: 15vw;
-	height: 5vw;
-}
+.login-legacy {
+    &__logo {
+        width: 15vw;
+        height: auto;
+        
+        @media (max-width: 768px) {
+            width: 30vw;
+        }
+        
+        @media (max-width: 425px) {
+            width: 80vw;
+        }
+    }
 
-.alert{
-	width: 26%;
-	position: absolute;
-	left: 37%;
-	top: 10vh;
-}
-
-@media (max-width: 768px){
-	#logo{
-		width: 30vw;
-		height: 10vw;
-	}
-
-	.alert{
-		width: 42%;
-		left: 29%;
-		top: 1vh;
-	}
-}
-
-@media (max-width: 425px){
-	#logo{
-		width: 90vw;
-		height: 30vw;
-	}
-
-	.alert{
-		width: 90%;
-		left: 5%;
-		top: 1vh;
-	}
-	 
+    &__alert {
+        width: 30%;
+        position: absolute;
+        left: 35%;
+        top: 5vh;
+        z-index: 1050;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        
+        @media (max-width: 768px) {
+            width: 50%;
+            left: 25%;
+        }
+        
+        @media (max-width: 425px) {
+            width: 90%;
+            left: 5%;
+        }
+    }
 }

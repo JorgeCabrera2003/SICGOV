@@ -14,7 +14,6 @@ SET time_zone = "-04:00"; -- Hora de Venezuela
 CREATE TABLE `rol` (
   `id_rol` varchar(30) NOT NULL,
   `nombre_rol` varchar(50) NOT NULL,
-  `descripcion` varchar(200) DEFAULT NULL,
   `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_rol`),
   UNIQUE KEY `idx_rol_nombre` (`nombre_rol`)
@@ -60,10 +59,14 @@ CREATE TABLE `usuario` (
   `ultimo_acceso` timestamp NULL DEFAULT NULL,
   `fecha_registro` timestamp NOT NULL DEFAULT current_timestamp(),
   `estatus` tinyint(1) NOT NULL DEFAULT 1,
+  `estatus_clave` tinyint(1) NOT NULL DEFAULT 1 COMMENT '1=valida, 0=debe_cambiar',
+  `token_recuperacion` varchar(10) DEFAULT NULL,
+  `fecha_expiracion_token` datetime DEFAULT NULL,
   PRIMARY KEY (`cedula`),
   UNIQUE KEY `idx_usuario_username` (`username`),
   KEY `fk_usuario_rol` (`id_rol`),
-  CONSTRAINT `fk_usuario_rol` FOREIGN KEY (`id_rol`) REFERENCES `rol` (`id_rol`) ON UPDATE CASCADE
+  CONSTRAINT `fk_usuario_rol` FOREIGN KEY (`id_rol`) REFERENCES `rol` (`id_rol`) ON UPDATE CASCADE,
+  CONSTRAINT `fk_usuario_cedula` FOREIGN KEY (`cedula`) REFERENCES `{{DB_SYSTEM}}`.persona (`cedula`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Usuarios del sistema - Datos de autenticación';
 
 CREATE TABLE `permiso` (
@@ -101,6 +104,7 @@ CREATE TABLE `bitacora` (
   `modulo` varchar(50) NOT NULL,
   `accion` varchar(50) NOT NULL,
   `detalle` text NOT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
   `valores_anteriores` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`valores_anteriores`)),
   `valores_nuevos` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`valores_nuevos`)),
   PRIMARY KEY (`id_bitacora`),
@@ -151,6 +155,35 @@ JOIN permiso p ON r.id_rol = p.id_rol
 JOIN modulo m ON p.id_modulo = m.id_modulo
 WHERE u.estatus = 1 AND p.estatus = 1;
 
+CREATE VIEW `vw_validar_usuario` AS
+SELECT `u`.`cedula` AS `cedula`, 
+`u`.`id_rol` AS `id_rol`, 
+`u`.`username` AS `username`, 
+`p`.`correo` AS `correo`, 
+`u`.`clave` AS `clave` 
+FROM `usuario` `u`
+JOIN `{{DB_SYSTEM}}`.persona `p` ON(`u`.`cedula` = `p`.`cedula`);
+
+CREATE VIEW vw_perfil_usuario AS
+SELECT `u`.`cedula`,
+`u`.`username`,
+`p`.`nombre`,
+`p`.`apellido`,
+`p`.`sexo`,
+`p`.`fecha_nacimiento`,
+`p`.`direccion`,
+`p`.`correo`,
+`p`.`telefono`,
+`p`.`documento`,
+`u`.`id_rol`,
+`r`.`nombre_rol` AS 'rol',
+`u`.`tema`,
+`u`.`ultimo_acceso`,
+`u`.`fecha_registro`
+FROM `{{DB_SECURITY}}`.`usuario` AS `u`
+JOIN `{{DB_SYSTEM}}`.persona AS `p` ON (`u`.`cedula` = `p`.`cedula`)
+JOIN `{{DB_SECURITY}}`.`rol` AS `r` ON (`u`.`id_rol` = `r`.`id_rol`);
+
 CREATE VIEW `vw_sesiones_activas` AS
 SELECT s.id_sesion, u.cedula, r.nombre_rol AS rol, s.ip, s.dispositivo, s.fecha_inicio 
 FROM sesion s
@@ -166,19 +199,9 @@ FROM imagen i;
 -- 5. PROCEDIMIENTOS (STORED PROCEDURES)
 -- --------------------------------------------------------
 
+-- (Removido sp_registrar_bitacora)
+
 DELIMITER $$
-CREATE PROCEDURE `sp_registrar_bitacora`(
-    IN `p_cedula` VARCHAR(15), 
-    IN `p_modulo` VARCHAR(50), 
-    IN `p_accion` VARCHAR(50), 
-    IN `p_detalle` TEXT,
-    IN `p_old` JSON,
-    IN `p_new` JSON
-)
-BEGIN
-    INSERT INTO bitacora (id_bitacora, cedula, modulo, accion, detalle, valores_anteriores, valores_nuevos)
-    VALUES (CONCAT('LOG-', UNIX_TIMESTAMP(), '-', SUBSTRING(MD5(RAND()), 1, 4)), p_cedula, p_modulo, p_accion, p_detalle, p_old, p_new);
-END$$
 
 CREATE PROCEDURE `sp_obtener_imagenes_entidad`(
     IN `p_tipo` VARCHAR(20),
@@ -197,24 +220,6 @@ DELIMITER ;
 -- 6. DISPARADORES (TRIGGERS)
 -- --------------------------------------------------------
 
-DELIMITER $$
-CREATE TRIGGER `trg_audit_usuario_update` AFTER UPDATE ON `usuario`
-FOR EACH ROW BEGIN
-    IF OLD.estatus != NEW.estatus THEN
-        CALL sp_registrar_bitacora(NEW.cedula, 'SEGURIDAD', 'UPDATE_ESTATUS', CONCAT('Estatus cambiado de ', OLD.estatus, ' a ', NEW.estatus), NULL, NULL);
-    END IF;
-END$$
-
-CREATE TRIGGER `trg_imagen_principal_unica` BEFORE INSERT ON `imagen`
-FOR EACH ROW BEGIN
-    IF NEW.es_principal = 1 THEN
-        UPDATE imagen SET es_principal = 0 
-        WHERE entidad_tipo = NEW.entidad_tipo 
-        AND entidad_id = NEW.entidad_id 
-        AND es_principal = 1;
-    END IF;
-END$$
-
-DELIMITER ;
+-- (Removido trg_audit_usuario_update por redundancia con PHP)
 
 COMMIT;

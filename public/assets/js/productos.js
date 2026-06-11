@@ -89,6 +89,7 @@ const ProductosModule = (function() {
         $('#tablaProductos').on('click', '.btn-eliminar', handleEliminarProducto);
         $('#formProducto').on('submit', handleGuardarProducto);
         $('#imagen').on('change', handlePreviewImagen);
+        $('#btnAbrirGaleria').on('click', handleAbrirGaleria);
 
         // Eventos de categorías
         $('#btnCategorias').on('click', () => $('#modalCategorias').modal('show'));
@@ -182,6 +183,23 @@ const ProductosModule = (function() {
         $('#previewImagenContainer').hide();
         $('#estatus').prop('checked', true);
         $('#modalProducto').modal('show');
+    }
+
+    /**
+     * Abre el selector de multimedia para elegir una imagen de la galería
+     */
+    function handleAbrirGaleria() {
+        MediaPicker.open({
+            onSelect: function(ruta) {
+                // Seteamos el valor en el input oculto
+                $('#imagen_galeria').val(ruta);
+                // Limpiamos el input de archivo físico si existía algo
+                $('#imagen').val('');
+                // Mostramos preview
+                $('#previewImagen').attr('src', `${BASE_URL}${ruta}`);
+                $('#previewImagenContainer').show();
+            }
+        });
     }
 
     /**
@@ -322,9 +340,15 @@ const ProductosModule = (function() {
         const file = e.target.files[0];
         
         if (!file) {
-            $('#previewImagenContainer').hide();
+            // Si no hay archivo, pero hay algo en galería, no lo ocultamos
+            if (!$('#imagen_galeria').val()) {
+                $('#previewImagenContainer').hide();
+            }
             return;
         }
+
+        // Si subimos un archivo, limpiamos el de galería
+        $('#imagen_galeria').val('');
 
         const reader = new FileReader();
         reader.onload = function(ev) {

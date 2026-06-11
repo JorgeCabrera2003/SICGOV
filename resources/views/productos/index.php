@@ -50,7 +50,8 @@
 <!-- Modales (incluidos como partials) -->
 <?php include 'partials/_modal_producto.php'; ?>
 <?php include 'partials/_modal_categorias.php'; ?>
+<?php include __DIR__ . '/../partials/_media_picker.php'; ?>
 
 <!-- Recursos específicos de la página -->
-<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/productos.css">
-<script src="<?= BASE_URL ?>/assets/js/productos.js" defer></script>
+<script src="<?= BASE_URL ?>/assets/js/media-picker.js" defer></script>
+

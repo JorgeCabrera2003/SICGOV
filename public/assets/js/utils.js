@@ -10,7 +10,7 @@ const patrones = {
   numeros: /^\d{1,20}$/,
   email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   telefono: /^\(\d{3}\)\s\d{3}-\d{4}$/,
-  telefonoSimple: /^\d{4}-\d{7,8}$/,
+  telefonoSimple: /^\d{7}$/,
   username: /^[a-zA-Z0-9_]{4,20}$/,
   password: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
   postalCode: /^\d{5}$/,
@@ -23,6 +23,7 @@ const patrones = {
   descripcion: /^[0-9 a-zA-ZáéíóúüñÑçÇ -.,]{3,100}$/,
   serial: /^[0-9a-zA-ZáéíóúüñÑçÇ.-]{3,45}$/,
   tipoEquipo: /^[0-9 a-zA-ZáéíóúüñÑçÇ -.]{3,45}$/,
+  titulo: /^[0-9a-zA-ZáéíóúüñÑçÇ\s\-.,()!?"'%:;]{3,150}$/,
 
   // PATRONES PARA MATERIAL
   id_material: /^[A-Z0-9\-_]{1,50}$/,
@@ -51,11 +52,20 @@ const patrones = {
   fecha_hora: /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
 };
 
-// SISTEMA DE VALIDACIÓN REUTILIZABLE
+/**
+ * Sistema de Validación "Library-First"
+ * Actúa como un motor de validación declarativo que lee configuraciones directamente del HTML.
+ * @namespace SistemaValidacion
+ */
 const SistemaValidacion = {
   elementos: {},
   callbackCambioEstado: null,
 
+  /**
+   * Inicializa el sistema de validación adjuntando eventos a un conjunto de elementos.
+   * @param {Object} elements - Un objeto de elementos jQuery a validar.
+   * @param {Function} [callbackCambioEstado] - Función que se ejecuta tras validar el formulario.
+   */
   inicializar: function (elements, callbackCambioEstado = null) {
     this.elementos = elements;
     this.callbackCambioEstado = callbackCambioEstado;
@@ -85,6 +95,11 @@ const SistemaValidacion = {
     }, 100);
   },
 
+  /**
+   * Esta función se ejecuta por el evento "blur" o "input".
+   * Lee dinámicamente los atributos `data-regla` y `data-requerido` para determinar validez de un campo individual.
+   * @returns {boolean} `true` si el campo cumple sus restricciones, de lo contrario `false`.
+   */
   validarCampo: function () {
     const $campo = $(this);
     const valor = $campo.val() ? $campo.val().trim() : '';
@@ -93,79 +108,85 @@ const SistemaValidacion = {
     let mensajeError = '';
     const fueInteractuado = $campo.data('touched') || $campo.is(':focus');
 
-    switch (id) {
-      case 'codigo_bien':
-        esValido = patrones.codigoBien.test(valor);
-        mensajeError = 'El código del bien debe tener de 3 a 20 caracteres (letras, números y guiones)';
-        break;
+    const regla = $campo.data('regla');
+    const requerido = $campo.data('requerido');
 
-      case 'descripcion':
-        esValido = patrones.descripcion.test(valor);
-        mensajeError = 'La descripción debe tener de 3 a 100 caracteres';
-        break;
-
-      case 'serial_equipo':
-      case 'serial':
-        esValido = patrones.serial.test(valor);
-        mensajeError = 'El serial debe tener de 3 a 45 caracteres';
-        break;
-
-      case 'tipo_equipo':
-        esValido = patrones.tipoEquipo.test(valor);
-        mensajeError = 'El tipo de equipo debe tener de 3 a 45 caracteres';
-        break;
-
-      case 'nombre':
-      case 'nombre_material':
-        esValido = patrones.nombre_material.test(valor);
-        mensajeError = 'El nombre debe tener 3-100 caracteres alfanuméricos';
-        break;
-
-      case 'stock':
-        esValido = patrones.stock_material.test(valor);
-        mensajeError = 'El stock debe ser un número entre 0 y 999999';
-        break;
-
-      case 'id_material':
-        esValido = patrones.id_material.test(valor);
-        mensajeError = 'ID no válido. Debe ser alfanumérico de 1-50 caracteres';
-        break;
-
-      case 'id_categoria':
-      case 'id_marca':
-      case 'id_oficina':
-      case 'ubicacion':
-      case 'cedula_empleado':
-      case 'id_unidad_equipo':
-      case 'estado':
-        esValido = valor !== "default" && valor !== "" && valor !== null;
-        mensajeError = 'Debe seleccionar una opción válida';
-        break;
-
-      case 'cedula_solicitante':
-      case 'cedula_empleado':
-      case 'cedula_tecnico':
-        esValido = patrones.cedula.test(valor);
-        mensajeError = 'La cédula debe tener formato V-12345678';
-        break;
-
-      case 'correo_empleado':
-      case 'email':
-        esValido = patrones.email.test(valor);
-        mensajeError = 'El formato del email no es válido';
-        break;
-
-      case 'telefono_empleado':
-      case 'telefono':
-        esValido = patrones.telefonoSimple.test(valor);
-        mensajeError = 'El teléfono debe tener formato 0412-1234567';
-        break;
-
-      default:
-        if ($campo.attr('type') === 'text' || $campo.is('input')) {
-          esValido = valor.length >= 1;
-          mensajeError = 'Este campo es requerido';
-        }
+    // Validación Library-First (Declarativa mediante data-regla / data-requerido)
+    if (requerido && (valor === '' || valor === 'default' || valor === null)) {
+      esValido = false;
+      mensajeError = $campo.data('mensaje') || 'Este campo es requerido';
+    } else if (valor !== '' && regla && patrones[regla]) {
+      esValido = patrones[regla].test(valor);
+      mensajeError = $campo.data('mensaje') || 'Formato no válido';
+    } else if (!regla && id) {
+      // Fallback al switch basado en ID si NO usa data-regla
+      switch (id) {
+        case 'codigo_bien':
+          esValido = patrones.codigoBien.test(valor);
+          mensajeError = 'El código del bien debe tener de 3 a 20 caracteres (letras, números y guiones)';
+          break;
+        case 'descripcion':
+          esValido = patrones.descripcion.test(valor);
+          mensajeError = 'La descripción debe tener de 3 a 100 caracteres';
+          break;
+        case 'serial_equipo':
+        case 'serial':
+          esValido = patrones.serial.test(valor);
+          mensajeError = 'El serial debe tener de 3 a 45 caracteres';
+          break;
+        case 'tipo_equipo':
+          esValido = patrones.tipoEquipo.test(valor);
+          mensajeError = 'El tipo de equipo debe tener de 3 a 45 caracteres';
+          break;
+        case 'nombre':
+        case 'nombre_material':
+          esValido = patrones.nombre_material.test(valor);
+          mensajeError = 'El nombre debe tener 3-100 caracteres alfanuméricos';
+          break;
+        case 'stock':
+          esValido = patrones.stock_material.test(valor);
+          mensajeError = 'El stock debe ser un número entre 0 y 999999';
+          break;
+        case 'id_material':
+          esValido = patrones.id_material.test(valor);
+          mensajeError = 'ID no válido. Debe ser alfanumérico de 1-50 caracteres';
+          break;
+        case 'id_categoria':
+        case 'id_marca':
+        case 'id_oficina':
+        case 'ubicacion':
+        case 'cedula_empleado':
+        case 'id_unidad_equipo':
+        case 'estado':
+        case 'rol':
+        case 'estatus':
+        case 'tipo':
+          esValido = valor !== "default" && valor !== "" && valor !== null;
+          mensajeError = 'Debe seleccionar una opción válida';
+          break;
+        case 'cedula_solicitante':
+        case 'cedula_empleado':
+        case 'cedula_tecnico':
+          esValido = patrones.cedula.test(valor);
+          mensajeError = 'La cédula debe tener formato V-12345678';
+          break;
+        case 'correo':
+        case 'correo_empleado':
+        case 'email':
+          esValido = (valor === '') ? true : patrones.email.test(valor);
+          mensajeError = 'El formato del email no es válido';
+          break;
+        case 'telefono_empleado':
+        case 'telefono':
+          esValido = (valor === '') ? true : patrones.telefonoSimple.test(valor);
+          mensajeError = 'El teléfono debe tener formato 0412-1234567 o 7 dígitos';
+          break;
+        default:
+          if ($campo.attr('type') === 'text' || $campo.is('input') || $campo.is('textarea')) {
+            esValido = valor.length >= 1;
+            mensajeError = 'Este campo es requerido';
+          }
+      }
     }
 
     if (fueInteractuado) {
@@ -182,6 +203,11 @@ const SistemaValidacion = {
     return esValido;
   },
 
+  /**
+   * Recorre asincrónicamente el listado de todos los elementos monitoreados por la inicialización.
+   * Es útil para habilitar/deshabilitar el botón de `Guardar` global de un formulario complejo.
+   * @returns {boolean} `true` si TODOS los campos son válidos y `false` si hay al menos un error.
+   */
   verificarEstadoFormulario: function () {
     let esValido = true;
 
@@ -189,57 +215,70 @@ const SistemaValidacion = {
       if (elemento && elemento.length && elemento.is(':visible') && !elemento.prop('disabled')) {
         const valor = elemento.val() ? elemento.val().trim() : '';
         let campoValido = true;
+        
+        const regla = elemento.data('regla');
+        const requerido = elemento.data('requerido');
 
-        switch (elemento.attr('id')) {
-          case 'codigo_bien':
-            campoValido = patrones.codigoBien.test(valor);
-            break;
-          case 'descripcion':
-            campoValido = patrones.descripcion.test(valor);
-            break;
-          case 'serial_equipo':
-          case 'serial':
-            campoValido = patrones.serial.test(valor);
-            break;
-          case 'tipo_equipo':
-            campoValido = patrones.tipoEquipo.test(valor);
-            break;
-          case 'nombre':
-          case 'nombre_material':
-            campoValido = patrones.nombre_material.test(valor);
-            break;
-          case 'stock':
-            campoValido = patrones.stock_material.test(valor);
-            break;
-          case 'id_material':
-            campoValido = patrones.id_material.test(valor);
-            break;
-          case 'id_categoria':
-          case 'id_marca':
-          case 'id_oficina':
-          case 'ubicacion':
-          case 'cedula_empleado':
-          case 'id_unidad_equipo':
-          case 'estado':
-            campoValido = valor !== "default" && valor !== "" && valor !== null;
-            break;
-          case 'cedula_solicitante':
-          case 'cedula_empleado':
-          case 'cedula_tecnico':
-            campoValido = patrones.cedula.test(valor);
-            break;
-          case 'correo_empleado':
-          case 'email':
-            campoValido = patrones.email.test(valor);
-            break;
-          case 'telefono_empleado':
-          case 'telefono':
-            campoValido = patrones.telefonoSimple.test(valor);
-            break;
-          default:
-            if (elemento.attr('type') === 'text' || elemento.is('input')) {
-              campoValido = valor.length >= 1;
-            }
+        if (requerido && (valor === '' || valor === 'default' || valor === null)) {
+          campoValido = false;
+        } else if (valor !== '' && regla && patrones[regla]) {
+          campoValido = patrones[regla].test(valor);
+        } else if (!regla && elemento.attr('id')) {
+          switch (elemento.attr('id')) {
+            case 'codigo_bien':
+              campoValido = patrones.codigoBien.test(valor);
+              break;
+            case 'descripcion':
+              campoValido = patrones.descripcion.test(valor);
+              break;
+            case 'serial_equipo':
+            case 'serial':
+              campoValido = patrones.serial.test(valor);
+              break;
+            case 'tipo_equipo':
+              campoValido = patrones.tipoEquipo.test(valor);
+              break;
+            case 'nombre':
+            case 'nombre_material':
+              campoValido = patrones.nombre_material.test(valor);
+              break;
+            case 'stock':
+              campoValido = patrones.stock_material.test(valor);
+              break;
+            case 'id_material':
+              campoValido = patrones.id_material.test(valor);
+              break;
+            case 'id_categoria':
+            case 'id_marca':
+            case 'id_oficina':
+            case 'ubicacion':
+            case 'cedula_empleado':
+            case 'id_unidad_equipo':
+            case 'estado':
+            case 'rol':
+            case 'estatus':
+            case 'tipo':
+              campoValido = valor !== "default" && valor !== "" && valor !== null;
+              break;
+            case 'cedula_solicitante':
+            case 'cedula_empleado':
+            case 'cedula_tecnico':
+              campoValido = patrones.cedula.test(valor);
+              break;
+            case 'correo':
+            case 'correo_empleado':
+            case 'email':
+              campoValido = (valor === '') ? true : patrones.email.test(valor);
+              break;
+            case 'telefono_empleado':
+            case 'telefono':
+              campoValido = (valor === '') ? true : patrones.telefonoSimple.test(valor);
+              break;
+            default:
+              if (elemento.attr('type') === 'text' || elemento.is('input') || elemento.is('textarea')) {
+                campoValido = valor.length >= 1;
+              }
+          }
         }
 
         if (!campoValido) {
@@ -251,6 +290,10 @@ const SistemaValidacion = {
     return esValido;
   },
 
+  /**
+   * Normaliza los textos en estilo de Títulos Capitalizados para mantener limpieza en Base de Datos.
+   * @param {jQuery} $elemento - El elemento input jQuery a capitalizar
+   */
   autoCapitalizar: function ($elemento) {
     const valor = $elemento.val() ? $elemento.val().trim() : '';
     if (valor) {
@@ -328,56 +371,68 @@ const SistemaValidacion = {
         const valor = elemento.val() ? elemento.val().trim() : '';
         let campoValido = true;
 
-        switch (elemento.attr('id')) {
-          case 'codigo_bien':
-            campoValido = patrones.codigoBien.test(valor);
-            break;
-          case 'descripcion':
-            campoValido = patrones.descripcion.test(valor);
-            break;
-          case 'serial_equipo':
-          case 'serial':
-            campoValido = patrones.serial.test(valor);
-            break;
-          case 'tipo_equipo':
-            campoValido = patrones.tipoEquipo.test(valor);
-            break;
-          case 'nombre':
-          case 'nombre_material':
-            campoValido = patrones.nombre_material.test(valor);
-            break;
-          case 'stock':
-            campoValido = patrones.stock_material.test(valor);
-            break;
-          case 'id_material':
-            campoValido = patrones.id_material.test(valor);
-            break;
-          case 'id_categoria':
-          case 'id_marca':
-          case 'id_oficina':
-          case 'ubicacion':
-          case 'cedula_empleado':
-          case 'id_unidad_equipo':
-          case 'estado':
-            campoValido = valor !== "default" && valor !== "" && valor !== null;
-            break;
-          case 'cedula_solicitante':
-          case 'cedula_empleado':
-          case 'cedula_tecnico':
-            campoValido = patrones.cedula.test(valor);
-            break;
-          case 'correo_empleado':
-          case 'email':
-            campoValido = patrones.email.test(valor);
-            break;
-          case 'telefono_empleado':
-          case 'telefono':
-            campoValido = patrones.telefonoSimple.test(valor);
-            break;
-          default:
-            if (elemento.attr('type') === 'text' || elemento.is('input')) {
-              campoValido = valor.length >= 1;
-            }
+        const regla = elemento.data('regla');
+        const requerido = elemento.data('requerido');
+
+        if (requerido && (valor === '' || valor === 'default' || valor === null)) {
+          campoValido = false;
+        } else if (valor !== '' && regla && patrones[regla]) {
+          campoValido = patrones[regla].test(valor);
+        } else if (!regla && elemento.attr('id')) {
+          switch (elemento.attr('id')) {
+            case 'codigo_bien':
+              campoValido = patrones.codigoBien.test(valor);
+              break;
+            case 'descripcion':
+              campoValido = patrones.descripcion.test(valor);
+              break;
+            case 'serial_equipo':
+            case 'serial':
+              campoValido = patrones.serial.test(valor);
+              break;
+            case 'tipo_equipo':
+              campoValido = patrones.tipoEquipo.test(valor);
+              break;
+            case 'nombre':
+            case 'nombre_material':
+              campoValido = patrones.nombre_material.test(valor);
+              break;
+            case 'stock':
+              campoValido = patrones.stock_material.test(valor);
+              break;
+            case 'id_material':
+              campoValido = patrones.id_material.test(valor);
+              break;
+            case 'id_categoria':
+            case 'id_marca':
+            case 'id_oficina':
+            case 'ubicacion':
+            case 'cedula_empleado':
+            case 'id_unidad_equipo':
+            case 'estado':
+            case 'rol':
+            case 'estatus':
+            case 'tipo':
+              campoValido = valor !== "default" && valor !== "" && valor !== null;
+              break;
+            case 'cedula_solicitante':
+            case 'cedula_empleado':
+            case 'cedula_tecnico':
+              campoValido = patrones.cedula.test(valor);
+              break;
+            case 'correo_empleado':
+            case 'email':
+              campoValido = patrones.email.test(valor);
+              break;
+            case 'telefono_empleado':
+            case 'telefono':
+              campoValido = patrones.telefonoSimple.test(valor);
+              break;
+            default:
+              if (elemento.attr('type') === 'text' || elemento.is('input') || elemento.is('textarea')) {
+                campoValido = valor.length >= 1;
+              }
+          }
         }
 
         if (!campoValido) {
@@ -392,48 +447,67 @@ const SistemaValidacion = {
 
 
 /**
- * Envía Petición HTTP del Cliente
- * @param {FormData} datos Objeto FormData que contiene que se va a enviar como Petición HTTP
- * @param {string} controlador Ruta a la que se desea enviar la Petición, de estar vacía, se enviará a la misma URL por defecto
- * @return En caso de éxito, devolverá los datos recibidor por el servidor, en caso contrario, un código de error
+ * Envía una Petición HTTP asíncrona estandarizada para toda la aplicación.
+ * Pre-configurada para procesar `FormData` adecuadamente sin dañar las cabeceras de Multipart Files.
+ *
+ * @param {FormData} datos Objeto FormData que contiene que se va a enviar como Petición HTTP.
+ * @param {string} controlador Ruta a la que se desea enviar la Petición, de estar vacía, se enviará a la misma URL por defecto.
+ * @return {Promise<Object>} Promesa que resuelve a un objeto JSON si la respuesta fue exitosa. Retorna el código de error en caso de fallo.
  */
 async function enviaAjax(datos, controlador = "") {
   let response = null;
-  await $.ajax({
-    async: true,
-    url: controlador,
-    type: "POST",
-    contentType: false,
-    data: datos,
-    processData: false,
-    cache: false,
-    timeout: 10000,
-    success: function (respuesta) {
-      console.log(respuesta);
-
-      if (respuesta == undefined || respuesta == '' || respuesta == null) {
-        response = {
-          resultado: 204,
-          mensaje: ''
+  try {
+    await $.ajax({
+      async: true,
+      url: controlador,
+      type: "POST",
+      contentType: false,
+      data: datos,
+      processData: false,
+      cache: false,
+      timeout: 10000,
+      success: function (respuesta) {
+        if (respuesta == undefined || respuesta == '' || respuesta == null) {
+          response = {
+            resultado: 204,
+            mensaje: ''
+          }
+        } else {
+          try {
+             response = (typeof respuesta === 'string') ? JSON.parse(respuesta) : respuesta;
+          } catch(e) {
+             console.error("Error parseando respuesta JSON:", e, respuesta);
+             response = { resultado: 500, mensaje: "Error procesando respuesta del servidor" };
+          }
         }
-      } else {
-        response = JSON.parse(respuesta);
-      }
-      
-    },
-    error: function (request, status, err) {
-      response = {
-        resultado: request.status
-      }
+      },
+      error: function (request, status, err) {
+        let errorMsg = null;
+        try {
+            if (request.responseText) {
+                const jsonErr = JSON.parse(request.responseText);
+                errorMsg = jsonErr.mensaje || null;
+            }
+        } catch(e) {}
 
-      if (status == "timeout") {
-        console.log("error", null, "Servidor ocupado", "Intente de nuevo");
-      } else {
-        console.log("error", null, "Ocurrió un error", err);
-      }
-      mensajes("error", 10000, mensajeHTTP(response.resultado), null);
-    },
-  });
+        response = {
+          resultado: request.status || 500,
+          mensaje: errorMsg
+        }
+        if (status == "timeout") {
+          console.log("Servidor ocupado", "Intente de nuevo");
+        } else {
+          console.log("Ocurrió un error", err);
+        }
+        mensajes("error", 10000, errorMsg || mensajeHTTP(response.resultado), null);
+      },
+    });
+  } catch (error) {
+     console.error("Excepcion atrapada en enviaAjax:", error);
+     if (!response) {
+       response = { resultado: error.status || 500, mensaje: "Fallo en la comunicación" };
+     }
+  }
 
   return response;
 }
@@ -842,6 +916,51 @@ $(document).ready(function () {
 
   console.log("Utils cargado completamente");
 });
+
+/**
+ * Componente Global: Generador de Botón de Acciones (Dropdown)
+ * @param {Object} options Configuración del botón y sus ítems
+ * @returns {string} HTML del componente
+ */
+function UIActionBtn(options = {}) {
+    const $dropdown = $('<div>', { class: 'dropdown d-inline-block' });
+    const $btn = $('<button>', {
+        class: `action-btn dropdown-toggle ${options.class || ''}`,
+        type: 'button',
+        'data-bs-toggle': 'dropdown',
+        'aria-expanded': 'false',
+        title: options.title || 'Acciones'
+    }).append($('<i>', { class: options.icon || 'fas fa-ellipsis-v' }));
+
+    if (options.text) {
+        $btn.append($('<span>', { class: 'ms-2 small fw-bold d-none d-md-inline', text: options.text }));
+    }
+
+    const $menu = $('<ul>', { class: 'dropdown-menu dropdown-menu-end shadow-sm' });
+    
+    if (options.items && Array.isArray(options.items)) {
+        options.items.forEach(item => {
+            if (item.divider) {
+                $menu.append($('<li>').append($('<hr>', { class: 'dropdown-divider' })));
+            } else {
+                const $link = $('<a>', {
+                    class: `dropdown-item d-flex align-items-center ${item.class || ''}`,
+                    href: item.href || 'javascript:void(0)',
+                    'data-id': item.id || '',
+                    onclick: item.onclick || null
+                });
+
+                if (item.icon) {
+                    $link.append($('<i>', { class: `${item.icon} me-2 opacity-75`, css: { width: '1.2rem' } }));
+                }
+                $link.append($('<span>', { text: item.text }));
+                $menu.append($('<li>').append($link));
+            }
+        });
+    }
+
+    return $dropdown.append($btn, $menu).prop('outerHTML');
+}
 
 // EXPORTAR FUNCIONES
 if (typeof module !== 'undefined' && module.exports) {

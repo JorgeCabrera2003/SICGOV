@@ -27,7 +27,12 @@ class BitacoraController
             
             // Listar registros para DataTables
             if ($accion === 'listarJson') {
-                $registros = $bitacora->Transaccion(['peticion' => 'listar']) ?: [];
+                $filtros = [
+                    'modulo' => $_POST['modulo'] ?? $_GET['modulo'] ?? '',
+                    'desde' => $_POST['desde'] ?? $_GET['desde'] ?? '',
+                    'hasta' => $_POST['hasta'] ?? $_GET['hasta'] ?? '',
+                ];
+                $registros = $bitacora->Transaccion(['peticion' => 'listar', 'filtros' => $filtros]) ?: [];
                 
                 $data = [];
                 foreach ($registros as $reg) {
@@ -35,8 +40,8 @@ class BitacoraController
                     $fechaFormateada = $fecha->format('d/m/Y H:i:s');
                     
                     $usuario = $reg['username'] ?? '';
-                    if (!empty($reg['nombres'])) {
-                        $usuario = $reg['nombres'] . ' ' . ($reg['apellidos'] ?? '');
+                    if (!empty($reg['nombre'])) {
+                        $usuario = $reg['nombre'] . ' ' . ($reg['apellido'] ?? '');
                     }
                     
                     $data[] = [
@@ -57,7 +62,7 @@ class BitacoraController
             
             // Buscar registro por ID
             if ($accion === 'buscar') {
-                $id = $_GET['id'] ?? '';
+                $id = $_POST['id'] ?? $_GET['id'] ?? '';
                 if (empty($id)) {
                     echo json_encode(['success' => false, 'message' => 'ID no proporcionado']);
                     exit();
@@ -98,12 +103,13 @@ class BitacoraController
         
         return sprintf(
             '<div class="btn-group" role="group">
-                <button class="btn btn-sm btn-outline-info border-0 btn-ver-detalle" 
+                <button class="btn btn-sm btn-outline-primary btn-ver-detalle d-flex align-items-center gap-1" 
                         data-id="%s" 
-                        title="Ver detalles"
+                        title="Ver todo el registro"
                         data-bs-toggle="modal" 
                         data-bs-target="#modalDetalleBitacora">
-                    <i class="fas fa-eye"></i>
+                    <i class="fas fa-search-plus"></i>
+                    <span>Ver Detalles</span>
                 </button>
             </div>',
             $id

@@ -75,10 +75,15 @@
                     <!-- Fila: Imagen -->
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
-                            <label for="imagen" class="form-label fw-semibold">Imagen del Producto</label>
-                            <input type="file" class="form-control" id="imagen" name="imagen" 
-                                   accept="image/jpeg,image/png,image/gif">
-                            <div class="form-text">Máx. 2MB (JPG, PNG, GIF)</div>
+                            <div class="d-flex gap-2">
+                                <label for="imagen" class="btn btn-outline-secondary w-100"><i class="fas fa-upload me-2"></i>Subir</label>
+                                <button type="button" class="btn btn-outline-warning text-dark w-100" id="btnAbrirGaleria">
+                                    <i class="fas fa-th me-2"></i>Galería
+                                </button>
+                            </div>
+                            <input type="file" class="form-control d-none" id="imagen" name="imagen" accept="image/jpeg,image/png,image/gif">
+                            <input type="hidden" id="imagen_galeria" name="imagen_galeria">
+                            <div class="form-text mt-2">Usa 'Subir' para archivos nuevos o 'Galería' para reutilizar.</div>
                         </div>
                         <div class="col-md-6" id="previewImagenContainer" style="display: none;">
                             <label class="form-label fw-semibold">Vista Previa:</label>

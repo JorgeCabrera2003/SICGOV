@@ -1,0 +1,98 @@
+/* ==========================================
+   CSS BEM - MÓDULO DE PEDIDOS Y POS ADMIN
+   ========================================== */
+
+/* Gestión de Pedidos */
+.pedidos-admin {
+    background-color: #f8f9fa;
+    min-height: calc(100vh - 60px);
+}
+
+.table-pedidos {
+    font-size: 0.95rem;
+}
+
+.table-pedidos th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.estado-badge {
+    padding: 0.4em 0.8em;
+    border-radius: 50rem;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.estado-PENDIENTE { background-color: #ffc107; color: #000; }
+.estado-COCINANDO { background-color: #17a2b8; color: #fff; }
+.estado-LISTO     { background-color: #fd7e14; color: #fff; }
+.estado-ENTREGADO { background-color: #28a745; color: #fff; }
+.estado-PAGADO    { background-color: #20c997; color: #fff; }
+.estado-CANCELADO { background-color: #dc3545; color: #fff; }
+
+/* POS Container */
+.pos-container {
+    height: calc(100vh - 80px);
+    overflow: hidden;
+}
+
+.pos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    padding: 0.5rem;
+}
+
+.pos-card {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #dee2e6;
+}
+
+.pos-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    border-color: #0d6efd;
+}
+
+.pos-card__img {
+    height: 120px;
+    object-fit: cover;
+    border-bottom: 1px solid #eee;
+}
+
+.pos-ticket {
+    display: flex;
+    flex-direction: column;
+}
+
+.pos-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid #eee;
+    background-color: #fff;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.pos-item__controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pos-item__btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}

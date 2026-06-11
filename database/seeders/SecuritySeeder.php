@@ -1,23 +1,28 @@
 <?php
 namespace App\Database\Seeders;
 
-class SecuritySeeder {
+class SecuritySeeder
+{
     private $db;
 
-    public function __construct($db) {
+    public function __construct($db)
+    {
         $this->db = $db;
     }
 
-    public function run() {
+    public function run()
+    {
         // Verificar e insertar roles
         $count = $this->db->query("SELECT COUNT(*) FROM rol")->fetchColumn();
         $hash = password_hash("1234", PASSWORD_DEFAULT);
-        
+
         if ($count == 0) {
             echo "       Roles no encontrados, insertando...\n";
-            $sqlRoles = "INSERT INTO rol (id_rol, nombre_rol, descripcion, estatus) VALUES 
-                ('ADMIN00120251001', 'ADMINISTRADOR', 'Acceso completo al sistema', 1),
-                ('GEREN00520251001', 'GERENTE', 'Supervisión y reportes', 1)";
+            $sqlRoles = "INSERT INTO rol (id_rol, nombre_rol, estatus) VALUES 
+                ('ADMIN00120251001', 'ADMINISTRADOR', 1),
+                ('GEREN00520251001', 'GERENTE', 1),
+                ('ROLS74320260602130629743', 'Cliente', 1),
+                ('ROLS71920260602140652719', 'SuperUsuario', 1)";
             $this->db->exec($sqlRoles);
             echo "       Roles base creados.\n";
         }
@@ -27,57 +32,46 @@ class SecuritySeeder {
         if ($countModulos == 0) {
             echo "       Módulos no encontrados, insertando...\n";
             $sqlModulos = "INSERT INTO modulo (id_modulo, nombre, estatus) VALUES 
-                ('MOD001', 'Dashboard', 1),
-                ('MOD002', 'Usuarios', 1),
-                ('MOD003', 'Roles', 1),
-                ('MOD004', 'Permisos', 1),
-                ('MOD005', 'Pedidos', 1),
-                ('MOD006', 'Productos', 1),
-                ('MOD007', 'Inventario', 1),
-                ('MOD008', 'Mesas', 1),
-                ('MOD009', 'Reportes', 1),
-                ('MOD010', 'Personal', 1),
-                ('MOD011', 'Clientes', 1),
-                ('MOD012', 'Proveedores', 1),
-                ('MOD013', 'Promociones', 1),
-                ('MOD014', 'Noticias', 1),
-                ('MOD015', 'Notificaciones', 1),
-                ('MOD016', 'Bitácora', 1)";
+                ('AREAM0000720260519200547232', 'area_mesa', 1),
+                ('ASIST0001020260519200547232', 'asistencia', 1),
+                ('BITAC0000320260519200547232', 'bitacora', 1),
+                ('CARGO0001120260519200547232', 'cargo', 1),
+                ('CATIN0001520260519200547232', 'categoria_insumo', 1),
+                ('CATME0001620260519200547232', 'categoria_menu', 1),
+                ('CLIEN0002020260519200547232', 'cliente', 1),
+                ('EMPLE0001220260519200547232', 'empleado', 1),
+                ('HORAR0001320260519200547232', 'horario', 1),
+                ('INSUM0001720260519200547232', 'insumo', 1),
+                ('MANTE0000420260519200547232', 'mantenimiento', 1),
+                ('MESA00000620260519200547232', 'mesa', 1),
+                ('METOP0032020260519200547232', 'metodo_pago', 1),
+                ('MODUL0000520260519200547232', 'modulo_sistema', 1),
+                ('MULTI0000820260519200547232', 'multimedia', 1),
+                ('NOTIC0000920260519200547232', 'noticia', 1),
+                ('PAGOC0022020260519200547232', 'pago', 1),
+                ('PEDID0002020260519200547232', 'pedido', 1),
+                ('PERML0011420260519200547232', 'permiso_laboral', 1),
+                ('PRODU0001820260519200547232', 'producto', 1),
+                ('PROMO0012020260519200547232', 'promocion', 1),
+                ('PROVE0001920260519200547232', 'proveedor', 1),
+                ('RESER0002120260519200547232', 'reservacion', 1),
+                ('ROL000000220260519200547232', 'rol', 1),
+                ('TIPOP0021420260519200547232', 'tipo_permiso', 1),
+                ('TURNO0001420260519200547232', 'turno', 1),
+                ('USUAR0000120260519200547232', 'usuario', 1);";
             $this->db->exec($sqlModulos);
             echo "       Módulos base creados.\n";
         }
 
-        // Verificar e insertar permisos para ADMINISTRADOR
-        $countPermisos = $this->db->query("SELECT COUNT(*) FROM permiso WHERE id_rol = 'ADMIN00120251001'")->fetchColumn();
-        if ($countPermisos == 0) {
-            echo "       Permisos para ADMINISTRADOR no encontrados, insertando...\n";
-            $modulos = $this->db->query("SELECT id_modulo FROM modulo")->fetchAll(\PDO::FETCH_COLUMN);
-            $acciones = ['LEER', 'CREAR', 'EDITAR', 'ELIMINAR'];
-            
-            $sqlPermiso = "INSERT INTO permiso (id_permiso, id_rol, id_modulo, accion, estatus) VALUES (:id, 'ADMIN00120251001', :modulo, :accion, 1)";
-            $stmt = $this->db->prepare($sqlPermiso);
-            
-            foreach ($modulos as $modulo) {
-                foreach ($acciones as $accion) {
-                    $stmt->execute([
-                        'id' => 'PERM-' . uniqid(),
-                        'modulo' => $modulo,
-                        'accion' => $accion
-                    ]);
-                }
-            }
-            echo "       Permisos para ADMINISTRADOR creados.\n";
-        }
-
         // Crear usuario admin si no existe
-        $sqlCheck = "SELECT COUNT(*) FROM usuario WHERE cedula = 'V00000000'";
+        $sqlCheck = "SELECT COUNT(*) FROM usuario WHERE cedula = 'V-00000000'";
         $userExists = $this->db->query($sqlCheck)->fetchColumn();
 
         if (!$userExists) {
             $sqlAdmin = "INSERT INTO usuario
                         (cedula, id_rol, username, clave, tema, estatus)
                         VALUES 
-                        ('V00000000', 'ADMIN00120251001', 'admin_root', :clave, 'light', 1)";
+                        ('V-00000000', 'ROLS71920260602140652719', 'admin_root', :clave, 'light', 1)";
             try {
                 $stmt = $this->db->prepare($sqlAdmin);
                 $stmt->execute(['clave' => $hash]);
@@ -90,18 +84,18 @@ class SecuritySeeder {
         }
 
         // Crear usuario gerente de ejemplo
-        $sqlCheckGerente = "SELECT COUNT(*) FROM usuario WHERE cedula = 'V12345678'";
+        $sqlCheckGerente = "SELECT COUNT(*) FROM usuario WHERE cedula = 'V-12345678'";
         $gerenteExists = $this->db->query($sqlCheckGerente)->fetchColumn();
 
         if (!$gerenteExists) {
             $sqlGerente = "INSERT INTO usuario
                         (cedula, id_rol, username, clave, tema, estatus)
                         VALUES 
-                        ('V12345678', 'GEREN00520251001', 'gerente', :clave, 'light', 1)";
+                        ('V-12345678', 'GEREN00520251001', 'gerente', :clave, 'light', 1)";
             try {
                 $stmt = $this->db->prepare($sqlGerente);
                 $stmt->execute(['clave' => $hash]);
-                echo "       Usuario Gerente de ejemplo creado (cedula: V12345678).\n";
+                echo "       Usuario Gerente de ejemplo creado (cedula: V-12345678).\n";
             } catch (\PDOException $e) {
                 echo "       Aviso: No se pudo crear usuario gerente: " . $e->getMessage() . "\n";
             }

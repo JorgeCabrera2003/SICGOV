@@ -1,9 +1,18 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+$isLoggedIn = isset($_SESSION['user']);
+$targetUrl = $isLoggedIn ? 'Dashboard' : 'Login';
+$targetText = $isLoggedIn ? 'Ir al Dashboard' : 'Ir al Login';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>404 - Página no encontrada | SICGOV</title>
+    <meta http-equiv="refresh" content="5;?page=<?= $targetUrl ?>">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -178,9 +187,9 @@
         
         <!-- Acciones -->
         <div class="error-actions">
-            <a href="<?= BASE_URL ?>/?page=home" class="btn-home">
+            <a href="<?= $targetUrl ?>" class="btn-home">
                 <i class="fas fa-home"></i>
-                Ir al Dashboard
+                <?= $targetText ?>
             </a>
             <a href="javascript:history.back()" class="btn-back">
                 <i class="fas fa-arrow-left"></i>
@@ -199,7 +208,7 @@
                 <code>URL solicitada: <?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? '') ?></code>
             </p>
             <p class="mb-1">
-                <code>Página: <?= htmlspecialchars($_GET['page'] ?? '') ?></code>
+                <code>Página: <?= htmlspecialchars($_REQUEST['page'] ?? '') ?></code>
             </p>
             <p class="mb-0">
                 <code>Método: <?= $_SERVER['REQUEST_METHOD'] ?? '' ?></code>
