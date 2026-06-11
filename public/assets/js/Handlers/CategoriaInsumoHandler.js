@@ -1,6 +1,7 @@
 import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js"
 import * as AjaxHelper from "../Helpers/AjaxHelper.js"
 import * as ValidadorHelper from "../Helpers/ValidadorHelper.js"
+import * as PermisoHelper from "../Helpers/PermisoHelper.js"
 
 //SUBMODULO DE CATEGORIA DE INGREDIENTES
 
@@ -138,13 +139,13 @@ async function EnviarDatos(operacion, modulo = "Categoria") {
   let peticion = new FormData();
   let json = null;
 
-  
-  if(modulo == "Insumo"){
+
+  if (modulo == "Insumo") {
     endpoint = "Insumo";
     peticion.append("modulo", "CategoriaInsumo")
-} else {
-  endpoint = "CategoriaInsumo";
-}
+  } else {
+    endpoint = "CategoriaInsumo";
+  }
 
   //Registrar y Modificar
   if (operacion == "registrar" || operacion == "modificar") {
@@ -192,7 +193,7 @@ async function EnviarDatos(operacion, modulo = "Categoria") {
 
   if (btn_formulario) {
     modal.boton.prop('disabled', true);
-    json = await AjaxHelper.enviaAjax(peticion, "?page="+endpoint);
+    json = await AjaxHelper.enviaAjax(peticion, "?page=" + endpoint);
     modal.boton.prop('disabled', false);
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       MensajeriaHelper.GenerarMensaje(json.icon, 10000, json.mensaje, null);
@@ -257,6 +258,42 @@ export function ValidarEnvio() {
 }
 
 async function VistaPermiso(modulo = "Categoria") {
+  const permisos = await PermisoHelper.LlamarPermiso("categoria_insumo");
+  let bool = false;
+  let btn_eliminar = "";
+  let btn_modificar = "";
+  let separadorHTML = "";
+
+  if (permisos['categoria_insumo']['modificar'] != undefined && permisos['categoria_insumo']['modificar'] == 1) {
+    const itemEditar = $('<li>');
+    const linkEditar = $('<a>')
+      .addClass('dropdown-item btn-editar text-primary')
+      .attr('href', '#')
+      .attr('data-accion', 0)
+      .attr('data-modulo', modulo)
+      .html('<i class="fas fa-edit me-2"></i>Editar');
+    itemEditar.append(linkEditar);
+    btn_modificar = itemEditar;
+    bool = true;
+  }
+
+  if (permisos['categoria_insumo']['eliminar'] != undefined && permisos['categoria_insumo']['modificar'] == 1) {
+    const itemEliminar = $('<li>');
+    const linkEliminar = $('<a>')
+      .addClass('dropdown-item btn-eliminar text-danger')
+      .attr('href', '#')
+      .attr('data-accion', 1)
+      .attr('data-modulo', modulo)
+      .html('<i class="fas fa-trash me-2" me-2"></i>Eliminar');
+    itemEliminar.append(linkEliminar);
+    btn_eliminar = itemEliminar;
+    bool = true;
+  }
+  
+  if(btn_modificar != "" && btn_eliminar != ""){
+    const separador = $('<li>').html('<hr class="dropdown-divider">');
+    separadorHTML = separador;
+  }
 
   const dropdown = $('<div>').addClass('dropdown');
   const boton = $('<button>').addClass('btn btn-sm btn-light border dropdown-toggle')
@@ -265,30 +302,15 @@ async function VistaPermiso(modulo = "Categoria") {
     .html('<i class="fas fa-ellipsis-v me-3"></i>Acciones');
 
   const menu = $('<ul>').addClass('dropdown-menu');
-  const separador = $('<li>').html('<hr class="dropdown-divider">');
+  
 
-  const itemEditar = $('<li>');
-  const linkEditar = $('<a>')
-    .addClass('dropdown-item btn-editar text-primary')
-    .attr('href', '#')
-    .attr('data-accion', 0)
-    .attr('data-modulo', modulo)
-    .html('<i class="fas fa-edit me-2"></i>Editar');
-  itemEditar.append(linkEditar);
-
-  const itemEliminar = $('<li>');
-  const linkEliminar = $('<a>')
-    .addClass('dropdown-item btn-eliminar text-danger')
-    .attr('href', '#')
-    .attr('data-accion', 1)
-    .attr('data-modulo', modulo)
-    .html('<i class="fas fa-trash me-2" me-2"></i>Eliminar');
-  itemEliminar.append(linkEliminar);
-
-  menu.append(itemEditar, separador, itemEliminar);
+  menu.append(btn_modificar, separadorHTML, btn_eliminar);
   dropdown.append(boton, menu);
 
-  console.log(dropdown)
+  if(!bool){
+    dropdown.empty(); //Destruye la Etiqueta por si no hay botones que renderizar
+  }
+
   return dropdown.prop('outerHTML');
 }
 
