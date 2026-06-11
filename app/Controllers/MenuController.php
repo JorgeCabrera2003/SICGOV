@@ -13,9 +13,19 @@ if ($type === 'admin') {
 
     if (empty($peticion) && !isset($_POST["peticion"]) && !isset($_GET["action"])) {
         Helper::verificarSesion();
+        $menuModel = new Menu();
+        $categorias = $menuModel->Transaccion(['peticion' => 'categorias']) ?: [];
+        $insumos = $menuModel->Transaccion(['peticion' => 'insumos']) ?: [];
+        $unidades = $menuModel->Transaccion(['peticion' => 'unidades']) ?: [];
+
         Helper::cargarVista(
             'menu/index',
-            'Gestión de Menú - Good Vibes'
+            'Gestión de Menú - Good Vibes',
+            [
+                'categorias' => $categorias,
+                'insumos' => $insumos,
+                'unidades' => $unidades
+            ]
         );
         exit;
     }
@@ -139,7 +149,7 @@ if ($type === 'admin') {
 
 
 
-        if ($peticion == 'listar') {
+        if ($peticion == 'listar' || $peticion == 'listarJson') {
             try {
                 $menus = $objMenu->Transaccion(['peticion' => 'listar']) ?: [];
                 echo json_encode(['data' => $menus]);
