@@ -4,10 +4,7 @@ namespace App\Controllers;
 
 use App\Helpers\Helper;
 
-class LogOutController
-{
-    public function index()
-    {
+
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
@@ -21,5 +18,4 @@ class LogOutController
 
         header("Location: ?page=login");
         exit();
-    }
-}
+    

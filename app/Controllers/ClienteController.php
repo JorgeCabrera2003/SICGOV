@@ -121,35 +121,7 @@ if (isset($_POST["peticion"])) {
 
 
 
-    if ($_POST["peticion"] == "cambiar_estatus") {
-        $accion_permiso = true;
 
-        if ($accion_permiso) {
-            $bool_formulario = true;
-            $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
-            
-            //Validar Cédula del formulario
-            if (!isset($_POST["cedula"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'Cedula') == 0 || !isset($_POST["estatus"])) {
-                $json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Cédula o Estatus no válida'];
-                $bool_formulario = false;
-            }
-            //Fin de la Validación
-
-            if ($bool_formulario) {
-                $clienteModel->setCedula($_POST["cedula"]);
-                $clienteModel->setEstatus($_POST["estatus"]);
-                $json = $clienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
-                if (isset($json['estado']) && $json['estado'] == 1) {
-                    $accion_texto = ($_POST["estatus"] == 1) ? "activó" : "desactivó";
-                    Helper::Bitacora("CAMBIAR_ESTATUS", "CLIENTES", "Se {$accion_texto} al cliente con cédula: " . $_POST["cedula"]);
-                }
-            }
-        } else {
-            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
-            $json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' un cliente'];
-        }
-    }
-    //Fin del Cambiar Estatus
 
 
     

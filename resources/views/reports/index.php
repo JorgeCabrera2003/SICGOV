@@ -79,3 +79,6 @@
 
 <!-- Inclusión de Partials -->
 <?php require_once __DIR__ . '/partials/_modal_config.php'; ?>
+
+<!-- Inclusión de Chatbot MAR-IA -->
+<?php require_once __DIR__ . '/partials/_maria_chatbot.php'; ?>

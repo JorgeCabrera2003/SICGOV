@@ -87,7 +87,7 @@ if ($peticion == "verificar") {
             ];
         }
     } catch (\Exception $e) {
-        // Si falla la validación del setter, no hay duplicado que reportar
+       
         $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
         $json['response'] = ['resultado' => 200, 'existe' => false, 'mensaje' => ''];
     }
@@ -194,7 +194,7 @@ if ($peticion == "eliminar") {
             }
 
             if (isset($_POST['id']) && !isset($_POST['id_categoria']) && !isset($_POST['peticion'])) {
-                // Legacy call format
+                
                 echo json_encode($jsonResult);
             } else {
                 if ($success) {

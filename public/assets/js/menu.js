@@ -1029,7 +1029,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function eliminarMenu(id) {
         Swal.fire({
             title: '¿Estás seguro de eliminar este producto?',
-            text: 'El producto será eliminado del menú (borrado lógico)',
+            text: 'El producto será eliminado del menú',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#d33',
