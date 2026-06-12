@@ -143,7 +143,8 @@ public function getEstatus() {
                 CASE 
                     WHEN EXISTS (
                         SELECT 1 FROM reservacion r 
-                        WHERE r.id_mesa = m.id_mesa 
+                        JOIN asignacion_mesa am ON r.id_reservacion = am.id_reservacion
+                        WHERE am.id_mesa = m.id_mesa 
                         AND r.fecha = :fechaActual 
                         AND :horaActual <= r.hora_fin
                         AND r.estado IN ('PENDIENTE', 'CONFIRMADA')
