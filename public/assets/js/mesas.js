@@ -203,30 +203,34 @@ if (typeof window.mesasScriptLoaded === 'undefined') {
                             className: 'text-center',
                             render: function (data, type, row) {
                                 return `
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <button class="btn btn-outline-warning btn-cambiar-estado" 
-                                                data-id="${data.id_mesa || ''}" 
-                                                data-numero="${data.numero_mesa || ''}"
-                                                title="Cambiar Estado">
-                                            <i class="fas fa-exchange-alt"></i>
+                                    <div class="dropdown d-inline-block">
+                                        <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <i class="fas fa-ellipsis-v me-2"></i>Acciones
                                         </button>
-                                        <button class="btn btn-outline-primary btn-editar" 
-                                                data-id="${data.id_mesa || ''}"
-                                                data-numero="${data.numero_mesa || ''}"
-                                                data-area-id="${data.id_area || ''}"
-                                                data-area-nombre="${data.area_nombre || ''}"
-                                                data-capacidad="${data.capacidad || ''}"
-                                                data-estado="${data.estado || ''}"
-                                                data-estatus="${data.estatus || ''}"
-                                                title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn btn-outline-danger btn-eliminar" 
-                                                data-id="${data.id_mesa || ''}"
-                                                data-numero="${data.numero_mesa || ''}"
-                                                title="Eliminar">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                            <li>
+                                                <a class="dropdown-item btn-cambiar-estado" href="javascript:void(0)" 
+                                                   data-id="${data.id_mesa || ''}" data-numero="${data.numero_mesa || ''}">
+                                                    <i class="fas fa-exchange-alt me-2 text-warning"></i> Cambiar Estado
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item btn-editar" href="javascript:void(0)"
+                                                   data-id="${data.id_mesa || ''}" data-numero="${data.numero_mesa || ''}"
+                                                   data-area-id="${data.id_area || ''}" data-area-nombre="${data.area_nombre || ''}"
+                                                   data-capacidad="${data.capacidad || ''}" data-estado="${data.estado || ''}"
+                                                   data-estatus="${data.estatus || ''}">
+                                                    <i class="fas fa-edit me-2 text-primary"></i> Editar
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item btn-eliminar text-danger" href="javascript:void(0)"
+                                                   data-id="${data.id_mesa || ''}" data-numero="${data.numero_mesa || ''}">
+                                                    <i class="fas fa-trash-alt me-2"></i> Eliminar
+                                                </a>
+                                            </li>
+                                        </ul>
                                     </div>
                                 `;
                             }
