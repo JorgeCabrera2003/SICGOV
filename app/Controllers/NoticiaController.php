@@ -166,8 +166,8 @@ if ($type === 'admin') {
 
 					// --- AUDITORÍA: Gestión de imágenes ---
 					if ($json['resultado'] == 200) {
-						$accion_img = strtoupper($_POST["peticion"]);
-						$detalle_img = ($accion_img == 'ELIMINAR_IMAGEN') 
+						$accion_img = ($_POST["peticion"] == 'eliminar_imagen') ? 'ELIMINAR IMAGEN' : 'MARCAR PRINCIPAL';
+						$detalle_img = ($accion_img == 'ELIMINAR IMAGEN') 
 							? "Se eliminó físicamente la imagen ID: {$_POST['id_imagen']}"
 							: "Se cambió la imagen de portada ID: {$_POST['id_imagen']}";
 						
