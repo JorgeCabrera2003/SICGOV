@@ -109,100 +109,187 @@ class Pedido
         return ['success' => false, 'message' => 'Comprobante no encontrado.'];
     }
 
-    private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
-    {
-        try {
-            $this->dbBusiness->beginTransaction();
-            
-            // Si hay cédula, buscar o registrar persona
-            $cedula = !empty($datosCliente['cedula']) ? $datosCliente['cedula'] : null;
+private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
+{
+    try {
+        $this->dbBusiness->beginTransaction();
+        
+        // ==============================================
+        // 1. VALIDAR EMPLEADO (LOGEADO)
+        // ==============================================
+        $cedulaEmpleado = $_SESSION['user']['cedula'] ?? null;
+        
+        if (!$cedulaEmpleado) {
+            return [
+                'success' => false,
+                'message' => '❌ No se pudo identificar al empleado. Inicia sesión nuevamente.'
+            ];
+        }
+        
+        // Verificar que el empleado existe y está activo
+        $stmt = $this->dbBusiness->prepare("SELECT cedula FROM empleado WHERE cedula = ? AND estatus = 1");
+        $stmt->execute([$cedulaEmpleado]);
+        if ($stmt->rowCount() === 0) {
+            return [
+                'success' => false,
+                'message' => '❌ <strong>No tienes permisos para registrar pedidos</strong><br><br>
+                              Tu usuario no está registrado como empleado o está inactivo.<br><br>
+                              <strong>Contacta al administrador del sistema</strong><br>
+                              Cédula: ' . htmlspecialchars($cedulaEmpleado)
+            ];
+        }
+        
+        // ==============================================
+        // 2. CLIENTE (si tiene cédula)
+        // ==============================================
+        $cedula = !empty($datosCliente['cedula']) ? $datosCliente['cedula'] : null;
 
-            if ($cedula) {
-                $stmt = $this->dbBusiness->prepare("SELECT cedula FROM persona WHERE cedula = ?");
-                $stmt->execute([$cedula]);
-                if ($stmt->rowCount() == 0) {
-                    $sql = "INSERT INTO persona (cedula, nombre, apellido, telefono, direccion) VALUES (?, ?, ?, ?, ?)";
-                    $nombresArray = explode(' ', $datosCliente['nombre'], 2);
-                    $this->dbBusiness->prepare($sql)->execute([
-                        $cedula,
-                        $nombresArray[0] ?? 'Cliente',
-                        $nombresArray[1] ?? '',
-                        $datosCliente['telefono'] ?? null,
-                        $datosCliente['direccion'] ?? null
-                    ]);
-                }
-                $stmt = $this->dbBusiness->prepare("SELECT cedula FROM cliente WHERE cedula = ?");
-                $stmt->execute([$cedula]);
-                if ($stmt->rowCount() == 0) {
-                    $this->dbBusiness->prepare("INSERT INTO cliente (cedula) VALUES (?)")->execute([$cedula]);
-                }
-            }
-
-            $idPedido = 'PED' . date('YmdHis') . rand(100, 999);
-            $totalPedido = $carrito['total'];
-            $observacion = $datosCliente['observacion'] ?? 'Pedido POS';
-            $cedulaEmpleado = $_SESSION['user']['cedula'] ?? '12345678'; // fallback
-            $tipoPedido = $datosCliente['tipo_pedido'] ?? 'LLEVAR';
-            $idMesa = !empty($datosCliente['id_mesa']) ? $datosCliente['id_mesa'] : null;
-
-            $sqlPedido = "INSERT INTO pedido (id_pedido, cedula_cliente, cedula_empleado, id_mesa, tipo_pedido, total, observacion, estado) 
-                          VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDIENTE')";
-            $this->dbBusiness->prepare($sqlPedido)->execute([
-                $idPedido,
-                $cedula,
-                $cedulaEmpleado,
-                $idMesa,
-                $tipoPedido,
-                $totalPedido,
-                $observacion
-            ]);
-
-            $sqlDetalle = "INSERT INTO detalle_pedido (id_detalle, id_pedido, id_producto, cantidad, precio_unitario, indicacion) 
-                           VALUES (?, ?, ?, ?, ?, ?)";
-            $stmtDet = $this->dbBusiness->prepare($sqlDetalle);
-
-            foreach ($carrito['items'] as $item) {
-                $idDetalle = 'DET' . date('YmdHis') . rand(1000, 9999);
-                $indicacion = '';
-                
-                if (!empty($item['removedPrincipales'])) {
-                    $nombresRemovidos = array_column($item['removedPrincipales'], 'nombre_insumo');
-                    $indicacion .= "Sin: " . implode(", ", $nombresRemovidos) . ". ";
-                }
-                if (!empty($item['addedAdicionales'])) {
-                    $nombresExtras = array_column($item['addedAdicionales'], 'nombre_insumo');
-                    $indicacion .= "Extras: " . implode(", ", $nombresExtras) . ". ";
-                }
-
-                $stmtDet->execute([
-                    $idDetalle,
-                    $idPedido,
-                    $item['id_producto'],
-                    $item['cantidad'],
-                    $item['precio_unitario'],
-                    $indicacion
+        if ($cedula) {
+            // Buscar o crear persona
+            $stmt = $this->dbBusiness->prepare("SELECT cedula FROM persona WHERE cedula = ?");
+            $stmt->execute([$cedula]);
+            if ($stmt->rowCount() == 0) {
+                $nombresArray = explode(' ', $datosCliente['nombre'] ?? 'Cliente', 2);
+                $sql = "INSERT INTO persona (cedula, nombre, apellido, telefono, direccion) VALUES (?, ?, ?, ?, ?)";
+                $this->dbBusiness->prepare($sql)->execute([
+                    $cedula,
+                    $nombresArray[0] ?? 'Cliente',
+                    $nombresArray[1] ?? '',
+                    $datosCliente['telefono'] ?? null,
+                    $datosCliente['direccion'] ?? null
                 ]);
             }
-
-            $idPago = 'PAG' . date('YmdHis') . rand(100, 999);
-            $idMetodoPago = $datosPago['id_metodo_pago'] ?? 'METOD00120260519200547232'; // Efectivo por defecto
             
-            $sqlPago = "INSERT INTO pago (id_pago, id_pedido, id_metodo_pago, monto, referencia) 
-                        VALUES (?, ?, ?, ?, ?)";
-            $this->dbBusiness->prepare($sqlPago)->execute([
-                $idPago,
-                $idPedido,
-                $idMetodoPago,
-                $totalPedido,
-                $datosPago['referencia'] ?? null
-            ]);
-
-            $this->dbBusiness->commit();
-            return ['success' => true, 'message' => 'Pedido registrado exitosamente.', 'id_pedido' => $idPedido];
-
-        } catch (Exception $e) {
-            $this->dbBusiness->rollBack();
-            return ['success' => false, 'message' => 'Error al registrar pedido: ' . $e->getMessage()];
+            // Buscar o crear cliente
+            $stmt = $this->dbBusiness->prepare("SELECT cedula FROM cliente WHERE cedula = ?");
+            $stmt->execute([$cedula]);
+            if ($stmt->rowCount() == 0) {
+                $this->dbBusiness->prepare("INSERT INTO cliente (cedula) VALUES (?)")->execute([$cedula]);
+            }
         }
+
+        // ==============================================
+        // 3. CREAR PEDIDO
+        // ==============================================
+        $idPedido = 'PED' . date('YmdHis') . rand(100, 999);
+        $totalPedido = $carrito['total'];
+        $observacion = $datosCliente['observacion'] ?? 'Pedido POS';
+        $tipoPedido = $datosCliente['tipo_pedido'] ?? 'LLEVAR';
+        $idMesa = !empty($datosCliente['id_mesa']) ? $datosCliente['id_mesa'] : null;
+
+        $sqlPedido = "INSERT INTO pedido (id_pedido, cedula_cliente, cedula_empleado, id_mesa, tipo_pedido, total, observacion, estado) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDIENTE')";
+        $this->dbBusiness->prepare($sqlPedido)->execute([
+            $idPedido,
+            $cedula,
+            $cedulaEmpleado,
+            $idMesa,
+            $tipoPedido,
+            $totalPedido,
+            $observacion
+        ]);
+
+        // ==============================================
+        // 4. DETALLES DEL PEDIDO (CON INDICACION)
+        // ==============================================
+        $sqlDetalle = "INSERT INTO detalle_pedido (id_detalle, id_pedido, id_producto, cantidad, precio_unitario, indicacion) 
+                       VALUES (?, ?, ?, ?, ?, ?)";
+        $stmtDet = $this->dbBusiness->prepare($sqlDetalle);
+
+        foreach ($carrito['items'] as $item) {
+            $idDetalle = 'DET' . date('YmdHis') . rand(1000, 9999);
+            
+            // ==========================================
+            // CONSTRUIR LA INDICACIÓN CON LOS EXTRAS
+            // ==========================================
+            $indicacion = '';
+            
+            // Opción 1: Si ya viene una indicación desde el frontend
+            if (!empty($item['indicacion'])) {
+                $indicacion = $item['indicacion'];
+            } 
+            // Opción 2: Si tiene extras en el objeto
+            elseif (!empty($item['extras']) && is_array($item['extras'])) {
+                $extrasNombres = array_column($item['extras'], 'nombre');
+                if (!empty($extrasNombres)) {
+                    $indicacion = 'Extras: ' . implode(', ', $extrasNombres);
+                }
+            }
+            // Opción 3: Si tiene addedAdicionales (la estructura que usas en el carrito)
+            elseif (!empty($item['addedAdicionales']) && is_array($item['addedAdicionales'])) {
+                $extrasNombres = array_column($item['addedAdicionales'], 'nombre');
+                if (!empty($extrasNombres)) {
+                    $indicacion = 'Extras: ' . implode(', ', $extrasNombres);
+                }
+            }
+            
+            // Agregar información de "sin" (productos removidos)
+            if (!empty($item['removedPrincipales']) && is_array($item['removedPrincipales'])) {
+                $removidosNombres = array_column($item['removedPrincipales'], 'nombre_insumo');
+                if (!empty($removidosNombres)) {
+                    if ($indicacion) $indicacion .= ' | ';
+                    $indicacion .= 'Sin: ' . implode(', ', $removidosNombres);
+                }
+            }
+            
+            // Limpiar la indicación (evitar null o vacío)
+            if (empty($indicacion)) {
+                $indicacion = null;
+            }
+            
+            // Debug: registrar en log para verificar
+            error_log("Guardando detalle - Pedido: $idPedido, Producto: {$item['id_producto']}, Cantidad: {$item['cantidad']}, Indicación: " . ($indicacion ?? 'SIN EXTRAS'));
+            
+            $stmtDet->execute([
+                $idDetalle,
+                $idPedido,
+                $item['id_producto'],
+                $item['cantidad'],
+                $item['precio_unitario'],
+                $indicacion
+            ]);
+        }
+
+        // ==============================================
+        // 5. PAGO
+        // ==============================================
+        $idMetodoPago = $datosPago['id_metodo_pago'] ?? null;
+        if (!$idMetodoPago) {
+            // Buscar método de pago por defecto (Efectivo)
+            $stmt = $this->dbBusiness->prepare("SELECT id_metodo_pago FROM metodo_pago WHERE nombre = 'Efectivo' AND estatus = 1 LIMIT 1");
+            $stmt->execute();
+            $metodoDefault = $stmt->fetch(PDO::FETCH_ASSOC);
+            $idMetodoPago = $metodoDefault['id_metodo_pago'] ?? null;
+        }
+
+        $idPago = 'PAG' . date('YmdHis') . rand(100, 999);
+        
+        $sqlPago = "INSERT INTO pago (id_pago, id_pedido, id_metodo_pago, monto, referencia) 
+                    VALUES (?, ?, ?, ?, ?)";
+        $this->dbBusiness->prepare($sqlPago)->execute([
+            $idPago,
+            $idPedido,
+            $idMetodoPago,
+            $totalPedido,
+            $datosPago['referencia'] ?? null
+        ]);
+
+        $this->dbBusiness->commit();
+        
+        return [
+            'success' => true, 
+            'message' => 'Pedido registrado exitosamente.', 
+            'id_pedido' => $idPedido
+        ];
+
+    } catch (Exception $e) {
+        $this->dbBusiness->rollBack();
+        error_log("Error en crearPedidoPOS: " . $e->getMessage());
+        return [
+            'success' => false, 
+            'message' => 'Error al registrar pedido: ' . $e->getMessage()
+        ];
     }
+}
+
 }
