@@ -122,8 +122,7 @@ if (!function_exists('App\Controllers\ListarPropiasReservaciones')) {
 
                         if ($json['estado'] == 1) {
                             $accion = ($peticion == 'registrar') ? 'REGISTRAR' : 'MODIFICAR';
-                            $tipo = $esPublico ? 'PÚBLICO' : 'ADMIN';
-                            Helper::Bitacora($accion . '_' . $tipo, 'RESERVACIONES', "Reservación {$id} para cliente {$_POST['cedula_cliente']}");
+                            Helper::Bitacora($accion, 'RESERVACIONES', "Reservación {$id} para cliente {$_POST['cedula_cliente']}");
                         }
                         break;
 
@@ -162,6 +161,9 @@ if (!function_exists('App\Controllers\ListarPropiasReservaciones')) {
                         $resModel->setEstado($registro['estado'] ?? 'PENDIENTE');
                         
                         $json = $resModel->Transaccion(['peticion' => 'modificar']);
+                        if ($json['estado'] == 1) {
+                            Helper::Bitacora('MOVER', 'RESERVACIONES', "Se movió la reservación {$_POST['id_reservacion']} a la fecha {$_POST['fecha']}");
+                        }
                         break;
 
                     case 'eliminar':
@@ -171,7 +173,16 @@ if (!function_exists('App\Controllers\ListarPropiasReservaciones')) {
                             throw new Exception("Error, No tienes permiso para eliminar una Reservación");
                         }
                         $resModel->setId($_POST['id_reservacion'] ?? '');
+                        
+                        $datos_anteriores = null;
+                        $res_prev = $resModel->Transaccion(['peticion' => 'detalle']);
+                        $datos_anteriores = $res_prev['response']['registro'] ?? null;
+
                         $json = $resModel->Transaccion(['peticion' => 'eliminar']);
+
+                        if ($json['estado'] == 1) {
+                            Helper::Bitacora('ELIMINAR', 'RESERVACIONES', "Se eliminó la reservación {$_POST['id_reservacion']}", $datos_anteriores);
+                        }
                         break;
                 }
                 echo json_encode($json['response'] ?? $json);
