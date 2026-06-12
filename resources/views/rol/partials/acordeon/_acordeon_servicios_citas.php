@@ -207,7 +207,7 @@
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
                                         type="checkbox" role="switch" value="ver" id="promocion-ver">
-                                    <label class="form-check-label" for="promocion-ver">Ver Reservación</label>
+                                    <label class="form-check-label" for="promocion-ver">Ver</label>
                                 </div>
                             </div>
                             <div class="col-lg-6">

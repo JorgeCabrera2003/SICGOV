@@ -126,7 +126,7 @@ $badgeArray = [
                                     <?= !empty($t['subtitulo']) ? htmlspecialchars($t['subtitulo']) : substr(strip_tags($t['contenido']), 0, 160) . '...' ?>
                                 </p>
                             </div>
-                            <a href="<?= BASE_URL ?>?page=noticias-detalle&id=<?= $t['id_noticia'] ?>" class="btn btn-primary btn-lg fw-bold shadow">
+                            <a href="<?= BASE_URL ?>?page=Noticia&type=detalle&id=<?= $t['id_noticia'] ?>" class="btn btn-primary btn-lg fw-bold shadow">
                                 LEER NOTICIA <i class="fas fa-chevron-right ms-2"></i>
                             </a>
                         </div>
@@ -217,7 +217,7 @@ $badgeArray = [
                             </form>
                             <?php if(isset($_GET['tipo']) || isset($_GET['autor']) || isset($_GET['mes']) || isset($_GET['anio'])): ?>
                                 <div class="mt-3 text-end">
-                                    <a href="<?= BASE_URL ?>?page=noticias" class="text-decoration-none small text-danger fw-bold">
+                                    <a href="<?= BASE_URL ?>?page=Noticia&type=publico" class="text-decoration-none small text-danger fw-bold">
                                         <i class="fas fa-times-circle"></i> Limpiar Filtros
                                     </a>
                                 </div>
@@ -244,7 +244,7 @@ $badgeArray = [
                         <div class="editorial-img-container">
                             <span class="badge <?= $badgeClass ?> editorial-badge shadow"><?= $badgeText ?></span>
                             <img src="<?= $img ?>" alt="<?= htmlspecialchars($noti['titulo']) ?>" onerror="this.src='<?= BASE_URL ?>/assets/img/logo.png'; this.style.objectFit='contain'; this.style.padding='20px';">
-                            <a href="<?= BASE_URL ?>?page=noticias-detalle&id=<?= $noti['id_noticia'] ?>" class="stretched-link"></a>
+                            <a href="<?= BASE_URL ?>?page=Noticia&type=detalle&id=<?= $noti['id_noticia'] ?>" class="stretched-link"></a>
                         </div>
                         <div class="p-3">
                             <div class="editorial-meta">
@@ -252,7 +252,7 @@ $badgeArray = [
                                 <span><i class="far fa-calendar me-1"></i> <?= $fecha->format('d/m/Y') ?></span>
                             </div>
                             <h4 class="editorial-title">
-                                <a href="<?= BASE_URL ?>?page=noticias-detalle&id=<?= $noti['id_noticia'] ?>" class="text-body text-decoration-none">
+                                <a href="<?= BASE_URL ?>?page=Noticia&type=detalle&id=<?= $noti['id_noticia'] ?>" class="text-body text-decoration-none">
                                     <?= htmlspecialchars($noti['titulo']) ?>
                                 </a>
                             </h4>
@@ -268,7 +268,7 @@ $badgeArray = [
                 <div class="col-12 text-center py-5">
                     <i class="fas fa-search text-muted mb-3" style="font-size: 3rem;"></i>
                     <h4 class="text-muted">No encontramos noticias con esos filtros.</h4>
-                    <a href="<?= BASE_URL ?>?page=noticias" class="btn btn-outline-primary mt-3">Ver todas las noticias</a>
+                    <a href="<?= BASE_URL ?>?page=Noticia&type=publico" class="btn btn-outline-primary mt-3">Ver todas las noticias</a>
                 </div>
             <?php endif; ?>
         </div>
