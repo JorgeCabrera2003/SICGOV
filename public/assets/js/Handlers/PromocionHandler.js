@@ -170,7 +170,7 @@ function actualizarEtiquetaValorDescuento() {
   if (tipo === 'MONTO_FIJO') {
     label.text('$');
   } else {
-    label.text('%');
+    label.text('- %');
   }
   aplicarFormatoValorDescuento();
 }
@@ -308,9 +308,9 @@ function renderProductosSeleccionados() {
             '<div class="text-muted small">Total: $ ' + formatMoney(totalProducto) + '</div>' +
           '</div>' +
           '<div class="d-flex align-items-center gap-2">' +
-            '<div class="input-group input-group-sm" style="width:140px;">' +
+            '<div class="input-group input-group-sm" style="width:110px;">' +
               '<span class="input-group-text">Cant.</span>' +
-              '<input type="text" inputmode="numeric" pattern="[0-9]*" class="form-control cantidad-producto" data-id="' + producto.id + '" value="' + (producto.cantidad === '' ? '' : cantidad) + '">' +
+              '<input type="number" step="1" min="1" class="form-control cantidad-producto" data-id="' + producto.id + '" value="' + (producto.cantidad === '' ? '' : cantidad) + '">' +
             '</div>' +
             '<button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-producto" data-id="' + producto.id + '">Eliminar</button>' +
           '</div>' +
@@ -318,6 +318,9 @@ function renderProductosSeleccionados() {
       );
       lista.append(item);
     });
+    // subtotal global
+    const subtotal = productosSeleccionados.reduce((s, p) => s + (Number(p.precio || 0) * Number(p.cantidad || 1)), 0);
+    lista.append('<div class="list-group-item d-flex justify-content-between align-items-center"><div>Subtotal</div><div><strong>$ ' + formatMoney(subtotal) + '</strong></div></div>');
   }
 
   const totalCantidad = productosSeleccionados.reduce((sum, producto) => sum + Number(producto.cantidad || 0), 0);
@@ -335,13 +338,15 @@ function actualizarProductosSeleccionados() {
 
 $(document).off('input', '.cantidad-producto').on('input', '.cantidad-producto', function () {
   const id = $(this).data('id');
-  const raw = String($(this).val()).replace(/\D/g, '');
+  let raw = $(this).val();
+  raw = String(raw).replace(/\D/g, '');
   $(this).val(raw);
 
   const producto = productosSeleccionados.find(p => p.id === id);
   if (producto) {
     producto.cantidad = raw === '' ? '' : Number(raw);
-    renderProductosSeleccionados();
+    // actualizar contador y campo oculto sin re-render para no perder foco
+    actualizarProductosSeleccionados();
   }
 });
 
@@ -353,8 +358,11 @@ $(document).off('blur', '.cantidad-producto').on('blur', '.cantidad-producto', f
     if (raw === '' || Number(raw) < 1) {
       producto.cantidad = 1;
       $(this).val('1');
-      renderProductosSeleccionados();
+    } else {
+      producto.cantidad = Number(raw);
     }
+    // re-render para actualizar subtotal y layout
+    renderProductosSeleccionados();
   }
 });
 
@@ -431,8 +439,11 @@ export async function DataTablePrincipal(arreglo) {
   // Helper: formatea fecha 'YYYY-MM-DD' a 'DD/MM/YYYY'
   function fmtDate(fecha) {
     if (!fecha) return '';
+    // tratar fechas por defecto de MySQL como vacías
+    if (/^0{4}-0{2}-0{2}$/.test(fecha)) return '';
     const parts = fecha.split('-');
-    if (parts.length < 3) return fecha;
+    if (parts.length < 3) return '';
+    if (parts[0] === '0000' || parts[1] === '00' || parts[2] === '00') return '';
     return parts[2] + '/' + parts[1] + '/' + parts[0];
   }
 
@@ -498,8 +509,8 @@ export async function DataTablePrincipal(arreglo) {
           }
           return productos.map(prod => {
             const safeNombre = $('<div>').text(prod.nombre).html();
-            const qtyLabel = prod.cantidad > 1 ? ' <small class="text-muted">x' + prod.cantidad + '</small>' : '';
-            return '<div>' + safeNombre + qtyLabel + '</div>';
+            const qtyBadge = prod.cantidad > 1 ? '<span class="badge bg-secondary ms-2">x' + prod.cantidad + '</span>' : '';
+            return '<div>- <strong>' + safeNombre + '</strong>' + qtyBadge + '</div>';
           }).join('');
         }
       },
@@ -519,7 +530,7 @@ export async function DataTablePrincipal(arreglo) {
           if (row.tipo_descuento === 'MONTO_FIJO') {
             return '<span>$ ' + amount + '</span>';
           }
-          return '<span>' + amount + '%</span>';
+          return '<span>-' + amount + '%</span>';
         }
       },
       {
