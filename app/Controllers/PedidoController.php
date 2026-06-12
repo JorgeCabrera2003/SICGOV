@@ -87,6 +87,16 @@ if ($isAjax || !empty($action)) {
 
                 echo json_encode($res);
                 break;
+                case 'obtener_insumos':
+                    $id_producto = $_POST['id_producto'] ?? $_GET['id_producto'] ?? '';
+                    if (!$id_producto) {
+                        echo json_encode(['success' => false, 'message' => 'ID de producto no proporcionado']);
+                        break;
+                    }
+                    $menuModel = new Menu();
+                    $insumos = $menuModel->obtenerInsumosProducto($id_producto);
+                    echo json_encode(['success' => true, 'data' => $insumos]);
+                break;
 
             default:
                 echo json_encode(['success' => false, 'message' => 'Acción no válida.']);
