@@ -5,8 +5,8 @@
     <div class="chatbot-window" id="mariaChatbot">
         <div class="chatbot-header">
             <div class="bot-info">
-                <div class="bot-avatar">
-                    <i class="fas fa-robot"></i>
+                <div class="bot-avatar" style="overflow: hidden; padding: 2px;">
+                    <img src="<?= BASE_URL ?>/assets/img/MAR-IA.png" alt="MAR-IA" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
                 </div>
                 <div>
                     <h6 class="bot-name">MAR-IA</h6>
@@ -18,7 +18,7 @@
         </div>
         <div class="chatbot-messages" id="chatbotMessages">
             <div class="chat-message message-bot">
-                ¡Hola! Soy MAR-IA ✨, tu asistente inteligente experta en análisis de datos.
+                ¡Hola! Soy MAR-IA, tu asistente inteligente experta en análisis de datos.
             </div>
             <div class="chat-message message-bot">
                 ¿Qué información necesitas hoy? Puedes pedirme reportes personalizados como:
@@ -36,8 +36,8 @@
             </div>
         </div>
     </div>
-    <div class="chatbot-toggle" onclick="document.getElementById('mariaChatbot').classList.toggle('active')">
-        <i class="fas fa-comment-dots"></i>
+    <div class="chatbot-toggle" onclick="document.getElementById('mariaChatbot').classList.toggle('active')" style="overflow: hidden; padding: 2px;">
+        <img src="<?= BASE_URL ?>/assets/img/MAR-IA.png" alt="Chatbot" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
     </div>
 </div>
 
