@@ -28,25 +28,30 @@ if (isset($_POST["peticion"])) {
 
 
     
-    if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
+    if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar" || $_POST["peticion"] == "eliminar") {
         $accion_permiso = true; 
 
         if ($accion_permiso) {
             try {
                 $empleadoModel->set_cedula($_POST["cedula"] ?? '');
-                $empleadoModel->setNombre($_POST["nombre"] ?? '');
-                $empleadoModel->setApellido($_POST["apellido"] ?? '');
-                $empleadoModel->setFechaNacimiento($_POST["fecha_nacimiento"] ?? '');
-                $empleadoModel->setTelefono($_POST["telefono"] ?? '');
-                $empleadoModel->setCorreo($_POST["correo"] ?? '');
-                $empleadoModel->setDireccion($_POST["direccion"] ?? '');
-                $empleadoModel->setSexo($_POST["sexo"] ?? '');
-                $empleadoModel->setIdCargo($_POST["id_cargo"] ?? '');
+                
+                if ($_POST["peticion"] != "eliminar") {
+                    $empleadoModel->setNombre($_POST["nombre"] ?? '');
+                    $empleadoModel->setApellido($_POST["apellido"] ?? '');
+                    $empleadoModel->setFechaNacimiento($_POST["fecha_nacimiento"] ?? '');
+                    $empleadoModel->setTelefono($_POST["telefono"] ?? '');
+                    $empleadoModel->setCorreo($_POST["correo"] ?? '');
+                    $empleadoModel->setDireccion($_POST["direccion"] ?? '');
+                    $empleadoModel->setSexo($_POST["sexo"] ?? '');
+                    $empleadoModel->setIdCargo($_POST["id_cargo"] ?? '');
+                }
 
                 if ($_POST["peticion"] == "registrar") {
                     $msgN = "Se registró un nuevo empleado con la cédula " . ($_POST["cedula"] ?? '');
                 } else if ($_POST["peticion"] == "modificar") {
                     $msgN = "Se modificó el empleado con la cédula: " . ($_POST["cedula"] ?? '');
+                } else {
+                    $msgN = "Se eliminó el empleado con la cédula: " . ($_POST["cedula"] ?? '');
                 }
 
                 $json = $empleadoModel->Transaccion(['peticion' => $_POST["peticion"]]);
@@ -109,33 +114,7 @@ if (isset($_POST["peticion"])) {
 
 
 
-    if ($_POST["peticion"] == "cambiar_estatus") {
-        $accion_permiso = true;
 
-        if ($accion_permiso) {
-            $bool_formulario = true;
-            $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
-            
-            
-            if (!isset($_POST["cedula"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'Cedula') == 0 || !isset($_POST["estatus"])) {
-                $json['response'] = ['resultado' => 400, 'mensaje' => 'Error, Cédula o Estatus no válida'];
-                $bool_formulario = false;
-            }
-
-            if ($bool_formulario) {
-                $empleadoModel->set_cedula($_POST["cedula"]);
-                $empleadoModel->setEstatus($_POST["estatus"]);
-                $json = $empleadoModel->Transaccion(['peticion' => $_POST["peticion"]]);
-                if (isset($json['estado']) && $json['estado'] == 1) {
-                    $accion_texto = ($_POST["estatus"] == 1) ? "activó" : "desactivó";
-                    Helper::Bitacora("CAMBIAR ESTATUS", "EMPLEADOS", "Se {$accion_texto} al empleado con cédula: " . $_POST["cedula"]);
-                }
-            }
-        } else {
-            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
-            $json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para cambiar estatus'];
-        }
-    }
 
     header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
     echo json_encode($json['response']);

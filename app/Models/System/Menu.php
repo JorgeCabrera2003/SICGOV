@@ -420,12 +420,12 @@ class Menu extends Database
             
             $stmt->execute($params);
 
-            // Insertar Principales (prioridad 1)
+            
             if (!empty($this->getInsumosPrincipales())) {
                 $this->insertarPreparacion($this->getIdProducto(), $this->getInsumosPrincipales(), 1);
             }
 
-            // Insertar Adicionales (prioridad 2)
+            
             if (!empty($this->getInsumosAdicionales())) {
                 $this->insertarPreparacion($this->getIdProducto(), $this->getInsumosAdicionales(), 2);
             }
@@ -499,16 +499,16 @@ class Menu extends Database
             
             $stmt->execute($params);
 
-            // Limpiar receta si es edición
+            
             $del = $this->LlamarConexion()->prepare("DELETE FROM preparacion WHERE id_producto = :id_producto");
             $del->execute(['id_producto' => $this->getIdProducto()]);
 
-            // Insertar Principales (prioridad 1)
+            
             if (!empty($this->getInsumosPrincipales())) {
                 $this->insertarPreparacion($this->getIdProducto(), $this->getInsumosPrincipales(), 1);
             }
 
-            // Insertar Adicionales (prioridad 2)
+
             if (!empty($this->getInsumosAdicionales())) {
                 $this->insertarPreparacion($this->getIdProducto(), $this->getInsumosAdicionales(), 2);
             }
@@ -550,7 +550,7 @@ class Menu extends Database
 
     private function insertarPreparacion($id_producto, $insumos_json, $prioridad)
     {
-        error_log("Recibido insumos_json para prioridad $prioridad: " . print_r($insumos_json, true));
+        
         $insumos = is_string($insumos_json) ? json_decode($insumos_json, true) : $insumos_json;
         if (!is_array($insumos)) {
             error_log("Error: insumos no es un array valido. Valor: " . json_last_error_msg());
@@ -572,7 +572,7 @@ class Menu extends Database
                 'id_unidad' => $ing['unidad'] ?? 'UN',
                 'precio_insumo' => !empty($ing['precio']) ? (float)$ing['precio'] : 0
             ]);
-            usleep(1000); // Pequeña pausa para asegurar id_preparacion único si se insertan muy rápido
+            usleep(1000); 
         }
     }
 
@@ -604,7 +604,7 @@ class Menu extends Database
             $producto = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($producto) {
-                // Obtener insumos
+                
                 $sqlPrep = "SELECT pr.*, i.nombre_insumo, u.nombre as nombre_unidad 
                             FROM preparacion pr
                             JOIN insumo i ON pr.id_insumo = i.id_insumo
