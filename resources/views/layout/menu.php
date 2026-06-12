@@ -264,6 +264,12 @@
                                 <i class="bi bi-journal-text me-2"></i>Cargos
                             </a>
                         <?php }
+                        // Enlace a Turnos (sin control de permisos por ahora)
+                        ?>
+                        <a href="?page=Turno" class="nav-link <?php echo ($page == 'Turno') ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-clock me-2"></i>Turnos
+                        </a>
+                        <?php
                         if (isset($permisos['tipo_permiso']['ver']) && $permisos['tipo_permiso']['ver'] == 1) {
                             ?>
                             <a href="?page=TipoPermiso"
