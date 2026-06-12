@@ -44,40 +44,23 @@ class SecuritySeeder
                 ('INSUM0001720260519200547232', 'insumo', 1),
                 ('MANTE0000420260519200547232', 'mantenimiento', 1),
                 ('MESA00000620260519200547232', 'mesa', 1),
+                ('METOP0032020260519200547232', 'metodo_pago', 1),
                 ('MODUL0000520260519200547232', 'modulo_sistema', 1),
                 ('MULTI0000820260519200547232', 'multimedia', 1),
                 ('NOTIC0000920260519200547232', 'noticia', 1),
+                ('PAGOC0022020260519200547232', 'pago', 1),
                 ('PEDID0002020260519200547232', 'pedido', 1),
+                ('PERML0011420260519200547232', 'permiso_laboral', 1),
                 ('PRODU0001820260519200547232', 'producto', 1),
+                ('PROMO0012020260519200547232', 'promocion', 1),
                 ('PROVE0001920260519200547232', 'proveedor', 1),
                 ('RESER0002120260519200547232', 'reservacion', 1),
                 ('ROL000000220260519200547232', 'rol', 1),
+                ('TIPOP0021420260519200547232', 'tipo_permiso', 1),
                 ('TURNO0001420260519200547232', 'turno', 1),
-                ('USUAR0000120260519200547232', 'usuario', 1)";
+                ('USUAR0000120260519200547232', 'usuario', 1);";
             $this->db->exec($sqlModulos);
             echo "       Módulos base creados.\n";
-        }
-
-        // Verificar e insertar permisos para SUPERUSUARIO
-        $countPermisos = $this->db->query("SELECT COUNT(*) FROM permiso WHERE id_rol = 'ROLS71920260602140652719'")->fetchColumn();
-        if ($countPermisos == 0) {
-            echo "       Permisos para SUPERUSUARIO no encontrados, insertando...\n";
-            $modulos = $this->db->query("SELECT id_modulo FROM modulo")->fetchAll(\PDO::FETCH_COLUMN);
-            $acciones = ['LEER', 'CREAR', 'EDITAR', 'ELIMINAR'];
-
-            $sqlPermiso = "INSERT INTO permiso (id_permiso, id_rol, id_modulo, accion, estatus) VALUES (:id, 'ROLS71920260602140652719', :modulo, :accion, 1)";
-            $stmt = $this->db->prepare($sqlPermiso);
-
-            foreach ($modulos as $modulo) {
-                foreach ($acciones as $accion) {
-                    $stmt->execute([
-                        'id' => 'PERM-' . uniqid(),
-                        'modulo' => $modulo,
-                        'accion' => $accion
-                    ]);
-                }
-            }
-            echo "       Permisos para SUPERUSUARIO creados.\n";
         }
 
         // Crear usuario admin si no existe

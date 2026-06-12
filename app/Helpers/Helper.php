@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use App\Models\Security\Bitacora;
+use App\Models\Security\Permiso;
 
 class Helper
 {
@@ -36,6 +37,16 @@ class Helper
         return $id;
     }
 
+    public static function TraerPermisos($modulo = NULL)
+    {
+        $permisoModel = new Permiso();
+        $arregloPermisos = [];
+        $permisoModel->setIdRol($_SESSION['user']['id_rol']);
+        $arregloPermisos = $permisoModel->Transaccion(['peticion' => 'filtrar', 'parametro' => 'nombre_modulo', 'modulo' => $modulo]);
+        
+        return $arregloPermisos['response']['permiso'];
+    }
+
     /**
      * Registra un movimiento en la bitácora de forma segura
      */
@@ -43,8 +54,10 @@ class Helper
     {
         try {
             // Verificar si hay sesión activa
-            if (session_status() === PHP_SESSION_NONE) { session_start(); }
-            
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+
             $bitacora = new Bitacora();
             $idBitacora = self::generarId('BIT');
             $bitacora->setIdBitacora($idBitacora);
@@ -206,6 +219,7 @@ class Helper
     public static function cargarVista($vistaPath, $titulo = 'Good Vibes', $vars = [])
     {
         self::verificarSesion();
+        $permisos = self::TraerPermisos();
 
         $varsVista = self::getVarsVista($titulo);
         $vars = array_merge($varsVista, $vars);
@@ -333,11 +347,16 @@ class Helper
         $ahora = new \DateTime();
         $diferencia = $ahora->diff($fecha);
 
-        if ($diferencia->y > 0) return 'Hace ' . $diferencia->y . ' año' . ($diferencia->y > 1 ? 's' : '');
-        if ($diferencia->m > 0) return 'Hace ' . $diferencia->m . ' mes' . ($diferencia->m > 1 ? 'es' : '');
-        if ($diferencia->d > 0) return 'Hace ' . $diferencia->d . ' día' . ($diferencia->d > 1 ? 's' : '');
-        if ($diferencia->h > 0) return 'Hace ' . $diferencia->h . ' hora' . ($diferencia->h > 1 ? 's' : '');
-        if ($diferencia->i > 0) return 'Hace ' . $diferencia->i . ' minuto' . ($diferencia->i > 1 ? 's' : '');
+        if ($diferencia->y > 0)
+            return 'Hace ' . $diferencia->y . ' año' . ($diferencia->y > 1 ? 's' : '');
+        if ($diferencia->m > 0)
+            return 'Hace ' . $diferencia->m . ' mes' . ($diferencia->m > 1 ? 'es' : '');
+        if ($diferencia->d > 0)
+            return 'Hace ' . $diferencia->d . ' día' . ($diferencia->d > 1 ? 's' : '');
+        if ($diferencia->h > 0)
+            return 'Hace ' . $diferencia->h . ' hora' . ($diferencia->h > 1 ? 's' : '');
+        if ($diferencia->i > 0)
+            return 'Hace ' . $diferencia->i . ' minuto' . ($diferencia->i > 1 ? 's' : '');
         return 'Hace unos instantes';
     }
 }

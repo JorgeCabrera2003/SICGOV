@@ -114,7 +114,9 @@ public function getEstatus() {
                 'actualizar', 'modificar' => $this->ModificarMesa(),
                 'eliminar' => $this->EliminarMesa(),
                 'consultar_area' => $this->ConsultarAreas(),
-                'cambiar_estado' => $this->CambiarEstadoMesa($peticion['estado'] ?? ''),
+                'consultar_por_area' => $this->ConsultarPorArea($peticion['id_area'] ?? ''),
+                'cambiar_estado' => $this->CambiarEstadoMesa(),
+                'cambiar_estatus' => $this->CambiarEstatusMesa(),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
@@ -132,12 +134,28 @@ public function getEstatus() {
         $this->LlamarConexion();
         $this->LlamarConexion()->beginTransaction();
 
-        $sql = "SELECT m.*, a.nombre as area_nombre 
+        $timezone = new \DateTimeZone('America/Caracas');
+        $datetime = new \DateTime('now', $timezone);
+        $fechaActual = $datetime->format('Y-m-d');
+        $horaActual = $datetime->format('H:i:s');
+
+        $sql = "SELECT m.id_mesa, m.id_area, m.numero_mesa, m.capacidad, m.estatus, a.nombre as area_nombre,
+                CASE 
+                    WHEN EXISTS (
+                        SELECT 1 FROM reservacion r 
+                        WHERE r.id_mesa = m.id_mesa 
+                        AND r.fecha = :fechaActual 
+                        AND :horaActual <= r.hora_fin
+                        AND r.estado IN ('PENDIENTE', 'CONFIRMADA')
+                    ) THEN 'OCUPADA'
+                    ELSE m.estado 
+                END as estado
                 FROM mesa m 
                 LEFT JOIN area_mesa a ON m.id_area = a.id_area
-                -- WHERE m.estatus = 1
                 ORDER BY m.numero_mesa ASC";
         $stm = $this->LlamarConexion()->prepare($sql);
+        $stm->bindValue(':fechaActual', $fechaActual);
+        $stm->bindValue(':horaActual', $horaActual);
         $stm->execute();
         if ($stm->rowCount() > 0) {
             $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
@@ -303,6 +321,74 @@ public function getEstatus() {
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             $dato['estado'] = -1;
             $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => "Error al cambiar el estado de la mesa"];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    private function CambiarEstatusMesa()
+    {
+        $dato = [];
+        try {
+            $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
+
+            $sql = "UPDATE mesa SET estatus = :estatus WHERE id_mesa = :id_mesa";
+
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->bindParam(':estatus', $this->estatus);
+            $stm->bindParam(':id_mesa', $this->id_mesa);
+            $stm->execute();
+
+            $this->LlamarConexion()->commit();
+
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Estatus de la mesa cambiado exitosamente"];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+
+        } catch (\PDOException $e) {
+            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => "Error al cambiar el estatus de la mesa"];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    private function ConsultarPorArea($id_area)
+    {
+        $dato = [];
+        $arreglo = [];
+        try {
+            if (empty($id_area)) {
+                throw new \Exception("ID de área no proporcionado");
+            }
+            $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
+
+            $sql = "SELECT id_mesa, numero_mesa, capacidad, estado FROM mesa WHERE id_area = :id_area AND estatus = 1 ORDER BY numero_mesa ASC";
+            
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->bindParam(':id_area', $id_area);
+            $stm->execute();
+            
+            if ($stm->rowCount() > 0) {
+                $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
+            }
+            
+            $this->LlamarConexion()->commit();
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'mensaje' => "OK", 'datos' => $arreglo];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+            
+        } catch (\Exception $e) {
+            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => "Error al listar las mesas del área", 'datos' => []];
             $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
         }
         $this->DestruirConexion();

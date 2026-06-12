@@ -29,7 +29,6 @@
                             <th scope="col">Apellido</th>
                             <th scope="col">Teléfono</th>
                             <th scope="col">Edad</th>
-                            <th scope="col">Estatus</th>
                             <th scope="col">Acciones</th>
                         </tr>
                     </thead>

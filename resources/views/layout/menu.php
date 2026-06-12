@@ -42,7 +42,7 @@
             <div class="user-info">
                 <div class="user-name fw-semibold"><?php echo $datos['username'] ?? ($datos['nombre'] ?? 'Usuario'); ?>
                 </div>
-                <div class="user-role small text-muted"><?php echo $datos['Rol'] ?? 'Sin Rol'; ?></div>
+                <div class="user-role small text-muted"><?php echo $datos['rol'] ?? 'Sin Rol'; ?></div>
             </div>
         </div>
 
@@ -58,10 +58,11 @@
 
             <!-- CATEGORÍA: ATENCIÓN AL CLIENTE -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Atención al Cliente</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido', 'pedidos', 'pos']) ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#cliente-submenu" role="button">
+                    data-bs-toggle="collapse" href="#cliente-submenu" role="button" data-bs-tooltip-title="Servicio y Citas"
+                    title="Servicio y Citas">
                     <i class="bi bi-person-heart fs-5"></i>
                     <span class="flex-grow-1">Servicio y Citas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
@@ -69,20 +70,31 @@
                 <div class="collapse <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido', 'pedidos', 'pos']) ? 'show' : ''; ?>"
                     id="cliente-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=Cliente" class="nav-link <?php echo ($page == 'Cliente') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-people me-2"></i>Clientes
-                        </a>
-                        <a href="?page=pedidos"
-                            class="nav-link <?php echo ($page == 'pedidos' || $page == 'Pedido') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-receipt me-2"></i>Gestión de Pedidos
-                        </a>
-                        <a href="?page=pos" class="nav-link <?php echo ($page == 'pos') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-cash-coin me-2"></i>Punto de Venta (POS)
-                        </a>
-                        <a href="?page=Reservacion"
-                            class="nav-link <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion' && (!isset($_REQUEST['type']) || $_REQUEST['type'] != 'publico')) ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-calendar-check me-2"></i>Agenda Global
-                        </a>
+                        <?php if (isset($permisos['cliente']['ver']) && $permisos['cliente']['ver'] == 1) { ?>
+                            <a href="?page=Cliente" class="nav-link <?php echo ($page == 'Cliente') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-people me-2"></i>Clientes
+                            </a>
+                            <?php
+                        }
+                        if (isset($permisos['pedido']['ver']) && $permisos['pedido']['ver'] == 1) { ?>
+                            <a href="?page=pedidos"
+                                class="nav-link <?php echo ($page == 'pedidos' || $page == 'Pedido') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-receipt me-2"></i>Gestión de Pedidos
+                            </a>
+                            <?php
+                        }
+                        if (isset($permisos['pago']['ver']) && $permisos['pago']['ver'] == 1) { ?>
+                            <a href="?page=pos" class="nav-link <?php echo ($page == 'pos') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-cash-coin me-2"></i>Punto de Venta (POS)
+                            </a>
+                            <?php
+                        }
+                        if (isset($permisos['reservacion']['agenda']) && $permisos['reservacion']['agenda'] == 1) { ?>
+                            <a href="?page=Reservacion"
+                                class="nav-link <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion' && (!isset($_REQUEST['type']) || $_REQUEST['type'] != 'publico')) ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-calendar-check me-2"></i>Agenda Global
+                            </a>
+                        <?php } ?>
                         <a href="?page=Reservacion&type=publico"
                             class="nav-link <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion' && isset($_REQUEST['type']) && $_REQUEST['type'] == 'publico') ? 'active' : ''; ?> py-1">
                             <i class="bi bi-calendar-plus me-2"></i>Nueva Reserva
@@ -93,32 +105,40 @@
 
             <!-- CATEGORÍA: GESTIÓN DEL SALÓN -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Gestión del Salón</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Areas', 'Mesas']) ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#salon-submenu" role="button">
+                    data-bs-toggle="collapse" href="#salon-submenu" role="button" data-bs-tooltip-title="Áreas y Mesas"
+                    title="Áreas y Mesas">
                     <i class="bi bi-houses fs-5"></i>
                     <span class="flex-grow-1">Áreas y Mesas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
                 <div class="collapse <?php echo in_array($page, ['Areas', 'Mesas']) ? 'show' : ''; ?>" id="salon-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=Areas" class="nav-link <?php echo ($page == 'Areas') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-geo-alt me-2"></i>Áreas del Local
-                        </a>
-                        <a href="?page=Mesas" class="nav-link <?php echo ($page == 'Mesas') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-table me-2"></i>Control de Mesas
-                        </a>
+                        <?php if (isset($permisos['area_mesa']['ver']) && $permisos['area_mesa']['ver'] == 1) { ?>
+                            <a href="?page=Areas" class="nav-link <?php echo ($page == 'Areas') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-geo-alt me-2"></i>Áreas del Local
+                            </a>
+                            <?php
+                        }
+                        if (isset($permisos['mesa']['ver']) && $permisos['mesa']['ver'] == 1) {
+                            ?>
+                            <a href="?page=Mesas" class="nav-link <?php echo ($page == 'Mesas') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-table me-2"></i>Control de Mesas
+                            </a>
+                        <?php } ?>
                     </div>
                 </div>
             </div>
 
             <!-- CATEGORÍA: COCINA E INVENTARIO -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Cocina e Inventario</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Categoria', 'CategoriaInsumo', 'Insumo', 'Menu']) ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#cocina-submenu" role="button">
+                    data-bs-toggle="collapse" href="#cocina-submenu" role="button" data-bs-tooltip-title="Menú y Recetas"
+                    title="Menú y Recetas">
                     <i class="bi bi-egg-fried fs-5"></i>
                     <span class="flex-grow-1">Menú y Recetas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
@@ -126,56 +146,65 @@
                 <div class="collapse <?php echo in_array($page, ['Categoria', 'CategoriaInsumo', 'Insumo', 'Menu']) ? 'show' : ''; ?>"
                     id="cocina-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=Categoria"
-                            class="nav-link <?php echo ($page == 'Categoria') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-tags me-2"></i>Categorías del Menú
-                        </a>
-                        <a href="?page=CategoriaInsumo"
-                            class="nav-link <?php echo ($page == 'CategoriaInsumo') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-tags me-2"></i>Categorías de Insumos
-                        </a>
-                        <a href="?page=Insumo" class="nav-link <?php echo ($page == 'Insumo') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-droplet me-2"></i>Insumos
-                        </a>
-                        <a href="?page=Menu" class="nav-link <?php echo ($page == 'Menu') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-journal-text me-2"></i>Carta / Menú
-                        </a>
+                        <?php if (isset($permisos['categoria_menu']['ver']) && $permisos['categoria_menu']['ver'] == 1) { ?>
+                            <a href="?page=Categoria"
+                                class="nav-link <?php echo ($page == 'Categoria') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-tags me-2"></i>Categorías del Menú
+                            </a>
+                            <?php
+                        }
+                        if (isset($permisos['categoria_insumo']['ver']) && $permisos['categoria_insumo']['ver'] == 1) { ?>
+                            <a href="?page=CategoriaInsumo"
+                                class="nav-link <?php echo ($page == 'CategoriaInsumo') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-tags me-2"></i>Categorías de Insumos
+                            </a>
+                        <?php }
+
+                        if (isset($permisos['insumo']['ver']) && $permisos['insumo']['ver'] == 1) {
+                            ?>
+                            <a href="?page=Insumo" class="nav-link <?php echo ($page == 'Insumo') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-droplet me-2"></i>Insumos
+                            </a>
+                        <?php }
+                        if (isset($permisos['producto']['ver']) && $permisos['producto']['ver'] == 1) { ?>
+                            <a href="?page=Menu" class="nav-link <?php echo ($page == 'Menu') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-journal-text me-2"></i>Carta / Menú
+                            </a>
+                        <?php } ?>
                     </div>
                 </div>
             </div>
 
             <!-- CATEGORÍA: LOGÍSTICA Y ALMACÉN -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Logística y Almacén</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['bien', 'equipo', 'material', 'Producto']) ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#logistica-submenu" role="button">
+                    data-bs-toggle="collapse" href="#logistica-submenu" role="button"
+                    data-bs-tooltip-title="Suministros y Activos" title="Suministros y Activos">
                     <i class="bi bi-truck fs-5"></i>
                     <span class="flex-grow-1">Suministros y Activos</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['Producto', 'Proveedor']) ? 'show' : ''; ?>"
-                    id="logistica-submenu">
-                    <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=Producto" class="nav-link <?php echo ($page == 'Producto') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-box-seam me-2"></i>Otros Productos
-                        </a>
-                    </div>
-                    <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=Proveedor"
-                            class="nav-link <?php echo ($page == 'Proveedor') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-people me-2"></i>Proveedores
-                        </a>
-                    </div>
+                <div class="collapse <?php echo in_array($page, ['Proveedor']) ? 'show' : ''; ?>" id="logistica-submenu">
+                    <?php if (isset($permisos['proveedor']['ver']) && $permisos['proveedor']['ver'] == 1) { ?>
+                        <div class="d-flex flex-column gap-1 ps-4 mt-1">
+                            <a href="?page=Proveedor"
+                                class="nav-link <?php echo ($page == 'Proveedor') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-people me-2"></i>Proveedores
+                            </a>
+                        </div>
+                    <?php } ?>
                 </div>
             </div>
 
             <!-- CATEGORÍA: MARKETING Y CONTENIDO -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Marketing y Contenido</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Media', 'Noticia']) ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#marketing-submenu" role="button">
+                    data-bs-toggle="collapse" href="#marketing-submenu" role="button"
+                    data-bs-tooltip-title="Difusión Digital" title="Difusión Digital">
                     <i class="bi bi-megaphone fs-5"></i>
                     <span class="flex-grow-1">Difusión Digital</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
@@ -183,22 +212,28 @@
                 <div class="collapse <?php echo in_array($page, ['Media', 'Noticia']) ? 'show' : ''; ?>"
                     id="marketing-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=Media" class="nav-link <?php echo ($page == 'Media') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-images me-2"></i>Galería Multimedia
-                        </a>
-                        <a href="?page=Noticia" class="nav-link <?php echo ($page == 'Noticia') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-newspaper me-2"></i>Blog / Noticias
-                        </a>
+                        <?php if (isset($permisos['multimedia']['ver']) && $permisos['multimedia']['ver'] == 1) { ?>
+                            <a href="?page=Media" class="nav-link <?php echo ($page == 'Media') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-images me-2"></i>Galería Multimedia
+                            </a>
+                        <?php }
+                        if (isset($permisos['multimedia']['ver']) && $permisos['multimedia']['ver'] == 1) {
+                            ?>
+                            <a href="?page=Noticia" class="nav-link <?php echo ($page == 'Noticia') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-newspaper me-2"></i>Blog / Noticias
+                            </a>
+                        <?php } ?>
                     </div>
                 </div>
             </div>
 
             <!-- CATEGORÍA: GESTIÓN DEL PERSONAL -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Gestión del Personal</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Asistencia', 'Cargo', 'Empleado']) ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#personal-submenu" role="button">
+                    data-bs-toggle="collapse" href="#personal-submenu" role="button"
+                    data-bs-tooltip-title="Equipo y Horario" title="Equipo y Horario">
                     <i class="bi bi-people fs-5"></i>
                     <span class="flex-grow-1">Equipo y Horario</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
@@ -206,29 +241,43 @@
                 <div class="collapse <?php echo in_array($page, ['Asistencia', 'Cargo', 'Empleado']) ? 'show' : ''; ?>"
                     id="personal-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=Empleado" class="nav-link <?php echo ($page == 'Empleado') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-person-badge me-2"></i>Empleados
-                        </a>
-                        <a href="?page=Asistencia"
-                            class="nav-link <?php echo ($page == 'Asistencia') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-check2-square me-2"></i>Asistencia
-                        </a>
-                        <a href="?page=Cargo" class="nav-link <?php echo ($page == 'Cargo') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-journal-text me-2"></i>Cargos
-                        </a>
-                        <a href="?page=TipoPermiso" class="nav-link <?php echo ($page == 'TipoPermiso') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-journal-text me-2"></i>Tipos de Permisos
-                        </a>
+                        <?php if (isset($permisos['empleado']['ver']) && $permisos['empleado']['ver'] == 1) { ?>
+                            <a href="?page=Empleado" class="nav-link <?php echo ($page == 'Empleado') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-person-badge me-2"></i>Empleados
+                            </a>
+                        <?php }
+                        if (isset($permisos['asistencia']['ver']) && $permisos['asistencia']['ver'] == 1) {
+                            ?>
+                            <a href="?page=Asistencia"
+                                class="nav-link <?php echo ($page == 'Asistencia') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-check2-square me-2"></i>Asistencia
+                            </a>
+                        <?php }
+                        if (isset($permisos['cargo']['ver']) && $permisos['cargo']['ver'] == 1) {
+                            ?>
+                            <a href="?page=Cargo" class="nav-link <?php echo ($page == 'Cargo') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-journal-text me-2"></i>Cargos
+                            </a>
+                        <?php }
+                        if (isset($permisos['tipo_permiso']['ver']) && $permisos['tipo_permiso']['ver'] == 1) {
+                            ?>
+                            <a href="?page=TipoPermiso"
+                                class="nav-link <?php echo ($page == 'TipoPermiso') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-journal-text me-2"></i>Tipos de Permisos
+                            </a>
+                        <?php }
+                        ?>
                     </div>
                 </div>
             </div>
 
             <!-- CATEGORÍA: INTELIGENCIA DE NEGOCIO -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Inteligencia de Negocio</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reporte') ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#reportes-submenu" role="button">
+                    data-bs-toggle="collapse" href="#reportes-submenu" role="button" data-bs-tooltip-title="Análisis y PDF"
+                    title="Análisis y PDF">
                     <i class="bi bi-graph-up-arrow fs-5"></i>
                     <span class="flex-grow-1">Análisis y PDF</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
@@ -252,10 +301,11 @@
 
             <!-- CATEGORÍA: SEGURIDAD Y AUDITORÍA -->
             <div class="nav-item w-100 mb-1">
-                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block"
+                <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Seguridad y Auditoría</small>
                 <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Bitacora', 'Papelera', 'Usuario']) ? '' : 'collapsed'; ?>"
-                    data-bs-toggle="collapse" href="#seguridad-submenu" role="button">
+                    data-bs-toggle="collapse" href="#seguridad-submenu" role="button"
+                    data-bs-tooltip-title="Control de Acceso" title="Control de Acceso">
                     <i class="bi bi-shield-lock fs-5"></i>
                     <span class="flex-grow-1">Control de Acceso</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
@@ -263,23 +313,37 @@
                 <div class="collapse <?php echo in_array($page, ['Bitacora', 'Papelera', 'Usuario', 'ModuloSistema', 'Rol']) ? 'show' : ''; ?>"
                     id="seguridad-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <a href="?page=Bitacora" class="nav-link <?php echo ($page == 'Bitacora') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-shield-shaded me-2"></i>Bitácora de Acciones
-                        </a>
-                        <a href="?page=Papelera"
-                            class="nav-link <?php echo ($page == 'Papelera') ? 'active text-danger' : 'text-danger'; ?> py-1">
-                            <i class="bi bi-trash3 me-2"></i>Papelera (Recycle)
-                        </a>
-                        <a href="?page=Usuario" class="nav-link <?php echo ($page == 'Usuario') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-person-vcard me-2"></i>Gestión de Usuarios
-                        </a>
-                        <a href="?page=Rol" class="nav-link <?php echo ($page == 'Rol') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-person-vcard me-2"></i>Gestión de Roles
-                        </a>
-                        <a href="?page=ModuloSistema"
-                            class="nav-link <?php echo ($page == 'ModuloSistema') ? 'active' : ''; ?> py-1">
-                            <i class="fa-solid fa-computer me-2"></i>Módulos del Sistema
-                        </a>
+                        <?php if (isset($permisos['bitacora']['ver']) && $permisos['bitacora']['ver'] == 1) { ?>
+                            <a href="?page=Bitacora" class="nav-link <?php echo ($page == 'Bitacora') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-shield-shaded me-2"></i>Bitácora de Acciones
+                            </a>
+                        <?php }
+                        if (isset($permisos['usuario']['ver']) && $permisos['usuario']['ver'] == 1) {
+                            ?>
+                            <a href="?page=Papelera"
+                                class="nav-link <?php echo ($page == 'Papelera') ? 'active text-danger' : 'text-danger'; ?> py-1">
+                                <i class="bi bi-trash3 me-2"></i>Papelera (Recycle)
+                            </a>
+                        <?php }
+                        if (isset($permisos['usuario']['ver']) && $permisos['usuario']['ver'] == 1) {
+                            ?>
+                            <a href="?page=Usuario" class="nav-link <?php echo ($page == 'Usuario') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-person-vcard me-2"></i>Gestión de Usuarios
+                            </a>
+                        <?php }
+                        if (isset($permisos['rol']['ver']) && $permisos['rol']['ver'] == 1) {
+                            ?>
+                            <a href="?page=Rol" class="nav-link <?php echo ($page == 'Rol') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-person-vcard me-2"></i>Gestión de Roles
+                            </a>
+                        <?php }
+                        if (isset($permisos['modulo_sistema']['ver']) && $permisos['modulo_sistema']['ver'] == 1) {
+                            ?>
+                            <a href="?page=ModuloSistema"
+                                class="nav-link <?php echo ($page == 'ModuloSistema') ? 'active' : ''; ?> py-1">
+                                <i class="fa-solid fa-computer me-2"></i>Módulos del Sistema
+                            </a>
+                        <?php } ?>
                     </div>
                 </div>
             </div>
@@ -358,8 +422,8 @@
                 <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button"
                     data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
                     <div class="user-avatar" style="width: 36px; height: 36px;">
-                        <img src="<?php echo BASE_URL . 'assets/img/default.jpg'; ?>"
-                            alt="Avatar" class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
+                        <img src="<?php echo BASE_URL . 'assets/img/default.jpg'; ?>" alt="Avatar"
+                            class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
                     </div>
                     <span
                         class="d-none d-lg-inline"><?php echo $datos['username'] ?? ($datos['nombre'] ?? 'Invitado'); ?></span>

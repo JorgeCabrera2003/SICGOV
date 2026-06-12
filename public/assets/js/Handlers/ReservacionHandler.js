@@ -30,9 +30,18 @@ export function extraerHora(datetimeStr) {
 
 export function formatarEstadoCliente(state) {
     if (!state.id) return state.text;
+    
+    // Obtener la URL del avatar desde el atributo data-avatar (si no existe, usa un icono por defecto o imagen genérica)
+    const avatarUrl = (state.element && state.element.dataset.avatar) ? state.element.dataset.avatar : null;
+    
+    // Generar el HTML para el icono o la imagen
+    const iconHtml = avatarUrl 
+        ? `<img src="${avatarUrl}" alt="Avatar" class="rounded-circle me-3 border border-2 border-white shadow-sm" style="width: 32px; height: 32px; object-fit: cover;">`
+        : `<i class="bi bi-person-circle me-3 text-primary fs-3 shadow-sm rounded-circle"></i>`;
+
     return $(`
         <div class="d-flex align-items-center py-1">
-            <i class="bi bi-person-circle me-3 text-primary fs-5"></i>
+            ${iconHtml}
             <div><span class="fw-medium">${state.text}</span></div>
         </div>
     `);
@@ -82,6 +91,8 @@ export function inicializarCalendario(calendarEl, pickers) {
         themeSystem: 'bootstrap5',
         selectable: true,
         unselectAuto: false,
+        editable: !ES_PUBLICO,           // Drag & drop solo en vista admin
+        eventResizableFromStart: true,   // Redimensionar desde inicio o fin
 
         events: async function (fetchInfo, successCallback, failureCallback) {
             const formData = new FormData();
@@ -136,30 +147,34 @@ export function inicializarCalendario(calendarEl, pickers) {
  * Lógica Interna
  */
 
-function obtenerRangosOcupados(fecha, calendar, idActual = null) {
+function obtenerRangosOcupados(fecha, calendar, idActual = null, idMesa = null) {
     return calendar.getEvents()
         .filter(event => {
             const esMismaFecha = event.startStr.startsWith(fecha);
             const noEsMismaReservacion = event.id !== idActual;
             const estaOcupado = event.extendedProps.estado !== 'CANCELADA';
-            return esMismaFecha && noEsMismaReservacion && estaOcupado;
+            const chocaMesa = idMesa ? (event.extendedProps.id_mesa === idMesa) : false;
+            
+            return esMismaFecha && noEsMismaReservacion && estaOcupado && chocaMesa;
         })
-        .map(event => ({
-            from: extraerHora(event.startStr),
-            to: extraerHora(event.endStr)
-        }));
+        .map(event => {
+            const f = extraerHora(event.startStr);
+            const t = extraerHora(event.endStr);
+            if (!f || !t) return null;
+            return { from: f, to: t };
+        }).filter(r => r !== null);
 }
 
-function actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, idActual = null) {
-    const rangos = obtenerRangosOcupados(fecha, calendar, idActual);
+function actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, idActual = null, idMesa = null) {
+    const rangos = obtenerRangosOcupados(fecha, calendar, idActual, idMesa);
     
     // Configuración para deshabilitar rangos en Flatpickr
-    const configDisable = {
-        disable: rangos.map(r => ({ from: r.from, to: r.to }))
-    };
-
-    tpInicio.set("disable", rangos);
-    tpFin.set("disable", rangos);
+    try {
+        tpInicio.set("disable", rangos);
+        tpFin.set("disable", rangos);
+    } catch(e) {
+        console.warn("Flatpickr disable error:", e);
+    }
 }
 
 function prepararNuevaReservacion(info, tpInicio, tpFin, calendar) {
@@ -169,16 +184,22 @@ function prepararNuevaReservacion(info, tpInicio, tpFin, calendar) {
     const fecha = info.startStr.split('T')[0];
     $('#peticion').val('registrar');
     $('#id_reservacion').val('');
-    if (!ES_PUBLICO) $('#cedula_cliente').val('').trigger('change');
+    if (!ES_PUBLICO) {
+        $('#cedula_cliente').val('').trigger('change');
+        $('#id_mesa').val('');
+    }
     
     $(IDs.fecha).val(fecha);
 
     // Actualizar bloqueos de tiempo para esta fecha
-    actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin);
+    const mesaSel = $('#id_mesa').val();
+    actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, null, mesaSel);
 
     if (info.view.type !== 'dayGridMonth') {
-        tpInicio.setDate(info.start.toTimeString().split(' ')[0].substring(0, 5));
-        tpFin.setDate(info.end.toTimeString().split(' ')[0].substring(0, 5));
+        try {
+            tpInicio.setDate(info.start.toTimeString().split(' ')[0].substring(0, 5));
+            tpFin.setDate(info.end.toTimeString().split(' ')[0].substring(0, 5));
+        } catch(e){}
     } else {
         tpInicio.clear();
         tpFin.clear();
@@ -191,24 +212,31 @@ function prepararNuevaReservacion(info, tpInicio, tpFin, calendar) {
 }
 
 function abrirDetalleReservacion(event, props, tpInicio, tpFin, calendar) {
-    const esEditable = props.estado === 'PENDIENTE' && !ES_PUBLICO;
+    const esEditable = (props.estado === 'PENDIENTE' || props.estado === 'CONFIRMADA') && !ES_PUBLICO;
     const $form = $(IDs.form);
     const fecha = event.startStr.split('T')[0];
 
     $('#peticion').val('modificar');
     $('#id_reservacion').val(event.id);
-    if (!ES_PUBLICO) $('#cedula_cliente').val(props.cedula).trigger('change');
+    if (!ES_PUBLICO) {
+        $('#cedula_cliente').val(props.cedula).trigger('change');
+        $('#id_mesa').val(props.id_mesa || '');
+    }
     
     $(IDs.fecha).val(fecha);
 
     // Actualizar bloqueos de tiempo (excluyendo la actual)
-    actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, event.id);
+    actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, event.id, props.id_mesa);
 
     const hInicio = extraerHora(event.startStr);
     const hFin = extraerHora(event.endStr);
     
-    tpInicio.setDate(hInicio || '');
-    tpFin.setDate(hFin || '');
+    try {
+        tpInicio.setDate(hInicio || '');
+        tpFin.setDate(hFin || '');
+    } catch (e) {
+        console.warn("SetDate error:", e);
+    }
 
     if (!ES_PUBLICO) $('#estado').val(props.estado);
     

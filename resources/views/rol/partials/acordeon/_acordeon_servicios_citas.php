@@ -98,9 +98,137 @@
                     </fieldset>
                 </div>
             </div>
+            <div class="row mt-2 mb-5">
+                <div class="col-md-6">
+                    <!-- Grupo Pagos -->
+                    <fieldset class="permission-group">
+                        <legend class="group-header">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input group-checkbox" type="checkbox" id="group-pago"
+                                    data-modulo="PAGOC0022020260519200547232">
+                                <label class="form-check-label" for="group-pago">Gestionar Pagos</label>
+                            </div>
+                        </legend>
+                        <div class="row permission-options" data-modulo-string="PAGOC0022020260519200547232">
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="registrar" id="pago-registrar">
+                                    <label class="form-check-label" for="pago-registrar">Registrar</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="ver" id="pago-ver">
+                                    <label class="form-check-label" for="pago-ver">Ver</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="modificar" id="pago-modificar">
+                                    <label class="form-check-label" for="pago-modificar">Modificar</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="eliminar" id="pago-eliminar">
+                                    <label class="form-check-label" for="pago-eliminar">Eliminar</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="col-md-6">
+                    <!-- Grupo Método de Pago -->
+                    <fieldset class="permission-group">
+                        <legend class="group-header">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input group-checkbox" type="checkbox" id="group-metodo_pago"
+                                    data-modulo="METOP0032020260519200547232">
+                                <label class="form-check-label" for="group-metodo_pago">Gestionar Método de Pago</label>
+                            </div>
+                        </legend>
+                        <div class="row permission-options" data-modulo-string="METOP0032020260519200547232">
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="registrar" id="metodo_pago-registrar">
+                                    <label class="form-check-label" for="metodo_pago-registrar">Registrar</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="ver" id="metodo_pago-ver">
+                                    <label class="form-check-label" for="metodo_pago-ver">Ver</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="modificar" id="metodo_pago-modificar">
+                                    <label class="form-check-label" for="metodo_pago-modificar">Modificar</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="eliminar" id="metodo_pago-eliminar">
+                                    <label class="form-check-label" for="metodo_pago-eliminar">Eliminar</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
             <div class="row mt-5 mb-5">
                 <div class="col-md-6">
-                    <!-- Grupo Bitácora -->
+                    <!-- Grupo Reservaciones -->
+                    <fieldset class="permission-group">
+                        <legend class="group-header">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input group-checkbox" type="checkbox" id="group-promocion"
+                                    data-modulo="PROMO0012020260519200547232">
+                                <label class="form-check-label" for="group-promocion">Gestionar Promociones</label>
+                            </div>
+                        </legend>
+                        <div class="row permission-options" data-modulo-string="PROMO0012020260519200547232">
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="registrar" id="promocion-registrar">
+                                    <label class="form-check-label" for="promocion-registrar">Registrar</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="ver" id="promocion-ver">
+                                    <label class="form-check-label" for="promocion-ver">Ver</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="modificar" id="promocion-modificar">
+                                    <label class="form-check-label" for="promocion-modificar">Modificar</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="eliminar" id="promocion-eliminar">
+                                    <label class="form-check-label" for="promocion-eliminar">Eliminar</label>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="col-md-6">
+                    <!-- Grupo Reservaciones -->
                     <fieldset class="permission-group">
                         <legend class="group-header">
                             <div class="form-check form-check-inline">

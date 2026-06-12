@@ -300,6 +300,7 @@ CREATE TABLE `reservacion` (
   `fecha` date NOT NULL,
   `hora` time NOT NULL,
   `hora_fin` time NOT NULL,
+  `id_mesa` varchar(30) DEFAULT NULL,
   `estado` enum('PENDIENTE','CONFIRMADA','CANCELADA','COMPLETADA') DEFAULT 'PENDIENTE',
   PRIMARY KEY (`id_reservacion`),
   KEY `fk_res_cli` (`cedula_cliente`),
@@ -375,8 +376,7 @@ CREATE TABLE `entrada_insumo` (
   `id_entrada` varchar(30) NOT NULL,
   `id_insumo` varchar(30) NOT NULL,
   `documento_proveedor` varchar(30) NOT NULL,
-  `cantidad` decimal(14,8) NOT NULL,
-  `fecha` timestamp NOT NULL DEFAULT current_timestamp(),
+  `estatus` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id_entrada`),
   KEY `fk_ent_ins` (`id_insumo`),
   KEY `fk_ent_prov` (`documento_proveedor`),
@@ -429,7 +429,7 @@ JOIN unidad_medida um ON i.id_unidad_medida = um.id_unidad
 WHERE i.stock_actual <= i.stock_minimo;
 
 CREATE VIEW `vw_directorio_empleados` AS
-SELECT p.cedula, p.nombre, p.apellido, p.telefono, c.nombre_cargo AS cargo, e.fecha_ingreso, e.fecha_egreso
+SELECT p.cedula, p.nombre, p.apellido, p.telefono, c.nombre_cargo AS cargo, e.fecha_ingreso
 FROM empleado e
 JOIN persona p ON e.cedula = p.cedula
 JOIN cargo c ON e.id_cargo = c.id_cargo;
