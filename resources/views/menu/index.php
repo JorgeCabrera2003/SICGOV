@@ -1,8 +1,3 @@
-<!-- ==========================================
-    MÓDULO DE MENÚ - GOOD VIBES
-    HTML Semántico + Bootstrap 5.3
-========================================== -->
-
 <main class="container-fluid py-4">
     <!-- Encabezado semántico con header -->
     <header class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
