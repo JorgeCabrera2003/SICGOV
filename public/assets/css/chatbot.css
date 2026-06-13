@@ -10,7 +10,7 @@
 .chatbot-toggle {
     width: 65px;
     height: 65px;
-    border-radius: 50%;
+    border-radius: 18px;
     background: var(--bs-primary);
     color: white;
     display: flex;

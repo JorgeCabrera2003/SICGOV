@@ -17,6 +17,7 @@ if ($type === 'admin') {
         $categorias = $menuModel->Transaccion(['peticion' => 'categorias']) ?: [];
         $insumos = $menuModel->Transaccion(['peticion' => 'insumos']) ?: [];
         $unidades = $menuModel->Transaccion(['peticion' => 'unidades']) ?: [];
+        $permisosMenu = Helper::TraerPermisos("producto");
 
         Helper::cargarVista(
             'menu/index',
@@ -24,7 +25,8 @@ if ($type === 'admin') {
             [
                 'categorias' => $categorias,
                 'insumos' => $insumos,
-                'unidades' => $unidades
+                'unidades' => $unidades,
+                'permisos' => $permisosMenu
             ]
         );
         exit;
@@ -32,16 +34,29 @@ if ($type === 'admin') {
 
     Helper::verificarSesion();
     $objMenu = new Menu();
+    $permisosMenu = Helper::TraerPermisos("producto");
 
     if (!empty($peticion) || $isAjax) {
         
         if (ob_get_length()) ob_clean();
         header('Content-Type: application/json');
 
-        
-
-
         if ($peticion == 'guardar' || $peticion == 'registrar' || $peticion == 'modificar') {
+            $accion_permiso = false;
+            $peticion_real = empty($_POST['id_producto']) ? 'registrar' : 'modificar';
+
+            if (isset($permisosMenu['producto']['registrar']) && $permisosMenu['producto']['registrar'] == 1 && $peticion_real == 'registrar') {
+                $accion_permiso = true;
+            }
+            if (isset($permisosMenu['producto']['modificar']) && $permisosMenu['producto']['modificar'] == 1 && $peticion_real == 'modificar') {
+                $accion_permiso = true;
+            }
+
+            if (!$accion_permiso) {
+                echo json_encode(['success' => false, 'message' => 'Error, No tienes permiso para ' . $peticion_real . ' un producto del menú']);
+                exit;
+            }
+
             try {
                 $objMenu->setIdProducto($_POST['id_producto'] ?? '');
                 $objMenu->setNombreProducto($_POST['nombre'] ?? '');
@@ -127,6 +142,16 @@ if ($type === 'admin') {
 
 
         if ($peticion == 'eliminar') {
+            $accion_permiso = false;
+            if (isset($permisosMenu['producto']['eliminar']) && $permisosMenu['producto']['eliminar'] == 1) {
+                $accion_permiso = true;
+            }
+
+            if (!$accion_permiso) {
+                echo json_encode(['success' => false, 'message' => 'Error, No tienes permiso para eliminar un producto del menú']);
+                exit;
+            }
+
             try {
                 if (empty($_POST['id'])) {
                     echo json_encode(['success' => false, 'message' => 'ID no proporcionado']);
@@ -150,6 +175,16 @@ if ($type === 'admin') {
 
 
         if ($peticion == 'listar' || $peticion == 'listarJson') {
+            $accion_permiso = false;
+            if (isset($permisosMenu['producto']['ver']) && $permisosMenu['producto']['ver'] == 1) {
+                $accion_permiso = true;
+            }
+
+            if (!$accion_permiso) {
+                echo json_encode(['data' => []]);
+                exit;
+            }
+
             try {
                 $menus = $objMenu->Transaccion(['peticion' => 'listar']) ?: [];
                 echo json_encode(['data' => $menus]);
