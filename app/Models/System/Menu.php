@@ -746,4 +746,44 @@ class Menu extends Database
         }
     }
 
+public function obtenerInsumosProducto($id_producto)
+{
+    try {
+        $this->LlamarConexion();
+        
+        $sql = "SELECT p.id_preparacion, p.id_insumo, p.prioridad_insumo, p.cantidad, 
+                       p.id_unidad_medida, p.precio_insumo,
+                       i.nombre_insumo, i.stock_actual, u.nombre as nombre_unidad
+                FROM preparacion p
+                JOIN insumo i ON p.id_insumo = i.id_insumo
+                JOIN unidad_medida u ON p.id_unidad_medida = u.id_unidad
+                WHERE p.id_producto = ? AND i.estatus = 1
+                ORDER BY p.prioridad_insumo ASC, i.nombre_insumo ASC";
+        
+        $stmt = $this->LlamarConexion()->prepare($sql);
+        $stmt->execute([$id_producto]);
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $this->DestruirConexion();
+        
+        $principales = [];
+        $adicionales = [];
+        
+        foreach ($result as $item) {
+            if ($item['prioridad_insumo'] == 1) {
+                $principales[] = $item;
+            } else {
+                $adicionales[] = $item;
+            }
+        }
+        
+        return ['principales' => $principales, 'adicionales' => $adicionales];
+        
+    } catch (\PDOException $e) {
+        error_log("Error en obtenerInsumosProducto: " . $e->getMessage());
+        $this->DestruirConexion();
+        return ['principales' => [], 'adicionales' => []];
+    }
+}
+
 }
