@@ -60,14 +60,14 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Atención al Cliente</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido', 'pedidos', 'pos']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido', 'pedidos', 'pos', 'Promocion']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#cliente-submenu" role="button" data-bs-tooltip-title="Servicio y Citas"
                     title="Servicio y Citas">
                     <i class="bi bi-person-heart fs-5"></i>
                     <span class="flex-grow-1">Servicio y Citas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido', 'pedidos', 'pos']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido', 'pedidos', 'pos', 'Promocion']) ? 'show' : ''; ?>"
                     id="cliente-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
                         <?php if (isset($permisos['cliente']['ver']) && $permisos['cliente']['ver'] == 1) { ?>
@@ -93,6 +93,11 @@
                             <a href="?page=Reservacion"
                                 class="nav-link <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion' && (!isset($_REQUEST['type']) || $_REQUEST['type'] != 'publico')) ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-calendar-check me-2"></i>Agenda Global
+                            </a>
+                        <?php } ?>
+                        <?php if (isset($permisos['promocion']['ver']) && $permisos['promocion']['ver'] == 1) { ?>
+                            <a href="?page=Promocion" class="nav-link <?php echo ($page == 'Promocion') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-gift me-2"></i>Promociones
                             </a>
                         <?php } ?>
                         <a href="?page=Reservacion&type=publico"
@@ -259,6 +264,12 @@
                                 <i class="bi bi-journal-text me-2"></i>Cargos
                             </a>
                         <?php }
+                        // Enlace a Turnos (sin control de permisos por ahora)
+                        ?>
+                        <a href="?page=Turno" class="nav-link <?php echo ($page == 'Turno') ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-clock me-2"></i>Turnos
+                        </a>
+                        <?php
                         if (isset($permisos['tipo_permiso']['ver']) && $permisos['tipo_permiso']['ver'] == 1) {
                             ?>
                             <a href="?page=TipoPermiso"

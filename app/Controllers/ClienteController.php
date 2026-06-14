@@ -7,6 +7,7 @@ use App\Helpers\RegexHelper;
 use App\Models\System\Cliente;
 
 Helper::verificarSesion();
+$permisosCliente = Helper::TraerPermisos("cliente");
 
 $clienteModel = new Cliente();
 if (isset($_POST["peticion"])) {
@@ -30,7 +31,15 @@ if (isset($_POST["peticion"])) {
 
     //Registrar y Modificar
     if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar" || $_POST["peticion"] == "eliminar") {
-        $accion_permiso = true;
+        $accion_permiso = false;
+        
+        if ($_POST["peticion"] == "registrar" && isset($permisosCliente['cliente']['registrar']) && $permisosCliente['cliente']['registrar'] == 1) {
+            $accion_permiso = true;
+        } elseif ($_POST["peticion"] == "modificar" && isset($permisosCliente['cliente']['modificar']) && $permisosCliente['cliente']['modificar'] == 1) {
+            $accion_permiso = true;
+        } elseif ($_POST["peticion"] == "eliminar" && isset($permisosCliente['cliente']['eliminar']) && $permisosCliente['cliente']['eliminar'] == 1) {
+            $accion_permiso = true;
+        }
 
         if ($accion_permiso) {
             try {
@@ -77,7 +86,17 @@ if (isset($_POST["peticion"])) {
 
     //Consultar
     if ($_POST["peticion"] == "consultar") {
-        $json = $clienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
+        $accion_permiso = false;
+        if (isset($permisosCliente['cliente']['ver']) && $permisosCliente['cliente']['ver'] == 1) {
+            $accion_permiso = true;
+        }
+        
+        if ($accion_permiso) {
+            $json = $clienteModel->Transaccion(['peticion' => $_POST["peticion"]]);
+        } else {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'datos' => []];
+        }
     }
     //Fin del Consultar
 

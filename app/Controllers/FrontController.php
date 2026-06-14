@@ -21,6 +21,10 @@
                 if ($_REQUEST["page"] === 'nuestro-menu') {
                     $this->url = 'Menu';
                     $_REQUEST["type"] = 'publico';
+                } elseif ($_REQUEST["page"] === 'asistencia-publica') {
+                    // Mapeo para la vista pública de asistencia
+                    $this->url = 'Asistencia';
+                    $_REQUEST["type"] = 'publico';
                 } elseif ($_REQUEST["page"] === 'pedidos') {
                     $this->url = 'Pedido';
                 } else {

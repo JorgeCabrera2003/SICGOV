@@ -550,7 +550,7 @@ class Menu extends Database
 
     private function insertarPreparacion($id_producto, $insumos_json, $prioridad)
     {
-        error_log("Recibido insumos_json para prioridad $prioridad: " . print_r($insumos_json, true));
+        
         $insumos = is_string($insumos_json) ? json_decode($insumos_json, true) : $insumos_json;
         if (!is_array($insumos)) {
             error_log("Error: insumos no es un array valido. Valor: " . json_last_error_msg());

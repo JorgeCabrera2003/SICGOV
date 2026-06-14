@@ -11,9 +11,11 @@
             Gestión de Categorías del Menú
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de categoría">
+            <?php if (isset($permisos['categoria_menu']['registrar']) && $permisos['categoria_menu']['registrar'] == 1) { ?>
             <button class="btn btn-primary fw-semibold" id="btnNuevaCategoria">
                 <i class="fas fa-plus me-2"></i>Nueva Categoría
             </button>
+            <?php } ?>
         </div>
     </header>
 
@@ -41,4 +43,8 @@
 <?php include 'partials/_modal_categoria.php'; ?>
 
 <!-- Recursos específicos de la página -->
+<script>
+    const permisosDB = <?= isset($permisos) ? json_encode($permisos) : 'null' ?>;
+</script>
+<script src="<?= BASE_URL ?>public/assets/js/categoria.js"></script>
 
