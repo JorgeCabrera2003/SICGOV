@@ -58,6 +58,7 @@
 <?php
 include_once 'partials/_modal_insumo.php';
 include_once 'partials/_modal_categoria_insumo.php';
+include_once 'partials/_modal_suministrar_insumo.php';
 include_once $basePath . '/resources/views/categoria_insumo/partials/_modal_categoria_insumo_form.php';
 ?>
 

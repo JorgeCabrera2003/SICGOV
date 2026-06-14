@@ -12,36 +12,28 @@ import * as PermisoHelper from "../Helpers/PermisoHelper.js"
 function EtiquetasFormulario(etiquetas) {
   let referencia = null
 
-  const inputInsumo = {
-    nombre: $('#nombre'),
-    costo_unitario: $('#costo_unitario'),
-    categoria_id: $('#clave_categoria'),
+  const inputSuministrar = {
+    insumo: $('#suministrar-nombre'),
+    proveedor: $('#suministrar-entrada'),
+    stock: $('#suministrar-stock'),
     unidad_medida: $('#unidad_medida'),
-    proveedor: $('#id_proveedor'),
-    stock_inicial: $('#stock_inicial'),
-    stock_minimo: $('#stock_minimo'),
-    stock_maximo: $('#stock_maximo'),
-    id_insumo: $('#id_insumo')
+    proveedor: $('#id_proveedor')
   }
 
-  const spanInsumo = {
-    nombre: $('#snombre'),
-    costo_unitario: $('#scosto_unitario'),
-    categoria_id: $('#sclave_categoria'),
-    unidad_medida: $('#sunidad_medida'),
-    proveedor: $('#sid_proveedor'),
-    stock_inicial: $('#sstock_inicial'),
-    stock_minimo: $('#sstock_minimo'),
-    stock_maximo: $('#sstock_maximo'),
-    id_insumo: $('#sid_insumo')
+  const spanSuministrar = {
+    insumo: $('#ssuministrar-nombre'),
+    proveedor: $('#ssuministrar-entrada'),
+    stock: $('#ssuministrar-stock'),
+    unidad_medida: $('#suministrar-unidad'),
+    proveedor: $('#sid_proveedor')
   }
 
   if (etiquetas === "input") {
-    referencia = inputInsumo
+    referencia = inputSuministrar
   }
 
   if (etiquetas === "span") {
-    referencia = spanInsumo
+    referencia = spanSuministrar
   }
 
   return referencia
@@ -51,14 +43,14 @@ function EtiquetasFormulario(etiquetas) {
 function EtiquetasModal(etiqueta) {
   let referencia = null
 
-  const modalInsumo = {
-    modal: $('#modalInsumo'),
-    titulo: $('#modalTitleTextInsumo'),
-    boton: $('#btnInsumoForm')
+  const modalSuministrar = {
+    modal: $('#modalSuministrarInsumo'),
+    titulo: $('#modalTitleTextSuministrarInsumo'),
+    boton: $('#btnSuministrarInsumoForm')
   }
 
-  if (etiqueta === "Insumo") {
-    referencia = modalInsumo;
+  if (etiqueta === "Suministrar") {
+    referencia = modalSuministrar;
   }
 
   return referencia;
@@ -68,21 +60,11 @@ function EtiquetasModal(etiqueta) {
 export function EditarModal(operacion) {
   let titulo;
   let boton;
-  let etiqueta_modal = EtiquetasModal("Insumo");
+  let etiqueta_modal = EtiquetasModal("Suministrar");
 
-  if (operacion == 'registrar') {
-    titulo = "Nuevo Insumo";
-    boton = "Nuevo";
-  }
-
-  if (operacion == 'modificar') {
-    titulo = "Actualizar Insumo";
-    boton = "Actualizar";
-  }
-
-  if (operacion == 'eliminar') {
-    titulo = "Borrar Insumo";
-    boton = "Borrar";
+  if (operacion == 'suministrar') {
+    titulo = "Suministrar Insumo";
+    boton = "Suministrar";
   }
 
   etiqueta_modal.titulo.text(titulo)
@@ -94,7 +76,7 @@ export function EditarModal(operacion) {
 function manejarCambioEstado(formularioValido) {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
-  let modal = EtiquetasModal("Insumo");
+  let modal = EtiquetasModal("Suministrar");
   const accion = modal.boton.text();
 
   if (accion === "Eliminar") {
@@ -114,7 +96,7 @@ export async function EnviarDatos(operacion) {
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
-  let modal = EtiquetasModal("Insumo");
+  let modal = EtiquetasModal("Suministrar");
 
   let confirmacion = false;
   let str_acccion = "";
@@ -126,10 +108,10 @@ export async function EnviarDatos(operacion) {
   let peticion = new FormData();
   let json = { resultado: 0 };
 
-  peticion.append("modulo", "Insumo");
+  peticion.append("modulo", "Suministrar");
 
   //Registrar y Modificar
-  if (operacion == "registrar" || operacion == "modificar") {
+  if (operacion == "suministrar") {
     let bool_peticion = true;
     let stock_maximo = input.stock_maximo.val();
     if (operacion == "registrar") {
@@ -154,7 +136,7 @@ export async function EnviarDatos(operacion) {
     }
 
     if (Validarenvio() && bool_peticion) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
+      confirmacion = await confirmarAccion(`Se ${str_acccion} un Suministrar`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', accion);
@@ -173,10 +155,10 @@ export async function EnviarDatos(operacion) {
     }
   } //Fin del Registrar y Modificar
   //Eliminar
-  if (operacion == "eliminar") {
+  if (operacion == "suministrar_lote") {
 
     if (ValidadorHelper.ValidarCampo("ID", input.id_insumo, span.id_insumo)) {
-      confirmacion = await confirmarAccion("Se eliminará un Insumo", mensajeConfirmacion, "warning");
+      confirmacion = await confirmarAccion("Se eliminará un Suministrar", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
@@ -185,7 +167,7 @@ export async function EnviarDatos(operacion) {
       }
     } else {
       btn_formulario = false;
-      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "El ID del Insumo no es válido.");
+      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "El ID del Suministrar no es válido.");
     }
   }//Fin del Eliminar
 
@@ -234,8 +216,8 @@ export async function EnviarFormulario(btn_string) {
 //CAPA DE VALIDACIÓN
 
 export function CapaValidar() {
-  KeyPressInsumo();
-  KeyUpInsumo();
+  KeyPressSuministrar();
+  KeyUpSuministrar();
   CrearSelectProveedores();
   CrearSelectCategoria();
   CrearSelectUnidadMedida();
@@ -271,7 +253,7 @@ export async function CrearSelectUnidadMedida() {
   let json = null;
   let datos = new FormData();
   let input = EtiquetasFormulario('input');
-  const endpoint = "?page=Insumo";
+  const endpoint = "?page=Suministrar";
   const modulo = "UnidadMedida";
   const mensaje = "Seleccione una Unidad de Medida"
   let arreglo = [];
@@ -300,7 +282,7 @@ export async function CrearSelectCategoria() {
   let json = null;
   let datos = new FormData();
   let input = EtiquetasFormulario('input');
-  const endpoint = "?page=CategoriaInsumo";
+  const endpoint = "?page=CategoriaSuministrar";
   const mensaje = "Seleccione una Categoría"
   let arreglo = [];
   datos.append("peticion", "consultar")
@@ -323,7 +305,7 @@ export async function CrearSelectCategoria() {
   }
 }
 
-function KeyPressInsumo() {
+function KeyPressSuministrar() {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
 
@@ -333,7 +315,7 @@ function KeyPressInsumo() {
   input.stock_minimo.on("keypress", function (e) { ValidadorHelper.ValidarTecla("NumeroDecimal", e); });
 }
 
-function KeyUpInsumo() {
+function KeyUpSuministrar() {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
 
@@ -464,7 +446,7 @@ function Validarenvio() {
   return bool
 }
 
-async function RenderPermisoBotones(modulo = "Insumo") {
+async function RenderPermisoBotones(modulo = "Suministrar") {
 
   const permisos = await PermisoHelper.LlamarPermiso("insumo");
   let bool = false;
@@ -586,57 +568,13 @@ function RenderColorearStock(stockActual, stockMinimo, stockMaximo = null, abrev
   return div.prop('outerHTML');
 }
 
-export async function DataTablePrincipal(arreglo) {
-  let botones = '';
-  botones = await RenderPermisoBotones();
-
-  if ($.fn.DataTable.isDataTable('#tablaInsumo')) {
-    $('#tablaInsumo').DataTable().destroy();
-  }
-
-  $('#tablaInsumo').DataTable({
-    processing: true,
-    data: arreglo,
-    columns: [
-      { data: 'nombre_insumo' },
-      { data: 'nombre_categoria' },
-      {
-        data: null,
-        render: function (row) {
-          const texto = row.precio_unitario + "$";
-          return texto;
-        }
-      },
-      {
-        data: null,
-        render: function (row) {
-          return RenderColorearStock(row.stock_actual, row.stock_minimo, row.stock_maximo, row.abreviatura);
-        }
-      },
-      {
-        data: null,
-        render: function (row) {
-          return RenderConfigStock(row.stock_minimo, row.abreviatura, row.stock_maximo);
-        }
-      },
-      {
-        data: null,
-        render: function () {
-          return botones;
-        }
-      }
-    ],
-    order: [[1, 'asc']],
-    language: { url: idiomaTabla }
-  });
-}
 
 export function LimpiarFormulario() {
   SistemaValidacion.limpiarValidacion(EtiquetasFormulario('input'));
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
-  let modal = EtiquetasModal('Insumo');
+  let modal = EtiquetasModal('Suministrar');
   let fila_stock_inicial = $("#fila-stock-inicial");
 
   input.id_insumo.val("").prop("disabled", true);
@@ -657,11 +595,11 @@ export function LimpiarFormulario() {
   modal = null;
 }
 
-export async function EditarFormInsumo(datos, accion) {
+export async function EditarFormSuministrar(datos, accion) {
   LimpiarFormulario();
   let input = EtiquetasFormulario("input");
   let bool = false;
-  let modal = EtiquetasModal("Insumo")
+  let modal = EtiquetasModal("Suministrar")
   let fila_stock_inicial = $("#fila-stock-inicial");
 
   if (accion == "eliminar") { bool = true; }

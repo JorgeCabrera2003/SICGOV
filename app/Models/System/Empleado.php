@@ -3,6 +3,7 @@
 namespace App\Models\System;
 
 use Exception;
+use App\Core\Database;
 use App\Helpers\Helper;
 
 class Empleado extends Persona

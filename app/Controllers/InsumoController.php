@@ -335,5 +335,6 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "UnidadMedida") {
 
 Helper::cargarVista(
 	'insumo/index',
-	'Insumos - Good Vibes'
+	'Insumos - Good Vibes',
+	['ver' => $permisosInsumo['insumo']['ver']]
 );
