@@ -1,8 +1,3 @@
-<!-- ==========================================
-    MÓDULO DE MENÚ - GOOD VIBES
-    HTML Semántico + Bootstrap 5.3
-========================================== -->
-
 <main class="container-fluid py-4">
     <!-- Encabezado semántico con header -->
     <header class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
@@ -14,9 +9,11 @@
             <a href="<?= BASE_URL ?>?page=nuestro-menu" target="_blank" class="btn btn-outline-primary fw-bold shadow-sm d-flex align-items-center">
                 <i class="fas fa-external-link-alt me-2"></i>Ver Menú Público
             </a>
+            <?php if (isset($permisos['producto']['registrar']) && $permisos['producto']['registrar'] == 1) { ?>
             <button class="btn btn-primary text-white fw-bold shadow-sm" id="btnNuevoMenu">
                 <i class="fas fa-plus me-2"></i>Nuevo Producto al Menú
             </button>
+            <?php } ?>
         </div>
     </header>
 
@@ -56,6 +53,7 @@
     const categoriasDB = <?= json_encode($categorias) ?>;
     const insumosDB = <?= json_encode($insumos) ?>;
     const unidadesDB = <?= json_encode($unidades) ?>;
+    const permisosDB = <?= isset($permisos) ? json_encode($permisos) : 'null' ?>;
 </script>
 
 <!-- Modales (incluidos como partials) -->

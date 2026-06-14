@@ -8,14 +8,17 @@ use App\Models\System\CategoriaProducto;
 $peticion = $_POST['peticion'] ?? $_POST['action'] ?? $_GET['action'] ?? '';
 
 
+Helper::verificarSesion();
+
 if (empty($peticion) && !isset($_POST["peticion"])) {
-    Helper::verificarSesion();
     Helper::cargarVista(
         'categoria/index',
         'Categorías - Good Vibes'
     );
     exit;
 }
+
+$permisosCategoria = Helper::TraerPermisos("categoria_menu");
 
 $categoriaModel = new CategoriaProducto();
 
@@ -37,6 +40,25 @@ if ($peticion == "entrada") {
 
 if ($peticion == "listar" || $peticion == "consultar") {
     header('Content-Type: application/json');
+    
+    $accion_permiso = false;
+    if (isset($permisosCategoria['categoria_menu']['ver']) && $permisosCategoria['categoria_menu']['ver'] == 1) {
+        $accion_permiso = true;
+    }
+    
+    if (!$accion_permiso) {
+        if ($peticion == "listar") {
+            echo json_encode([]);
+            exit;
+        } else {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'datos' => []];
+            header("HTTP/1.1 403 Acción no autorizada");
+            echo json_encode($json['response']);
+            exit;
+        }
+    }
+
     if ($peticion == "listar") {
         try {
             if (!Helper::verificarSesion()) {
@@ -107,7 +129,13 @@ if ($peticion == "verificar") {
 
 if ($peticion == "guardar" || $peticion == "registrar" || $peticion == "modificar") {
     header('Content-Type: application/json');
-    $accion_permiso = true; 
+    $accion_permiso = false; 
+    
+    if (($peticion == "guardar" || $peticion == "registrar") && isset($permisosCategoria['categoria_menu']['registrar']) && $permisosCategoria['categoria_menu']['registrar'] == 1) {
+        $accion_permiso = true;
+    } elseif ($peticion == "modificar" && isset($permisosCategoria['categoria_menu']['modificar']) && $permisosCategoria['categoria_menu']['modificar'] == 1) {
+        $accion_permiso = true;
+    }
 
     if ($accion_permiso) {
         try {
@@ -179,7 +207,10 @@ if ($peticion == "guardar" || $peticion == "registrar" || $peticion == "modifica
 
 if ($peticion == "eliminar") {
     header('Content-Type: application/json');
-    $accion_permiso = true;
+    $accion_permiso = false;
+    if (isset($permisosCategoria['categoria_menu']['eliminar']) && $permisosCategoria['categoria_menu']['eliminar'] == 1) {
+        $accion_permiso = true;
+    }
 
     if ($accion_permiso) {
         try {
