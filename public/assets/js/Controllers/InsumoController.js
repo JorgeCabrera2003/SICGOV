@@ -1,5 +1,6 @@
 import * as insumo from "../Handlers/InsumoHandler.js"
 import * as categoriaInsumo from "../Handlers/CategoriaInsumoHandler.js"
+import * as suministrarInsumo from "../Handlers/SuministrarInsumoHandler.js"
 import * as AjaxHelper from "../Helpers/AjaxHelper.js"
 
 //MODULO DE INGREDIENTES
@@ -89,8 +90,6 @@ async function crearDataTable(controlador = "insumos") {
     if (controlador === "categoria-insumo") {
       categoriaInsumo.DataTableCategoria(arreglo);
     }
-  } else {
-    console.log("falso");
   }
 }
 
@@ -108,6 +107,10 @@ async function rellenar(pos, accion, modulo = "Insumo") {
     str_accion = "eliminar";
   }
 
+  if (accion == 2) {
+    suministrarInsumo.EditarModal("suministrar");
+  }
+
   if (modulo == "Insumo") {
     await insumo.EditarFormInsumo(datosFila, str_accion)
   }
@@ -123,5 +126,9 @@ $(document).on('click', '.btn-editar', function () {
 })
 
 $(document).on('click', '.btn-eliminar', function () {
+  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
+})
+
+$(document).on('click', '.btn-suministrar', function () {
   rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
 })
