@@ -229,9 +229,9 @@ class Promocion extends Database
             $stm->execute();
 
             if (!empty($this->productos)) {
-                $sqlPlan = "INSERT INTO planificador_promocion (id_planificador, id_producto, id_promocion)
-                    VALUES (:id_planificador, :id_producto, :id_promocion)";
+                $sqlPlan = "INSERT INTO planificador_promocion (id_planificador, id_producto, id_promocion)\n                    VALUES (:id_planificador, :id_producto, :id_promocion)";
                 $stmPlan = $this->LlamarConexion()->prepare($sqlPlan);
+                $planCounter = 0;
                 foreach ($this->productos as $producto) {
                     $idProducto = null;
                     $cantidad = 1;
@@ -247,12 +247,14 @@ class Promocion extends Database
                     if ($cantidad < 1) {
                         $cantidad = 1;
                     }
-                    for ($i = 0; $i < $cantidad; $i++) {
-                        $idPlanificador = Helper::generarId('PLAN');
-                        $stmPlan->bindParam(':id_planificador', $idPlanificador);
-                        $stmPlan->bindParam(':id_producto', $idProducto);
-                        $stmPlan->bindParam(':id_promocion', $this->id_promocion);
-                        $stmPlan->execute();
+                    for ($j = 0; $j < $cantidad; $j++) {
+                        // Asegurar ID único pasando un contador incremental a generarId
+                        $idPlanificador = Helper::generarId('PLAN', null, $planCounter++);
+                        $stmPlan->execute([
+                            ':id_planificador' => $idPlanificador,
+                            ':id_producto' => $idProducto,
+                            ':id_promocion' => $this->id_promocion
+                        ]);
                     }
                 }
             }
@@ -301,9 +303,9 @@ class Promocion extends Database
             $stmDelete->execute();
 
             if (!empty($this->productos)) {
-                $sqlPlan = "INSERT INTO planificador_promocion (id_planificador, id_producto, id_promocion)
-                    VALUES (:id_planificador, :id_producto, :id_promocion)";
+                $sqlPlan = "INSERT INTO planificador_promocion (id_planificador, id_producto, id_promocion)\n                    VALUES (:id_planificador, :id_producto, :id_promocion)";
                 $stmPlan = $this->LlamarConexion()->prepare($sqlPlan);
+                $planCounter = 0;
                 foreach ($this->productos as $producto) {
                     $idProducto = null;
                     $cantidad = 1;
@@ -320,11 +322,12 @@ class Promocion extends Database
                         $cantidad = 1;
                     }
                     for ($i = 0; $i < $cantidad; $i++) {
-                        $idPlanificador = Helper::generarId('PLAN');
-                        $stmPlan->bindParam(':id_planificador', $idPlanificador);
-                        $stmPlan->bindParam(':id_producto', $idProducto);
-                        $stmPlan->bindParam(':id_promocion', $this->id_promocion);
-                        $stmPlan->execute();
+                        $idPlanificador = Helper::generarId('PLAN', null, $planCounter++);
+                        $stmPlan->execute([
+                            ':id_planificador' => $idPlanificador,
+                            ':id_producto' => $idProducto,
+                            ':id_promocion' => $this->id_promocion
+                        ]);
                     }
                 }
             }
