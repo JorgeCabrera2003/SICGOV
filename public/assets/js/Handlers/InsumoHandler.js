@@ -1,8 +1,8 @@
-import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js"
-import * as AjaxHelper from "../Helpers/AjaxHelper.js"
-import * as ValidadorHelper from "../Helpers/ValidadorHelper.js"
-import * as SelectHelper from "../Helpers/SelectHelper.js"
-import * as PermisoHelper from "../Helpers/PermisoHelper.js"
+import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js";
+import * as AjaxHelper from "../Helpers/AjaxHelper.js";
+import * as ValidadorHelper from "../Helpers/ValidadorHelper.js";
+import * as SelectHelper from "../Helpers/SelectHelper.js";
+import * as PermisoHelper from "../Helpers/PermisoHelper.js";
 
 //MODULO DE INGREDIENTES
 
