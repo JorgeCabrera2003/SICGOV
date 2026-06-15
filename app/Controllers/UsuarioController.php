@@ -36,7 +36,7 @@ if ($type === 'index') {
 
 
 
-            // ── PETICIÓN: CONSULTAR ─────────────────────────────
+            // PETICIÓN: CONSULTAR 
             if ($_POST["peticion"] == "consultar") {
                 if (!isset($permisosUsuario['usuario']['ver']) || $permisosUsuario['usuario']['ver'] != 1) {
                     header("HTTP/1.1 403 Acción no autorizada");
@@ -52,7 +52,7 @@ if ($type === 'index') {
 
 
 
-            // ── PETICIÓN: EMPLEADOS SIN USUARIO ────────────────
+            // PETICIÓN: EMPLEADOS SIN USUARIO 
             if ($_POST["peticion"] == "empleados-sin-usuario") {
                 $json = $usuarioModel->Transaccion(['peticion' => 'empleados-sin-usuario']);
                 header("HTTP/1.1 " . ($json['HTTP_STATUS']['codigo'] ?? 200) . " " . ($json['HTTP_STATUS']['mensaje'] ?? "OK"));
@@ -62,7 +62,7 @@ if ($type === 'index') {
 
 
 
-            // ── PETICIÓN: ROLES ACTIVOS ──────────────────────────
+            // PETICIÓN: ROLES ACTIVOS
             if ($_POST["peticion"] == "roles-activos") {
                 $rolModel = new Rol();
                 $rolesResult = $rolModel->Transaccion(['peticion' => 'consultar']);
@@ -73,7 +73,7 @@ if ($type === 'index') {
 
 
 
-            // ── PETICIÓN: REGISTRAR Y MODIFICAR ──────────────────
+            // PETICIÓN: REGISTRAR Y MODIFICAR
             if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
                 $accion_permiso = false;
                 
@@ -94,7 +94,7 @@ if ($type === 'index') {
 
 
 
-                // 1. Cédula validation format
+                
                 if (!isset($_POST["cedula"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'Cedula') == 0) {
                     $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Cédula no válida'];
                     $bool_formulario = false;
@@ -295,6 +295,7 @@ if ($type === 'index') {
 
         Helper::cargarVista(
             'usuario/index',
-            'Usuarios - Good Vibes'
+            'Usuarios - Good Vibes',
+            ['ver' => $permisosUsuario['usuario']['ver']]
         );
 }

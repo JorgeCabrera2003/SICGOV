@@ -14,7 +14,7 @@ if (isset($_POST["peticion"])) {
 
 
 
-    //Entrada
+    
     if ($_POST["peticion"] == "entrada") {
         $json['HTTP_STATUS'] = ['codigo' => 204, 'mensaje' => ''];
         $json['response'] = ['resultado' => 204, 'mensaje' => 'No hay contenido'];
@@ -29,7 +29,7 @@ if (isset($_POST["peticion"])) {
 
 
 
-    //Registrar y Modificar
+    
     if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar" || $_POST["peticion"] == "eliminar") {
         $accion_permiso = false;
         
@@ -77,14 +77,14 @@ if (isset($_POST["peticion"])) {
             $json['response']    = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para realizar esta acción'];
         }
     }
-    //Fin del Registrar o Modificar
+    
         
 
 
 
 
 
-    //Consultar
+    
     if ($_POST["peticion"] == "consultar") {
         $accion_permiso = false;
         if (isset($permisosCliente['cliente']['ver']) && $permisosCliente['cliente']['ver'] == 1) {
@@ -98,42 +98,7 @@ if (isset($_POST["peticion"])) {
             $json['response'] = ['resultado' => 403, 'datos' => []];
         }
     }
-    //Fin del Consultar
-
-
-
-
-
-
-
-
-
-    // Verificar cédula duplicada (validación async desde frontend)
-    if ($_POST["peticion"] == "verificar_cedula") {
-        $cedula = trim($_POST["cedula"] ?? '');
-        if (!empty($cedula)) {
-            try {
-                $clienteModel->setCedula($cedula);
-                $resultado = $clienteModel->Transaccion(['peticion' => 'verificar_cedula']);
-                $json = $resultado;
-            } catch (\Exception $e) {
-                // Si el formato de la cédula no es válido, simplemente no existe
-                $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
-                $json['response']    = ['resultado' => 200, 'existe' => false, 'mensaje' => ''];
-            }
-        } else {
-            $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
-            $json['response']    = ['resultado' => 200, 'existe' => false, 'mensaje' => ''];
-        }
-    }
-    // Fin de Verificar cédula duplicada
-
-
-
-
-
-
-
+    
 
 
 
@@ -144,13 +109,33 @@ if (isset($_POST["peticion"])) {
 
 
     
-    //Enviar respuesta al navegador usando un encabezado HTTP
+    if ($_POST["peticion"] == "verificar_cedula") {
+        $cedula = trim($_POST["cedula"] ?? '');
+        if (!empty($cedula)) {
+            try {
+                $clienteModel->setCedula($cedula);
+                $resultado = $clienteModel->Transaccion(['peticion' => 'verificar_cedula']);
+                $json = $resultado;
+            } catch (\Exception $e) {
+                
+                $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+                $json['response']    = ['resultado' => 200, 'existe' => false, 'mensaje' => ''];
+            }
+        } else {
+            $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+            $json['response']    = ['resultado' => 200, 'existe' => false, 'mensaje' => ''];
+        }
+    }
+
+    
     header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
-    echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
+    echo json_encode($json['response']); 
     exit;
-} //Fin de Operaciones
+} 
+
 
 Helper::cargarVista(
     'cliente/index',
-    'Clientes - Good Vibes'
+    'Clientes - Good Vibes',
+    ['ver' => $permisosCliente['cliente']['ver']]
 );
