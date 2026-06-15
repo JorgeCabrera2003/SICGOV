@@ -491,7 +491,7 @@ async function RenderPermisoBotones(modulo = "Insumo") {
       .addClass('dropdown-item btn-suministrar text-success')
       .attr('href', '#')
       .attr('data-accion', 2)
-      .attr('data-modulo', modulo)
+      .attr('data-modulo', "Suministrar")
       .html('<i class="fa-solid fa-down-long me-2"></i>Suministrar');
     itemSumistrar.append(linkSumistrar);
     btn_suministrar = itemSumistrar;
