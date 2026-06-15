@@ -1,16 +1,3 @@
-<?php
-
-/**
- * MENÚ PRINCIPAL - SICGOV
- * 
- * Características:
- * - Sidebar colapsable con botón visible
- * - Bandeja de notificaciones interactiva
- * - Perfil de Usuario con menú
- * - Sin color de fondo fijo (se adapta al tema)
- */
-?>
-
 <?php if (!isset($hideSidebar) || !$hideSidebar): ?>
     <!-- Sidebar -->
     <aside class="sidebar d-flex flex-column flex-shrink-0 vh-100 position-fixed" id="sidebar">
@@ -46,7 +33,7 @@
             </div>
         </div>
 
-        <!-- Navegación principal -->
+        <!-- Navegacion principal -->
         <nav class="nav nav-pills flex-nowrap flex-column gap-1 px-2 py-3 flex-grow-1 overflow-auto"
             aria-label="Menú principal">
             <!-- Dashboard -->
@@ -80,12 +67,6 @@
                             <a href="?page=pedidos"
                                 class="nav-link <?php echo ($page == 'pedidos' || $page == 'Pedido') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-receipt me-2"></i>Gestión de Pedidos
-                            </a>
-                            <?php
-                        }
-                        if (isset($permisosGlobales['pago']['ver']) && $permisosGlobales['pago']['ver'] == 1) { ?>
-                            <a href="?page=pos" class="nav-link <?php echo ($page == 'pos') ? 'active' : ''; ?> py-1">
-                                <i class="bi bi-cash-coin me-2"></i>Punto de Venta (POS)
                             </a>
                             <?php
                         }
