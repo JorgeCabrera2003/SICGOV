@@ -9,6 +9,8 @@ use Exception;
 Helper::verificarSesion();
 
 $cargoModel = new Cargo();
+$permisosCargo = Helper::TraerPermisos();
+
 if (isset($_POST["peticion"])) {
 
 	//Entrada
@@ -19,9 +21,16 @@ if (isset($_POST["peticion"])) {
 
 	//Registrar y Modificar
 	if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
-		$accion_permiso = true;
+		$accion_permiso = false;
 
-		//Validaciones
+		if (isset($permisosCargo['cargo']['registrar']) && $permisosCargo['cargo']['registrar'] == 1 && $_POST["peticion"] == "registrar") {
+			$accion_permiso = true;
+		}
+
+		if (isset($permisosCargo['cargo']['modificar']) && $permisosCargo['cargo']['modificar'] == 1 && $_POST["peticion"] == "modificar") {
+			$accion_permiso = true;
+		}
+
 		if ($accion_permiso) {
 			$msg = "(" . $_SESSION['user']['cedula'] . "), envió solicitud no válida";
 
@@ -65,7 +74,11 @@ if (isset($_POST["peticion"])) {
 	//Fin del Consultar 
 //Eliminar
 	if ($_POST["peticion"] == "eliminar") {
-		$accion_permiso = true;
+		$accion_permiso = false;
+
+		if (isset($permisosCargo['cargo']['eliminar']) && $permisosCargo['cargo']['eliminar'] == 1) {
+			$accion_permiso = true;
+		}
 
 		if ($accion_permiso) {
 			$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
@@ -100,5 +113,6 @@ if (isset($_POST["peticion"])) {
 } //Fin de Operaciones
 Helper::cargarVista(
 	'cargo/index',
-	'Cargos - Good Vibes'
+	'Cargos - Good Vibes',
+	['ver' => $permisosCargo['cargo']['ver']]
 );
