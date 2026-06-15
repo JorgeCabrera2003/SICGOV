@@ -1,8 +1,8 @@
-import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js"
-import * as AjaxHelper from "../Helpers/AjaxHelper.js"
-import * as ValidadorHelper from "../Helpers/ValidadorHelper.js"
-import * as SelectHelper from "../Helpers/SelectHelper.js"
-import * as PermisoHelper from "../Helpers/PermisoHelper.js"
+import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js";
+import * as AjaxHelper from "../Helpers/AjaxHelper.js";
+import * as ValidadorHelper from "../Helpers/ValidadorHelper.js";
+import * as SelectHelper from "../Helpers/SelectHelper.js";
+import * as PermisoHelper from "../Helpers/PermisoHelper.js";
 
 //MODULO DE INGREDIENTES
 
@@ -491,7 +491,7 @@ async function RenderPermisoBotones(modulo = "Insumo") {
       .addClass('dropdown-item btn-suministrar text-success')
       .attr('href', '#')
       .attr('data-accion', 2)
-      .attr('data-modulo', modulo)
+      .attr('data-modulo', "Suministrar")
       .html('<i class="fa-solid fa-down-long me-2"></i>Suministrar');
     itemSumistrar.append(linkSumistrar);
     btn_suministrar = itemSumistrar;
