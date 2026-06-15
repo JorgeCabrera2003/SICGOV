@@ -9,6 +9,9 @@ use Exception;
 Helper::verificarSesion();
 
 $tipoPermisoModel = new TipoPermiso();
+$permisosTipoPermiso = Helper::TraerPermisos("tipo_permiso");
+
+
 if (isset($_POST["peticion"])) {
 
 	//Entrada
@@ -19,7 +22,15 @@ if (isset($_POST["peticion"])) {
 
 	//Registrar y Modificar
 	if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
-		$accion_permiso = true;
+		$accion_permiso = false;
+
+		if (isset($permisosTipoPermiso['tipo_permiso']['registrar']) && $permisosTipoPermiso['tipo_permiso']['registrar'] == 1 && $_POST["peticion"] == "registrar") {
+			$accion_permiso = true;
+		}
+
+		if (isset($permisosTipoPermiso['tipo_permiso']['modificar']) && $permisosTipoPermiso['tipo_permiso']['modificar'] == 1 && $_POST["peticion"] == "modificar") {
+			$accion_permiso = true;
+		}
 
 		//Validaciones
 		if ($accion_permiso) {
@@ -68,7 +79,11 @@ if (isset($_POST["peticion"])) {
 	//Fin del Consultar 
 //Eliminar
 	if ($_POST["peticion"] == "eliminar") {
-		$accion_permiso = true;
+		$accion_permiso = false;
+
+		if (isset($permisosTipoPermiso['tipo_permiso']['eliminar']) && $permisosTipoPermiso['tipo_permiso']['eliminar'] == 1 && $_POST["peticion"] == "eliminar") {
+			$accion_permiso = true;
+		}
 
 		if ($accion_permiso) {
 			$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
@@ -103,5 +118,6 @@ if (isset($_POST["peticion"])) {
 } //Fin de Operaciones
 Helper::cargarVista(
 	'tipo_permiso/index',
-	'Tipos de Permisos - Good Vibes'
+	'Tipos de Permisos - Good Vibes',
+	['ver' => $permisosTipoPermiso['tipo_permiso']['ver']]
 );

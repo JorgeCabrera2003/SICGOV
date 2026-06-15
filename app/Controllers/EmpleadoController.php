@@ -7,6 +7,7 @@ use App\Helpers\RegexHelper;
 use App\Models\System\Empleado;
 
 Helper::verificarSesion();
+$permisosEmpleado = Helper::TraerPermisos("empleado");
 
 $empleadoModel = new Empleado();
 
@@ -29,7 +30,15 @@ if (isset($_POST["peticion"])) {
 
     
     if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar" || $_POST["peticion"] == "eliminar") {
-        $accion_permiso = true; 
+        $accion_permiso = false;
+        
+        if ($_POST["peticion"] == "registrar" && isset($permisosEmpleado['empleado']['registrar']) && $permisosEmpleado['empleado']['registrar'] == 1) {
+            $accion_permiso = true;
+        } elseif ($_POST["peticion"] == "modificar" && isset($permisosEmpleado['empleado']['modificar']) && $permisosEmpleado['empleado']['modificar'] == 1) {
+            $accion_permiso = true;
+        } elseif ($_POST["peticion"] == "eliminar" && isset($permisosEmpleado['empleado']['eliminar']) && $permisosEmpleado['empleado']['eliminar'] == 1) {
+            $accion_permiso = true;
+        }
 
         if ($accion_permiso) {
             try {
@@ -76,7 +85,17 @@ if (isset($_POST["peticion"])) {
 
   
     if ($_POST["peticion"] == "consultar") {
-        $json = $empleadoModel->Transaccion(['peticion' => $_POST["peticion"]]);
+        $accion_permiso = false;
+        if (isset($permisosEmpleado['empleado']['ver']) && $permisosEmpleado['empleado']['ver'] == 1) {
+            $accion_permiso = true;
+        }
+        
+        if ($accion_permiso) {
+            $json = $empleadoModel->Transaccion(['peticion' => $_POST["peticion"]]);
+        } else {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'datos' => []];
+        }
     }
     
 
@@ -125,5 +144,6 @@ if (isset($_POST["peticion"])) {
 
 Helper::cargarVista(
     'empleado/index',
-    'Empleados - Good Vibes'
+    'Empleados - Good Vibes',
+    ['ver' => $permisosEmpleado['empleado']['ver']]
 );

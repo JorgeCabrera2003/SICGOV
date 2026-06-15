@@ -1,16 +1,3 @@
-<?php
-
-/**
- * MENÚ PRINCIPAL - SICGOV
- * 
- * Características:
- * - Sidebar colapsable con botón visible
- * - Bandeja de notificaciones interactiva
- * - Perfil de Usuario con menú
- * - Sin color de fondo fijo (se adapta al tema)
- */
-?>
-
 <?php if (!isset($hideSidebar) || !$hideSidebar): ?>
     <!-- Sidebar -->
     <aside class="sidebar d-flex flex-column flex-shrink-0 vh-100 position-fixed" id="sidebar">
@@ -46,7 +33,7 @@
             </div>
         </div>
 
-        <!-- Navegación principal -->
+        <!-- Navegacion principal -->
         <nav class="nav nav-pills flex-nowrap flex-column gap-1 px-2 py-3 flex-grow-1 overflow-auto"
             aria-label="Menú principal">
             <!-- Dashboard -->
@@ -60,39 +47,38 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Atención al Cliente</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido', 'pedidos', 'pos']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido', 'pedidos', 'pos', 'Promocion']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#cliente-submenu" role="button" data-bs-tooltip-title="Servicio y Citas"
                     title="Servicio y Citas">
                     <i class="bi bi-person-heart fs-5"></i>
                     <span class="flex-grow-1">Servicio y Citas</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido', 'pedidos', 'pos']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion') || in_array($page, ['Cliente', 'Pedido', 'pedidos', 'pos', 'Promocion']) ? 'show' : ''; ?>"
                     id="cliente-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <?php if (isset($permisos['cliente']['ver']) && $permisos['cliente']['ver'] == 1) { ?>
+                        <?php if (isset($permisosGlobales['cliente']['ver']) && $permisosGlobales['cliente']['ver'] == 1) { ?>
                             <a href="?page=Cliente" class="nav-link <?php echo ($page == 'Cliente') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-people me-2"></i>Clientes
                             </a>
                             <?php
                         }
-                        if (isset($permisos['pedido']['ver']) && $permisos['pedido']['ver'] == 1) { ?>
+                        if (isset($permisosGlobales['pedido']['ver']) && $permisosGlobales['pedido']['ver'] == 1) { ?>
                             <a href="?page=pedidos"
                                 class="nav-link <?php echo ($page == 'pedidos' || $page == 'Pedido') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-receipt me-2"></i>Gestión de Pedidos
                             </a>
                             <?php
                         }
-                        if (isset($permisos['pago']['ver']) && $permisos['pago']['ver'] == 1) { ?>
-                            <a href="?page=pos" class="nav-link <?php echo ($page == 'pos') ? 'active' : ''; ?> py-1">
-                                <i class="bi bi-cash-coin me-2"></i>Punto de Venta (POS)
-                            </a>
-                            <?php
-                        }
-                        if (isset($permisos['reservacion']['agenda']) && $permisos['reservacion']['agenda'] == 1) { ?>
+                        if (isset($permisosGlobales['reservacion']['agenda']) && $permisosGlobales['reservacion']['agenda'] == 1) { ?>
                             <a href="?page=Reservacion"
                                 class="nav-link <?php echo (isset($_REQUEST['page']) && $_REQUEST['page'] == 'Reservacion' && (!isset($_REQUEST['type']) || $_REQUEST['type'] != 'publico')) ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-calendar-check me-2"></i>Agenda Global
+                            </a>
+                        <?php } ?>
+                        <?php if (isset($permisosGlobales['promocion']['ver']) && $permisosGlobales['promocion']['ver'] == 1) { ?>
+                            <a href="?page=Promocion" class="nav-link <?php echo ($page == 'Promocion') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-gift me-2"></i>Promociones
                             </a>
                         <?php } ?>
                         <a href="?page=Reservacion&type=publico"
@@ -116,13 +102,13 @@
                 </a>
                 <div class="collapse <?php echo in_array($page, ['Areas', 'Mesas']) ? 'show' : ''; ?>" id="salon-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <?php if (isset($permisos['area_mesa']['ver']) && $permisos['area_mesa']['ver'] == 1) { ?>
+                        <?php if (isset($permisosGlobales['area_mesa']['ver']) && $permisosGlobales['area_mesa']['ver'] == 1) { ?>
                             <a href="?page=Areas" class="nav-link <?php echo ($page == 'Areas') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-geo-alt me-2"></i>Áreas del Local
                             </a>
                             <?php
                         }
-                        if (isset($permisos['mesa']['ver']) && $permisos['mesa']['ver'] == 1) {
+                        if (isset($permisosGlobales['mesa']['ver']) && $permisosGlobales['mesa']['ver'] == 1) {
                             ?>
                             <a href="?page=Mesas" class="nav-link <?php echo ($page == 'Mesas') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-table me-2"></i>Control de Mesas
@@ -146,27 +132,27 @@
                 <div class="collapse <?php echo in_array($page, ['Categoria', 'CategoriaInsumo', 'Insumo', 'Menu']) ? 'show' : ''; ?>"
                     id="cocina-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <?php if (isset($permisos['categoria_menu']['ver']) && $permisos['categoria_menu']['ver'] == 1) { ?>
+                        <?php if (isset($permisosGlobales['categoria_menu']['ver']) && $permisosGlobales['categoria_menu']['ver'] == 1) { ?>
                             <a href="?page=Categoria"
                                 class="nav-link <?php echo ($page == 'Categoria') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-tags me-2"></i>Categorías del Menú
                             </a>
                             <?php
                         }
-                        if (isset($permisos['categoria_insumo']['ver']) && $permisos['categoria_insumo']['ver'] == 1) { ?>
+                        if (isset($permisosGlobales['categoria_insumo']['ver']) && $permisosGlobales['categoria_insumo']['ver'] == 1) { ?>
                             <a href="?page=CategoriaInsumo"
                                 class="nav-link <?php echo ($page == 'CategoriaInsumo') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-tags me-2"></i>Categorías de Insumos
                             </a>
                         <?php }
 
-                        if (isset($permisos['insumo']['ver']) && $permisos['insumo']['ver'] == 1) {
+                        if (isset($permisosGlobales['insumo']['ver']) && $permisosGlobales['insumo']['ver'] == 1) {
                             ?>
                             <a href="?page=Insumo" class="nav-link <?php echo ($page == 'Insumo') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-droplet me-2"></i>Insumos
                             </a>
                         <?php }
-                        if (isset($permisos['producto']['ver']) && $permisos['producto']['ver'] == 1) { ?>
+                        if (isset($permisosGlobales['producto']['ver']) && $permisosGlobales['producto']['ver'] == 1) { ?>
                             <a href="?page=Menu" class="nav-link <?php echo ($page == 'Menu') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-journal-text me-2"></i>Carta / Menú
                             </a>
@@ -187,7 +173,7 @@
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
                 <div class="collapse <?php echo in_array($page, ['Proveedor']) ? 'show' : ''; ?>" id="logistica-submenu">
-                    <?php if (isset($permisos['proveedor']['ver']) && $permisos['proveedor']['ver'] == 1) { ?>
+                    <?php if (isset($permisosGlobales['proveedor']['ver']) && $permisosGlobales['proveedor']['ver'] == 1) { ?>
                         <div class="d-flex flex-column gap-1 ps-4 mt-1">
                             <a href="?page=Proveedor"
                                 class="nav-link <?php echo ($page == 'Proveedor') ? 'active' : ''; ?> py-1">
@@ -212,12 +198,12 @@
                 <div class="collapse <?php echo in_array($page, ['Media', 'Noticia']) ? 'show' : ''; ?>"
                     id="marketing-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <?php if (isset($permisos['multimedia']['ver']) && $permisos['multimedia']['ver'] == 1) { ?>
+                        <?php if (isset($permisosGlobales['multimedia']['ver']) && $permisosGlobales['multimedia']['ver'] == 1) { ?>
                             <a href="?page=Media" class="nav-link <?php echo ($page == 'Media') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-images me-2"></i>Galería Multimedia
                             </a>
                         <?php }
-                        if (isset($permisos['multimedia']['ver']) && $permisos['multimedia']['ver'] == 1) {
+                        if (isset($permisosGlobales['multimedia']['ver']) && $permisosGlobales['multimedia']['ver'] == 1) {
                             ?>
                             <a href="?page=Noticia" class="nav-link <?php echo ($page == 'Noticia') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-newspaper me-2"></i>Blog / Noticias
@@ -241,25 +227,31 @@
                 <div class="collapse <?php echo in_array($page, ['Asistencia', 'Cargo', 'Empleado']) ? 'show' : ''; ?>"
                     id="personal-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <?php if (isset($permisos['empleado']['ver']) && $permisos['empleado']['ver'] == 1) { ?>
+                        <?php if (isset($permisosGlobales['empleado']['ver']) && $permisosGlobales['empleado']['ver'] == 1) { ?>
                             <a href="?page=Empleado" class="nav-link <?php echo ($page == 'Empleado') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-person-badge me-2"></i>Empleados
                             </a>
                         <?php }
-                        if (isset($permisos['asistencia']['ver']) && $permisos['asistencia']['ver'] == 1) {
+                        if (isset($permisosGlobales['asistencia']['ver']) && $permisosGlobales['asistencia']['ver'] == 1) {
                             ?>
                             <a href="?page=Asistencia"
                                 class="nav-link <?php echo ($page == 'Asistencia') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-check2-square me-2"></i>Asistencia
                             </a>
                         <?php }
-                        if (isset($permisos['cargo']['ver']) && $permisos['cargo']['ver'] == 1) {
+                        if (isset($permisosGlobales['cargo']['ver']) && $permisosGlobales['cargo']['ver'] == 1) {
                             ?>
                             <a href="?page=Cargo" class="nav-link <?php echo ($page == 'Cargo') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-journal-text me-2"></i>Cargos
                             </a>
                         <?php }
-                        if (isset($permisos['tipo_permiso']['ver']) && $permisos['tipo_permiso']['ver'] == 1) {
+                        // Enlace a Turnos (sin control de permisos por ahora)
+                        ?>
+                        <a href="?page=Turno" class="nav-link <?php echo ($page == 'Turno') ? 'active' : ''; ?> py-1">
+                            <i class="bi bi-clock me-2"></i>Turnos
+                        </a>
+                        <?php
+                        if (isset($permisosGlobales['tipo_permiso']['ver']) && $permisosGlobales['tipo_permiso']['ver'] == 1) {
                             ?>
                             <a href="?page=TipoPermiso"
                                 class="nav-link <?php echo ($page == 'TipoPermiso') ? 'active' : ''; ?> py-1">
@@ -313,31 +305,31 @@
                 <div class="collapse <?php echo in_array($page, ['Bitacora', 'Papelera', 'Usuario', 'ModuloSistema', 'Rol']) ? 'show' : ''; ?>"
                     id="seguridad-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
-                        <?php if (isset($permisos['bitacora']['ver']) && $permisos['bitacora']['ver'] == 1) { ?>
+                        <?php if (isset($permisosGlobales['bitacora']['ver']) && $permisosGlobales['bitacora']['ver'] == 1) { ?>
                             <a href="?page=Bitacora" class="nav-link <?php echo ($page == 'Bitacora') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-shield-shaded me-2"></i>Bitácora de Acciones
                             </a>
                         <?php }
-                        if (isset($permisos['usuario']['ver']) && $permisos['usuario']['ver'] == 1) {
+                        if (isset($permisosGlobales['usuario']['ver']) && $permisosGlobales['usuario']['ver'] == 1) {
                             ?>
                             <a href="?page=Papelera"
                                 class="nav-link <?php echo ($page == 'Papelera') ? 'active text-danger' : 'text-danger'; ?> py-1">
                                 <i class="bi bi-trash3 me-2"></i>Papelera (Recycle)
                             </a>
                         <?php }
-                        if (isset($permisos['usuario']['ver']) && $permisos['usuario']['ver'] == 1) {
+                        if (isset($permisosGlobales['usuario']['ver']) && $permisosGlobales['usuario']['ver'] == 1) {
                             ?>
                             <a href="?page=Usuario" class="nav-link <?php echo ($page == 'Usuario') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-person-vcard me-2"></i>Gestión de Usuarios
                             </a>
                         <?php }
-                        if (isset($permisos['rol']['ver']) && $permisos['rol']['ver'] == 1) {
+                        if (isset($permisosGlobales['rol']['ver']) && $permisosGlobales['rol']['ver'] == 1) {
                             ?>
                             <a href="?page=Rol" class="nav-link <?php echo ($page == 'Rol') ? 'active' : ''; ?> py-1">
                                 <i class="bi bi-person-vcard me-2"></i>Gestión de Roles
                             </a>
                         <?php }
-                        if (isset($permisos['modulo_sistema']['ver']) && $permisos['modulo_sistema']['ver'] == 1) {
+                        if (isset($permisosGlobales['modulo_sistema']['ver']) && $permisosGlobales['modulo_sistema']['ver'] == 1) {
                             ?>
                             <a href="?page=ModuloSistema"
                                 class="nav-link <?php echo ($page == 'ModuloSistema') ? 'active' : ''; ?> py-1">

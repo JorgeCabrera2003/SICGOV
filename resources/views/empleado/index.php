@@ -11,9 +11,11 @@
             Gestión de Empleados
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de empleado">
+            <?php if (isset($permisos['empleado']['registrar']) && $permisos['empleado']['registrar'] == 1) { ?>
             <button class="btn btn-primary fw-semibold" id="btnNuevoEmpleado">
                 <i class="fas fa-plus me-2"></i>Nuevo Empleado
             </button>
+            <?php } ?>
         </div>
     </header>
 
@@ -46,4 +48,7 @@
 <?php include 'partials/_modal_consultar_empleado.php'; ?>
 
 <!-- Recursos específicos de la página -->
+<script>
+    const permisosDB = <?= isset($permisos) ? json_encode($permisos) : 'null' ?>;
+</script>
 <script src="<?= BASE_URL ?>public/assets/js/empleado.js"></script>

@@ -49,7 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         cargarMenu();
 
         // Listeners básicos
-        document.getElementById('btnNuevoMenu').addEventListener('click', abrirModalNuevo);
+        const btnNuevo = document.getElementById('btnNuevoMenu');
+        if (btnNuevo) btnNuevo.addEventListener('click', abrirModalNuevo);
         formMenu.addEventListener('submit', guardarMenu);
         document.getElementById('imagen').addEventListener('change', (e) => {
             handlePreviewImagen(e);
@@ -471,13 +472,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             loadingGallery.style.display = 'none';
 
-            if (json.data && json.data.length > 0) {
+            if (json.data) {
                 productosActuales = json.data;
-                const catElement = document.querySelector('.btn-filtro.active');
-                filtrarGaleria(catElement ? catElement.dataset.categoria : 'todas');
             } else {
-                emptyGallery.style.display = 'block';
+                productosActuales = [];
             }
+            const catElement = document.querySelector('.btn-filtro.active');
+            filtrarGaleria(catElement ? catElement.dataset.categoria : 'todas');
         } catch (error) {
             console.error('Error cargando menú', error);
             Swal.fire('Error', 'No se pudo cargar el menú del restaurante.', 'error');
@@ -495,6 +496,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function filtrarGaleria(idCategoria) {
         galleryContainer.innerHTML = '';
+        
+        // Verificación de permiso "ver"
+        if (typeof permisosDB === 'undefined' || !permisosDB || !permisosDB.producto || permisosDB.producto.ver != 1) {
+            galleryContainer.style.display = 'none';
+            emptyGallery.style.display = 'block';
+            emptyGallery.innerHTML = '<i class="fas fa-lock fs-1 mb-3 text-danger"></i><h5 class="text-danger">Acceso Denegado</h5><p>No tienes permiso para ver los productos del menú.</p>';
+            return;
+        }
+        
+        // Restaurar estado default si venía de un bloqueo previo
+        if(emptyGallery.innerHTML.includes('Acceso Denegado')) {
+            emptyGallery.innerHTML = '<i class="fas fa-box-open fs-1 mb-3"></i><h5>No hay productos en esta categoría</h5><p>Intenta cambiar el filtro o agregar un nuevo producto.</p>';
+        }
+
         let filtrados = [];
 
         if (idCategoria === 'todas') {
@@ -529,6 +544,25 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderCard(p) {
         const imgUrl = (p.imagen && p.imagen !== 'default-product.png') ? `${BASE_URL}/assets/img/productos/${p.imagen}` : `${BASE_URL}/assets/img/placeholder.png`;
 
+        let btnEditar = '';
+        if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.producto && permisosDB.producto.modificar == 1) {
+            btnEditar = `<button class="btn btn-sm btn-outline-secondary btn-editar" data-id="${p.id_producto}" title="Editar Menú">
+                            <i class="fas fa-edit"></i>
+                        </button>`;
+        }
+
+        let btnEliminar = '';
+        if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.producto && permisosDB.producto.eliminar == 1) {
+            btnEliminar = `<button class="btn btn-sm btn-outline-danger btn-eliminar" data-id="${p.id_producto}" title="Eliminar del Menú">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>`;
+        }
+
+        let btnGroup = '';
+        if (btnEditar !== '' || btnEliminar !== '') {
+            btnGroup = `<div class="btn-group">${btnEditar}${btnEliminar}</div>`;
+        }
+
         const card = document.createElement('div');
         card.className = 'col';
         card.innerHTML = `
@@ -545,14 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
                         <span class="badge border border-secondary bg-transparent text-body"><i class="fas fa-tag me-1 text-primary"></i>${p.categoria_nombre}</span>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-secondary btn-editar" data-id="${p.id_producto}" title="Editar Menú">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger btn-eliminar" data-id="${p.id_producto}" title="Eliminar del Menú">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
+                        ${btnGroup}
                     </div>
                 </div>
             </div>
@@ -561,8 +588,11 @@ document.addEventListener('DOMContentLoaded', () => {
         galleryContainer.appendChild(card);
 
         // Listeners para botones creados
-        card.querySelector('.btn-editar').addEventListener('click', () => editarMenu(p.id_producto));
-        card.querySelector('.btn-eliminar').addEventListener('click', (e) => eliminarMenu(p.id_producto));
+        const btnEditarNode = card.querySelector('.btn-editar');
+        if (btnEditarNode) btnEditarNode.addEventListener('click', () => editarMenu(p.id_producto));
+        
+        const btnEliminarNode = card.querySelector('.btn-eliminar');
+        if (btnEliminarNode) btnEliminarNode.addEventListener('click', (e) => eliminarMenu(p.id_producto));
     }
 
 
