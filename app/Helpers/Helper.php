@@ -223,7 +223,8 @@ class Helper
         }
 
         self::verificarSesion();
-        $permisos = self::TraerPermisos();
+        $permisosGlobales = self::TraerPermisos();
+        $permisos = $permisosGlobales;
 
         $varsVista = self::getVarsVista($titulo);
         $vars = array_merge($varsVista, $vars);

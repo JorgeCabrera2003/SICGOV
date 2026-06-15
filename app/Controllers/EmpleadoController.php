@@ -144,5 +144,6 @@ if (isset($_POST["peticion"])) {
 
 Helper::cargarVista(
     'empleado/index',
-    'Empleados - Good Vibes'
+    'Empleados - Good Vibes',
+    ['ver' => $permisosEmpleado['empleado']['ver']]
 );
