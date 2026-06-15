@@ -456,6 +456,11 @@ i.estatus FROM insumo AS i
 INNER JOIN unidad_medida AS u ON i.id_unidad_medida = u.id_unidad
 INNER JOIN categoria_insumo AS ci ON i.id_categoria = ci.id_categoria;
 
+CREATE VIEW `vw_entrada_insumo` AS 
+SELECT `ei`.*, `in`.`nombre_insumo` AS 'insumo', `p`.nombre AS 'proveedor' FROM `entrada_insumo` AS `ei`
+INNER JOIN `insumo` AS `in` ON `ei`.id_insumo = `in`.id_insumo
+INNER JOIN `proveedor`AS `p` ON `ei`.`documento_proveedor` = `p`.documento_legal;
+
 -- --------------------------------------------------------
 -- 8. DISPARADORES (TRIGGERS)
 -- --------------------------------------------------------

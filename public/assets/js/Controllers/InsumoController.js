@@ -108,7 +108,9 @@ async function rellenar(pos, accion, modulo = "Insumo") {
   }
 
   if (accion == 2) {
-    suministrarInsumo.EditarModal("suministrar");
+    const tablainsumo = $('#tablaInsumo').DataTable();
+    const datosInsumos = tablainsumo.row(linea).data()
+    suministrarInsumo.EditarFormSuministrar(datosInsumos);
   }
 
   if (modulo == "Insumo") {
