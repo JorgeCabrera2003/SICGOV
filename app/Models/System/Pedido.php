@@ -88,7 +88,7 @@ class Pedido
 
     private function obtenerComprobante($id_pedido)
     {
-        // Primero obtener el ID del pago en business
+        
         $stmt = $this->dbBusiness->prepare("SELECT id_pago FROM pago WHERE id_pedido = ?");
         $stmt->execute([$id_pedido]);
         $pago = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -97,7 +97,7 @@ class Pedido
             return ['success' => false, 'message' => 'No hay pago registrado para este pedido.'];
         }
 
-        // Buscar imagen en security
+        
         $stmtImg = $this->dbSecurity->prepare("SELECT direccion FROM imagen WHERE entidad_tipo = 'PAGO' AND entidad_id = ?");
         $stmtImg->execute([$pago['id_pago']]);
         $imagen = $stmtImg->fetch(PDO::FETCH_ASSOC);
@@ -114,9 +114,7 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
     try {
         $this->dbBusiness->beginTransaction();
         
-        // ==============================================
-        // 1. VALIDAR EMPLEADO (LOGEADO)
-        // ==============================================
+        
         $cedulaEmpleado = $_SESSION['user']['cedula'] ?? null;
         
         if (!$cedulaEmpleado) {
@@ -126,7 +124,7 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
             ];
         }
         
-        // Verificar que el empleado existe y está activo
+        
         $stmt = $this->dbBusiness->prepare("SELECT cedula FROM empleado WHERE cedula = ? AND estatus = 1");
         $stmt->execute([$cedulaEmpleado]);
         if ($stmt->rowCount() === 0) {
@@ -139,13 +137,11 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
             ];
         }
         
-        // ==============================================
-        // 2. CLIENTE (si tiene cédula)
-        // ==============================================
+        
         $cedula = !empty($datosCliente['cedula']) ? $datosCliente['cedula'] : null;
 
         if ($cedula) {
-            // Buscar o crear persona
+            
             $stmt = $this->dbBusiness->prepare("SELECT cedula FROM persona WHERE cedula = ?");
             $stmt->execute([$cedula]);
             if ($stmt->rowCount() == 0) {
@@ -160,7 +156,7 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
                 ]);
             }
             
-            // Buscar o crear cliente
+            
             $stmt = $this->dbBusiness->prepare("SELECT cedula FROM cliente WHERE cedula = ?");
             $stmt->execute([$cedula]);
             if ($stmt->rowCount() == 0) {
@@ -168,9 +164,7 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
             }
         }
 
-        // ==============================================
-        // 3. CREAR PEDIDO
-        // ==============================================
+        
         $idPedido = 'PED' . date('YmdHis') . rand(100, 999);
         $totalPedido = $carrito['total'];
         $observacion = $datosCliente['observacion'] ?? 'Pedido POS';
@@ -189,9 +183,7 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
             $observacion
         ]);
 
-        // ==============================================
-        // 4. DETALLES DEL PEDIDO (CON INDICACION)
-        // ==============================================
+        
         $sqlDetalle = "INSERT INTO detalle_pedido (id_detalle, id_pedido, id_producto, cantidad, precio_unitario, indicacion) 
                        VALUES (?, ?, ?, ?, ?, ?)";
         $stmtDet = $this->dbBusiness->prepare($sqlDetalle);
@@ -199,23 +191,21 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
         foreach ($carrito['items'] as $item) {
             $idDetalle = 'DET' . date('YmdHis') . rand(1000, 9999);
             
-            // ==========================================
-            // CONSTRUIR LA INDICACIÓN CON LOS EXTRAS
-            // ==========================================
+            
             $indicacion = '';
             
-            // Opción 1: Si ya viene una indicación desde el frontend
+            
             if (!empty($item['indicacion'])) {
                 $indicacion = $item['indicacion'];
             } 
-            // Opción 2: Si tiene extras en el objeto
+            
             elseif (!empty($item['extras']) && is_array($item['extras'])) {
                 $extrasNombres = array_column($item['extras'], 'nombre');
                 if (!empty($extrasNombres)) {
                     $indicacion = 'Extras: ' . implode(', ', $extrasNombres);
                 }
             }
-            // Opción 3: Si tiene addedAdicionales (la estructura que usas en el carrito)
+            
             elseif (!empty($item['addedAdicionales']) && is_array($item['addedAdicionales'])) {
                 $extrasNombres = array_column($item['addedAdicionales'], 'nombre');
                 if (!empty($extrasNombres)) {
@@ -223,7 +213,7 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
                 }
             }
             
-            // Agregar información de "sin" (productos removidos)
+            
             if (!empty($item['removedPrincipales']) && is_array($item['removedPrincipales'])) {
                 $removidosNombres = array_column($item['removedPrincipales'], 'nombre_insumo');
                 if (!empty($removidosNombres)) {
@@ -232,12 +222,12 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
                 }
             }
             
-            // Limpiar la indicación (evitar null o vacío)
+            
             if (empty($indicacion)) {
                 $indicacion = null;
             }
             
-            // Debug: registrar en log para verificar
+            
             error_log("Guardando detalle - Pedido: $idPedido, Producto: {$item['id_producto']}, Cantidad: {$item['cantidad']}, Indicación: " . ($indicacion ?? 'SIN EXTRAS'));
             
             $stmtDet->execute([
@@ -250,12 +240,10 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
             ]);
         }
 
-        // ==============================================
-        // 5. PAGO
-        // ==============================================
+        
         $idMetodoPago = $datosPago['id_metodo_pago'] ?? null;
         if (!$idMetodoPago) {
-            // Buscar método de pago por defecto (Efectivo)
+            
             $stmt = $this->dbBusiness->prepare("SELECT id_metodo_pago FROM metodo_pago WHERE nombre = 'Efectivo' AND estatus = 1 LIMIT 1");
             $stmt->execute();
             $metodoDefault = $stmt->fetch(PDO::FETCH_ASSOC);
