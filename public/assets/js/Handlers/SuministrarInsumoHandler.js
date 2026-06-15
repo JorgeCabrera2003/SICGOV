@@ -125,6 +125,7 @@ export async function EnviarDatos(operacion) {
         peticion.append('id_entrada', input.proveedor.val());
         peticion.append('stock', input.stock.val());
         peticion.append('id_unidad', input.unidad_medida.val());
+        peticion.append('id_insumo', input.insumo.prop('dataset').insumo);
         btn_formulario = true;
       }
     } else {

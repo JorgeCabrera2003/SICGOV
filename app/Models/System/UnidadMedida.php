@@ -13,6 +13,8 @@ namespace App\Models\System;
 use App\Core\Database;
 use App\Helpers\Helper;
 use APP\Helpers\RegexHelper;
+use PhpUnitsOfMeasure\PhysicalQuantity\Volume;
+use PhpUnitsOfMeasure\PhysicalQuantity\Mass;
 use PDO;
 
 class UnidadMedida extends Database
@@ -84,6 +86,8 @@ class UnidadMedida extends Database
             $response = match ($peticion['peticion']) {
                 'consultar' => $this->ConsultarUnidadMedida(),
                 'validar' => $this->ValidarUnidadMedida(),
+                'filtrar' => $this->FiltrarUnidadMedida(),
+                
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
@@ -161,19 +165,56 @@ class UnidadMedida extends Database
         return $dato;
     }
 
-    private function TablaConversion($valor, $medida_entrante, $medida_conversion)
+    private function FiltrarUnidadMedida()
     {
         $dato = [];
         $arreglo = [];
+        $datosBD = [];
         try {
-            $response = match ($medida_conversion) {
-                'Kg', => $this->ConsultarUnidadMedida(),
-                'g', => $this->ConsultarUnidadMedida(),
-                'validar' => $this->ValidarUnidadMedida(),
-                default => [
-                    'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
-                    'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
-                ]
+            $arreglo = $this->ValidarUnidadMedida();
+            if ($arreglo['bool'] == 1) {
+                $this->LlamarConexion();
+                $this->LlamarConexion()->beginTransaction();
+                $sql = "SELECT * FROM unidad_medida WHERE tipo = :tipo ORDER BY tipo ASC";
+                $stm = $this->LlamarConexion()->prepare($sql);
+                $stm->bindParam(":tipo", $arreglo['response']['registro']['tipo']);
+                $stm->execute();
+                if ($stm->rowCount() > 0) {
+                    $datosBD = $stm->fetchAll(PDO::FETCH_ASSOC);
+                }
+                $this->LlamarConexion()->commit();
+                $stm = NULL;
+
+                $dato['estado'] = 1;
+                $dato['response'] = ['resultado' => 200, 'mensaje' => "OK", 'datos' => $datosBD];
+                $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+            } else {
+
+            }
+
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => "Ups, intente de nuevo más tarde", 'datos' => []];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    public function TablaConversion($valor, $medida_entrante, $medida_conversion)
+    {
+        $dato = [];
+        $arreglo = [];
+        $medida_entrante = strtolower($medida_entrante);
+        $medida_conversion = strtolower($medida_conversion);
+
+        try {
+            $medida = match ($medida_conversion) {
+                'Kg', 'kg', 'gr', 'g', => "masa",
+                'ml', 'l', 'L', => "volumen",
+                default => 'error'
             };
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();

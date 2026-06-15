@@ -341,9 +341,28 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "UnidadMedida") {
 if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 	if (isset($_POST["peticion"])) {
 
-		//Consultar
+		//Filtrar
 		if ($_POST["peticion"] == "filtrar") {
 			$entradaInsumoModel->setIdInsumo($_POST['insumo']);
+			$json = $entradaInsumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
+		}
+
+		//Suministrar
+		if ($_POST["peticion"] == "suministrar") {
+			$arregloInsumo = [];
+			$arregloUnidad = [];
+			
+			$insumoModel->setId($_POST['id_insumo']);
+			$arregloInsumo = $insumoModel->Transaccion(["peticion" => "validar"]);
+
+			$unidadMedidaModel->setId($_POST['id_insumo']);
+			$arregloUnidad = $unidadMedidaModel->Transaccion(["peticion" => "validar"]);
+
+			$detalleEntradaModel->setId($_POST['id_entrada']);
+			$detalleEntradaModel->setIdUnidad($_POST['id_unidad']);
+			$detalleEntradaModel->setCantidad($_POST['stock']);
+			$detalleEntradaModel->setDescripcion("Ingreso de");
+
 			$json = $entradaInsumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 		}
 

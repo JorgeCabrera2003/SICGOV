@@ -23,6 +23,14 @@ $("#btnInsumoForm").on("click", async function () {
   };
 });
 
+$("#btnSuministrarInsumoForm").on("click", async function () {
+  let respuesta = null;
+  respuesta = await suministrarInsumo.EnviarFormulario($(this).text());
+  if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
+    await crearDataTable("insumos");
+  };
+});
+
 $("#btnNuevoInsumo").on("click", function () {
   insumo.LimpiarFormulario();
   insumo.EditarModal("registrar");
