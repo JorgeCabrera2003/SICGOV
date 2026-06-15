@@ -3,7 +3,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     cargarPedidos();
 
-    // Event listener para marcar como pagado desde el modal del comprobante
+    
     const btnVerificarPago = document.getElementById('btnVerificarPago');
     if (btnVerificarPago) {
         btnVerificarPago.addEventListener('click', async function() {
@@ -72,7 +72,7 @@ async function cargarPedidos() {
                 const fecha = new Date(p.fecha_pedido).toLocaleString();
                 const cliente = p.nombre ? `${p.nombre} ${p.apellido || ''}` : 'Mostrador';
                 
-                // Botones de acción
+                
                 let btnComprobante = '';
                 if (p.metodo_pago === 'Pago Móvil') {
                     btnComprobante = `<button class="btn btn-sm btn-outline-info" onclick="verComprobante('${p.id_pedido}', '${p.estado}')" title="Ver Comprobante"><i class="fas fa-image"></i></button>`;
@@ -157,7 +157,7 @@ async function verDetalle(idPedido, estadoActual) {
                             </div>
                     `;
                     
-                    // Mostrar extras si existen
+                    
                     if (d.indicacion && d.indicacion.trim() !== '') {
                         html += `
                             <div class="small text-muted mt-1">

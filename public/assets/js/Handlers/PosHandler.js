@@ -11,7 +11,7 @@ window.removidosSeleccionados = [];
 document.addEventListener('DOMContentLoaded', () => {
     cargarProductosPOS();
 
-    // Filtros
+    
     const filtros = document.getElementById('posFiltros').querySelectorAll('button');
     filtros.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -215,7 +215,7 @@ function mostrarModalPersonalizacion() {
     modal.show();
 }
 
-// Función para manejar ingredientes removidos
+
 function togglePrincipal(checkbox) {
     const idInsumo = checkbox.value;
     const nombreInsumo = checkbox.dataset.nombre;
@@ -230,12 +230,12 @@ function togglePrincipal(checkbox) {
             });
         }
     } else {
-        // Se volvió a agregar
+        
         window.removidosSeleccionados = window.removidosSeleccionados.filter(r => r.id_insumo !== idInsumo);
     }
 }
 
-// Función para manejar extras agregados
+
 function toggleExtra(checkbox) {
     const precio = parseFloat(checkbox.dataset.precio || 0);
     const idInsumo = checkbox.value;
@@ -273,7 +273,7 @@ function confirmarPersonalizacion() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('modalPersonalizar'));
     modal.hide();
     
-    // Asegurar que los arrays existen
+    
     const extras = window.extrasSeleccionados || [];
     const removidos = window.removidosSeleccionados || [];
     
@@ -291,7 +291,7 @@ function confirmarPersonalizacion() {
         sinTexto.push(removido.nombre);
     });
     
-    // Construir indicación completa
+    
     let indicacion = '';
     if (sinTexto.length > 0) {
         indicacion = `Sin: ${sinTexto.join(', ')}. `;
@@ -310,7 +310,7 @@ function confirmarPersonalizacion() {
         indicacion: indicacion
     });
     
-    // Agregar al carrito
+    
     agregarAlCarrito(productoActual, extras, removidos, precioTotal, indicacion);
 }
 
