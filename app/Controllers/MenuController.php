@@ -26,7 +26,8 @@ if ($type === 'admin') {
                 'categorias' => $categorias,
                 'insumos' => $insumos,
                 'unidades' => $unidades,
-                'permisos' => $permisosMenu
+                'permisos' => $permisosMenu,
+                'ver' => $permisosMenu['producto']['ver']
             ]
         );
         exit;

@@ -9,16 +9,16 @@ $peticion = $_POST['peticion'] ?? $_POST['action'] ?? $_GET['action'] ?? '';
 
 
 Helper::verificarSesion();
-
+$permisosCategoria = Helper::TraerPermisos("categoria_menu");
 if (empty($peticion) && !isset($_POST["peticion"])) {
     Helper::cargarVista(
         'categoria/index',
-        'Categorías - Good Vibes'
+        'Categorías - Good Vibes',
+        ['ver' => $permisosCategoria['categoria_menu']['ver']]
     );
     exit;
 }
 
-$permisosCategoria = Helper::TraerPermisos("categoria_menu");
 
 $categoriaModel = new CategoriaProducto();
 
