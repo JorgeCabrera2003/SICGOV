@@ -428,11 +428,13 @@ $("#btnClienteForm").on("click", async function () {
   }
 });
 
-$("#btnNuevoCliente").on("click", function () {
-  limpia();
-  editarModal("registrar")
-  // El botón se habilita automáticamente mediante el callback cuando los campos sean válidos
-});
+if ($("#btnNuevoCliente").length) {
+    $("#btnNuevoCliente").on("click", function () {
+        limpia();
+        editarModal("registrar")
+        // El botón se habilita automáticamente mediante el callback cuando los campos sean válidos
+    });
+}
 
 // Aplicar capitalización automática cuando el modal se muestra
 $('#modalCliente').on('shown.bs.modal', function () {
@@ -459,25 +461,30 @@ async function vistaPermiso() {
         .html('<i class="fa-solid fa-eye me-2"></i>Consultar');
     itemConsultar.append(linkConsultar);
 
-    const itemEditar = $('<li>');
-    const linkEditar = $('<a>')
-        .addClass('dropdown-item text-primary')
-        .attr('href', '#')
-        .attr('onclick', 'rellenar(this, 0)')
-        .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
-    itemEditar.append(linkEditar);
+    menu.append(itemConsultar);
 
-    const separador = $('<li>').html('<hr class="dropdown-divider">');
+    if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.cliente && permisosDB.cliente.modificar == 1) {
+        const itemEditar = $('<li>');
+        const linkEditar = $('<a>')
+            .addClass('dropdown-item text-primary')
+            .attr('href', '#')
+            .attr('onclick', 'rellenar(this, 0)')
+            .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
+        itemEditar.append(linkEditar);
+        menu.append(itemEditar);
+    }
 
-    const itemEliminar = $('<li>');
-    const linkEliminar = $('<a>')
-        .addClass('dropdown-item text-danger')
-        .attr('href', '#')
-        .attr('onclick', 'eliminarClienteDirecto(this)')
-        .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
-    itemEliminar.append(linkEliminar);
-
-    menu.append(itemConsultar, itemEditar, separador, itemEliminar);
+    if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.cliente && permisosDB.cliente.eliminar == 1) {
+        const separador = $('<li>').html('<hr class="dropdown-divider">');
+        const itemEliminar = $('<li>');
+        const linkEliminar = $('<a>')
+            .addClass('dropdown-item text-danger')
+            .attr('href', '#')
+            .attr('onclick', 'eliminarClienteDirecto(this)')
+            .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
+        itemEliminar.append(linkEliminar);
+        menu.append(separador, itemEliminar);
+    }
     dropdown.append(boton, menu);
 
     return dropdown.prop('outerHTML');
@@ -566,6 +573,11 @@ function validarenvio() {
 }
 
 async function crearDataTable() {
+  if (typeof permisosDB === 'undefined' || !permisosDB || !permisosDB.cliente || permisosDB.cliente.ver != 1) {
+    $('#tablaCliente').closest('.card').html('<div class="card-body text-center py-5"><i class="fas fa-lock fs-1 text-danger mb-3"></i><h4 class="text-danger">Acceso Denegado</h4><p>No tienes permiso para ver la lista de clientes.</p></div>');
+    return;
+  }
+
   let peticion = new FormData();
   let json = null;
   let arreglo = [];

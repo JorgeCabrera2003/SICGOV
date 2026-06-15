@@ -25,8 +25,9 @@ class BusinessSeeder
         $this->crearMetodosPago();
         $this->crearMesas();
         $this->crearPersonasYUsuarios();
-        $this->crearProductosFalsos(10);
+        $this->crearProductosReales();
         $this->crearInsumosFalsos(20);
+        $this->crearPreparaciones();
         $this->crearClientesFalsos(15);
         $this->crearProveedoresFalsos(5);
     }
@@ -52,13 +53,20 @@ class BusinessSeeder
         // Categorías de productos
         $count = $this->db->query("SELECT COUNT(*) FROM categoria_producto")->fetchColumn();
         if ($count == 0) {
-            $sql = "INSERT INTO categoria_producto (id_categoria, nombre_categoria, estatus) VALUES 
-                ('CATPROD00120260519200547232', 'Platos Principales', 1),
-                ('CATPROD00220260519200547232', 'Entradas', 1),
-                ('CATPROD00320260519200547232', 'Bebidas', 1),
-                ('CATPROD00420260519200547232', 'Postres', 1),
-                ('CATPROD00520260519200547232', 'Ensaladas', 1)";
-            $this->db->exec($sql);
+            $sql = "INSERT IGNORE INTO categoria_producto (`id_categoria`, `nombre_categoria`, `estatus`) VALUES 
+            ('CAT202606111102317495', 'Menú Ejecutivo', '1'),
+            ('CAT202606131540189625', 'Pepitos', '1'),
+            ('CAT202606131540288211', 'Perros Calientes', '1'),
+            ('CAT202606131540406364', 'Hamburguesas', '1'),
+            ('CAT202606131540568458', 'Hot Maracaibo', '1'),
+            ('CAT202606131541438741', 'Tapas', '1'),
+            ('CAT202606131541589223', 'Menú Infantil', '1'),
+            ('CAT202606131542228868', 'Mexicanisimo', '1'),
+            ('CAT202606131542527898', 'Sandwiches', '1'),
+            ('CATPROD00220260519200547232', 'Entradas', '1'),
+            ('CATPROD00320260519200547232', 'Bebidas', '1'),
+            ('CATPROD00520260519200547232', 'Ensaladas', '1')";
+        $this->db->exec($sql);
             echo "       Categorías de productos creadas.\n";
         }
 
@@ -206,34 +214,78 @@ class BusinessSeeder
         echo "       $cantidad empleados creados.\n";
     }
 
-    private function crearProductosFalsos($cantidad)
+    private function crearProductosReales()
     {
-        $categorias = $this->db->query("SELECT id_categoria FROM categoria_producto")->fetchAll(\PDO::FETCH_COLUMN);
-        if (empty($categorias)) {
-            $categorias = ['CATPROD00120260519200547232'];
+        $count = $this->db->query("SELECT COUNT(*) FROM producto")->fetchColumn();
+        if ($count == 0) {
+            $sql = "INSERT IGNORE INTO producto (`id_producto`, `id_categoria`, `nombre_producto`, `descripcion`, `precio`, `imagen`, `es_personalizable`, `estatus`, `tipo_producto`, `fecha_creacion`) VALUES 
+            ('PROD-000120260611', 'CAT202606131540288211', 'Perro Polaco Gratinado', 'Perro con salchicha alimex', '5.00', 'prod_6a2ad51300568.jpg', '0', '1', 'COCINA', '2026-06-11 10:46:37'),
+            ('PROD-000220260611', 'CAT202606131540288211', 'Perro De Pollo Gratinado', 'Perro con salchicha pollo salsa de queso queso
+mozzarella maíz y queso pecorino', '7.00', 'prod_6a2db579e91f9.jpg', '0', '1', 'COCINA', '2026-06-11 10:46:37'),
+            ('PROD-000320260611', 'CATPROD00220260519200547232', 'Occaecati nihil', 'Atque ut cum harum dolorum.', '76.40', 'default-product.png', '0', '1', 'RETAIL', '2026-06-11 10:46:37'),
+            ('PROD-000420260611', 'CAT202606131540568458', 'Arepa Cabimera', 'Arepa Cabimera especial con todo', '44.18', 'prod_6a2daa55f28c9.jpg', '1', '1', 'COCINA', '2026-06-11 10:46:37'),
+            ('PROD-000520260611', 'CAT202606131541589223', 'Papas Locas', 'Quibusdam et nobis perferendis cupiditate.', '15.00', 'prod_6a2dabb417f3c.jpg', '0', '1', 'COCINA', '2026-06-11 10:46:37'),
+            ('PROD-000620260611', 'CAT202606131540189625', 'Pepito Especial', 'Pepito tipo barquisimeto gratinado', '12.00', 'prod_6a2dadc2b2204.jpg', '1', '1', 'COCINA', '2026-06-11 10:46:37'),
+            ('PROD-000720260611', 'CATPROD00220260519200547232', 'Commodi at', 'Laborum provident ut soluta nihil.', '51.13', 'default-product.png', '0', '1', 'RETAIL', '2026-06-11 10:46:37'),
+            ('PROD-000820260611', 'CAT202606111102317495', 'Strogonoff De Pollo', 'Pollo en salsa blanca', '9.00', 'prod_6a2dae88b238b.jpg', '1', '1', 'COCINA', '2026-06-11 10:46:37'),
+            ('PROD-000920260611', 'CAT202606131542228868', 'Combo De Tacos', '3 tacos de carne y pollo', '10.00', 'prod_6a2db1a4a67af.webp', '0', '1', 'COCINA', '2026-06-11 10:46:37'),
+            ('PROD-001020260611', 'CAT202606131540568458', 'Patacón', 'tostón de plátano verde acompa
+ñado de 130 Gr de carne o pollo mechado 
+lechuga tomate jamón queso amarillo y
+salsas tradicionales', '9.00', 'prod_6a2db6ce22e31.jpg', '1', '1', 'COCINA', '2026-06-11 10:46:37'),
+            ('PROD202606111134584244', 'CAT202606131542228868', 'Nachos Con Queso', 'nachos con queso', '11.00', 'prod_6a2ad5a25275a.jpg', '1', '1', 'COCINA', '2026-06-11 11:34:58')";
+            $this->db->exec($sql);
+            echo "       Productos reales creados.\n";
         }
+    }
 
-        $sql = "INSERT INTO producto 
-                (id_producto, id_categoria, nombre_producto, descripcion, precio, es_personalizable, tipo_producto, estatus) 
-                VALUES 
-                (:id, :id_categoria, :nombre, :descripcion, :precio, :personalizable, :tipo, 1)";
-
-        $stmt = $this->db->prepare($sql);
-        $tipos = ['COCINA', 'BARRA', 'POSTRE', 'RETAIL'];
-
-        for ($i = 0; $i < $cantidad; $i++) {
-            $precio = $this->faker->randomFloat(2, 5, 100);
-            $stmt->execute([
-                'id' => 'PROD-' . str_pad($i + 1, 4, '0', STR_PAD_LEFT) . date('Ymd'),
-                'id_categoria' => $this->faker->randomElement($categorias),
-                'nombre' => ucfirst($this->faker->words(2, true)),
-                'descripcion' => $this->faker->sentence(6),
-                'precio' => $precio,
-                'personalizable' => $this->faker->boolean(30) ? 1 : 0,
-                'tipo' => $this->faker->randomElement($tipos)
-            ]);
+    private function crearPreparaciones()
+    {
+        $count = $this->db->query("SELECT COUNT(*) FROM preparacion")->fetchColumn();
+        if ($count == 0) {
+            $sql = "INSERT IGNORE INTO preparacion (`id_preparacion`, `id_producto`, `id_insumo`, `prioridad_insumo`, `cantidad`, `id_unidad_medida`, `precio_insumo`) VALUES 
+            ('PREP20260613154716442', 'PROD202606111134584244', 'INGR001220260611', '1', '1.00000000', 'MEDIAPA23220260519200547232', '0.00'),
+            ('PREP20260613154716736', 'PROD202606111134584244', 'INGR000120260611', '1', '20.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613154716780', 'PROD202606111134584244', 'INGR000420260611', '1', '500.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154729329', 'PROD-000420260611', 'INGR001020260611', '1', '15.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154729356', 'PROD-000420260611', 'INGR000120260611', '1', '2.00000000', 'MEDIAPA23220260519200547232', '0.00'),
+            ('PREP20260613154729440', 'PROD-000420260611', 'INGR000620260611', '1', '2.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613154729490', 'PROD-000420260611', 'INGR001420260611', '2', '1.00000000', 'MEDIAGA23220260519200547232', '3.00'),
+            ('PREP20260613154729521', 'PROD-000420260611', 'INGR000220260611', '1', '0.50000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613154729560', 'PROD-000420260611', 'INGR001320260611', '1', '0.50000000', 'MEDIALL23220260519200547232', '0.00'),
+            ('PREP20260613154729585', 'PROD-000420260611', 'INGR001620260611', '1', '100.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154748115', 'PROD-000620260611', 'INGR000220260611', '1', '200.00000000', 'MEDIACA23220260519200547232', '0.00'),
+            ('PREP20260613154748511', 'PROD-000620260611', 'INGR001720260611', '1', '50.00000000', 'MEDIAML23220260519200547232', '0.00'),
+            ('PREP20260613154748803', 'PROD-000620260611', 'INGR001420260611', '1', '200.00000000', 'MEDIAML23220260519200547232', '0.00'),
+            ('PREP20260613154748828', 'PROD-000620260611', 'INGR000120260611', '1', '200.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613154748947', 'PROD-000620260611', 'INGR001620260611', '1', '100.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154755322', 'PROD-000920260611', 'INGR000120260611', '1', '150.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613154755836', 'PROD-000920260611', 'INGR000620260611', '1', '1.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613154756746', 'PROD-000920260611', 'INGR001620260611', '1', '60.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154756937', 'PROD-000920260611', 'INGR000220260611', '1', '150.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613154932164', 'PROD-000520260611', 'INGR001420260611', '1', '1.00000000', 'MEDIALL23220260519200547232', '0.00'),
+            ('PREP20260613154932214', 'PROD-000520260611', 'INGR001120260611', '1', '1.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613154932502', 'PROD-000520260611', 'INGR000620260611', '1', '2.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613154932542', 'PROD-000520260611', 'INGR001720260611', '2', '100.00000000', 'MEDIAML23220260519200547232', '2.00'),
+            ('PREP20260613154932667', 'PROD-000520260611', 'INGR000220260611', '1', '2.00000000', 'MEDIAPA23220260519200547232', '0.00'),
+            ('PREP20260613154932851', 'PROD-000520260611', 'INGR001620260611', '1', '300.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154932899', 'PROD-000520260611', 'INGR000120260611', '1', '500.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613154942352', 'PROD-000820260611', 'INGR000220260611', '1', '300.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613154942499', 'PROD-000820260611', 'INGR001420260611', '1', '100.00000000', 'MEDIAML23220260519200547232', '0.00'),
+            ('PREP20260613154942932', 'PROD-000820260611', 'INGR000620260611', '1', '1.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613155023579', 'PROD-000120260611', 'INGR001320260611', '1', '2.00000000', 'MEDIALL23220260519200547232', '0.00'),
+            ('PREP20260613155023582', 'PROD-000120260611', 'INGR000820260611', '1', '3.00000000', 'MEDIAML23220260519200547232', '0.00'),
+            ('PREP20260613155433100', 'PROD-000220260611', 'INGR001620260611', '1', '50.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613155433457', 'PROD-000220260611', 'INGR001420260611', '1', '50.00000000', 'MEDIALL23220260519200547232', '0.00'),
+            ('PREP20260613155433994', 'PROD-000220260611', 'INGR000220260611', '1', '100.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613160014297', 'PROD-001020260611', 'INGR000220260611', '1', '1.00000000', 'MEDIACA23220260519200547232', '0.00'),
+            ('PREP20260613160014372', 'PROD-001020260611', 'INGR001120260611', '1', '1.00000000', 'MEDIAPA23220260519200547232', '0.00'),
+            ('PREP20260613160014381', 'PROD-001020260611', 'INGR001320260611', '1', '1.00000000', 'MEDIAML23220260519200547232', '0.00'),
+            ('PREP20260613160014512', 'PROD-001020260611', 'INGR000820260611', '1', '1.00000000', 'MEDIALL23220260519200547232', '0.00'),
+            ('PREP20260613160014590', 'PROD-001020260611', 'INGR000120260611', '1', '1.00000000', 'MEDIAUN23220260519200547232', '0.00')";
+            $this->db->exec($sql);
+            echo "       Preparaciones reales creadas.\n";
         }
-        echo "       $cantidad productos generados.\n";
     }
 
     private function crearInsumosFalsos($cantidad)

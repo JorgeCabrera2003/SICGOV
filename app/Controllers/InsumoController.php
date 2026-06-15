@@ -79,12 +79,14 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 								if ($_POST["peticion"] == "registrar") {
 									$id = Helper::generarId("INSUM");
 									$str_mensaje = "registró";
+									$str_accion = "REGISTRAR";
 									$insumoModel->setStockActual($_POST["stock_inicial"]);
 								}
 
 								if ($_POST["peticion"] == "modificar") {
 									$id = $_POST["id_insumo"];
 									$str_mensaje = "modificó";
+									$str_accion = "MODIFICAR";
 								}
 
 								$insumoModel->setId($id);
@@ -117,6 +119,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 											if ($responseDetalle['estado'] == 1) {
 												$json['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => 'Insumo registrado exitosamente'];
 												$json['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => 'Insumo registrado exitosamente'];
+												
 											} else {
 												$json['response'] = ['resultado' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
 												$json['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
@@ -126,7 +129,8 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 											$json['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
 										}
 									}
-									$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un nuevo insumo con ID:" . $insumoModel->getId();
+									$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un insumo con ID:" . $insumoModel->getId();
+									Helper::Bitacora($str_accion, 'INSUMO', $msg);
 								} else {
 									$json['response'] = ['resultado' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
 									$json['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
@@ -182,6 +186,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 
 					if ($json['estado'] == 1) {
 						$msg = "(" . $_SESSION['user']['cedula'] . "), Se eliminó un insumo con el id:" . $_POST["id_insumo"];
+						Helper::Bitacora('ELIMINAR', 'INSUMO', $msg);
 					} else {
 						$msg = "(" . $_SESSION['user']['cedula'] . "), error al eliminar un insumo";
 					}
@@ -290,7 +295,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "CategoriaInsumo") {
 					} else {
 						$msg = "Error al eliminar una categoría de insumo";
 					}
-					Helper::Bitacora('ELIMINAR', 'INGREDIENTE/CATEGORÍA DE INGREDIENTE', $msg);
+					Helper::Bitacora('ELIMINAR', 'INSUMO/CATEGORÍA DE INSUMO', $msg);
 				} catch (Exception $exception) {
 					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 					$json['response'] = ['resultado' => 400, 'mensaje' => $exception->getMessage()];
@@ -315,15 +320,31 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "CategoriaInsumo") {
 if (isset($_POST["modulo"]) && $_POST["modulo"] == "UnidadMedida") {
 	if (isset($_POST["peticion"])) {
 
-		//Entrada
-		if ($_POST["peticion"] == "entrada") {
-			$json['HTTP_STATUS'] = ['codigo' => 204, 'mensaje' => ''];
-			$json['response'] = ['resultado' => 204, 'mensaje' => 'No hay contenido'];
-		}
-
 		//Consultar
 		if ($_POST["peticion"] == "consultar") {
 			$json = $unidadMedidaModel->Transaccion(['peticion' => $_POST["peticion"]]);
+		}
+
+		//Filtrar Unidad
+		if ($_POST["peticion"] == "filtrar") {
+			$unidadMedidaModel->setId($_POST['id_unidad']);
+			$json = $unidadMedidaModel->Transaccion(['peticion' => $_POST["peticion"]]);
+		}
+
+		//Enviar respuesta al navegador usando un encabezado HTTP
+		header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
+		echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
+		exit;
+	} //Fin de Operaciones
+}
+
+if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
+	if (isset($_POST["peticion"])) {
+
+		//Consultar
+		if ($_POST["peticion"] == "filtrar") {
+			$entradaInsumoModel->setIdInsumo($_POST['insumo']);
+			$json = $entradaInsumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 		}
 
 		//Enviar respuesta al navegador usando un encabezado HTTP
@@ -335,5 +356,6 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "UnidadMedida") {
 
 Helper::cargarVista(
 	'insumo/index',
-	'Insumos - Good Vibes'
+	'Insumos - Good Vibes',
+	['ver' => $permisosInsumo['insumo']['ver']]
 );

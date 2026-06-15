@@ -218,8 +218,13 @@ class Helper
 
     public static function cargarVista($vistaPath, $titulo = 'Good Vibes', $vars = [])
     {
+        if(isset($vars['ver']) && $vars['ver'] != 1){
+            header("Location: ?page=Dashboard");
+        }
+
         self::verificarSesion();
-        $permisos = self::TraerPermisos();
+        $permisosGlobales = self::TraerPermisos();
+        $permisos = $permisosGlobales;
 
         $varsVista = self::getVarsVista($titulo);
         $vars = array_merge($varsVista, $vars);

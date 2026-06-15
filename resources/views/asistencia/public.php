@@ -85,7 +85,7 @@
 
                                     <div class="col-12 col-md-8 mx-auto text-start">
                                         <span id="employeeInfo" class="text-muted d-none border rounded-2 px-3 py-2" style="font-size: .95rem; display: inline-block;">
-                                            Empleado: <strong id="employeeName" class="text-dark"></strong>
+                                            Empleado: <strong id="employeeName" class="text-body"></strong>
                                         </span>
                                     </div>
 
@@ -101,10 +101,7 @@
                                         <div class="invalid-feedback" id="stipo_marcacion"></div>
                                     </div>
 
-                                    <div class="col-12 col-md-8 mx-auto text-start">
-                                        <label for="observacion" class="form-label fw-semibold">Observaciones</label>
-                                        <textarea class="form-control" id="observacion" name="observacion" rows="4" placeholder="Ej: Llegó tarde por tráfico"></textarea>
-                                    </div>
+                                    <!-- Campo 'Observaciones' eliminado en vista pública -->
 
                                     <div class="col-12 col-md-8 mx-auto text-end">
                                         <button type="button" class="btn btn-warning text-dark fw-semibold" id="btnRegisterAttendance" disabled>

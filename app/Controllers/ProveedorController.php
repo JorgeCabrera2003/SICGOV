@@ -9,6 +9,8 @@ use Exception;
 Helper::verificarSesion();
 
 $proveedorModel = new Proveedor();
+$permisosProveedor = Helper::TraerPermisos("proveedor");
+
 if (isset($_POST["peticion"])) {
 
 	//Entrada
@@ -19,8 +21,15 @@ if (isset($_POST["peticion"])) {
 
 	//Registrar y Modificar
 	if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
-		$accion_permiso = true;
-		//Validaciones
+		$accion_permiso = false;
+
+		if (isset($permisosProveedor["proveedor"]["registrar"]) && $permisosProveedor["proveedor"]["registrar"] == 1 && $_POST["peticion"] == "registrar") {
+			$accion_permiso = true;
+		}
+
+		if (isset($permisosProveedor["proveedor"]["modificar"]) && $permisosProveedor["proveedor"]["modificar"] == 1 && $_POST["peticion"] == "modificar") {
+			$accion_permiso = true;
+		}
 		if ($accion_permiso) {
 			$bool_formulario = true;
 			$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
@@ -68,7 +77,11 @@ if (isset($_POST["peticion"])) {
 	//Fin del Consultar 
 //Eliminar
 	if ($_POST["peticion"] == "eliminar") {
-		$accion_permiso = true;
+		$accion_permiso = false;
+
+		if (isset($permisosProveedor["proveedor"]["eliminar"]) && $permisosProveedor["proveedor"]["eliminar"] == 1) {
+			$accion_permiso = true;
+		}
 
 		if ($accion_permiso) {
 			$bool_formulario = true;
@@ -105,5 +118,6 @@ if (isset($_POST["peticion"])) {
 
 Helper::cargarVista(
 	'proveedor/index',
-	'Proveedores - Good Vibes'
+	'Proveedores - Good Vibes',
+	['ver' => $permisosProveedor['proveedor']['ver']]
 );

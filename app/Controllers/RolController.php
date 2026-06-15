@@ -12,6 +12,8 @@ Helper::verificarSesion();
 
 $rolModel = new Rol();
 $permisoModel = new Permiso();
+$permisosRol = Helper::TraerPermisos("rol");
+
 $json['datos_nuevos'] = NULL;
 $json['datos_anteriores'] = NULL;
 if (isset($_POST["peticion"])) {
@@ -24,8 +26,16 @@ if (isset($_POST["peticion"])) {
 
 	//Registrar y Modificar
 	if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
-		$accion_permiso = true;
-		//Validaciones
+		$accion_permiso = false;
+
+		if (isset($permisosRol['rol']['registrar']) && $permisosRol['rol']['registrar'] == 1 && $_POST["peticion"] == "registrar") {
+			$accion_permiso = true;
+		}
+
+		if (isset($permisosRol['rol']['modificar']) && $permisosRol['rol']['modificar'] == 1 && $_POST["peticion"] == "modificar") {
+			$accion_permiso = true;
+		}
+
 		if ($accion_permiso) {
 			$bool_formulario = true;
 			$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
@@ -68,10 +78,10 @@ if (isset($_POST["peticion"])) {
 						$permisoModel->setIdRol($rolModel->getId());
 						$responsePermiso = $permisoModel->Transaccion(['peticion' => 'cargar', 'permisos' => $permisos]);
 
-						$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un rol con el ID: " . $rolModel->getId(). ". Pero hubo un fallo al cargar los permisos";
+						$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un rol con el ID: " . $rolModel->getId() . ". Pero hubo un fallo al cargar los permisos";
 
 						if ($responsePermiso['estado'] == 1) {
-							$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un rol con el ID: " . $rolModel->getId();	
+							$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un rol con el ID: " . $rolModel->getId();
 						}
 					} else {
 						$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un rol";
@@ -96,7 +106,11 @@ if (isset($_POST["peticion"])) {
 	//Fin del Consultar 
 //Eliminar
 	if ($_POST["peticion"] == "eliminar") {
-		$accion_permiso = true;
+		$accion_permiso = false;
+
+		if (isset($permisosRol['rol']['modificar']) && $permisosRol['rol']['modificar'] == 1 && $_POST["peticion"] == "modificar") {
+			$accion_permiso = true;
+		}
 
 		if ($accion_permiso) {
 			$bool_formulario = true;
@@ -139,5 +153,6 @@ if (isset($_POST["peticion"])) {
 
 Helper::cargarVista(
 	'rol/index',
-	'Roles - Good Vibes'
+	'Roles - Good Vibes',
+	['ver' => $permisosRol['rol']['ver']]
 );

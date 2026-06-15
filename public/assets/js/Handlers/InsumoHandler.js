@@ -1,8 +1,8 @@
-import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js"
-import * as AjaxHelper from "../Helpers/AjaxHelper.js"
-import * as ValidadorHelper from "../Helpers/ValidadorHelper.js"
-import * as SelectHelper from "../Helpers/SelectHelper.js"
-import * as PermisoHelper from "../Helpers/PermisoHelper.js"
+import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js";
+import * as AjaxHelper from "../Helpers/AjaxHelper.js";
+import * as ValidadorHelper from "../Helpers/ValidadorHelper.js";
+import * as SelectHelper from "../Helpers/SelectHelper.js";
+import * as PermisoHelper from "../Helpers/PermisoHelper.js";
 
 //MODULO DE INGREDIENTES
 
@@ -470,6 +470,7 @@ async function RenderPermisoBotones(modulo = "Insumo") {
   let bool = false;
   let btn_eliminar = "";
   let btn_modificar = "";
+  let btn_suministrar = "";
   let separadorHTML = "";
 
   if (permisos['insumo']['modificar'] != undefined && permisos['insumo']['modificar'] == 1) {
@@ -484,6 +485,18 @@ async function RenderPermisoBotones(modulo = "Insumo") {
     btn_modificar = itemEditar;
     bool = true;
   }
+  if (permisos['insumo']['suministrar'] != undefined && permisos['insumo']['suministrar'] == 1) {
+    const itemSumistrar = $('<li>');
+    const linkSumistrar = $('<a>')
+      .addClass('dropdown-item btn-suministrar text-success')
+      .attr('href', '#')
+      .attr('data-accion', 2)
+      .attr('data-modulo', "Suministrar")
+      .html('<i class="fa-solid fa-down-long me-2"></i>Suministrar');
+    itemSumistrar.append(linkSumistrar);
+    btn_suministrar = itemSumistrar;
+    bool = true;
+  }
 
   if (permisos['insumo']['eliminar'] != undefined && permisos['insumo']['modificar'] == 1) {
     const itemEliminar = $('<li>');
@@ -492,13 +505,13 @@ async function RenderPermisoBotones(modulo = "Insumo") {
       .attr('href', '#')
       .attr('data-accion', 1)
       .attr('data-modulo', modulo)
-      .html('<i class="fas fa-trash me-2" me-2"></i>Eliminar');
+      .html('<i class="fas fa-trash me-2"></i>Eliminar');
     itemEliminar.append(linkEliminar);
     btn_eliminar = itemEliminar;
     bool = true;
   }
 
-  if (btn_modificar != "" && btn_eliminar != "") {
+  if ((btn_modificar != "" || btn_suministrar != "") && btn_eliminar != "") {
     const separador = $('<li>').html('<hr class="dropdown-divider">');
     separadorHTML = separador;
   }
@@ -512,7 +525,7 @@ async function RenderPermisoBotones(modulo = "Insumo") {
   const menu = $('<ul>').addClass('dropdown-menu');
 
 
-  menu.append(btn_modificar, separadorHTML, btn_eliminar);
+  menu.append(btn_modificar, btn_suministrar, separadorHTML, btn_eliminar);
   dropdown.append(boton, menu);
 
   if (!bool) {
