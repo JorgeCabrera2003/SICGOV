@@ -10,7 +10,7 @@
         public function __construct() {
 
             if (!isset($_REQUEST["page"]) || empty($_REQUEST["page"])) {
-                $_REQUEST["page"] = "Noticia";
+                $_REQUEST["page"] = "Home";
                 if (!isset($_REQUEST["type"])) {
                     $_REQUEST["type"] = "publico";
                 }

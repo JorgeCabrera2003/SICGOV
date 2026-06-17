@@ -11,25 +11,7 @@ foreach ($menus as $menuItem) {
 
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/pedidos-publico.css?v=<?= time() ?>">
 
-<!-- Top Bar -->
-<div class="news-top-bar py-2 shadow-sm border-bottom bg-body-tertiary">
-    <div class="container d-flex justify-content-between align-items-center">
-        <div class="date-now small">
-            <i class="far fa-calendar-alt me-2 text-primary"></i> Good Vibes Tapas Bar
-        </div>
-        <div class="d-flex align-items-center">
-            <?php if (!isset($_SESSION['user'])): ?>
-                <a href="<?= BASE_URL ?>?page=login" class="btn btn-sm btn-outline-primary fw-bold text-uppercase px-3 rounded-pill">
-                    <i class="fas fa-lock me-1"></i> Acceso
-                </a>
-            <?php else: ?>
-                <a href="<?= BASE_URL ?>?page=dashboard" class="btn btn-sm btn-primary fw-bold text-uppercase px-3 rounded-pill shadow-sm">
-                    <i class="fas fa-tachometer-alt me-1"></i> Panel
-                </a>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
+<!-- Top Bar Removida (Se usa el Header Global) -->
 
 <!-- Header Promocional -->
 <div class="menu-hero text-center py-5 bg-dark text-white position-relative overflow-hidden" style="background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('<?= BASE_URL ?>/assets/img/hero-menu-new.png') center/cover;">
@@ -87,9 +69,15 @@ foreach ($menus as $menuItem) {
                                                     <h5 class="card-title fw-bold mb-1"><?= htmlspecialchars($p['nombre_producto']) ?></h5>
                                                     <p class="text-primary fw-bold fs-5 mb-2">$<?= number_format($p['precio'], 2) ?></p>
                                                     <p class="card-text text-muted small flex-grow-1"><?= htmlspecialchars($p['descripcion'] ?: 'Delicioso platillo preparado al momento.') ?></p>
+                                                    <?php if(isset($_SESSION['user'])): ?>
                                                     <button class="btn btn-outline-primary mt-3 rounded-pill fw-bold btn-add-product" data-id="<?= $p['id_producto'] ?>">
                                                         <i class="fas fa-plus me-1"></i> Añadir
                                                     </button>
+                                                    <?php else: ?>
+                                                    <a href="<?= BASE_URL ?>?page=login&msg=inicia-sesion" class="btn btn-outline-secondary mt-3 rounded-pill fw-bold">
+                                                        <i class="fas fa-lock me-1"></i> Iniciar Sesión
+                                                    </a>
+                                                    <?php endif; ?>
                                                 </div>
                                             </div>
                                         </div>
@@ -147,6 +135,7 @@ foreach ($menus as $menuItem) {
                     <div class="cart-header">
                         <i class="fas fa-shopping-basket me-2 text-primary"></i> Mi Pedido
                     </div>
+                    <?php if(isset($_SESSION['user'])): ?>
                     <div class="cart-items" id="cart-items-container">
                         <!-- Items rendered via JS -->
                         <div class="text-center text-muted mt-5" id="empty-cart-msg">
@@ -163,6 +152,16 @@ foreach ($menus as $menuItem) {
                             Proceder al Pago
                         </button>
                     </div>
+                    <?php else: ?>
+                    <div class="cart-items d-flex flex-column align-items-center justify-content-center text-center p-4">
+                        <i class="fas fa-lock text-muted fs-1 mb-3 opacity-50"></i>
+                        <h5 class="fw-bold text-muted mb-2">Carrito Bloqueado</h5>
+                        <p class="small text-muted mb-4">Debes iniciar sesión para comenzar a armar tu pedido.</p>
+                        <a href="<?= BASE_URL ?>?page=login&msg=inicia-sesion" class="btn btn-primary rounded-pill fw-bold w-100">
+                            Iniciar Sesión
+                        </a>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -182,6 +181,7 @@ foreach ($menus as $menuItem) {
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
   <div class="offcanvas-body d-flex flex-column p-0">
+    <?php if(isset($_SESSION['user'])): ?>
     <div class="cart-items flex-grow-1 p-3" id="mobile-cart-items-container">
         <!-- Rendered via JS -->
     </div>
@@ -194,6 +194,16 @@ foreach ($menus as $menuItem) {
             Proceder al Pago
         </button>
     </div>
+    <?php else: ?>
+    <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center text-center p-4">
+        <i class="fas fa-lock text-muted fs-1 mb-3 opacity-50"></i>
+        <h5 class="fw-bold text-muted mb-2">Carrito Bloqueado</h5>
+        <p class="small text-muted mb-4">Debes iniciar sesión para comenzar a armar tu pedido.</p>
+        <a href="<?= BASE_URL ?>?page=login&msg=inicia-sesion" class="btn btn-primary rounded-pill fw-bold w-100">
+            Iniciar Sesión
+        </a>
+    </div>
+    <?php endif; ?>
   </div>
 </div>
 
@@ -359,4 +369,56 @@ foreach ($menus as $menuItem) {
     .transition-scale { transition: transform .5s ease; }
     .hover-lift:hover .transition-scale { transform: scale(1.05); }
     .fs-7 { font-size: 0.85rem; }
+    
+    /* Ocultar el footer genérico del sistema si está presente */
+    main.main-content > footer.bg-body-tertiary {
+        display: none !important;
+    }
 </style>
+
+<!-- Public Footer -->
+<footer class="bg-dark text-white pt-5 pb-4 mt-auto" style="border-top: 5px solid var(--color-acento);">
+    <div class="container text-center text-md-start">
+        <div class="row text-center text-md-start">
+            <div class="col-md-4 col-lg-4 col-xl-4 mx-auto mt-3">
+                <h5 class="text-uppercase mb-4 fw-bold" style="color: var(--color-acento);">Good Vibes</h5>
+                <p>Tu punto de encuentro favorito en Barquisimeto donde la gastronomía y la buena música se unen para ofrecerte experiencias inolvidables.</p>
+            </div>
+            <div class="col-md-3 col-lg-3 col-xl-3 mx-auto mt-3">
+                <h5 class="text-uppercase mb-4 fw-bold" style="color: var(--color-acento);">Enlaces Útiles</h5>
+                <p><a href="<?= BASE_URL ?>?page=nuestro-menu" class="text-white text-decoration-none">Menú</a></p>
+                <p><a href="<?= BASE_URL ?>?page=login" class="text-white text-decoration-none">Iniciar Sesión</a></p>
+                <p><a href="<?= BASE_URL ?>?page=asistencia-publica" class="text-white text-decoration-none">Asistencia</a></p>
+            </div>
+            <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mt-3">
+                <h5 class="text-uppercase mb-4 fw-bold" style="color: var(--color-acento);">Contacto</h5>
+                <p><i class="fas fa-home mr-3"></i> Av. Los Leones, Barquisimeto, VE</p>
+                <p><i class="fas fa-envelope mr-3"></i> contacto@goodvibes.com</p>
+                <p><i class="fas fa-phone mr-3"></i> +58 412-6159308</p>
+            </div>
+        </div>
+        <hr class="mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-7 col-lg-8">
+                <p>Copyright © <?= date('Y') ?> Todos los derechos reservados por:
+                    <a href="#" style="text-decoration: none;"><strong style="color: var(--color-acento);">Good Vibes Tapas & Bar</strong></a>
+                </p>
+            </div>
+            <div class="col-md-5 col-lg-4">
+                <div class="text-center text-md-end">
+                    <ul class="list-unstyled list-inline">
+                        <li class="list-inline-item">
+                            <a href="https://www.instagram.com/goodvibes_tapasbar/" class="btn-floating btn-sm text-white" style="font-size: 23px;"><i class="fab fa-instagram"></i></a>
+                        </li>
+                        <li class="list-inline-item">
+                            <a href="#" class="btn-floating btn-sm text-white" style="font-size: 23px;"><i class="fab fa-tiktok"></i></a>
+                        </li>
+                        <li class="list-inline-item">
+                            <a href="#" class="btn-floating btn-sm text-white" style="font-size: 23px;"><i class="fab fa-facebook-f"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
