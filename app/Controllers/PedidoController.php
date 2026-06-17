@@ -7,6 +7,7 @@ use App\Models\System\Menu;
 use App\Helpers\Helper;
 
 
+
 Helper::verificarSesion();
 
 $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
@@ -107,6 +108,7 @@ if ($isAjax || !empty($action)) {
     }
     exit;
 }
+
 
 
 $page = $_GET['page'] ?? 'pedidos';
