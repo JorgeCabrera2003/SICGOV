@@ -27,6 +27,8 @@
                     $_REQUEST["type"] = 'publico';
                 } elseif ($_REQUEST["page"] === 'pedidos') {
                     $this->url = 'Pedido';
+                } elseif ($_REQUEST["page"] === 'crear-cuenta') {
+                    $this->url = 'Login';
                 } else {
                     $this->url = $_REQUEST["page"];
                 }

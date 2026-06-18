@@ -367,12 +367,50 @@
     <?php if (isset($hideSidebar) && $hideSidebar): ?>
     <style>
         #top-nav {
-            background-color: var(--color-acento) !important;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            border-bottom: none !important;
+            background: rgba(22, 24, 28, 0.85) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 2px solid var(--color-acento) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            height: 75px !important;
+            transition: all 0.3s ease;
         }
-        #top-nav .btn-link, #top-nav i, #top-nav span:not(.notificacion__badge) {
-            color: #1A1C20 !important;
+        #top-nav > div {
+            height: 75px !important;
+        }
+        #top-nav .btn-link, #top-nav i, #top-nav span:not(.notificacion__badge):not(.profile-role-badge) {
+            color: #ffffff !important;
+            transition: color 0.3s ease;
+        }
+        #top-nav .btn-link:hover, #top-nav .btn-link:hover i {
+            color: var(--color-acento) !important;
+        }
+        #top-nav .logo-img {
+            height: 100px !important;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 0 10px rgba(255, 204, 0, 0.6));
+        }
+        #top-nav .logo-img:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 20px rgba(255, 204, 0, 0.9));
+        }
+        #top-nav .dropdown-menu i, #top-nav .dropdown-menu span, #top-nav .dropdown-menu .fw-semibold, #top-nav .dropdown-menu .text-muted {
+            color: inherit !important;
+        }
+        #top-nav .btn-primary {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            border: 2px solid transparent !important;
+        }
+        #top-nav .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 204, 0, 0.4);
+            background-color: transparent !important;
+            border-color: var(--color-acento) !important;
+            color: var(--color-acento) !important;
+        }
+        #top-nav .btn-primary:hover span, #top-nav .btn-primary:hover i {
+            color: var(--color-acento) !important;
         }
     </style>
     <?php endif; ?>
@@ -388,9 +426,8 @@
                     </button>
                 <?php else: ?>
                     <!-- Logo para la vista pública -->
-                    <a href="<?= BASE_URL ?>" class="text-decoration-none d-flex align-items-center gap-2">
-                        <img src="<?= BASE_URL ?>/assets/img/favicon.ico" alt="logo" class="logo-img" style="height: 30px;">
-                        <span class="h5 mb-0 fw-bold" style="color: #1A1C20; letter-spacing: -0.5px;">GOOD VIBES</span>
+                    <a href="<?= BASE_URL ?>" class="text-decoration-none d-flex align-items-center gap-2 py-1">
+                        <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="logo" class="logo-img">
                     </a>
                 <?php endif; ?>
             </div>
@@ -458,12 +495,7 @@
                                 </a>
                             </li>
                         <?php endif; ?>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2" href="<?php echo BASE_URL; ?>/?page=configuracion">
-                                <i class="bi bi-gear"></i> Configuración
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
+
                         <li>
                             <a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="<?php echo BASE_URL; ?>/?page=logout">
                                 <i class="bi bi-box-arrow-right"></i> Cerrar sesión

@@ -12,10 +12,7 @@
                 <p class="hero-subtitle">Descubre una experiencia gastronómica única con ingredientes frescos y el mejor ambiente. Tu restaurante favorito, ahora más cerca de ti.</p>
                 <div class="hero-cta">
                     <a href="<?= BASE_URL ?>?page=nuestro-menu" class="btn btn-cta btn-cta-primary">
-                        <i class="fas fa-utensils"></i> Ver Menú
-                    </a>
-                    <a href="<?= BASE_URL ?>?page=pedidos" class="btn btn-cta btn-cta-outline">
-                        <i class="fas fa-motorcycle"></i> Pedir Ahora
+                        <i class="fas fa-utensils"></i> Ver menú y realizar pedido
                     </a>
                 </div>
             </div>

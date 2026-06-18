@@ -3,6 +3,13 @@
      ========================================================================== -->
 
 <main class="container-fluid py-4">
+    <?php if (isset($hideSidebar) && $hideSidebar): ?>
+    <div class="mb-4 px-4">
+        <a href="<?= BASE_URL ?>" class="btn btn-primary fw-bold text-dark rounded-pill px-4" style="background-color: var(--color-acento); border: none;">
+            <i class="bi bi-arrow-left me-2"></i> Volver a la página principal
+        </a>
+    </div>
+    <?php endif; ?>
     <!-- Header de Perfil -->
     <section class="profile-header-container p-4 pb-0">
         <!-- Información Básica & Avatar Overlap -->
