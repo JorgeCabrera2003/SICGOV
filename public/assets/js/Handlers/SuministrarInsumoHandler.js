@@ -106,19 +106,13 @@ export async function EnviarDatos(operacion) {
   let peticion = new FormData();
   let json = { resultado: 0 };
 
-  peticion.append("modulo", "Suministrar");
+  peticion.append("modulo", "EntradaInsumo");
 
   //Registrar y Modificar
   if (operacion == "suministrar") {
-    let bool_peticion = true;
-    let stock_maximo = input.stock_maximo.val();
 
-    if (input.stock_maximo.val() == "" || input.stock_maximo.val() == null) {
-      stock_maximo = 0;
-    }
-
-    if (Validarenvio() && bool_peticion) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} un Suministrar`, mensajeConfirmacion, "question");
+    if (Validarenvio()) {
+      confirmacion = await confirmarAccion(`Se va a suministrar un insumo`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', "suministrar");
@@ -336,10 +330,10 @@ export function LimpiarFormulario() {
   let modal = EtiquetasModal('Suministrar');
   let fila_stock_inicial = $("#fila-stock-inicial");
 
-  input.insumo.val("").prop("readOnly", true);
+  input.insumo.val("").prop("readOnly", false);
   input.proveedor.val("default").prop("disabled", false);
   input.stock.val("").prop("disabled", false);
-  input.insumo.prop('dataset').insumo = ""
+  input.insumo.prop('dataset').insumo = "";
   input.unidad_medida.val("default").prop("disabled", false);
 
   // Deshabilitar el botón al limpiar (se habilitará automáticamente cuando los campos sean válidos)

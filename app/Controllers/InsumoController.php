@@ -119,7 +119,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 											if ($responseDetalle['estado'] == 1) {
 												$json['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => 'Insumo registrado exitosamente'];
 												$json['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => 'Insumo registrado exitosamente'];
-												
+
 											} else {
 												$json['response'] = ['resultado' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
 												$json['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
@@ -351,19 +351,38 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 		if ($_POST["peticion"] == "suministrar") {
 			$arregloInsumo = [];
 			$arregloUnidad = [];
-			
+
 			$insumoModel->setId($_POST['id_insumo']);
 			$arregloInsumo = $insumoModel->Transaccion(["peticion" => "validar"]);
 
-			$unidadMedidaModel->setId($_POST['id_insumo']);
+			$unidadMedidaModel->setId($_POST['id_unidad']);
 			$arregloUnidad = $unidadMedidaModel->Transaccion(["peticion" => "validar"]);
 
-			$detalleEntradaModel->setId($_POST['id_entrada']);
-			$detalleEntradaModel->setIdUnidad($_POST['id_unidad']);
-			$detalleEntradaModel->setCantidad($_POST['stock']);
-			$detalleEntradaModel->setDescripcion("Ingreso de");
+			if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1) {
 
-			$json = $entradaInsumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
+				$stock_actualido = $unidadMedidaModel->TablaConversion(
+					$_POST['stock'],
+					$arregloInsumo['response']['registro']['stock_actual'],
+					$arregloUnidad['response']['registro']['abreviatura'],
+					$arregloInsumo['response']['registro']['abreviatura'],
+					"sumar"
+				);
+
+				$id = Helper::generarId("DETAL");
+				$detalleEntradaModel->setId($id);
+				$detalleEntradaModel->setIdEntrada($_POST['id_entrada']);
+				$detalleEntradaModel->setIdUnidad($_POST['id_unidad']);
+				$detalleEntradaModel->setCantidad($_POST['stock']);
+				$detalleEntradaModel->setDescripcion(
+					"Se ingresarón " . $_POST['stock'] . $arregloUnidad['response']['registro']['abreviatura'] . ". Quedando con una cantidad de: " . $stock_actualido . $arregloInsumo['response']['registro']['abreviatura']
+				);
+
+				$json = $detalleEntradaModel->Transaccion(['peticion' => 'registrar']);
+			} else {
+				$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+				$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
+				$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
+			}
 		}
 
 		//Enviar respuesta al navegador usando un encabezado HTTP
