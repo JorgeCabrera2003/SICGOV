@@ -202,7 +202,7 @@ if ($type === 'admin') {
 
 
 } else {
-    // MODO PÚBLICO
+    
     $menuModel = new Menu();
     $menus = $menuModel->Transaccion(['peticion' => 'listar']) ?: [];
     $categorias = $menuModel->Transaccion(['peticion' => 'categorias']) ?: [];
