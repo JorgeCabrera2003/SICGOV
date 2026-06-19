@@ -367,17 +367,27 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 					$arregloInsumo['response']['registro']['abreviatura'],
 					"sumar"
 				);
+				$responseInsumo = ["estado" => 0];
+				$insumoModel->setStockActual($stock_actualido);
+				$responseInsumo = $insumoModel->Transaccion(['peticion' => 'actualizar_stock']);
 
-				$id = Helper::generarId("DETAL");
-				$detalleEntradaModel->setId($id);
-				$detalleEntradaModel->setIdEntrada($_POST['id_entrada']);
-				$detalleEntradaModel->setIdUnidad($_POST['id_unidad']);
-				$detalleEntradaModel->setCantidad($_POST['stock']);
-				$detalleEntradaModel->setDescripcion(
-					"Se ingresarón " . $_POST['stock'] . $arregloUnidad['response']['registro']['abreviatura'] . ". Quedando con una cantidad de: " . $stock_actualido . $arregloInsumo['response']['registro']['abreviatura']
-				);
 
-				$json = $detalleEntradaModel->Transaccion(['peticion' => 'registrar']);
+				if ($responseInsumo['estado'] == 1) {
+					$id = Helper::generarId("DETAL");
+					$detalleEntradaModel->setId($id);
+					$detalleEntradaModel->setIdEntrada($_POST['id_entrada']);
+					$detalleEntradaModel->setIdUnidad($_POST['id_unidad']);
+					$detalleEntradaModel->setCantidad($_POST['stock']);
+					$detalleEntradaModel->setDescripcion(
+						"Se ingresarón " . $_POST['stock'] . $arregloUnidad['response']['registro']['abreviatura'] . ". Quedando con una cantidad de: " . $stock_actualido . $arregloInsumo['response']['registro']['abreviatura']
+					);
+
+					$json = $detalleEntradaModel->Transaccion(['peticion' => 'registrar']);
+					$json['response']['mensaje'] = 'Insumo suministrado exitosamente';
+				} else {
+					$json = $responseInsumo;
+				}
+
 			} else {
 				$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 				$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
