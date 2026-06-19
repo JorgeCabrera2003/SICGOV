@@ -746,6 +746,24 @@ class Menu extends Database
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+//#########################################################################################
+
+
 public function obtenerInsumosProducto($id_producto)
 {
     try {

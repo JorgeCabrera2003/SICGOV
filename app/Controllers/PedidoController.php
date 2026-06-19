@@ -7,6 +7,7 @@ use App\Models\System\Menu;
 use App\Helpers\Helper;
 
 
+
 Helper::verificarSesion();
 
 $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
@@ -54,7 +55,7 @@ if ($isAjax || !empty($action)) {
                 break;
 
             case 'crear_pos':
-                
+               
                 $carritoJson = $_POST['carrito'] ?? '';
                 $carrito = json_decode($carritoJson, true);
                 
@@ -109,10 +110,11 @@ if ($isAjax || !empty($action)) {
 }
 
 
+
 $page = $_GET['page'] ?? 'pedidos';
 
 if ($page === 'pedidos') {
-    // Vista de gestión de pedidos y POS (Modal)
+    
     $menuModel = new Menu();
     $categorias = $menuModel->Transaccion(['peticion' => 'categorias']);
 
@@ -125,11 +127,16 @@ if ($page === 'pedidos') {
         BASE_URL . '/assets/js/Handlers/PosHandler.js'
     ];
 
-    $titulo = 'Gestión de Pedidos - Good Vibes';
-    $datos = Helper::getDatosUsuario();
+     $permisosUsuario = Helper::TraerPermisos("pedido");
 
-    require_once BASE_PATH . '/resources/views/layout/head.php';
-    require_once BASE_PATH . '/resources/views/layout/menu.php';
-    require_once BASE_PATH . '/resources/views/pedidos/index.php';
-    require_once BASE_PATH . '/resources/views/layout/footer.php';
+    Helper::cargarVista(
+        'pedidos/index',
+        'Gestión de Pedidos - Good Vibes',
+        [
+            'ver' => $permisosUsuario['pedido']['ver'] ?? 1,
+            'categorias' => $categorias,
+            'extra_css' => $extra_css,
+            'extra_js' => $extra_js
+        ]
+    );
 }

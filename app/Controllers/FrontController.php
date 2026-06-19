@@ -10,7 +10,7 @@
         public function __construct() {
 
             if (!isset($_REQUEST["page"]) || empty($_REQUEST["page"])) {
-                $_REQUEST["page"] = "Noticia";
+                $_REQUEST["page"] = "Home";
                 if (!isset($_REQUEST["type"])) {
                     $_REQUEST["type"] = "publico";
                 }
@@ -27,6 +27,8 @@
                     $_REQUEST["type"] = 'publico';
                 } elseif ($_REQUEST["page"] === 'pedidos') {
                     $this->url = 'Pedido';
+                } elseif ($_REQUEST["page"] === 'crear-cuenta') {
+                    $this->url = 'Login';
                 } else {
                     $this->url = $_REQUEST["page"];
                 }
