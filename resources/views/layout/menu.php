@@ -363,24 +363,82 @@
 <!-- Contenido principal -->
 <main class="main-content flex-grow-1 <?php echo (isset($hideSidebar) && $hideSidebar) ? 'ms-0 w-100' : ''; ?>"
     id="main-content">
+    
+    <?php if (isset($hideSidebar) && $hideSidebar): ?>
+    <style>
+        #top-nav {
+            background: rgba(22, 24, 28, 0.85) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 2px solid var(--color-acento) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            height: 75px !important;
+            transition: all 0.3s ease;
+        }
+        #top-nav > div {
+            height: 75px !important;
+        }
+        #top-nav .btn-link, #top-nav i, #top-nav span:not(.notificacion__badge):not(.profile-role-badge) {
+            color: #ffffff !important;
+            transition: color 0.3s ease;
+        }
+        #top-nav .btn-link:hover, #top-nav .btn-link:hover i {
+            color: var(--color-acento) !important;
+        }
+        #top-nav .logo-img {
+            height: 100px !important;
+            transition: all 0.3s ease;
+            filter: drop-shadow(0 0 10px rgba(255, 204, 0, 0.6));
+        }
+        #top-nav .logo-img:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 20px rgba(255, 204, 0, 0.9));
+        }
+        #top-nav .dropdown-menu i, #top-nav .dropdown-menu span, #top-nav .dropdown-menu .fw-semibold, #top-nav .dropdown-menu .text-muted {
+            color: inherit !important;
+        }
+        #top-nav .btn-primary {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            border: 2px solid transparent !important;
+        }
+        #top-nav .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 204, 0, 0.4);
+            background-color: transparent !important;
+            border-color: var(--color-acento) !important;
+            color: var(--color-acento) !important;
+        }
+        #top-nav .btn-primary:hover span, #top-nav .btn-primary:hover i {
+            color: var(--color-acento) !important;
+        }
+    </style>
+    <?php endif; ?>
+
     <!-- Barra superior -->
     <header class="bg-body-tertiary border-bottom sticky-top" id="top-nav" style="z-index: 1040;">
         <div class="d-flex align-items-center justify-content-between px-3" style="height: 60px;">
             <div class="d-flex align-items-center gap-3">
-                <!-- Botón para móvil (abrir sidebar) -->
-                <button class="btn btn-link d-lg-none p-0" id="sidebar-toggle" aria-label="Abrir menú">
-                    <i class="bi bi-list fs-4"></i>
-                </button>
-                <!-- Breadcrumbs removidos por solicitud del Usuario -->
-
+                <?php if (!isset($hideSidebar) || !$hideSidebar): ?>
+                    <!-- Botón para móvil (abrir sidebar) -->
+                    <button class="btn btn-link d-lg-none p-0" id="sidebar-toggle" aria-label="Abrir menú">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                <?php else: ?>
+                    <!-- Logo para la vista pública -->
+                    <a href="<?= BASE_URL ?>" class="text-decoration-none d-flex align-items-center gap-2 py-1">
+                        <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="logo" class="logo-img">
+                    </a>
+                <?php endif; ?>
             </div>
 
             <div class="d-flex align-items-center gap-2">
+                <?php if (isset($_SESSION['user'])): ?>
                 <!-- Notificaciones -->
                 <div class="dropdown">
                     <button class="btn btn-link text-decoration-none p-2 position-relative" type="button"
                         data-bs-toggle="dropdown" aria-expanded="false" id="notificationDropdown"
-                        aria-label="Notificaciones" <?php echo !isset($_SESSION['user']) ? 'disabled' : ''; ?>>
+                        aria-label="Notificaciones">
                         <i class="bi bi-bell fs-5"></i>
                         <span class="notificacion__badge" id="notificationBadge" style="display: none;">0</span>
                     </button>
@@ -392,7 +450,6 @@
                             </button>
                         </div>
                         <div class="notificacion__lista" id="notificationList">
-                            <!-- Las notificaciones se cargarán aquí vía JavaScript -->
                             <div class="notificacion__vacio">
                                 <i class="bi bi-inbox notificacion__vacio-icono"></i>
                                 <span>Cargando notificaciones...</span>
@@ -405,23 +462,23 @@
                         </div>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <!-- Toggle de tema -->
                 <button class="btn btn-link text-decoration-none p-2" id="theme-toggle" aria-label="Cambiar tema">
                     <i class="bi bi-moon-stars fs-5" id="theme-icon"></i>
                 </button>
 
-                <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button"
-                    data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
-                    <div class="user-avatar" style="width: 36px; height: 36px;">
-                        <img src="<?php echo BASE_URL . 'assets/img/default.jpg'; ?>" alt="Avatar"
-                            class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
-                    </div>
-                    <span
-                        class="d-none d-lg-inline"><?php echo $datos['username'] ?? ($datos['nombre'] ?? 'Invitado'); ?></span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                    <?php if (isset($_SESSION['user'])): ?>
+                <?php if (isset($_SESSION['user'])): ?>
+                    <button class="btn btn-link text-decoration-none p-0 d-flex align-items-center gap-2" type="button"
+                        data-bs-toggle="dropdown" aria-expanded="false" id="userDropdown">
+                        <div class="user-avatar" style="width: 36px; height: 36px;">
+                            <img src="<?php echo BASE_URL . 'assets/img/default.jpg'; ?>" alt="Avatar"
+                                class="rounded-circle object-fit-cover" style="width: 100%; height: 100%;">
+                        </div>
+                        <span class="d-none d-lg-inline fw-bold"><?php echo $datos['username'] ?? ($datos['nombre'] ?? ''); ?></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         <li>
                             <div class="dropdown-header">
                                 <div class="fw-semibold">
@@ -430,41 +487,27 @@
                                 <div class="small text-muted"><?php echo $datos['cedula'] ?? ''; ?></div>
                             </div>
                         </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
+                        <li><hr class="dropdown-divider"></li>
                         <?php if (($datos['cedula'] ?? '') !== 'V-00000000'): ?>
                             <li>
-                                <a class="dropdown-item d-flex align-items-center gap-2"
-                                    href="<?php echo BASE_URL; ?>/?page=perfil">
+                                <a class="dropdown-item d-flex align-items-center gap-2" href="<?php echo BASE_URL; ?>/?page=perfil">
                                     <i class="bi bi-person"></i> Mi Perfil
                                 </a>
                             </li>
                         <?php endif; ?>
+
                         <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2"
-                                href="<?php echo BASE_URL; ?>/?page=configuracion">
-                                <i class="bi bi-gear"></i> Configuración
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 text-danger"
-                                href="<?php echo BASE_URL; ?>/?page=logout">
+                            <a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="<?php echo BASE_URL; ?>/?page=logout">
                                 <i class="bi bi-box-arrow-right"></i> Cerrar sesión
                             </a>
                         </li>
-                    <?php else: ?>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2"
-                                href="<?php echo BASE_URL; ?>/?page=login">
-                                <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
-                            </a>
-                        </li>
-                    <?php endif; ?>
-                </ul>
+                    </ul>
+                <?php else: ?>
+                    <a href="<?php echo BASE_URL; ?>/?page=login" class="btn btn-primary fw-bold text-dark rounded-pill px-4 d-flex align-items-center gap-2" style="background-color: var(--color-acento); border: none;">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        <span>Acceder</span>
+                    </a>
+                <?php endif; ?>
             </div>
         </div>
     </header>
