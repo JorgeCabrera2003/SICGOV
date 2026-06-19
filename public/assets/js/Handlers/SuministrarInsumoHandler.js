@@ -111,6 +111,8 @@ export async function EnviarDatos(operacion) {
   //Registrar y Modificar
   if (operacion == "suministrar") {
 
+    console.log(Validarenvio())
+
     if (Validarenvio()) {
       confirmacion = await confirmarAccion(`Se va a suministrar un insumo`, mensajeConfirmacion, "question");
 
@@ -191,9 +193,6 @@ export async function EnviarFormulario(btn_string) {
 export function CapaValidar() {
   KeyPressSuministrar();
   KeyUpSuministrar();
-  CrearSelectProveedores();
-  CrearSelectCategoria();
-  CrearSelectUnidadMedida();
 }
 
 export async function CrearSelectProveedores(id_insumo) {
@@ -272,10 +271,8 @@ function KeyUpSuministrar() {
 
   $(input.stock).on("blur", function () {
     ValidadorHelper.FormatoNumeroDecimal($(this));
-    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.costo_unitario);
+    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock);
   })
-
-
 
   $(input.unidad_medida).on("change", function () {
 
@@ -304,17 +301,17 @@ function Validarenvio() {
   let span = EtiquetasFormulario("span");
   let bool = true;
 
-  if (input.proveedor.val() == "default") {
-    SelectHelper.FeedbackSelect($(this), span.proveedor, "Debe selccionar un Tipo de Documento", 0);
+  if (input.proveedor.val() == "default" || input.proveedor.val() == "" || input.proveedor.val() == null) {
+    SelectHelper.FeedbackSelect(input.proveedor, span.proveedor, "Debe selccionar un Tipo de Documento", 0);
     bool = false;
   }
 
-    if (input.unidad_medida.val() == "default") {
+    if (input.unidad_medida.val() == "default" || input.unidad_medida.val() == "" || input.unidad_medida.val() == null) {
     SelectHelper.FeedbackSelect(input.unidad_medida, span.unidad_medida, "Debe Seleccionar una Unidad de Medida", 0);
     bool = false;
   }
 
-  if (input.stock == '' || input.stock == null || input.stock == 0) {
+  if (input.stock.val() == '' || input.stock.val() == null || input.stock.val() == 0) {
     MensajeriaHelper.FeedbackToltipInput(input.stock, span.stock, "El stock a suministrar no puede estar en 0", 0)
     bool = false;
   }

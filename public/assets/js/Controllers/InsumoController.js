@@ -66,6 +66,7 @@ function iniciarValidaciones() {
   insumo.CapaValidar();
   categoriaInsumo.KeyPressCategoria();
   categoriaInsumo.KeyUpCategoria();
+  suministrarInsumo.CapaValidar();
 }
 
 async function crearDataTable(controlador = "insumos") {
