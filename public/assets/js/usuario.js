@@ -118,12 +118,19 @@ function aplicarEstilosCampo($campo, $feedback, esValido, mensaje, forzar = fals
 
     if (esValido) {
         $campo.addClass('is-valid').removeClass('is-invalid');
-        $campo.css('border-color', '#198754');
+        $campo[0].style.setProperty('border-color', '#198754', 'important');
+        $campo[0].style.removeProperty('background-image');
         $campo[0].setCustomValidity('');
         $feedback.removeClass('invalid-tooltip d-inline-block').text('');
     } else {
         $campo.addClass('is-invalid').removeClass('is-valid');
-        $campo.css('border-color', '#dc3545');
+        $campo[0].style.setProperty('border-color', '#dc3545', 'important');
+        
+        // Remove green checkmark explicitly if it persists due to CSS conflicts
+        if ($campo.is('select')) {
+            $campo[0].style.setProperty('background-image', 'none', 'important');
+        }
+        
         $campo[0].setCustomValidity(mensaje);
         $feedback.addClass('invalid-tooltip d-inline-block').text(mensaje);
     }
