@@ -63,7 +63,10 @@ const SICGOV = (function($) {
         // Aplicar tema guardado o preferencia del sistema
         if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
             document.documentElement.classList.add(CONFIG.classes.dark);
+            document.documentElement.setAttribute('data-bs-theme', 'dark');
             $icon.removeClass(CONFIG.icons.moon).addClass(CONFIG.icons.sun);
+        } else {
+            document.documentElement.setAttribute('data-bs-theme', 'light');
         }
 
         // Evento click
@@ -74,6 +77,8 @@ const SICGOV = (function($) {
             html.classList.toggle(CONFIG.classes.dark);
             
             const isDark = html.classList.contains(CONFIG.classes.dark);
+            html.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
+            
             localStorage.setItem(CONFIG.storage.theme, isDark ? 'dark' : 'light');
             
             $icon.toggleClass(CONFIG.icons.moon, !isDark)

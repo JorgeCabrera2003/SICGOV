@@ -304,6 +304,7 @@ if ($type === 'forzar-cambiar-clave') {
             $vars = [
                 'perfil' => $perfil,
                 'portada' => $portada,
+                'hideSidebar' => (strtoupper($perfil['rol'] ?? '') === 'CLIENTE'),
                 'extra_css' => [
                     BASE_URL . 'assets/css/perfil.css'
                 ]
