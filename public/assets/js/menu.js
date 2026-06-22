@@ -106,13 +106,38 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('tipo_producto').addEventListener('change', function (e) {
             const seccionInsumos = document.getElementById('seccionInsumos');
             const seccionSinInsumos = document.getElementById('seccionSinInsumos');
-            if (this.value === 'COCINA') {
-                seccionInsumos.style.display = 'block';
-                seccionSinInsumos.style.display = 'none';
+            
+            seccionInsumos.style.display = 'block';
+            seccionSinInsumos.style.display = 'none';
+
+            const adicionalesTab = document.getElementById('adicionales-tab');
+            const principalesTab = document.getElementById('principales-tab');
+            const seccionInsumosH6 = document.querySelector('#seccionInsumos h6');
+            const seccionInsumosP = document.querySelector('#seccionInsumos p');
+
+            if (this.value === 'BARRA') {
+                if (adicionalesTab) adicionalesTab.parentElement.style.display = 'none';
+                if (principalesTab) principalesTab.innerHTML = '<i class="fas fa-box text-primary me-1"></i> Insumo (<span id="contPrincipales">0</span>)';
+                if (seccionInsumosH6) seccionInsumosH6.innerHTML = '<i class="fas fa-link me-2"></i>Insumo Relacionado';
+                if (seccionInsumosP) seccionInsumosP.innerText = 'Selecciona el insumo único que se descontará al vender este producto.';
+                
+                if (principalesTab) new bootstrap.Tab(principalesTab).show();
+                
+                listAdicionales = [];
+                if (listPrincipales.length > 1) {
+                    listPrincipales = [listPrincipales[0]];
+                }
+                renderReceta();
+                renderCatalogoInsumos(document.querySelector('.select-insumo-input').value);
             } else {
-                seccionInsumos.style.display = 'none';
-                seccionSinInsumos.style.display = 'flex';
+                if (adicionalesTab) adicionalesTab.parentElement.style.display = 'block';
+                if (principalesTab) principalesTab.innerHTML = '<i class="fas fa-star text-warning me-1"></i> Principales (<span id="contPrincipales">0</span>)';
+                if (seccionInsumosH6) seccionInsumosH6.innerHTML = '<i class="fas fa-list-check me-2"></i>Receta e Insumos';
+                if (seccionInsumosP) seccionInsumosP.innerText = 'Selecciona los insumos y define sus cantidades.';
+                
+                renderCatalogoInsumos(document.querySelector('.select-insumo-input').value);
             }
+
             validateForm();
         });
 
@@ -284,10 +309,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if (tipo === 'COCINA') {
-            if (listPrincipales.length === 0) {
+        if (tipo === 'COCINA' || tipo === 'BARRA') {
+            if (tipo === 'COCINA' && listPrincipales.length === 0) {
                 isValid = false;
-            } else {
+            } else if (tipo === 'BARRA' && listPrincipales.length !== 1) {
+                isValid = false;
+            } else if (listPrincipales.length > 0) {
                 const allValidQty = listPrincipales.every(i => parseFloat(i.cantidad) > 0);
                 if (!allValidQty) isValid = false;
 
@@ -710,6 +737,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const tipo = document.getElementById('tipo_producto').value;
+        const btnPrincipalText = tipo === 'BARRA' ? 'Seleccionar' : 'Principal';
+        const btnPrincipalClass = tipo === 'BARRA' ? 'btn-primary text-white' : 'btn-warning text-dark';
+        const btnAdicionalHtml = tipo === 'BARRA' ? '' : `<button class="btn btn-info text-dark fw-bold btn-add-adicional border-0" type="button">Extra</button>`;
+
         results.forEach(ing => {
             const item = document.createElement('a');
             item.href = '#';
@@ -720,8 +752,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <small class="text-muted ms-1">(${ing.nombre_unidad})</small>
                 </div>
                 <div class="btn-group btn-group-sm mt-1 mt-sm-0 shadow-sm">
-                    <button class="btn btn-warning text-dark fw-bold btn-add-principal border-0" type="button">Principal</button>
-                    <button class="btn btn-info text-dark fw-bold btn-add-adicional border-0" type="button">Extra</button>
+                    <button class="btn ${btnPrincipalClass} fw-bold btn-add-principal border-0" type="button">${btnPrincipalText}</button>
+                    ${btnAdicionalHtml}
                 </div>
             `;
 
@@ -730,10 +762,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 addInsumoTo(ing, 'principal');
             });
-            item.querySelector('.btn-add-adicional').addEventListener('click', (e) => {
-                e.preventDefault();
-                addInsumoTo(ing, 'adicional');
-            });
+            
+            const btnAdicional = item.querySelector('.btn-add-adicional');
+            if (btnAdicional) {
+                btnAdicional.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    addInsumoTo(ing, 'adicional');
+                });
+            }
 
             container.appendChild(item);
         });
@@ -755,6 +791,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function addInsumoTo(ing, listType) {
         let isPrincipal = listType === 'principal';
         let targetList = isPrincipal ? listPrincipales : listAdicionales;
+        const tipo = document.getElementById('tipo_producto').value;
+
+        if (tipo === 'BARRA') {
+            if (!isPrincipal) {
+                Swal.fire('Atención', 'Los productos de tipo "No Cocina (Barra)" no llevan insumos adicionales.', 'warning');
+                return;
+            }
+            if (isPrincipal && targetList.length >= 1) {
+                Swal.fire('Atención', 'Los productos de tipo "No Cocina (Barra)" solo pueden llevar un insumo.', 'warning');
+                return;
+            }
+        }
 
         // Evitar duplicados
         if (targetList.find(i => i.id === ing.id_insumo)) {

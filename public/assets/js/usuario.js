@@ -111,16 +111,26 @@ function aplicarEstilosCampo($campo, $feedback, esValido, mensaje, forzar = fals
     const val = $campo.val() ? $campo.val().trim() : '';
     if (!forzar && val === '') {
         $campo.removeClass('is-valid is-invalid');
+        $campo.css('border-color', '');
         $feedback.removeClass('invalid-tooltip d-inline-block').text('');
         return;
     }
 
     if (esValido) {
         $campo.addClass('is-valid').removeClass('is-invalid');
+        $campo[0].style.setProperty('border-color', '#198754', 'important');
+        $campo[0].style.removeProperty('background-image');
         $campo[0].setCustomValidity('');
         $feedback.removeClass('invalid-tooltip d-inline-block').text('');
     } else {
         $campo.addClass('is-invalid').removeClass('is-valid');
+        $campo[0].style.setProperty('border-color', '#dc3545', 'important');
+        
+        // Remove green checkmark explicitly if it persists due to CSS conflicts
+        if ($campo.is('select')) {
+            $campo[0].style.setProperty('background-image', 'none', 'important');
+        }
+        
         $campo[0].setCustomValidity(mensaje);
         $feedback.addClass('invalid-tooltip d-inline-block').text(mensaje);
     }
@@ -276,8 +286,10 @@ async function cargarRolesActivos() {
 
         if (json && json.datos) {
             json.datos.forEach(rol => {
-                $rolSelect.append(`<option value="${rol.id_rol}">${rol.nombre_rol}</option>`);
-                rolesValidosList.push(String(rol.id_rol));
+                if (rol.nombre_rol !== 'SuperUsuario' && rol.nombre_rol !== 'Super Usuario') {
+                    $rolSelect.append(`<option value="${rol.id_rol}">${rol.nombre_rol}</option>`);
+                    rolesValidosList.push(String(rol.id_rol));
+                }
             });
         }
     } catch (e) {
