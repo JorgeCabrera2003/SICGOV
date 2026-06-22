@@ -50,7 +50,8 @@ export function FeedbackSelect(input, span, mensaje, estado) {
 
   if (estado === 1) {
     $(input).addClass("is-valid");
-    $(span).text();
+    $(span).removeClass("valid-feedback invalid-feedback");
+    $(span).text("");
   } else {
     $(input).addClass("is-invalid");
     $(span).addClass("invalid-toltip");
