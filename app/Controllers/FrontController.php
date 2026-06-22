@@ -22,13 +22,14 @@
                     $this->url = 'Menu';
                     $_REQUEST["type"] = 'publico';
                 } elseif ($_REQUEST["page"] === 'asistencia-publica') {
-                    // Mapeo para la vista pública de asistencia
                     $this->url = 'Asistencia';
                     $_REQUEST["type"] = 'publico';
                 } elseif ($_REQUEST["page"] === 'pedidos') {
                     $this->url = 'Pedido';
                 } elseif ($_REQUEST["page"] === 'crear-cuenta') {
                     $this->url = 'Login';
+                } elseif (in_array($_REQUEST["page"], ['recuperar-password', 'verificar-codigo', 'restablecer-password'])) {
+                    $this->url = 'RecuperacionClave';
                 } else {
                     $this->url = $_REQUEST["page"];
                 }
