@@ -1,7 +1,8 @@
-import * as insumo from "../Handlers/InsumoHandler.js"
-import * as categoriaInsumo from "../Handlers/CategoriaInsumoHandler.js"
-import * as suministrarInsumo from "../Handlers/SuministrarInsumoHandler.js"
-import * as AjaxHelper from "../Helpers/AjaxHelper.js"
+import * as insumo from "../Handlers/InsumoHandler.js";
+import * as categoriaInsumo from "../Handlers/CategoriaInsumoHandler.js";
+import * as suministrarInsumo from "../Handlers/SuministrarInsumoHandler.js";
+import * as movimientoInsumo from "../Handlers/MovimientoInsumoHandler.js";
+import * as AjaxHelper from "../Helpers/AjaxHelper.js";
 
 //MODULO DE INGREDIENTES
 
@@ -53,7 +54,6 @@ $("#btn-CategoriaCancel").on("click", function () {
 $("#btn-CategoriaForm").on("click", async function () {
   let respuesta = null;
   respuesta = await categoriaInsumo.EnviarFormulario($(this));
-  console.log(respuesta);
 
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
     await crearDataTable("categoria-insumo");
@@ -122,6 +122,12 @@ async function rellenar(pos, accion, modulo = "Insumo") {
     suministrarInsumo.EditarFormSuministrar(datosInsumos);
   }
 
+  if (accion == 3) {
+    const tablainsumo = $('#tablaInsumo').DataTable();
+    const datosInsumos = tablainsumo.row(linea).data()
+    movimientoInsumo.CargarModalTabla(datosInsumos);
+  }
+
   if (modulo == "Insumo") {
     await insumo.EditarFormInsumo(datosFila, str_accion)
   }
@@ -141,5 +147,9 @@ $(document).on('click', '.btn-eliminar', function () {
 })
 
 $(document).on('click', '.btn-suministrar', function () {
+  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
+})
+
+$(document).on('click', '.btn-movimiento', function () {
   rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
 })
