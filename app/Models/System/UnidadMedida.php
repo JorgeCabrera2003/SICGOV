@@ -242,9 +242,9 @@ class UnidadMedida extends Database
         if ($validar) {
 
             $resultado = $resultadoBase->toUnit($medida_stock);
-            
+
         } else {
-            throw new \Exception("Conversión no válida: ".$medida_valor." y ".$medida_valor);
+            throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock);
         }
 
 
@@ -261,7 +261,7 @@ class UnidadMedida extends Database
         $resultado = match ($operacion) {
             'sumar' => $stock + $valor,
             'restar' => $stock - $valor,
-            default => new \Exception("Operación no válida")
+            default => throw new \Exception("Operación no válida")
         };
 
         return $resultado;
