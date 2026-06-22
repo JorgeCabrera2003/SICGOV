@@ -295,14 +295,14 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Seguridad y Auditoría</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Bitacora', 'Papelera', 'Usuario']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Bitacora', 'Papelera', 'Usuario', 'Backup']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#seguridad-submenu" role="button"
                     data-bs-tooltip-title="Control de Acceso" title="Control de Acceso">
                     <i class="bi bi-shield-lock fs-5"></i>
                     <span class="flex-grow-1">Control de Acceso</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['Bitacora', 'Papelera', 'Usuario', 'ModuloSistema', 'Rol']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo in_array($page, ['Bitacora', 'Papelera', 'Usuario', 'ModuloSistema', 'Rol', 'Backup']) ? 'show' : ''; ?>"
                     id="seguridad-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
                         <?php if (isset($permisosGlobales['bitacora']['ver']) && $permisosGlobales['bitacora']['ver'] == 1) { ?>
@@ -334,6 +334,13 @@
                             <a href="?page=ModuloSistema"
                                 class="nav-link <?php echo ($page == 'ModuloSistema') ? 'active' : ''; ?> py-1">
                                 <i class="fa-solid fa-computer me-2"></i>Módulos del Sistema
+                            </a>
+                        <?php }
+                        if (isset($permisosGlobales['usuario']['ver']) && $permisosGlobales['usuario']['ver'] == 1) {
+                            ?>
+                            <a href="?page=Backup&type=backups"
+                                class="nav-link <?php echo ($page == 'Backup') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-shield-lock me-2"></i>Centro de Respaldos
                             </a>
                         <?php } ?>
                     </div>
