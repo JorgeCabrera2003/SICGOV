@@ -131,6 +131,7 @@ class DetalleEntrada extends Database
             $response = match ($peticion['peticion']) {
                 'registrar' => $this->RegistrarDetalleEntrada(),
                 'consultar' => $this->ConsultarDetalleEntrada(),
+                'historial_insumo' => $this->ConsultarDetalleEntrada($peticion['filtro']),
                 'validar' => $this->ValidarDetalleEntrada(),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
@@ -143,15 +144,29 @@ class DetalleEntrada extends Database
     //FIN DE MANEJADOR DE OPERACIONES
 
     //OPERACIONES A BASE DE DATOS
-    private function ConsultarDetalleEntrada($filtro = NULL)
+    private function ConsultarDetalleEntrada(string $filtro = NULL)
     {
+        if ($filtro != NULL) {
+            if (RegexHelper::ValidarFormatos($filtro, 'ID') == 0) {
+                throw new Exception("El ID no cumple con el formato permitido.");
+            }
+        }
+
         $dato = [];
         $arreglo = [];
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM entrada_insumo";
+            $sql = "SELECT * FROM vw_detalle_entrada_insumo";
+
+            if ($filtro != NULL) {
+                $sql .= " WHERE id_insumo = :id_insumo";
+            }
             $stm = $this->LlamarConexion()->prepare($sql);
+
+            if ($filtro != NULL) {
+                $stm->bindParam(':id_insumo', $filtro);
+            }
             $stm->execute();
             if ($stm->rowCount() > 0) {
                 $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);

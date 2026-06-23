@@ -90,28 +90,35 @@ class Menu extends Database
 
     public function setInsumosPrincipales($insumos_json)
     {
-        if ($this->tipo_producto === 'COCINA') {
+        if ($this->tipo_producto === 'COCINA' || $this->tipo_producto === 'BARRA') {
             $insumos = is_string($insumos_json) ? json_decode($insumos_json, true) : $insumos_json;
-            if (empty($insumos) || !is_array($insumos)) {
+            
+            if ($this->tipo_producto === 'COCINA' && (empty($insumos) || !is_array($insumos))) {
                 throw new Exception("El producto de cocina debe tener al menos un insumo principal.");
             }
-            try {
-                foreach ($insumos as $ing) {
-                    if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
-                        throw new Exception("Las cantidades de los insumos principales deben ser números mayores a 0.");
+            if ($this->tipo_producto === 'BARRA' && (empty($insumos) || !is_array($insumos) || count($insumos) !== 1)) {
+                throw new Exception("El producto de barra debe tener exactamente un insumo principal.");
+            }
+
+            if (!empty($insumos) && is_array($insumos)) {
+                try {
+                    foreach ($insumos as $ing) {
+                        if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
+                            throw new Exception("Las cantidades de los insumos principales deben ser números mayores a 0.");
+                        }
+                        if (empty($ing['unidad'])) {
+                            throw new Exception("La unidad de medida es obligatoria para los insumos principales.");
+                        }
+                        
+                        $stmt = $this->LlamarConexion()->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
+                        $stmt->execute([$ing['unidad']]);
+                        if ($stmt->rowCount() === 0) {
+                            throw new Exception("La unidad de medida seleccionada para el insumo no existe en la base de datos.");
+                        }
                     }
-                    if (empty($ing['unidad'])) {
-                        throw new Exception("La unidad de medida es obligatoria para los insumos principales.");
-                    }
-                    
-                    $stmt = $this->LlamarConexion()->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
-                    $stmt->execute([$ing['unidad']]);
-                    if ($stmt->rowCount() === 0) {
-                        throw new Exception("La unidad de medida seleccionada para el insumo no existe en la base de datos.");
-                    }
+                } finally {
+                    $this->DestruirConexion();
                 }
-            } finally {
-                $this->DestruirConexion();
             }
         }
         $this->insumos_principales = $insumos_json;
@@ -145,6 +152,11 @@ class Menu extends Database
                 } finally {
                     $this->DestruirConexion();
                 }
+            }
+        } else if ($this->tipo_producto === 'BARRA') {
+            $insumos = is_string($insumos_json) ? json_decode($insumos_json, true) : $insumos_json;
+            if (!empty($insumos) && is_array($insumos) && count($insumos) > 0) {
+                throw new Exception("Los productos de barra no pueden tener insumos adicionales.");
             }
         }
         $this->insumos_adicionales = $insumos_json;
@@ -745,6 +757,24 @@ class Menu extends Database
             return false;
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+//#########################################################################################
+
 
 public function obtenerInsumosProducto($id_producto)
 {

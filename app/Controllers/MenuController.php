@@ -202,7 +202,7 @@ if ($type === 'admin') {
 
 
 } else {
-    // MODO PÚBLICO
+    
     $menuModel = new Menu();
     $menus = $menuModel->Transaccion(['peticion' => 'listar']) ?: [];
     $categorias = $menuModel->Transaccion(['peticion' => 'categorias']) ?: [];
@@ -217,7 +217,14 @@ if ($type === 'admin') {
     ];
 
     require_once BASE_PATH . '/resources/views/layout/head.php';
-    echo '<main class="main-content flex-grow-1 ms-0 w-100" id="main-content"><div class="content-wrapper bg-body">';
+    
+    $hideSidebar = true;
+    $datos = $_SESSION['user'] ?? null;
+    require_once BASE_PATH . '/resources/views/layout/menu.php';
+
     require_once BASE_PATH . '/resources/views/menu/public.php';
+
+    echo '</div></main>';
+
     require_once BASE_PATH . '/resources/views/layout/footer.php';
 }

@@ -46,7 +46,7 @@
                                 Stock a Agregar <span class="text-danger">*</span>
                             </label>
                             <input type="text" class="form-control" id="suministrar-stock" name="suministrar-stock"
-                                maxlength="100" required readOnly>
+                                maxlength="100" required>
                             <div class="form-label" id="ssuministrar-stock"></div>
                         </div>
                         <div class="col-md-6 position-relative">

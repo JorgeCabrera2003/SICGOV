@@ -471,6 +471,7 @@ async function RenderPermisoBotones(modulo = "Insumo") {
   let btn_eliminar = "";
   let btn_modificar = "";
   let btn_suministrar = "";
+  let btn_movimiento = "";
   let separadorHTML = "";
 
   if (permisos['insumo']['modificar'] != undefined && permisos['insumo']['modificar'] == 1) {
@@ -498,6 +499,19 @@ async function RenderPermisoBotones(modulo = "Insumo") {
     bool = true;
   }
 
+  if (permisos['insumo']['ver'] != undefined && permisos['insumo']['ver'] == 1) {
+    const itemMovimiento = $('<li>');
+    const linkMovimiento = $('<a>')
+      .addClass('dropdown-item btn-movimiento text-info')
+      .attr('href', '#')
+      .attr('data-accion', 3)
+      .attr('data-modulo', "Movimiento")
+      .html('<i class="fa-solid fa-up-down me-2"></i>Movimientos');
+    itemMovimiento.append(linkMovimiento);
+    btn_movimiento = itemMovimiento;
+    bool = true;
+  }
+
   if (permisos['insumo']['eliminar'] != undefined && permisos['insumo']['modificar'] == 1) {
     const itemEliminar = $('<li>');
     const linkEliminar = $('<a>')
@@ -511,7 +525,7 @@ async function RenderPermisoBotones(modulo = "Insumo") {
     bool = true;
   }
 
-  if ((btn_modificar != "" || btn_suministrar != "") && btn_eliminar != "") {
+  if ((btn_modificar != "" || btn_suministrar != "" || btn_movimiento != "") && btn_eliminar != "") {
     const separador = $('<li>').html('<hr class="dropdown-divider">');
     separadorHTML = separador;
   }
@@ -525,7 +539,7 @@ async function RenderPermisoBotones(modulo = "Insumo") {
   const menu = $('<ul>').addClass('dropdown-menu');
 
 
-  menu.append(btn_modificar, btn_suministrar, separadorHTML, btn_eliminar);
+  menu.append(btn_modificar, btn_suministrar, btn_movimiento, separadorHTML, btn_eliminar);
   dropdown.append(boton, menu);
 
   if (!bool) {
