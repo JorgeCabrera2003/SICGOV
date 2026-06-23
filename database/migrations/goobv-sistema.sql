@@ -461,6 +461,15 @@ SELECT `ei`.*, `in`.`nombre_insumo` AS 'insumo', `p`.nombre AS 'proveedor' FROM 
 INNER JOIN `insumo` AS `in` ON `ei`.id_insumo = `in`.id_insumo
 INNER JOIN `proveedor`AS `p` ON `ei`.`documento_proveedor` = `p`.documento_legal;
 
+CREATE VIEW `vw_detalle_entrada_insumo` AS 
+SELECT `de`.`id_detalle`,`de`.`fecha`, `de`.`cantidad`, `de`.`descripcion`,
+`i`.`nombre_insumo` AS `insumo`, `i`.`id_insumo`, `p`.`nombre` AS `proveedor`, `i`.`stock_actual`
+FROM `detalle_entrada` AS `de`
+INNER JOIN `entrada_insumo` AS `ei` ON `ei`.`id_entrada` = `de`.`id_entrada`
+INNER JOIN `unidad_medida` AS `um` ON `um`.`id_unidad` = `de`.`id_unidad_medida`
+INNER JOIN `proveedor` AS `p` ON `p`.`documento_legal` = `ei`.`documento_proveedor`
+INNER JOIN `insumo` AS `i` ON `i`.`id_insumo` = `ei`.`id_insumo`;
+
 -- --------------------------------------------------------
 -- 8. DISPARADORES (TRIGGERS)
 -- --------------------------------------------------------
