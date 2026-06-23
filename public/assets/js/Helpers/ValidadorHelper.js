@@ -197,3 +197,37 @@ export function FormatoNumeroDecimal(etiqueta, formato = null) {
     
     return final;
 }
+
+export function FormatoNumeroEntero(etiqueta) {
+    let valor = $(etiqueta).val();
+    
+    if (valor === '' || valor === null || valor === undefined) {
+        return '';
+    }
+    
+    let limpio = valor.replace(/,/g, '');
+    let parteEntera = limpio.split('.')[0];
+    
+    if (!parteEntera) {
+        parteEntera = limpio;
+    }
+    
+    parteEntera = parteEntera.replace(/[^0-9]/g, '');
+    
+    if (parteEntera === '') {
+        $(etiqueta).val('');
+        return '';
+    }
+    
+    let numero = parseInt(parteEntera, 10);
+    
+    if (isNaN(numero) || numero === 0) {
+        $(etiqueta).val('0');
+        return '0';
+    }
+    
+    let final = numero.toLocaleString('es-ES');
+    $(etiqueta).val(final);
+    
+    return final;
+}

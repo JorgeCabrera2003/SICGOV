@@ -348,18 +348,44 @@ function KeyUpInsumo() {
   })
 
   $(input.stock_inicial).on("blur", function () {
-    ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
-    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_inicial);
+
+    if (input.unidad_medida.val() != null && input.unidad_medida.val() != "default") {
+      if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+        ValidadorHelper.FormatoNumeroEntero($(this))
+        ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_inicial);
+      }
+    } else {
+      ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+      ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_inicial);
+    }
+
   })
 
   $(input.stock_minimo).on("blur", function () {
-    ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
-    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_minimo);
+
+    if (input.unidad_medida.val() != null && input.unidad_medida.val() != "default") {
+      if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+        ValidadorHelper.FormatoNumeroEntero($(this))
+        ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_minimo);
+      }
+    } else {
+      ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+      ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_minimo);
+    }
+
   })
 
   $(input.stock_maximo).on("blur", function () {
-    ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
-    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
+
+    if (input.unidad_medida.val() != null && input.unidad_medida.val() != "default") {
+      if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+        ValidadorHelper.FormatoNumeroEntero($(this))
+        ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
+      }
+    } else {
+      ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+      ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
+    }
   })
 
   $(input.unidad_medida).on("change", function () {
@@ -368,6 +394,15 @@ function KeyUpInsumo() {
       SelectHelper.FeedbackSelect($(this), span.unidad_medida, "Debe seleccionar a una Unidad de Medida", 0)
     } else {
       SelectHelper.FeedbackSelect($(this), span.unidad_medida, "", 1)
+      if(input.unidad_medida.val() == "MEDIAUN23220260519200547232"){
+        ValidadorHelper.FormatoNumeroEntero(input.stock_minimo);
+        ValidadorHelper.FormatoNumeroEntero(input.stock_maximo);
+        ValidadorHelper.FormatoNumeroEntero(input.stock_inicial);
+      } else {
+        ValidadorHelper.FormatoNumeroDecimal(input.stock_minimo, "medida");
+        ValidadorHelper.FormatoNumeroDecimal(input.stock_maximo, "medida");
+        ValidadorHelper.FormatoNumeroDecimal(input.stock_inicial, "medida");
+      }
     }
 
   })
