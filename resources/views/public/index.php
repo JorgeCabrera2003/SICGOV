@@ -71,9 +71,9 @@
 <section class="views-section">
     <div class="container">
         <h2 class="section-title">Explora <span>Nuestros Servicios</span></h2>
-        <div class="row g-4">
+        <div class="row g-4 justify-content-center">
             <!-- Menú -->
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <a href="<?= BASE_URL ?>?page=nuestro-menu" class="view-card">
                     <div class="view-img" style="background-image: url('<?= BASE_URL ?>assets/img/landing/hero_pizza.png');"></div>
                     <div class="view-content">
@@ -83,7 +83,7 @@
                 </a>
             </div>
             <!-- Pedidos -->
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <a href="<?= isset($_SESSION['user']) ? BASE_URL . '?page=pedidos' : BASE_URL . '?page=login&msg=inicia-sesion' ?>" class="view-card">
                     <div class="view-img" style="background-image: url('<?= BASE_URL ?>assets/img/landing/ingredients.png');"></div>
                     <div class="view-content">
@@ -91,16 +91,6 @@
                         <p class="view-desc">
                             <?= isset($_SESSION['user']) ? 'Pide online y disfruta en casa.' : 'Debes iniciar sesión para pedir.' ?>
                         </p>
-                    </div>
-                </a>
-            </div>
-            <!-- Asistencia / Contacto -->
-            <div class="col-md-4">
-                <a href="<?= BASE_URL ?>?page=asistencia-publica" class="view-card">
-                    <div class="view-img" style="background-color: var(--color-sidebar);"></div>
-                    <div class="view-content">
-                        <h3 class="view-title">Asistencia</h3>
-                        <p class="view-desc">¿Necesitas ayuda o contactarnos?</p>
                     </div>
                 </a>
             </div>
@@ -468,7 +458,11 @@ $badgeArray = [
                 <h5 class="text-uppercase mb-4 fw-bold" style="color: var(--color-acento);">Enlaces Útiles</h5>
                 <p><a href="<?= BASE_URL ?>?page=nuestro-menu" class="text-white text-decoration-none">Menú</a></p>
                 <p><a href="<?= BASE_URL ?>?page=login" class="text-white text-decoration-none">Iniciar Sesión</a></p>
-                <p><a href="<?= BASE_URL ?>?page=asistencia-publica" class="text-white text-decoration-none">Asistencia</a></p>
+                <p>
+                    <a href="<?= BASE_URL ?>?page=asistencia-publica" class="neon-link fw-bold">
+                        <i class="fas fa-id-badge me-1"></i>Portal de Empleados
+                    </a>
+                </p>
             </div>
             <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mt-3">
                 <h5 class="text-uppercase mb-4 fw-bold" style="color: var(--color-acento);">Contacto</h5>
@@ -504,6 +498,17 @@ $badgeArray = [
 </footer>
 
 <style>
+    /* Efecto Neon para enlace de empleados */
+    .neon-link {
+        color: var(--color-acento) !important;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    .neon-link:hover {
+        color: #fff !important;
+        text-shadow: 0 0 5px var(--color-acento), 0 0 10px var(--color-acento), 0 0 20px var(--color-acento);
+    }
+    
     /* Ocultar el footer genérico del sistema si está presente */
     main.main-content > footer.bg-body-tertiary {
         display: none !important;
