@@ -20,7 +20,8 @@ export function ValidarCampo(patron, etiqueta, span) {
         'Correo': /^[a-zA-Z0-9][a-zA-Z0-9._%+-]{1,63}@[a-zA-Z0-9][a-zA-Z0-9.-]{1,50}\.(com|es|mx|co\.uk|org|net)$/,
         'Titulo': /^[0-9a-zA-ZÁÉÍÓÚÜáéíóúüñÑçÇ\s\-.,()!?\"\'%:;]{3,150}$/,
         'Direccion': /^[0-9a-zA-ZÁÉÍÓÚÜáéíóúüñÑçÇ\s\-.,()!?\"\'%:;\/]{10,200}$/,
-        'NumeroDecimal': /^[0-9]+[.]{1}[0-9]{2,8}$/
+        'NumeroDecimal': /^[0-9]+[.]{1}[0-9]{2,8}$/,
+        'NumeroEntero': /^[0-9]{1,11}$/
     };
     const DEFAULT = '';
     regex = REGEX[patron] || DEFAULT;
@@ -68,7 +69,8 @@ export function ValidarTecla(patron, etiqueta) {
         'Correo': /^[a-zA-Z0-9._%+-@]*$/,
         'Titulo': /^[0-9a-zA-ZÁÉÍÓÚÜáéíóúñÑçÇ\s\-.,()!?\"\'%:;]*$/,
         'Direccion': /^[0-9a-zA-ZÁÉÍÓÚÜáéíóúñÑçÇ\s\-.,()!?\"\'%:;\/]*$/,
-        'NumeroDecimal': /^[0-9,]*$/
+        'NumeroDecimal': /^[0-9,]*$/,
+        'NumeroEntero': /^[0-9]*$/
     };
     const DEFAULT = '';
 
