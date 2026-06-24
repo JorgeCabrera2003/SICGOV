@@ -204,7 +204,7 @@ export async  function CargarModalTabla(parametros){
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
     DataTable(respuesta.datos);
     input.insumo.val(respuesta.datos_insumo.nombre_insumo);
-    input.stock.val(respuesta.datos_insumo.stock_actual);
+    input.stock.val(ValidadorHelper.FormatearNumeroSinCeros(respuesta.datos_insumo.stock_actual));
     input.unidad_medida.val(respuesta.datos_insumo.abreviatura);
     modal.modal.modal("show");
   }
