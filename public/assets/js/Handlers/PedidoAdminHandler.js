@@ -179,7 +179,7 @@ async function verDetalle(idPedido, estadoActual) {
             const group = document.getElementById('btnGroupEstados');
             if (group) {
                 group.innerHTML = '';
-                const estados = ['PENDIENTE', 'PREPARACION', 'LISTO', 'ENTREGADO', 'CANCELADO'];
+                const estados = ['PENDIENTE', 'PREPARANDO', 'LISTO', 'ENTREGADO', 'CANCELADO'];
                 estados.forEach(e => {
                     if (e !== estadoActual) {
                         const btn = document.createElement('button');
