@@ -134,12 +134,26 @@ export async function EnviarDatos(operacion) {
     let stock_maximo = input.stock_maximo.val();
     if (operacion == "registrar") {
       str_acccion = "registrará";
-      accion = "registrar"
+      accion = "registrar";
+
       if (input.stock_inicial.val() == "" || input.stock_inicial.val() == null) {
         MensajeriaHelper.FeedbackToltipInput(input.stock_inicial, span.stock_inicial,
           "El Stock Inicial no puede estar vacío", 0)
         bool_peticion = false;
       }
+      if (input.unidad_medida.val() != null && input.unidad_medida.val() != "default") {
+        if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+          if (input.stock_inicial.val() == "" || input.stock_inicial.val() == null) {
+            MensajeriaHelper.FeedbackToltipInput(input.stock_inicial, span.stock_inicial,
+              "El Stock Inicial no puede estar vacío", 0)
+            bool_peticion = false;
+          } else {
+
+          }
+        }
+
+      }
+
       peticion.append('stock_inicial', input.stock_inicial.val());
     }
 
@@ -348,18 +362,53 @@ function KeyUpInsumo() {
   })
 
   $(input.stock_inicial).on("blur", function () {
-    ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
-    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_inicial);
+
+    if (input.unidad_medida.val() != null && input.unidad_medida.val() != "default") {
+      if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+        ValidadorHelper.FormatoNumeroEntero($(this))
+        ValidadorHelper.ValidarCampo("NumeroEntero", $(this), span.stock_inicial);
+      } else {
+        ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+        ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
+      }
+    } else {
+      ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+      ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_inicial);
+    }
+
   })
 
   $(input.stock_minimo).on("blur", function () {
-    ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
-    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_minimo);
+
+    if (input.unidad_medida.val() != null && input.unidad_medida.val() != "default") {
+      if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+        ValidadorHelper.FormatoNumeroEntero($(this))
+        ValidadorHelper.ValidarCampo("NumeroEntero", $(this), span.stock_minimo);
+      } else {
+        ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+        ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
+      }
+    } else {
+      ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+      ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_minimo);
+    }
+
   })
 
   $(input.stock_maximo).on("blur", function () {
-    ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
-    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
+
+    if (input.unidad_medida.val() != null && input.unidad_medida.val() != "default") {
+      if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+        ValidadorHelper.FormatoNumeroEntero($(this))
+        ValidadorHelper.ValidarCampo("NumeroEntero", $(this), span.stock_maximo);
+      } else {
+        ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+        ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
+      }
+    } else {
+      ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+      ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
+    }
   })
 
   $(input.unidad_medida).on("change", function () {
@@ -368,6 +417,15 @@ function KeyUpInsumo() {
       SelectHelper.FeedbackSelect($(this), span.unidad_medida, "Debe seleccionar a una Unidad de Medida", 0)
     } else {
       SelectHelper.FeedbackSelect($(this), span.unidad_medida, "", 1)
+      if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+        ValidadorHelper.FormatoNumeroEntero(input.stock_minimo);
+        ValidadorHelper.FormatoNumeroEntero(input.stock_maximo);
+        ValidadorHelper.FormatoNumeroEntero(input.stock_inicial);
+      } else {
+        ValidadorHelper.FormatoNumeroDecimal(input.stock_minimo, "medida");
+        ValidadorHelper.FormatoNumeroDecimal(input.stock_maximo, "medida");
+        ValidadorHelper.FormatoNumeroDecimal(input.stock_inicial, "medida");
+      }
     }
 
   })
@@ -435,6 +493,12 @@ function Validarenvio() {
     bool = false;
   }
 
+  if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+    if (!ValidadorHelper.ValidarCampo("NumeroEntero", input.stock_minimo.val(), span.stock_minimo)) {
+      bool = false;
+    }
+  }
+
   if (input.categoria_id.val() == "default") {
     SelectHelper.FeedbackSelect(input.categoria_id, span.categoria_id, "Debe Seleccionar una Categoría", 0);
     bool = false;
@@ -450,6 +514,12 @@ function Validarenvio() {
     let stockMaximo = parseFloat(input.stock_maximo.val());
     if (isNaN(stockMinimo)) stockMinimo = 0;
     if (isNaN(stockMaximo)) stockMaximo = 0;
+
+    if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+      if (!ValidadorHelper.ValidarCampo("NumeroEntero", input.stock_maximo.val(), span.stock_maximo)) {
+        bool = false;
+      }
+    }
 
     if (stockMinimo >= stockMaximo) {
       MensajeriaHelper.FeedbackToltipInput(input.stock_minimo, span.stock_minimo, "El Stock Mínimo debe ser menor al Stock Máximo", 0);
@@ -550,6 +620,8 @@ async function RenderPermisoBotones(modulo = "Insumo") {
 
 function RenderConfigStock(stockMinimo, abreviatura, stockMaximo) {
 
+  stockMinimo = ValidadorHelper.FormatearNumeroSinCeros(stockMinimo)
+
   const textMin = $('<span>').addClass('text-danger me-1').text(stockMinimo + " " + abreviatura);
   const textMax = $('<span>').addClass('me-1');
   const strong = $('<strong>')
@@ -558,6 +630,7 @@ function RenderConfigStock(stockMinimo, abreviatura, stockMaximo) {
   let abreviaturaMax = null;
 
   if (stockMaximo != null && !isNaN(parseFloat(stockMaximo)) && isFinite(stockMaximo)) {
+    stockMaximo = ValidadorHelper.FormatearNumeroSinCeros(stockMaximo);
     textMax.text(stockMaximo + " " + abreviatura).addClass('text-success me-1');
     abreviaturaMax = abreviatura;
   } else {
@@ -570,6 +643,8 @@ function RenderConfigStock(stockMinimo, abreviatura, stockMaximo) {
 }
 
 function RenderColorearStock(stockActual, stockMinimo, stockMaximo = null, abreviatura) {
+  stockActual = ValidadorHelper.FormatearNumeroSinCeros(stockActual);
+  stockMinimo = ValidadorHelper.FormatearNumeroSinCeros(stockMinimo);
   const texto = $('<span>');
   const div = $('<div>').addClass('d-flex align-items-center gap-1');
   let color = "";
@@ -590,6 +665,7 @@ function RenderColorearStock(stockActual, stockMinimo, stockMaximo = null, abrev
   }
 
   if (stockMaximo != null && !isNaN(parseFloat(stockMaximo)) && isFinite(stockMaximo)) {
+    stockMaximo = ValidadorHelper.FormatearNumeroSinCeros(stockMaximo);
     if (stockActual == stockMaximo) {
       color = "text-success";
     }
@@ -687,9 +763,9 @@ export async function EditarFormInsumo(datos, accion) {
   input.categoria_id.prop("disabled", bool);
   SelectHelper.BuscarValor(input.unidad_medida, datos.id_unidad_medida, "value")
   SelectHelper.BuscarValor(input.categoria_id, datos.id_categoria, "value")
-  input.stock_inicial.val(datos.stock_actual).prop("disabled", true);
-  input.stock_maximo.val(datos.stock_maximo).prop("disabled", bool);
-  input.stock_minimo.val(datos.stock_minimo).prop("disabled", bool);
+  input.stock_inicial.val(ValidadorHelper.FormatearNumeroSinCeros(datos.stock_actual)).prop("disabled", true);
+  input.stock_maximo.val(ValidadorHelper.FormatearNumeroSinCeros(datos.stock_maximo)).prop("disabled", bool);
+  input.stock_minimo.val(ValidadorHelper.FormatearNumeroSinCeros(datos.stock_minimo)).prop("disabled", bool);
 
   fila_stock_inicial.addClass("d-none")
   modal.boton.prop('disabled', false);
