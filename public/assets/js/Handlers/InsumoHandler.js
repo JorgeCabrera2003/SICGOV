@@ -585,6 +585,8 @@ async function RenderPermisoBotones(modulo = "Insumo") {
 
 function RenderConfigStock(stockMinimo, abreviatura, stockMaximo) {
 
+  stockMinimo = ValidadorHelper.FormatearNumeroSinCeros(stockMinimo)
+
   const textMin = $('<span>').addClass('text-danger me-1').text(stockMinimo + " " + abreviatura);
   const textMax = $('<span>').addClass('me-1');
   const strong = $('<strong>')
@@ -593,6 +595,7 @@ function RenderConfigStock(stockMinimo, abreviatura, stockMaximo) {
   let abreviaturaMax = null;
 
   if (stockMaximo != null && !isNaN(parseFloat(stockMaximo)) && isFinite(stockMaximo)) {
+    stockMaximo = ValidadorHelper.FormatearNumeroSinCeros(stockMaximo);
     textMax.text(stockMaximo + " " + abreviatura).addClass('text-success me-1');
     abreviaturaMax = abreviatura;
   } else {
@@ -605,6 +608,8 @@ function RenderConfigStock(stockMinimo, abreviatura, stockMaximo) {
 }
 
 function RenderColorearStock(stockActual, stockMinimo, stockMaximo = null, abreviatura) {
+  stockActual = ValidadorHelper.FormatearNumeroSinCeros(stockActual);
+  stockMinimo = ValidadorHelper.FormatearNumeroSinCeros(stockMinimo);
   const texto = $('<span>');
   const div = $('<div>').addClass('d-flex align-items-center gap-1');
   let color = "";
@@ -625,6 +630,7 @@ function RenderColorearStock(stockActual, stockMinimo, stockMaximo = null, abrev
   }
 
   if (stockMaximo != null && !isNaN(parseFloat(stockMaximo)) && isFinite(stockMaximo)) {
+    stockMaximo = ValidadorHelper.FormatearNumeroSinCeros(stockMaximo);
     if (stockActual == stockMaximo) {
       color = "text-success";
     }
