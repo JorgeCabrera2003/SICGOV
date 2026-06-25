@@ -367,10 +367,10 @@
     <?php if (isset($hideSidebar) && $hideSidebar): ?>
     <style>
         #top-nav {
-            background: rgba(22, 24, 28, 0.85) !important;
+            background: rgba(250, 158, 59, 0.95) !important; /* Brand Orange */
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border-bottom: 2px solid var(--color-acento) !important;
+            border-bottom: 2px solid var(--brand-dark-orange) !important;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
             height: 75px !important;
             transition: all 0.3s ease;
@@ -404,13 +404,13 @@
         }
         #top-nav .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 204, 0, 0.4);
-            background-color: transparent !important;
-            border-color: var(--color-acento) !important;
-            color: var(--color-acento) !important;
+            box-shadow: 0 6px 20px rgba(241, 90, 41, 0.4);
+            background-color: var(--brand-dark-orange) !important;
+            border-color: var(--brand-dark-orange) !important;
+            color: #FFF !important;
         }
         #top-nav .btn-primary:hover span, #top-nav .btn-primary:hover i {
-            color: var(--color-acento) !important;
+            color: #FFF !important;
         }
     </style>
     <?php endif; ?>
@@ -427,7 +427,7 @@
                 <?php else: ?>
                     <!-- Logo para la vista pública -->
                     <a href="<?= BASE_URL ?>" class="text-decoration-none d-flex align-items-center gap-2 py-1">
-                        <img src="<?= BASE_URL ?>/assets/img/logo.png" alt="logo" class="logo-img">
+                        <img src="<?= BASE_URL ?>/assets/img/2D.png" alt="logo" class="logo-img">
                     </a>
                 <?php endif; ?>
             </div>
@@ -503,9 +503,9 @@
                         </li>
                     </ul>
                 <?php else: ?>
-                    <a href="<?php echo BASE_URL; ?>/?page=login" class="btn btn-primary fw-bold text-dark rounded-pill px-4 d-flex align-items-center gap-2" style="background-color: var(--color-acento); border: none;">
-                        <i class="bi bi-box-arrow-in-right"></i>
-                        <span>Acceder</span>
+                    <a href="<?php echo BASE_URL; ?>/?page=login" class="btn fw-bold rounded-pill px-4 d-flex align-items-center gap-2" style="background-color: var(--brand-dark-orange); color: #FFF !important; border: none;">
+                        <i class="bi bi-box-arrow-in-right" style="color: #FFF !important;"></i>
+                        <span style="color: #FFF !important;">Acceder</span>
                     </a>
                 <?php endif; ?>
             </div>

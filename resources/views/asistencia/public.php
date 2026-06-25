@@ -31,7 +31,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(18, 18, 18, 0.85);
+        background: linear-gradient(135deg, rgba(10, 43, 43, 0.9) 0%, rgba(10, 43, 43, 0.4) 100%);
         opacity: 1;
         z-index: 1;
     }

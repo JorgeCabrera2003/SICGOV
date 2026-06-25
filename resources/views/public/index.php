@@ -248,7 +248,7 @@ $badgeArray = [
         }
         .editorial-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+            box-shadow: 0 10px 20px rgba(10,43,43,0.08) !important;
             border-color: var(--color-acento) !important;
         }
     </style>
@@ -266,15 +266,15 @@ $badgeArray = [
                 <?php foreach($topnoticias as $idx => $t): 
                     $img = !empty($t['imagen_principal']) ? BASE_URL . $t['imagen_principal'] : BASE_URL . '/assets/img/noticia-default.png';
                 ?>
-                <div class="carousel-item <?= $idx==0?'active':'' ?>" style="height: 500px; background-color: #000;">
+                <div class="carousel-item <?= $idx==0?'active':'' ?>" style="height: 500px; background-color: var(--brand-dark-teal);">
                     <img src="<?= $img ?>" class="d-block w-100 h-100" style="object-fit: cover; opacity: 0.6;" alt="<?= htmlspecialchars($t['titulo']) ?>" onerror="this.src='<?= BASE_URL ?>/assets/img/logo.png'; this.style.objectFit='contain';">
                     <div class="carousel-caption d-flex flex-column align-items-center justify-content-center h-100" style="bottom: 0;">
                         <div class="container text-center">
                             <span class="badge <?= $badgeArray[$t['tipo']]['bg'] ?? 'bg-primary' ?> mb-3 p-2 px-3 fw-bold fs-6 shadow">
                                 <?= $badgeArray[$t['tipo']]['text'] ?? 'Nota' ?>
                             </span>
-                            <h2 class="text-white mb-3 fw-bold display-5" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.8);"><?= htmlspecialchars($t['titulo']) ?></h2>
-                            <p class="lead text-white-50 mb-4 d-none d-md-block" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.8); max-width: 800px; margin: 0 auto;">
+                            <h2 class="text-white mb-3 fw-bold display-5" style="text-shadow: 2px 2px 4px rgba(10,43,43,0.8);"><?= htmlspecialchars($t['titulo']) ?></h2>
+                            <p class="lead text-white-50 mb-4 d-none d-md-block" style="text-shadow: 1px 1px 3px rgba(10,43,43,0.8); max-width: 800px; margin: 0 auto;">
                                 <?= !empty($t['subtitulo']) ? htmlspecialchars($t['subtitulo']) : substr(strip_tags($t['contenido']), 0, 160) . '...' ?>
                             </p>
                             <a href="<?= BASE_URL ?>?page=Noticia&type=detalle&id=<?= $t['id_noticia'] ?>" class="btn btn-primary btn-lg fw-bold shadow-lg rounded-pill px-4">
@@ -441,63 +441,9 @@ $badgeArray = [
 <style>
     .noticia-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.08) !important;
+        box-shadow: 0 10px 20px rgba(10,43,43,0.08) !important;
         border-color: var(--color-acento) !important;
     }
-</style>
-
-<!-- Public Footer -->
-<footer class="bg-dark text-white pt-5 pb-4 mt-auto" style="border-top: 5px solid var(--color-acento);">
-    <div class="container text-center text-md-start">
-        <div class="row text-center text-md-start">
-            <div class="col-md-4 col-lg-4 col-xl-4 mx-auto mt-3">
-                <h5 class="text-uppercase mb-4 fw-bold" style="color: var(--color-acento);">Good Vibes</h5>
-                <p>Tu punto de encuentro favorito en Barquisimeto donde la gastronomía y la buena música se unen para ofrecerte experiencias inolvidables.</p>
-            </div>
-            <div class="col-md-3 col-lg-3 col-xl-3 mx-auto mt-3">
-                <h5 class="text-uppercase mb-4 fw-bold" style="color: var(--color-acento);">Enlaces Útiles</h5>
-                <p><a href="<?= BASE_URL ?>?page=nuestro-menu" class="text-white text-decoration-none">Menú</a></p>
-                <p><a href="<?= BASE_URL ?>?page=login" class="text-white text-decoration-none">Iniciar Sesión</a></p>
-                <p>
-                    <a href="<?= BASE_URL ?>?page=asistencia-publica" class="neon-link fw-bold">
-                        <i class="fas fa-id-badge me-1"></i>Portal de Empleados
-                    </a>
-                </p>
-            </div>
-            <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mt-3">
-                <h5 class="text-uppercase mb-4 fw-bold" style="color: var(--color-acento);">Contacto</h5>
-                <p><i class="fas fa-home mr-3"></i> Av. Los Leones, Barquisimeto, VE</p>
-                <p><i class="fas fa-envelope mr-3"></i> contacto@goodvibes.com</p>
-                <p><i class="fas fa-phone mr-3"></i> +58 412-6159308</p>
-            </div>
-        </div>
-        <hr class="mb-4">
-        <div class="row align-items-center">
-            <div class="col-md-7 col-lg-8">
-                <p>Copyright © <?= date('Y') ?> Todos los derechos reservados por:
-                    <a href="#" style="text-decoration: none;"><strong style="color: var(--color-acento);">Good Vibes Tapas & Bar</strong></a>
-                </p>
-            </div>
-            <div class="col-md-5 col-lg-4">
-                <div class="text-center text-md-end">
-                    <ul class="list-unstyled list-inline">
-                        <li class="list-inline-item">
-                            <a href="https://www.instagram.com/goodvibes_tapasbar/" class="btn-floating btn-sm text-white" style="font-size: 23px;"><i class="fab fa-instagram"></i></a>
-                        </li>
-                        <li class="list-inline-item">
-                            <a href="#" class="btn-floating btn-sm text-white" style="font-size: 23px;"><i class="fab fa-tiktok"></i></a>
-                        </li>
-                        <li class="list-inline-item">
-                            <a href="#" class="btn-floating btn-sm text-white" style="font-size: 23px;"><i class="fab fa-facebook-f"></i></a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-</footer>
-
-<style>
     /* Efecto Neon para enlace de empleados */
     .neon-link {
         color: var(--color-acento) !important;
