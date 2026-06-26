@@ -111,8 +111,6 @@ export async function EnviarDatos(operacion) {
   //Registrar y Modificar
   if (operacion == "suministrar") {
 
-    console.log(Validarenvio())
-
     if (Validarenvio()) {
       confirmacion = await confirmarAccion(`Se va a suministrar un insumo`, mensajeConfirmacion, "question");
 
@@ -342,7 +340,6 @@ export function LimpiarFormulario() {
 
 export async function EditarFormSuministrar(datos) {
   LimpiarFormulario();
-  console.log(datos);
   let input = EtiquetasFormulario("input");
   let bool = false;
   let modal = EtiquetasModal("Suministrar")
