@@ -84,7 +84,8 @@ export function DiccionarioValidacion(termino) {
     'Correo': "El formato para el correo eléctronico es: usuario@servidor.com",
     'Titulo': "Contenido no válido",
     'Direccion': "Dirección no válida",
-    'NumeroDecimal': "Solo se permiten números",
+    'NumeroDecimal': "Solo se permiten números decimales",
+    'NumerEntero': "Solo se permiten números sin decimales"
 
   };
   const DEFAULT = '';

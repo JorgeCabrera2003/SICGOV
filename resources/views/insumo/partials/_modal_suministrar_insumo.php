@@ -9,7 +9,7 @@
             <div class="modal-header bg-warning-subtle border-bottom-0">
                 <h5 class="modal-title fw-bold" id="modalSuministrarInsumoLabel">
                     <i class="fas fa-box text-warning me-2"></i>
-                    <span id="modalTitleTextSuministrarInsumo"></span>
+                    <span id="modalTitleTextSuministrarInsumo">Suministrar Insumo</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>

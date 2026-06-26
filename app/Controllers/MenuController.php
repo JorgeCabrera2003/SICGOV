@@ -210,7 +210,10 @@ if ($type === 'admin') {
     $page = 'menu_publico';
     $titulo = 'Nuestro Menú - Good Vibes';
     
-    $extra_css = [BASE_URL . '/assets/css/main.css?v=' . time()];
+    $extra_css = [
+        BASE_URL . '/assets/css/landing.css?v=' . time(),
+        BASE_URL . '/assets/css/main.css?v=' . time()
+    ];
     $extra_js = [
         BASE_URL . '/assets/js/Controllers/PedidoPublicoController.js?v=' . time(),
         BASE_URL . '/assets/js/Handlers/PedidoPublicoHandler.js?v=' . time()

@@ -93,7 +93,9 @@ if ($type === 'publico') {
 
     $page = 'asistencia-publica';
     $titulo = 'Asistencia Pública - Good Vibes';
-    $extra_css = [];
+    $extra_css = [
+        BASE_URL . '/assets/css/landing.css?v=' . time()
+    ];
     $extra_js_modules = [BASE_URL . '/assets/js/Controllers/AsistenciaPublicController.js'];
 
     require_once BASE_PATH . '/resources/views/layout/head.php';
