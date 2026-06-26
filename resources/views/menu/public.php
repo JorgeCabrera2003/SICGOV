@@ -14,7 +14,7 @@ foreach ($menus as $menuItem) {
 <!-- Top Bar Removida (Se usa el Header Global) -->
 
 <!-- Header Promocional -->
-<div class="menu-hero text-center py-5 bg-dark text-white position-relative overflow-hidden" style="background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('<?= BASE_URL ?>/assets/img/hero-menu-new.png') center/cover;">
+<div class="menu-hero text-center py-5 bg-dark text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(10, 43, 43, 0.9) 0%, rgba(10, 43, 43, 0.4) 100%), url('<?= BASE_URL ?>/assets/img/hero-menu-new.png') center/cover;">
     <div class="container position-relative z-1 py-4">
         <h1 class="display-4 fw-bold mb-3 font-monospace text-primary">NUESTRO MENÚ</h1>
         <p class="lead mb-0 text-light">Pide en línea y disfruta del mejor sabor.</p>
@@ -24,7 +24,7 @@ foreach ($menus as $menuItem) {
 <!-- Categorías -->
 <nav class="sticky-top bg-body border-bottom shadow-sm py-3" style="z-index: 1020;">
     <div class="container">
-        <ul class="nav nav-pills nav-fill gap-2 flex-nowrap overflow-auto hide-scrollbar" id="menu-categories-tab" role="tablist">
+        <ul class="nav nav-pills gap-2 flex-nowrap overflow-x-auto categories-scroll pb-2" id="menu-categories-tab" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active fw-bold text-uppercase px-4 rounded-pill text-nowrap" id="cat-todas-tab" data-bs-toggle="pill" data-bs-target="#cat-todas" type="button" role="tab">
                     <i class="fas fa-star me-2"></i>Todo
@@ -362,63 +362,25 @@ foreach ($menus as $menuItem) {
 
 
 <style>
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    /* Scrollbar horizontal personalizado para escritorio */
+    .categories-scroll::-webkit-scrollbar {
+        height: 8px;
+    }
+    .categories-scroll::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.05); 
+        border-radius: 10px;
+    }
+    .categories-scroll::-webkit-scrollbar-thumb {
+        background: var(--brand-orange); 
+        border-radius: 10px;
+    }
+    .categories-scroll::-webkit-scrollbar-thumb:hover {
+        background: var(--brand-dark-orange); 
+    }
+    
     .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important; }
     .transition-all { transition: all .3s ease; }
     .transition-scale { transition: transform .5s ease; }
     .hover-lift:hover .transition-scale { transform: scale(1.05); }
     .fs-7 { font-size: 0.85rem; }
-    
-    /* Ocultar el footer genérico del sistema si está presente */
-    main.main-content > footer.bg-body-tertiary {
-        display: none !important;
-    }
 </style>
-
-<!-- Public Footer -->
-<footer class="bg-dark text-white pt-5 pb-4 mt-auto" style="border-top: 5px solid var(--color-acento);">
-    <div class="container text-center text-md-start">
-        <div class="row text-center text-md-start">
-            <div class="col-md-4 col-lg-4 col-xl-4 mx-auto mt-3">
-                <h5 class="text-uppercase mb-4 fw-bold" style="color: var(--color-acento);">Good Vibes</h5>
-                <p>Tu punto de encuentro favorito en Barquisimeto donde la gastronomía y la buena música se unen para ofrecerte experiencias inolvidables.</p>
-            </div>
-            <div class="col-md-3 col-lg-3 col-xl-3 mx-auto mt-3">
-                <h5 class="text-uppercase mb-4 fw-bold" style="color: var(--color-acento);">Enlaces Útiles</h5>
-                <p><a href="<?= BASE_URL ?>?page=nuestro-menu" class="text-white text-decoration-none">Menú</a></p>
-                <p><a href="<?= BASE_URL ?>?page=login" class="text-white text-decoration-none">Iniciar Sesión</a></p>
-                <p><a href="<?= BASE_URL ?>?page=asistencia-publica" class="text-white text-decoration-none">Asistencia</a></p>
-            </div>
-            <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mt-3">
-                <h5 class="text-uppercase mb-4 fw-bold" style="color: var(--color-acento);">Contacto</h5>
-                <p><i class="fas fa-home mr-3"></i> Av. Los Leones, Barquisimeto, VE</p>
-                <p><i class="fas fa-envelope mr-3"></i> contacto@goodvibes.com</p>
-                <p><i class="fas fa-phone mr-3"></i> +58 412-6159308</p>
-            </div>
-        </div>
-        <hr class="mb-4">
-        <div class="row align-items-center">
-            <div class="col-md-7 col-lg-8">
-                <p>Copyright © <?= date('Y') ?> Todos los derechos reservados por:
-                    <a href="#" style="text-decoration: none;"><strong style="color: var(--color-acento);">Good Vibes Tapas & Bar</strong></a>
-                </p>
-            </div>
-            <div class="col-md-5 col-lg-4">
-                <div class="text-center text-md-end">
-                    <ul class="list-unstyled list-inline">
-                        <li class="list-inline-item">
-                            <a href="https://www.instagram.com/goodvibes_tapasbar/" class="btn-floating btn-sm text-white" style="font-size: 23px;"><i class="fab fa-instagram"></i></a>
-                        </li>
-                        <li class="list-inline-item">
-                            <a href="#" class="btn-floating btn-sm text-white" style="font-size: 23px;"><i class="fab fa-tiktok"></i></a>
-                        </li>
-                        <li class="list-inline-item">
-                            <a href="#" class="btn-floating btn-sm text-white" style="font-size: 23px;"><i class="fab fa-facebook-f"></i></a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-</footer>
