@@ -62,14 +62,6 @@ class Menu extends Database
             throw new Exception("La categoría es obligatoria.");
         }
         
-        $stmt = $this->LlamarConexion()->prepare("SELECT id_categoria FROM categoria_producto WHERE id_categoria = ?");
-        $stmt->execute([$id_categoria]);
-        $rowCount = $stmt->rowCount();
-        $this->DestruirConexion();
-
-        if ($rowCount === 0) {
-            throw new Exception("La categoría seleccionada no existe en la base de datos.");
-        }
 
         $this->id_categoria = $id_categoria;
     }
@@ -101,23 +93,16 @@ class Menu extends Database
             }
 
             if (!empty($insumos) && is_array($insumos)) {
-                try {
-                    foreach ($insumos as $ing) {
-                        if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
-                            throw new Exception("Las cantidades de los insumos principales deben ser números mayores a 0.");
-                        }
-                        if (empty($ing['unidad'])) {
-                            throw new Exception("La unidad de medida es obligatoria para los insumos principales.");
-                        }
-                        
-                        $stmt = $this->LlamarConexion()->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
-                        $stmt->execute([$ing['unidad']]);
-                        if ($stmt->rowCount() === 0) {
-                            throw new Exception("La unidad de medida seleccionada para el insumo no existe en la base de datos.");
-                        }
+                foreach ($insumos as $ing) {
+                    if (empty($ing['id'])) {
+                        throw new Exception("El insumo es obligatorio para los insumos principales.");
                     }
-                } finally {
-                    $this->DestruirConexion();
+                    if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
+                        throw new Exception("Las cantidades de los insumos principales deben ser números mayores a 0.");
+                    }
+                    if (empty($ing['unidad'])) {
+                        throw new Exception("La unidad de medida es obligatoria para los insumos principales.");
+                    }
                 }
             }
         }
@@ -131,26 +116,19 @@ class Menu extends Database
         if ($this->tipo_producto === 'COCINA') {
             $insumos = is_string($insumos_json) ? json_decode($insumos_json, true) : $insumos_json;
             if (!empty($insumos) && is_array($insumos)) {
-                try {
-                    foreach ($insumos as $ing) {
-                        if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
-                            throw new Exception("Las cantidades de los insumos adicionales deben ser números mayores a 0.");
-                        }
-                        if (!isset($ing['precio']) || !is_numeric($ing['precio']) || $ing['precio'] <= 0) {
-                            throw new Exception("El precio de los insumos adicionales debe ser un número válido mayor a 0.");
-                        }
-                        if (empty($ing['unidad'])) {
-                            throw new Exception("La unidad de medida es obligatoria para los insumos adicionales.");
-                        }
-                        
-                        $stmt = $this->LlamarConexion()->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
-                        $stmt->execute([$ing['unidad']]);
-                        if ($stmt->rowCount() === 0) {
-                            throw new Exception("La unidad de medida seleccionada para el insumo adicional no existe en la base de datos.");
-                        }
+                foreach ($insumos as $ing) {
+                    if (empty($ing['id'])) {
+                        throw new Exception("El insumo es obligatorio para los insumos adicionales.");
                     }
-                } finally {
-                    $this->DestruirConexion();
+                    if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
+                        throw new Exception("Las cantidades de los insumos adicionales deben ser números mayores a 0.");
+                    }
+                    if (!isset($ing['precio']) || !is_numeric($ing['precio']) || $ing['precio'] <= 0) {
+                        throw new Exception("El precio de los insumos adicionales debe ser un número válido mayor a 0.");
+                    }
+                    if (empty($ing['unidad'])) {
+                        throw new Exception("La unidad de medida es obligatoria para los insumos adicionales.");
+                    }
                 }
             }
         } else if ($this->tipo_producto === 'BARRA') {
@@ -165,7 +143,9 @@ class Menu extends Database
 
 
 
-  
+    //#########################################################################################
+
+
     public function getIdProducto()
     {
         return $this->id_producto;
@@ -211,7 +191,58 @@ class Menu extends Database
         return $this->insumos_adicionales;
     }
 
+
+
+
+
+
+
+
+
+
 //#########################################################################################
+
+
+    public function validarCategoria($id_categoria)
+    {
+        $stmt = $this->LlamarConexion()->prepare("SELECT id_categoria FROM categoria_producto WHERE id_categoria = ?");
+        $stmt->execute([$id_categoria]);
+        $isValid = $stmt->rowCount() > 0;
+        $this->DestruirConexion();
+        return $isValid;
+    }
+
+    public function validarUnidadMedida($id_unidad)
+    {
+        $stmt = $this->LlamarConexion()->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
+        $stmt->execute([$id_unidad]);
+        $isValid = $stmt->rowCount() > 0;
+        $this->DestruirConexion();
+        return $isValid;
+    }
+
+    public function validarInsumo($id_insumo)
+    {
+        $stmt = $this->LlamarConexion()->prepare("SELECT id_insumo FROM insumo WHERE id_insumo = ? AND estatus = 1");
+        $stmt->execute([$id_insumo]);
+        $isValid = $stmt->rowCount() > 0;
+        $this->DestruirConexion();
+        return $isValid;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    //#########################################################################################
 
 
     public function Transaccion($peticion)
