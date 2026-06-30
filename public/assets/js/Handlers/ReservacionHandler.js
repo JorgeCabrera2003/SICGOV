@@ -41,7 +41,7 @@ export function formatarEstadoCliente(state) {
 
 
 export function inicializarPickers() {
-    const configBase = {
+    const configBaseTime = {
         enableTime: true,
         noCalendar: true,
         dateFormat: "H:i",
@@ -51,9 +51,20 @@ export function inicializarPickers() {
         locale: "es"
     };
 
+    const configDate = {
+        enableTime: false,
+        dateFormat: "Y-m-d",
+        altInput: true,
+        altFormat: "d/m/Y",
+        locale: "es",
+        minDate: ES_PUBLICO ? "today" : null
+    };
+
+    flatpickr(IDs.fecha, configDate);
+
     return {
-        timePickerInicio: flatpickr(IDs.hora, configBase),
-        timePickerFin: flatpickr(IDs.hora_fin, configBase)
+        timePickerInicio: flatpickr(IDs.hora, configBaseTime),
+        timePickerFin: flatpickr(IDs.hora_fin, configBaseTime)
     };
 }
 
@@ -195,6 +206,8 @@ function prepararNuevaReservacion(info, tpInicio, tpFin, calendar) {
     }
     
     $(IDs.fecha).val(fecha);
+    const fpFecha = document.querySelector(IDs.fecha)._flatpickr;
+    if (fpFecha) fpFecha.setDate(fecha);
 
     const mesaSel = $('#id_mesa').val();
     actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, null, mesaSel);
@@ -228,6 +241,8 @@ function abrirDetalleReservacion(event, props, tpInicio, tpFin, calendar) {
     }
     
     $(IDs.fecha).val(fecha);
+    const fpFecha = document.querySelector(IDs.fecha)._flatpickr;
+    if (fpFecha) fpFecha.setDate(fecha);
 
     actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, event.id, props.id_mesa);
 

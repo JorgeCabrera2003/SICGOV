@@ -55,7 +55,7 @@
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label class="form-label small fw-bold text-uppercase">Fecha</label>
-                            <input type="date" class="form-control bg-light" name="fecha" id="fecha" required>
+                            <input type="text" class="form-control bg-light" name="fecha" id="fecha" required>
                             <div id="sfecha"></div>
                         </div>
                         <div class="col-md-4 mb-3">
