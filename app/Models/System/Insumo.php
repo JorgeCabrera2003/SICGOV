@@ -150,6 +150,7 @@ class Insumo extends Database
                 'actualizar', 'modificar' => $this->ModificarInsumo(),
                 'eliminar' => $this->EliminarInsumo(),
                 'validar' => $this->ValidarInsumo(),
+                'actualizar_stock' => $this->ActualizarStockInsumo(),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
@@ -342,4 +343,44 @@ class Insumo extends Database
         $this->DestruirConexion();
         return $dato;
     }
+
+    private function ActualizarStockInsumo()
+    {
+
+        $dato = [];
+        $validacion = $this->ValidarInsumo();
+        if ($validacion['bool'] == 1) {
+            try {
+                $this->LlamarConexion();
+                $this->LlamarConexion()->beginTransaction();
+                $sql = "UPDATE insumo SET stock_actual = :stock_actual WHERE id_insumo = :id_insumo";
+
+                $stm = $this->LlamarConexion()->prepare($sql);
+                $stm->bindParam(':id_insumo', $this->id);
+                $stm->bindParam(':stock_actual', $this->stock_actual);
+                $stm->execute();
+                $this->LlamarConexion()->commit();
+                $stm = NULL;
+
+                $dato['estado'] = 1;
+                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Stock del Insumo actualizado exitosamente"];
+                $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+
+            } catch (\PDOException $e) {
+                $this->LlamarConexion()->rollBack();
+                Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+                $dato['estado'] = -1;
+                $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
+                $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+            }
+            $this->DestruirConexion();
+
+        } else {
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 404, 'icon' => 'error', 'mensaje' => "Registro no encontrado"];
+            $dato['HTTP_STATUS'] = ['codigo' => 404, 'mensaje' => "No encontrado"];
+        }
+        return $dato;
+    }
+
 }

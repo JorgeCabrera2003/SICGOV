@@ -7,7 +7,7 @@
     <!-- Encabezado semántico con header -->
     <header class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">
-            <i class="fas fa-box me-2 text-warning"></i>
+            <i class="bi bi-droplet me-2 text-primary"></i>
             Gestión de Insumos
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de insumo">
@@ -59,6 +59,7 @@
 include_once 'partials/_modal_insumo.php';
 include_once 'partials/_modal_categoria_insumo.php';
 include_once 'partials/_modal_suministrar_insumo.php';
+include_once 'partials/_modal_movimientos_insumo.php';
 include_once $basePath . '/resources/views/categoria_insumo/partials/_modal_categoria_insumo_form.php';
 ?>
 

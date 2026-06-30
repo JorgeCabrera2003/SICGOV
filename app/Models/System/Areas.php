@@ -11,14 +11,12 @@ class Areas extends Database
 {
     private $id_area;
     private $nombre;
-    private $descripcion;
     private $estatus;
 
     public function __construct()
     {
         $this->id_area = "";
         $this->nombre = "";
-        $this->descripcion = "";
         $this->estatus = 1;
     }
 
@@ -44,15 +42,7 @@ class Areas extends Database
     $this->nombre = $nombre; 
 }
 
-    public function setDescripcion(string $descripcion = null) { 
-        if ($descripcion !== null) {
-            $descripcion = trim($descripcion);
-            if (!empty($descripcion) && strlen($descripcion) > 200) {
-                throw new Exception("La descripción no puede exceder los 200 caracteres.");
-            }
-        }
-        $this->descripcion = $descripcion; 
-    }
+
 
     public function setEstatus(int $estatus) { 
         if (!in_array($estatus, [0, 1])) {
@@ -70,9 +60,7 @@ class Areas extends Database
         return $this->nombre; 
     }
 
-    public function getDescripcion() { 
-        return $this->descripcion; 
-    }
+
 
     public function getEstatus() { 
         return $this->estatus; 
@@ -109,7 +97,7 @@ class Areas extends Database
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
 
-            $sql = "SELECT id_area, nombre, descripcion, estatus 
+            $sql = "SELECT id_area, nombre, estatus 
                     FROM area_mesa 
                     ORDER BY nombre ASC";
             
@@ -144,13 +132,12 @@ class Areas extends Database
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
 
-            $sql = "INSERT INTO area_mesa(id_area, nombre, descripcion, estatus)
-                    VALUES (:id_area, :nombre, :descripcion, :estatus)";
+            $sql = "INSERT INTO area_mesa(id_area, nombre, estatus)
+                    VALUES (:id_area, :nombre, :estatus)";
 
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':id_area', $this->id_area);
             $stm->bindParam(':nombre', $this->nombre);
-            $stm->bindParam(':descripcion', $this->descripcion);
             $stm->bindParam(':estatus', $this->estatus);
             $stm->execute();
 
@@ -188,14 +175,12 @@ class Areas extends Database
 
             $sql = "UPDATE area_mesa SET 
                         nombre = :nombre, 
-                        descripcion = :descripcion, 
                         estatus = :estatus 
                     WHERE id_area = :id_area";
 
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':id_area', $this->id_area);
             $stm->bindParam(':nombre', $this->nombre);
-            $stm->bindParam(':descripcion', $this->descripcion);
             $stm->bindParam(':estatus', $this->estatus);
             $stm->execute();
 

@@ -1,5 +1,74 @@
     </div> <!-- Cierra content-wrapper -->
 
+    <?php if (isset($hideSidebar) && $hideSidebar): ?>
+    <style>
+        /* Ocultar el footer genérico del sistema si está presente (seguridad adicional) */
+        main.main-content > footer.bg-body-tertiary {
+            display: none !important;
+        }
+
+        /* Efecto Neon para enlace de empleados */
+        .neon-link {
+            color: var(--color-acento) !important;
+            text-shadow: 0 0 5px var(--color-acento), 0 0 10px var(--color-acento);
+            transition: all 0.3s ease;
+        }
+        .neon-link:hover {
+            color: #fff !important;
+            text-shadow: 0 0 10px #fff, 0 0 20px #fff;
+        }
+    </style>
+    <!-- Public Footer -->
+    <footer class="bg-dark text-white pt-5 pb-4 mt-auto" style="border-top: 5px solid var(--color-acento);">
+        <div class="container text-center text-md-start">
+            <div class="row text-center text-md-start">
+                <div class="col-md-4 col-lg-4 col-xl-4 mx-auto mt-3">
+                    <h5 class="text-uppercase mb-4 fw-bold" style="color: var(--color-acento);">Good Vibes</h5>
+                    <p>Tu punto de encuentro favorito en Barquisimeto donde la gastronomía y la buena música se unen para ofrecerte experiencias inolvidables.</p>
+                </div>
+                <div class="col-md-3 col-lg-3 col-xl-3 mx-auto mt-3">
+                    <h5 class="text-uppercase mb-4 fw-bold" style="color: var(--color-acento);">Enlaces Útiles</h5>
+                    <p><a href="<?= BASE_URL ?>?page=nuestro-menu" class="text-white text-decoration-none">Menú</a></p>
+                    <p><a href="<?= BASE_URL ?>?page=login" class="text-white text-decoration-none">Iniciar Sesión</a></p>
+                    <p>
+                        <a href="<?= BASE_URL ?>?page=asistencia-publica" class="neon-link fw-bold text-decoration-none">
+                            <i class="fas fa-id-badge me-1"></i>Portal de Empleados
+                        </a>
+                    </p>
+                </div>
+                <div class="col-md-4 col-lg-3 col-xl-3 mx-auto mt-3">
+                    <h5 class="text-uppercase mb-4 fw-bold" style="color: var(--color-acento);">Contacto</h5>
+                    <p><i class="fas fa-home mr-3"></i> Av. Los Leones, Barquisimeto, VE</p>
+                    <p><i class="fas fa-envelope mr-3"></i> contacto@goodvibes.com</p>
+                    <p><i class="fas fa-phone mr-3"></i> +58 412-6159308</p>
+                </div>
+            </div>
+            <hr class="mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-7 col-lg-8">
+                    <p>Copyright © <?= date('Y') ?> Todos los derechos reservados por:
+                        <a href="#" style="text-decoration: none;"><strong style="color: var(--color-acento);">Good Vibes Tapas & Bar</strong></a>
+                    </p>
+                </div>
+                <div class="col-md-5 col-lg-4">
+                    <div class="text-center text-md-end">
+                        <ul class="list-unstyled list-inline">
+                            <li class="list-inline-item">
+                                <a href="https://www.instagram.com/goodvibes_tapasbar/" class="btn-floating btn-sm text-white" style="font-size: 23px;"><i class="fab fa-instagram"></i></a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#" class="btn-floating btn-sm text-white" style="font-size: 23px;"><i class="fab fa-tiktok"></i></a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#" class="btn-floating btn-sm text-white" style="font-size: 23px;"><i class="fab fa-facebook-f"></i></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <?php else: ?>
     <footer class="footer mt-auto py-3 bg-body-tertiary border-top">
         <div class="container-fluid">
             <div class="row align-items-center">
@@ -21,6 +90,7 @@
             </div>
         </div>
     </footer>
+    <?php endif; ?>
 
 </main> <!-- Cierra main-content -->
 
