@@ -7,7 +7,10 @@ if (PHP_SAPI !== 'cli') {
 
 define('CRON_BASE_PATH', __DIR__);
 
-define('BACKUP_FRECUENCIA', 'semanal');
+$_backupConfig = file_exists(CRON_BASE_PATH . '/config/backup.php')
+    ? (require CRON_BASE_PATH . '/config/backup.php')
+    : [];
+define('BACKUP_FRECUENCIA', $_backupConfig['frecuencia'] ?? 'diario');
 
 define('BACKUP_MAX_RETENER', 8);
 
@@ -92,7 +95,7 @@ foreach ($resumenTotal as $r) {
     cronLog("  $estado");
 }
 cronLog("Script finalizado con código: $exitCode");
-cronLog("════════════════════════════════════════\n");
+cronLog("----------------------------------------\n");
 
 exit($exitCode);
 
