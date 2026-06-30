@@ -53,7 +53,7 @@
                         <label>Fecha de tu visita</label>
                         <div class="input-group">
                             <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-calendar3"></i></span>
-                            <input type="date" class="form-control border-start-0 ps-0" name="fecha" id="fechaPublica" required readonly>
+                            <input type="date" class="form-control border-start-0 ps-0" name="fecha" id="fechaPublica" min="<?= date('Y-m-d') ?>" required readonly>
                         </div>
                     </div>
 

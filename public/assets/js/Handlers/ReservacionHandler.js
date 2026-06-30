@@ -80,7 +80,13 @@ export function inicializarCalendario(calendarEl, pickers) {
         selectable: true,
         unselectAuto: false,
         editable: !ES_PUBLICO,           
-        eventResizableFromStart: true,   
+        eventResizableFromStart: true,
+        selectAllow: function(selectInfo) {
+            if (!ES_PUBLICO) return true;
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            return selectInfo.start >= hoy;
+        },
 
         events: async function (fetchInfo, successCallback, failureCallback) {
             const formData = new FormData();
@@ -104,6 +110,13 @@ export function inicializarCalendario(calendarEl, pickers) {
         },
 
         select: function (info) {
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            if (ES_PUBLICO && info.start < hoy) {
+                calendar.unselect();
+                MensajeriaHelper.GenerarMensaje('warning', 3000, 'Fecha inválida', 'No puede reservar en una fecha pasada.');
+                return;
+            }
             prepararNuevaReservacion(info, timePickerInicio, timePickerFin, calendar);
         },
 
@@ -119,6 +132,13 @@ export function inicializarCalendario(calendarEl, pickers) {
 
 
         eventDrop: function (info) {
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            if (ES_PUBLICO && info.event.start < hoy) {
+                info.revert();
+                MensajeriaHelper.GenerarMensaje('warning', 3000, 'Fecha inválida', 'No puede mover a una fecha pasada.');
+                return;
+            }
             MoverEvento(info, calendar);
         },
 
@@ -259,6 +279,13 @@ export async function MoverEvento(info, calendar, mensaje = 'Reprogramado con é
 export async function GestionarEnvio(form, calendar) {
     const formData = new FormData(form);
     
+    const fecha = formData.get('fecha');
+    const hoyStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Caracas' }).split('T')[0];
+    if (ES_PUBLICO && fecha && fecha < hoyStr) {
+        MensajeriaHelper.GenerarMensaje('warning', 5000, "Fecha inválida", "No puede realizar ni mover una reservación a una fecha pasada.");
+        return;
+    }
+
     const h1 = $(IDs.hora).val();
     const h2 = $(IDs.hora_fin).val();
     if (h1 && h2 && h2 <= h1) {
