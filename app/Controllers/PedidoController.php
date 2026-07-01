@@ -97,7 +97,10 @@ if ($isAjax || !empty($action)) {
                     $insumos = $menuModel->obtenerInsumosProducto($id_producto);
                     echo json_encode(['success' => true, 'data' => $insumos]);
                 break;
-
+                case 'listar_mesas_disponibles':
+                    $mesas = $pedidoModel->Transaccion(['peticion' => 'listar_mesas_disponibles']);
+                    echo json_encode(['success' => true, 'data' => $mesas]);
+                break;   
             default:
                 echo json_encode(['success' => false, 'message' => 'Acción no válida.']);
                 break;

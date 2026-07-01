@@ -32,6 +32,8 @@ class Pedido
                 return $this->obtenerComprobante($data['id_pedido']);
             case 'crear_pos':
                 return $this->crearPedidoPOS($data['datosCliente'], $data['carrito'], $data['datosPago']);
+            case 'listar_mesas_disponibles':  
+                return $this->listarMesasDisponibles();
             default:
                 throw new Exception("Petición no válida.");
         }
@@ -54,12 +56,16 @@ class Pedido
 
     private function buscarPedido($id_pedido)
     {
-        $sql = "SELECT p.*, per.nombre, per.apellido, per.telefono, pag.id_pago, pag.referencia, mp.nombre AS metodo_pago
+        $sql = "SELECT p.*, 
+                per.nombre, per.apellido, per.telefono, 
+                pag.id_pago, pag.referencia, mp.nombre AS metodo_pago,
+                m.numero_mesa
                 FROM pedido p
                 LEFT JOIN cliente c ON p.cedula_cliente = c.cedula
                 LEFT JOIN persona per ON c.cedula = per.cedula
                 LEFT JOIN pago pag ON p.id_pedido = pag.id_pedido
                 LEFT JOIN metodo_pago mp ON pag.id_metodo_pago = mp.id_metodo_pago
+                LEFT JOIN mesa m ON p.id_mesa = m.id_mesa
                 WHERE p.id_pedido = ?";
         $stmt = $this->dbBusiness->prepare($sql);
         $stmt->execute([$id_pedido]);
@@ -279,5 +285,22 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
         ];
     }
 }
+
+private function listarMesasDisponibles()
+{
+    try {
+        $sql = "SELECT id_mesa, numero_mesa, capacidad, id_area 
+                FROM mesa 
+                WHERE estado = 'DISPONIBLE' AND estatus = 1 
+                ORDER BY numero_mesa ASC";
+        $stmt = $this->dbBusiness->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (\PDOException $e) {
+        error_log("Error en listarMesasDisponibles: " . $e->getMessage());
+        return [];
+    }
+}
+
 
 }

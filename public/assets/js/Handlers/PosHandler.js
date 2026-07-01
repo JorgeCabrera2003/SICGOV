@@ -420,6 +420,16 @@ async function procesarCobro() {
         return;
     }
 
+    if (tipo_pedido === 'MESA' && !id_mesa) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Mesa requerida',
+            text: 'Debe seleccionar una mesa disponible',
+            confirmButtonColor: '#d33'
+        });
+        return;
+    }
+
     const form = document.getElementById('posForm');
     if (!form.checkValidity()) {
         form.reportValidity();
