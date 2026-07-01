@@ -415,17 +415,8 @@ async function procesarCobro() {
             icon: 'error',
             title: 'Carrito vacío',
             text: 'No hay productos en el pedido',
-            confirmButtonColor: '#3085d6'
-        });
-        return;
-    }
-
-    if (tipo_pedido === 'MESA' && !id_mesa) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Mesa requerida',
-            text: 'Debe seleccionar una mesa disponible',
-            confirmButtonColor: '#d33'
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Aceptar'
         });
         return;
     }
@@ -436,10 +427,28 @@ async function procesarCobro() {
         return;
     }
 
+    // ============================================
+    // 1. DECLARAR TODAS LAS VARIABLES PRIMERO
+    // ============================================
     const tipo_pedido = document.getElementById('posTipoPedido').value;
     const id_mesa = document.getElementById('posMesa').value;
     const nombre_cliente = document.getElementById('posClienteNombre').value;
     const id_metodo_pago = document.getElementById('posMetodoPago').value;
+
+    // ============================================
+    // 2. VALIDAR (AHORA tipo_pedido YA ESTÁ DECLARADO)
+    // ============================================
+    if (tipo_pedido === 'MESA') {
+        if (!id_mesa) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Mesa requerida',
+                text: 'Debe seleccionar una mesa disponible para pedidos en el local',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+    }
 
     const btnCobrar = document.getElementById('btnPosCobrar');
     btnCobrar.disabled = true;
@@ -453,7 +462,7 @@ async function procesarCobro() {
                 id_producto: item.id_producto,
                 cantidad: item.cantidad,
                 precio_unitario: item.precio_unitario,
-                indicacion: item.indicacion || ''  // <-- Enviar indicación
+                indicacion: item.indicacion || ''
             })),
             total: totalCalculado
         },
@@ -477,15 +486,16 @@ async function procesarCobro() {
                 document.getElementById('posClienteNombre').value = '';
                 document.getElementById('posMesa').value = '';
                 renderCarrito();
-                
+
                 const modalEl = document.getElementById('modalPOS');
                 if (modalEl) {
                     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
                     modal.hide();
                     document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
                     document.body.classList.remove('modal-open');
+                    document.body.style = '';
                 }
-                
+
                 if (typeof cargarPedidos === 'function') {
                     cargarPedidos();
                 }
@@ -493,17 +503,17 @@ async function procesarCobro() {
         } else {
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
+                title: 'Error al registrar pedido',
                 html: res.message,
                 confirmButtonColor: '#d33'
             });
         }
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error al procesar el cobro:", error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Ocurrió un error al procesar el cobro',
+            text: 'Ocurrió un error al procesar el cobro. Por favor, intenta de nuevo.',
             confirmButtonColor: '#d33'
         });
     } finally {
