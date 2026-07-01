@@ -52,7 +52,12 @@ if (isset($_POST["peticion"])) {
                     $empleadoModel->setCorreo($_POST["correo"] ?? '');
                     $empleadoModel->setDireccion($_POST["direccion"] ?? '');
                     $empleadoModel->setSexo($_POST["sexo"] ?? '');
-                    $empleadoModel->setIdCargo($_POST["id_cargo"] ?? '');
+                    
+                    $id_cargo = $_POST["id_cargo"] ?? '';
+                    if (empty($id_cargo) || !$empleadoModel->validarCargo($id_cargo)) {
+                        throw new Exception("El cargo seleccionado no es válido o está inactivo.");
+                    }
+                    $empleadoModel->setIdCargo($id_cargo);
                 }
 
                 if ($_POST["peticion"] == "registrar") {
