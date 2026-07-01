@@ -88,15 +88,23 @@ function renderProductos(categoriaId) {
         div.onclick = () => seleccionarProducto(p);
         
         div.innerHTML = `
-            <img src="/SICGOV/public/assets/img/productos/${p.imagen || 'default-product.png'}" 
-                 class="card-img-top pos-card__img" alt="${p.nombre_producto}" 
-                 onerror="this.src='/SICGOV/public/assets/img/logo.png'">
-            <div class="card-body p-2 text-center">
-                <h6 class="card-title text-truncate mb-1" style="font-size:0.9rem;">${escapeHtml(p.nombre_producto)}</h6>
-                <span class="text-success fw-bold">$${parseFloat(p.precio).toFixed(2)}</span>
-                ${p.es_personalizable ? '<span class="badge bg-warning text-dark mt-1 d-block">Personalizable</span>' : ''}
-            </div>
-        `;
+                <img src="/SICGOV/public/assets/img/productos/${p.imagen || 'default-product.png'}" 
+                    class="card-img-top pos-card__img" alt="${p.nombre_producto}" 
+                    onerror="this.src='/SICGOV/public/assets/img/logo.png'">
+                <div class="card-body p-2 text-center">
+                    <h6 class="card-title text-truncate mb-1" style="font-size:0.9rem;">${escapeHtml(p.nombre_producto)}</h6>
+                    <span class="text-success fw-bold">$${parseFloat(p.precio).toFixed(2)}</span>
+                    
+                    ${p.tipo_producto === 'BARRA' 
+                        ? '<span class="badge bg-info text-white mt-1 d-block">🍸 Barra</span>' 
+                        : p.tipo_producto === 'POSTRE' 
+                            ? '<span class="badge bg-warning text-dark mt-1 d-block">🍰 Postre</span>'
+                            : p.es_personalizable 
+                                ? '<span class="badge bg-warning text-dark mt-1 d-block">Personalizable</span>' 
+                                : ''}
+                    
+                </div>
+            `;
         grid.appendChild(div);
     });
 }
@@ -110,6 +118,12 @@ async function seleccionarProducto(producto) {
         return;
     }
     
+    if (producto.tipo_producto === 'BARRA') {
+        // Si es de barra, agregar directamente sin personalización
+        agregarAlCarrito(productoActual, [], [], parseFloat(productoActual.precio), '');
+        return;
+    }
+
     // Cargar insumos del producto
     Swal.fire({
         title: 'Cargando...',
@@ -334,7 +348,8 @@ function agregarAlCarrito(producto, extras = [], removidos = [], precioPersonali
             cantidad: 1,
             extras: extras,
             removidos: removidos,
-            indicacion: indicacion
+            indicacion: indicacion,
+            tipo_producto: producto.tipo_producto || 'COCINA' // <-- NUEVO
         });
     }
     
@@ -458,14 +473,15 @@ async function procesarCobro() {
 
     const datos = {
         carrito: {
-            items: posCart.map(item => ({
-                id_producto: item.id_producto,
-                cantidad: item.cantidad,
-                precio_unitario: item.precio_unitario,
-                indicacion: item.indicacion || ''
+        items: posCart.map(item => ({
+            id_producto: item.id_producto,
+            cantidad: item.cantidad,
+            precio_unitario: item.precio_unitario,
+            indicacion: item.indicacion || '',
+            tipo_producto: item.tipo_producto || 'COCINA' // <-- NUEVO
             })),
             total: totalCalculado
-        },
+            },
         tipo_pedido: tipo_pedido,
         id_mesa: id_mesa,
         nombre: nombre_cliente,
