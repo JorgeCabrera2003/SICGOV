@@ -16,10 +16,11 @@ class Database
         $dotenv->safeLoad();
 
         $host = $_ENV['DB_HOST'] ?? 'localhost';
+        $port = $_ENV['DB_PORT'] ?? '3306';
         $user = $_ENV['DB_USER'] ?? 'root';
         $pass = $_ENV['DB_PASS'] ?? '';
 
-        return new \PDO("mysql:host=$host;charset=utf8mb4", $user, $pass, [
+        return new \PDO("mysql:host=$host;port=$port;charset=utf8mb4", $user, $pass, [
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
         ]);
     }
@@ -28,17 +29,17 @@ class Database
     {
         if (!isset(self::$instances[$type])) {
             try {
-                // Cargamos variables de entorno (.env)
                 $dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
                 $dotenv->safeLoad();
 
                 $dbName = ($type === 'security') ? $_ENV['DB_NAME_USER'] : $_ENV['DB_NAME_SYSTEM'];
 
                 $host = $_ENV['DB_HOST'] ?? 'localhost';
+                $port = $_ENV['DB_PORT'] ?? '3306';
                 $user = $_ENV['DB_USER'] ?? 'root';
                 $pass = $_ENV['DB_PASS'] ?? '';
 
-                $dsn = "mysql:host=$host;dbname=$dbName;charset=utf8mb4";
+                $dsn = "mysql:host=$host;port=$port;dbname=$dbName;charset=utf8mb4";
 
                 $options = [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -73,7 +74,7 @@ class Database
      * 
      * @return PDO $this->pdo 
      */
-    public function LlamarConexion($nombreBD = 'business', PDO &$pdo = NULL)
+    public function LlamarConexion($nombreBD = 'business', ?PDO &$pdo = NULL)
     {
         if ($pdo != NULL) {
             $this->pdo = $pdo;
