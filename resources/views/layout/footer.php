@@ -99,6 +99,19 @@
     <i class="bi bi-arrow-up"></i>
 </button>
 
+<!-- Offcanvas de Ayuda (Word-style) -->
+<div class="offcanvas offcanvas-end shadow" tabindex="-1" id="ayudaOffcanvas" aria-labelledby="ayudaOffcanvasLabel" style="width: 400px; z-index: 1060;">
+    <div class="offcanvas-header bg-light border-bottom">
+        <h5 class="offcanvas-title" id="ayudaOffcanvasLabel">
+            <i class="bi bi-journal-bookmark-fill text-warning me-2"></i>Centro de Ayuda
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body" id="ayudaOffcanvasBody">
+        <!-- Contenido de ayuda se inyecta por JS -->
+    </div>
+</div>
+
 <!-- ===== SCRIPTS - ORDEN CORRECTO ===== -->
 
 <!-- 1. jQuery SIEMPRE primero -->
@@ -123,6 +136,9 @@
 <!-- 7. Scripts personalizados (dependen de jQuery) -->
 <script src="<?php echo BASE_URL; ?>/assets/js/main.js"></script>
 <script src="<?php echo BASE_URL; ?>/assets/js/utils.js"></script>
+<?php if (isset($_SESSION['user'])): ?>
+<script src="<?php echo BASE_URL; ?>/assets/js/ayuda.js"></script>
+<?php endif; ?>
 <?php if (isset($_SESSION['user'])): ?>
     <script type="module" src="<?php echo BASE_URL; ?>/assets/js/modulo_notificaciones.js?v=<?php echo time(); ?>"></script>
 <?php endif; ?>
