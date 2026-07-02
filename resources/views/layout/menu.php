@@ -371,59 +371,10 @@
 <main class="main-content flex-grow-1 <?php echo (isset($hideSidebar) && $hideSidebar) ? 'ms-0 w-100' : ''; ?>"
     id="main-content">
     
-    <?php if (isset($hideSidebar) && $hideSidebar): ?>
-    <style>
-        #top-nav {
-            background: rgba(250, 158, 59, 0.95) !important; /* Brand Orange */
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 2px solid var(--brand-dark-orange) !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            height: 75px !important;
-            transition: all 0.3s ease;
-        }
-        #top-nav > div {
-            height: 75px !important;
-        }
-        #top-nav .btn-link, #top-nav i, #top-nav span:not(.notificacion__badge):not(.profile-role-badge) {
-            color: #ffffff !important;
-            transition: color 0.3s ease;
-        }
-        #top-nav .btn-link:hover, #top-nav .btn-link:hover i {
-            color: var(--color-acento) !important;
-        }
-        #top-nav .logo-img {
-            height: 100px !important;
-            transition: all 0.3s ease;
-            filter: drop-shadow(0 0 10px rgba(255, 204, 0, 0.6));
-        }
-        #top-nav .logo-img:hover {
-            transform: scale(1.05);
-            filter: drop-shadow(0 0 20px rgba(255, 204, 0, 0.9));
-        }
-        #top-nav .dropdown-menu i, #top-nav .dropdown-menu span, #top-nav .dropdown-menu .fw-semibold, #top-nav .dropdown-menu .text-muted {
-            color: inherit !important;
-        }
-        #top-nav .btn-primary {
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            border: 2px solid transparent !important;
-        }
-        #top-nav .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(241, 90, 41, 0.4);
-            background-color: var(--brand-dark-orange) !important;
-            border-color: var(--brand-dark-orange) !important;
-            color: #FFF !important;
-        }
-        #top-nav .btn-primary:hover span, #top-nav .btn-primary:hover i {
-            color: #FFF !important;
-        }
-    </style>
-    <?php endif; ?>
+
 
     <!-- Barra superior -->
-    <header class="bg-body-tertiary border-bottom sticky-top" id="top-nav" style="z-index: 1040;">
+    <header class="bg-body-tertiary border-bottom sticky-top <?php echo (isset($hideSidebar) && $hideSidebar) ? 'public-top-nav' : ''; ?>" id="top-nav" style="z-index: 1040;">
         <div class="d-flex align-items-center justify-content-between px-3" style="height: 60px;">
             <div class="d-flex align-items-center gap-3">
                 <?php if (!isset($hideSidebar) || !$hideSidebar): ?>
@@ -441,6 +392,24 @@
 
             <div class="d-flex align-items-center gap-2">
                 <?php if (isset($_SESSION['user'])): ?>
+                <?php if (!isset($hideSidebar) || !$hideSidebar): ?>
+                <!-- Buscador de Ayuda (Word-style) -->
+                <div class="position-relative me-2 d-none d-md-block" style="width: 250px; z-index: 1050;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-transparent border-end-0" id="ayuda-search-icon" style="cursor: text;" onclick="document.getElementById('ayudaSearchInput').focus()">
+                            <i class="bi bi-lightbulb text-warning"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0 ps-0 shadow-none" id="ayudaSearchInput" placeholder="¿Necesitas ayuda?" autocomplete="off" aria-label="Ayuda" aria-describedby="ayuda-search-icon">
+                    </div>
+                    <div class="dropdown-menu w-100 shadow mt-1 position-absolute" id="ayudaDropdownMenu" style="display: none; max-height: 300px; overflow-y: auto; z-index: 1055;">
+                        <h6 class="dropdown-header">Sugerencias de ayuda</h6>
+                        <div id="ayudaResultsList">
+                            <!-- Resultados inyectados vía JS -->
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <!-- Notificaciones -->
                 <div class="dropdown">
                     <button class="btn btn-link text-decoration-none p-2 position-relative" type="button"
