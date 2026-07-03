@@ -95,6 +95,12 @@ class Pedido
             $stmtEstado->execute([$id_pedido]);
             $estadoActual = $stmtEstado->fetch(PDO::FETCH_ASSOC)['estado'];
             
+            // LOG: Verificar estados
+            error_log("=== cambiarEstado ===");
+            error_log("ID Pedido: $id_pedido");
+            error_log("Estado actual: $estadoActual");
+            error_log("Nuevo estado: $estado");
+            
             // Actualizar estado del pedido
             $sql = "UPDATE pedido SET estado = ? WHERE id_pedido = ?";
             $stmt = $this->dbBusiness->prepare($sql);
@@ -105,30 +111,60 @@ class Pedido
                 return ['success' => false, 'message' => 'Error al actualizar estado'];
             }
             
-            // Si el pedido pasa a PREPARANDO, descontar insumos (solo si hay productos de cocina)
-            if ($estado === 'PREPARANDO' && $estadoActual !== 'LISTO') {
-                // Verificar si el pedido requiere preparación (tiene productos de cocina)
+            // ==============================================
+            // DESCONTAR INSUMOS (si corresponde)
+            // ==============================================
+            $insumosDescontados = false;
+            
+            // 1. Si pasa a PREPARACION y no se habían descontado
+            if ($estado === 'PREPARANDO' && $estadoActual !== 'PREPARANDO') {
+                error_log("Entrando a PREPARACION - Verificando si requiere preparación");
                 $requierePreparacion = $this->pedidoRequierePreparacion($id_pedido);
                 
                 if ($requierePreparacion) {
-                    error_log("Pedido con productos de cocina - Descontando insumos al pasar a PREPARACION");
+                    error_log("Pedido con productos de cocina - Descontando insumos");
                     $resultado = $this->descontarInsumosPedido($id_pedido);
                     
                     if (!$resultado['success']) {
                         $this->dbBusiness->rollBack();
                         return ['success' => false, 'message' => $resultado['message']];
                     }
+                    $insumosDescontados = true;
                 } else {
-                    error_log("Pedido sin productos de cocina - Ya se descontaron insumos al crear");
+                    error_log("Pedido sin productos de cocina - Ya se descontaron al crear");
                 }
             }
             
-            // Si el pedido se cancela y estaba en PREPARACION, restaurar insumos
-            if ($estado === 'CANCELADO' && $estadoActual === 'PREPARACION') {
+            // 2. Si pasa a ENTREGADO y no se descontaron antes (por si saltaron PREPARACION)
+            if ($estado === 'ENTREGADO' && !$insumosDescontados && $estadoActual !== 'ENTREGADO') {
+                error_log("Entrando a ENTREGADO - Verificando si requiere preparación");
+                $requierePreparacion = $this->pedidoRequierePreparacion($id_pedido);
+                
+                if ($requierePreparacion) {
+                    // Verificar si ya se descontaron (consultar si hay un registro de descuento)
+                    // Por ahora, descontar directamente
+                    error_log("Pedido con productos de cocina - Descontando insumos al entregar");
+                    $resultado = $this->descontarInsumosPedido($id_pedido);
+                    
+                    if (!$resultado['success']) {
+                        $this->dbBusiness->rollBack();
+                        return ['success' => false, 'message' => $resultado['message']];
+                    }
+                }
+            }
+            
+            // ==============================================
+            // RESTAURAR INSUMOS (si se cancela)
+            // ==============================================
+            // Si el pedido se cancela y estaba en PREPARACION o ENTREGADO, restaurar insumos
+            if ($estado === 'CANCELADO' && in_array($estadoActual, ['PREPARANDO', 'ENTREGADO'])) {
+                error_log("Cancelando pedido - Restaurando insumos");
                 $this->restaurarInsumosPedido($id_pedido);
             }
             
-            // Si el pedido se entrega o cancela, liberar mesa
+            // ==============================================
+            // LIBERAR MESA (si aplica)
+            // ==============================================
             if (in_array($estado, ['ENTREGADO', 'CANCELADO'])) {
                 $sqlInfo = "SELECT tipo_pedido, id_mesa FROM pedido WHERE id_pedido = ?";
                 $stmtInfo = $this->dbBusiness->prepare($sqlInfo);
@@ -139,6 +175,7 @@ class Pedido
                     $sqlLiberar = "UPDATE mesa SET estado = 'DISPONIBLE' WHERE id_mesa = ?";
                     $stmtLiberar = $this->dbBusiness->prepare($sqlLiberar);
                     $stmtLiberar->execute([$pedidoInfo['id_mesa']]);
+                    error_log("Mesa liberada: " . $pedidoInfo['id_mesa']);
                 }
             }
             
@@ -418,10 +455,13 @@ class Pedido
 private function descontarInsumosPedido($id_pedido)
 {
     try {
+        error_log("=== descontarInsumosPedido ===");
+        error_log("ID Pedido: $id_pedido");
+        
         // Obtener todos los productos del pedido con sus detalles
         $sql = "SELECT dp.id_producto, dp.cantidad, dp.indicacion,
                        p.id_preparacion, p.id_insumo, p.cantidad as cantidad_insumo,
-                       i.stock_actual
+                       i.stock_actual, i.nombre_insumo
                 FROM detalle_pedido dp
                 JOIN producto pr ON dp.id_producto = pr.id_producto
                 JOIN preparacion p ON pr.id_producto = p.id_producto
@@ -432,17 +472,41 @@ private function descontarInsumosPedido($id_pedido)
         $stmt->execute([$id_pedido]);
         $insumos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
+        error_log("Insumos encontrados: " . count($insumos));
+        
         if (empty($insumos)) {
-            return ['success' => true, 'message' => 'No hay insumos para descontar'];
+            error_log("No hay insumos para descontar (prioridad=1)");
+            
+            // Si no hay insumos con prioridad=1, intentar con todos los insumos
+            $sql2 = "SELECT dp.id_producto, dp.cantidad,
+                            p.id_insumo, p.cantidad as cantidad_insumo,
+                            i.stock_actual, i.nombre_insumo
+                     FROM detalle_pedido dp
+                     JOIN producto pr ON dp.id_producto = pr.id_producto
+                     JOIN preparacion p ON pr.id_producto = p.id_producto
+                     JOIN insumo i ON p.id_insumo = i.id_insumo
+                     WHERE dp.id_pedido = ?";
+            
+            $stmt2 = $this->dbBusiness->prepare($sql2);
+            $stmt2->execute([$id_pedido]);
+            $insumos = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+            
+            error_log("Insumos encontrados (sin filtro): " . count($insumos));
+            
+            if (empty($insumos)) {
+                return ['success' => true, 'message' => 'No hay insumos para descontar'];
+            }
         }
         
         // Verificar stock suficiente
         foreach ($insumos as $item) {
             $stockNecesario = $item['cantidad'] * $item['cantidad_insumo'];
+            error_log("Insumo: {$item['nombre_insumo']}, Stock actual: {$item['stock_actual']}, Necesario: $stockNecesario");
+            
             if ($item['stock_actual'] < $stockNecesario) {
                 return [
                     'success' => false, 
-                    'message' => "Stock insuficiente para el insumo ID: {$item['id_insumo']}"
+                    'message' => "Stock insuficiente para el insumo: {$item['nombre_insumo']}"
                 ];
             }
         }
@@ -454,6 +518,7 @@ private function descontarInsumosPedido($id_pedido)
         foreach ($insumos as $item) {
             $stockNecesario = $item['cantidad'] * $item['cantidad_insumo'];
             $stmtUpdate->execute([$stockNecesario, $item['id_insumo']]);
+            error_log("Descontado: {$item['nombre_insumo']} - $stockNecesario unidades");
         }
         
         return ['success' => true, 'message' => 'Insumos descontados correctamente'];
@@ -516,11 +581,13 @@ private function pedidoRequierePreparacion($id_pedido)
         $stmt->execute([$id_pedido]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         
+        error_log("pedidoRequierePreparacion - ID: $id_pedido, Total COCINA: " . $result['total']);
+        
         return $result['total'] > 0;
         
     } catch (\PDOException $e) {
         error_log("Error en pedidoRequierePreparacion: " . $e->getMessage());
-        return true; // Por seguridad, asumir que requiere preparación
+        return true;
     }
 }
 
