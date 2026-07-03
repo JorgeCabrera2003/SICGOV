@@ -117,7 +117,7 @@ class Pedido
             $insumosDescontados = false;
             
             // 1. Si pasa a PREPARACION y no se habían descontado
-            if ($estado === 'PREPARANDO' && $estadoActual !== 'PREPARANDO') {
+            if ($estado === 'PREPARANDO' && $estadoActual !== 'PREPARACION') {
                 error_log("Entrando a PREPARACION - Verificando si requiere preparación");
                 $requierePreparacion = $this->pedidoRequierePreparacion($id_pedido);
                 
