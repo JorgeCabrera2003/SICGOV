@@ -347,12 +347,7 @@
                 </div>
             </div>
 
-            <!-- Soporte -->
-            <a href="?page=ayuda"
-                class="nav-link <?php echo ($page == 'ayuda') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-                <i class="bi bi-question-circle fs-5"></i>
-                <span>Centro de Ayuda</span>
-            </a>
+
         </nav>
 
 
