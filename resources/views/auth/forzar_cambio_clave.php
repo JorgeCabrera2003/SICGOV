@@ -97,7 +97,6 @@ require_once __DIR__ . '/../layout/head.php';
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- Import jQuery specifically for this view if it isn't in auth.js -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script>var BASE_URL = "<?php echo BASE_URL; ?>";</script>
 <script src="<?php echo BASE_URL; ?>/assets/js/forzar_cambio_clave.js"></script>
 
 </body>
