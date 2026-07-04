@@ -107,7 +107,7 @@
                     </div>
 
                     <!-- Panel Derecho: Ticket / Carrito -->
-                    <div class="col-lg-4 h-100 d-flex flex-column pos-ticket bg-white">
+                    <div class="col-lg-4 h-100 d-flex flex-column pos-ticket">
                         <div class="bg-dark text-white p-2 d-flex justify-content-between align-items-center shadow-sm z-index-1">
                             <h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Orden Actual</h6>
                             <span class="badge bg-primary rounded-pill fs-6" id="posCount">0</span>
@@ -121,7 +121,7 @@
                             </div>
                         </div>
 
-                        <div class="bg-white border-top p-3 shadow-sm z-index-1">
+                        <div class="border-top p-3 shadow-sm z-index-1">
                             <div class="d-flex justify-content-between fs-5 fw-bold mb-3">
                                 <span>Total:</span>
                                 <span id="posTotal" class="text-success">$0.00</span>
@@ -136,7 +136,10 @@
                                     </select>
                                 </div>
                                 <div class="mb-2" id="boxMesa" style="display:none;">
-                                    <input type="text" class="form-control form-control-sm" id="posMesa" placeholder="Nro Mesa">
+                                    <select class="form-select form-select-sm" id="posMesa">
+                                        <option value="">Seleccione una mesa disponible</option>
+                                    </select>
+                                    <small class="text-muted">Solo se muestran mesas disponibles</small>
                                 </div>
                                 <div class="mb-2">
                                     <input type="text" class="form-control form-control-sm" id="posClienteNombre" placeholder="Nombre de Cliente (Opcional)">

@@ -88,15 +88,23 @@ function renderProductos(categoriaId) {
         div.onclick = () => seleccionarProducto(p);
         
         div.innerHTML = `
-            <img src="/SICGOV/public/assets/img/productos/${p.imagen || 'default-product.png'}" 
-                 class="card-img-top pos-card__img" alt="${p.nombre_producto}" 
-                 onerror="this.src='/SICGOV/public/assets/img/logo.png'">
-            <div class="card-body p-2 text-center">
-                <h6 class="card-title text-truncate mb-1" style="font-size:0.9rem;">${escapeHtml(p.nombre_producto)}</h6>
-                <span class="text-success fw-bold">$${parseFloat(p.precio).toFixed(2)}</span>
-                ${p.es_personalizable ? '<span class="badge bg-warning text-dark mt-1 d-block">Personalizable</span>' : ''}
-            </div>
-        `;
+                <img src="/SICGOV/public/assets/img/productos/${p.imagen || 'default-product.png'}" 
+                    class="card-img-top pos-card__img" alt="${p.nombre_producto}" 
+                    onerror="this.src='/SICGOV/public/assets/img/logo.png'">
+                <div class="card-body p-2 text-center">
+                    <h6 class="card-title text-truncate mb-1" style="font-size:0.9rem;">${escapeHtml(p.nombre_producto)}</h6>
+                    <span class="text-success fw-bold">$${parseFloat(p.precio).toFixed(2)}</span>
+                    
+                    ${p.tipo_producto === 'BARRA' 
+                        ? '<span class="badge bg-info text-white mt-1 d-block">🍸 Barra</span>' 
+                        : p.tipo_producto === 'POSTRE' 
+                            ? '<span class="badge bg-warning text-dark mt-1 d-block">🍰 Postre</span>'
+                            : p.es_personalizable 
+                                ? '<span class="badge bg-warning text-dark mt-1 d-block">Personalizable</span>' 
+                                : ''}
+                    
+                </div>
+            `;
         grid.appendChild(div);
     });
 }
@@ -110,6 +118,12 @@ async function seleccionarProducto(producto) {
         return;
     }
     
+    if (producto.tipo_producto === 'BARRA') {
+        // Si es de barra, agregar directamente sin personalización
+        agregarAlCarrito(productoActual, [], [], parseFloat(productoActual.precio), '');
+        return;
+    }
+
     // Cargar insumos del producto
     Swal.fire({
         title: 'Cargando...',
@@ -334,7 +348,8 @@ function agregarAlCarrito(producto, extras = [], removidos = [], precioPersonali
             cantidad: 1,
             extras: extras,
             removidos: removidos,
-            indicacion: indicacion
+            indicacion: indicacion,
+            tipo_producto: producto.tipo_producto || 'COCINA' // <-- NUEVO
         });
     }
     
@@ -415,7 +430,8 @@ async function procesarCobro() {
             icon: 'error',
             title: 'Carrito vacío',
             text: 'No hay productos en el pedido',
-            confirmButtonColor: '#3085d6'
+            confirmButtonColor: '#3085d6',
+            confirmButtonText: 'Aceptar'
         });
         return;
     }
@@ -426,10 +442,28 @@ async function procesarCobro() {
         return;
     }
 
+    // ============================================
+    // 1. DECLARAR TODAS LAS VARIABLES PRIMERO
+    // ============================================
     const tipo_pedido = document.getElementById('posTipoPedido').value;
     const id_mesa = document.getElementById('posMesa').value;
     const nombre_cliente = document.getElementById('posClienteNombre').value;
     const id_metodo_pago = document.getElementById('posMetodoPago').value;
+
+    // ============================================
+    // 2. VALIDAR (AHORA tipo_pedido YA ESTÁ DECLARADO)
+    // ============================================
+    if (tipo_pedido === 'MESA') {
+        if (!id_mesa) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Mesa requerida',
+                text: 'Debe seleccionar una mesa disponible para pedidos en el local',
+                confirmButtonColor: '#3085d6'
+            });
+            return;
+        }
+    }
 
     const btnCobrar = document.getElementById('btnPosCobrar');
     btnCobrar.disabled = true;
@@ -439,14 +473,15 @@ async function procesarCobro() {
 
     const datos = {
         carrito: {
-            items: posCart.map(item => ({
-                id_producto: item.id_producto,
-                cantidad: item.cantidad,
-                precio_unitario: item.precio_unitario,
-                indicacion: item.indicacion || ''  // <-- Enviar indicación
+        items: posCart.map(item => ({
+            id_producto: item.id_producto,
+            cantidad: item.cantidad,
+            precio_unitario: item.precio_unitario,
+            indicacion: item.indicacion || '',
+            tipo_producto: item.tipo_producto || 'COCINA' // <-- NUEVO
             })),
             total: totalCalculado
-        },
+            },
         tipo_pedido: tipo_pedido,
         id_mesa: id_mesa,
         nombre: nombre_cliente,
@@ -467,15 +502,16 @@ async function procesarCobro() {
                 document.getElementById('posClienteNombre').value = '';
                 document.getElementById('posMesa').value = '';
                 renderCarrito();
-                
+
                 const modalEl = document.getElementById('modalPOS');
                 if (modalEl) {
                     const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
                     modal.hide();
                     document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
                     document.body.classList.remove('modal-open');
+                    document.body.style = '';
                 }
-                
+
                 if (typeof cargarPedidos === 'function') {
                     cargarPedidos();
                 }
@@ -483,17 +519,17 @@ async function procesarCobro() {
         } else {
             Swal.fire({
                 icon: 'error',
-                title: 'Error',
+                title: 'Error al registrar pedido',
                 html: res.message,
                 confirmButtonColor: '#d33'
             });
         }
     } catch (error) {
-        console.error("Error:", error);
+        console.error("Error al procesar el cobro:", error);
         Swal.fire({
             icon: 'error',
             title: 'Error',
-            text: 'Ocurrió un error al procesar el cobro',
+            text: 'Ocurrió un error al procesar el cobro. Por favor, intenta de nuevo.',
             confirmButtonColor: '#d33'
         });
     } finally {
