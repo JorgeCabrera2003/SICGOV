@@ -347,10 +347,9 @@
                 </div>
             </div>
 
-
         </nav>
 
-
+        
         <!-- Cerrar sesión (siempre visible) -->
         <div class="p-3 border-top">
             <a href="<?php echo BASE_URL; ?>/?page=logout"
