@@ -82,7 +82,7 @@ $(document).ready(function() {
         $btnSubmit.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Guardando...');
         
         $.ajax({
-            url: BASE_URL + '/?page=forzar-cambiar-clave',
+            url: BASE_URL + '?page=Perfil&type=forzar-cambiar-clave',
             method: 'POST',
             data: {
                 peticion: 'forzar-cambiar-clave',

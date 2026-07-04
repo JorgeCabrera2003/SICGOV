@@ -347,15 +347,9 @@
                 </div>
             </div>
 
-            <!-- Soporte -->
-            <a href="?page=ayuda"
-                class="nav-link <?php echo ($page == 'ayuda') ? 'active' : ''; ?> d-flex align-items-center gap-2">
-                <i class="bi bi-question-circle fs-5"></i>
-                <span>Centro de Ayuda</span>
-            </a>
         </nav>
 
-
+        
         <!-- Cerrar sesión (siempre visible) -->
         <div class="p-3 border-top">
             <a href="<?php echo BASE_URL; ?>/?page=logout"
