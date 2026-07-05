@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Helpers\Helper;
 use App\Services\ReportService;
+use App\Services\MarIaService;
 use App\Models\System\Reservacion;
 use App\Models\Security\Usuario;
 use App\Models\System\Producto;
@@ -131,6 +132,86 @@ if ($type === 'reportes') {
 
     if ($peticion === 'generar') {
         generarReporte($_POST['tipo'] ?? '');
+        exit;
+    }
+
+    if ($peticion === 'mar_ia') {
+        header('Content-Type: application/json');
+        try {
+            $mensaje = trim($_POST['mensaje'] ?? '');
+            if (empty($mensaje)) {
+                echo json_encode(['status' => 'error', 'message' => 'El mensaje está vacío.']);
+                exit;
+            }
+
+            $datosUsuario = Helper::getDatosUsuario();
+            $cedula = $datosUsuario['cedula'] ?? 'Sistema';
+
+            $mariaService = new MarIaService();
+            $res = $mariaService->consultar($cedula, $mensaje);
+
+            if (isset($res['error']) && !empty($res['error'])) {
+                echo json_encode(['status' => 'error', 'message' => $res['error']]);
+                exit;
+            }
+
+            if (!isset($res['documento_config']['filas']) || empty($res['documento_config']['filas'])) {
+                echo json_encode([
+                    'status' => 'success',
+                    'message' => 'No se encontraron datos para generar el reporte.',
+                    'pdf_url' => null
+                ]);
+                exit;
+            }
+
+            // Preparar generación del reporte PDF
+            $reportService = new ReportService();
+            $metadata = $res['metadata'];
+            
+            // Añadir logo si existe
+            $logoPath = BASE_PATH . '/public/assets/img/logo.png';
+            $logoBase64 = '';
+            if (file_exists($logoPath)) {
+                $type_img = pathinfo($logoPath, PATHINFO_EXTENSION);
+                $data_img = file_get_contents($logoPath);
+                $logoBase64 = 'data:image/' . $type_img . ';base64,' . base64_encode($data_img);
+            }
+
+            $info = [
+                'usuario' => $metadata['usuario'] ?? $cedula,
+                'titulo' => $metadata['titulo'] ?? 'Reporte IA',
+                'subtitulo' => 'Generado por MAR-IA | Periodo: ' . ($metadata['periodo'] ?? date('d/m/Y')),
+                'resumen' => '',
+                'logo' => $logoBase64
+            ];
+
+            $reportService->setup(
+                $info, 
+                $res['documento_config']['columnas'], 
+                $res['documento_config']['filas']
+            );
+
+            $pdfContent = $reportService->getOutput();
+            
+            $tmpDir = BASE_PATH . '/public/assets/tmp';
+            if (!is_dir($tmpDir)) {
+                mkdir($tmpDir, 0777, true);
+            }
+            
+            $filename = 'reporte_maria_' . date('Ymd_His') . '_' . rand(100, 999) . '.pdf';
+            $filepath = $tmpDir . '/' . $filename;
+            
+            file_put_contents($filepath, $pdfContent);
+            $pdfUrl = BASE_URL . '/assets/tmp/' . $filename;
+
+            echo json_encode([
+                'status' => 'success',
+                'message' => '¡Reporte generado con éxito! Haz clic en el botón de abajo para visualizarlo.',
+                'pdf_url' => $pdfUrl
+            ]);
+        } catch (\Exception $e) {
+            echo json_encode(['status' => 'error', 'message' => 'Error interno: ' . $e->getMessage()]);
+        }
         exit;
     }
 
