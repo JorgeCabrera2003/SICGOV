@@ -90,10 +90,15 @@ if (isset($_POST['peticion'])) {
 
                 $id = ($peticion === 'registrar') ? Helper::generarId('RES') : ($_POST['id_reservacion'] ?? '');
                 
+                $fechaSel = $_POST['fecha'] ?? '';
+                if ($esPublico && $peticion === 'registrar' && strtotime($fechaSel) < strtotime(date('Y-m-d'))) {
+                    throw new Exception("No puede realizar una reservación en una fecha pasada.");
+                }
+
                 $resModel->setId($id);
                 $resModel->setCedulaCliente($_POST['cedula_cliente'] ?? '');
                 $resModel->setIdMesa(!empty($_POST['id_mesa']) ? $_POST['id_mesa'] : null);
-                $resModel->setFecha($_POST['fecha'] ?? '');
+                $resModel->setFecha($fechaSel);
                 $resModel->setHora($_POST['hora'] ?? '');
                 $resModel->setHoraFin($_POST['hora_fin'] ?? '');
                 $resModel->setEstado($_POST['estado'] ?? 'PENDIENTE');
@@ -128,7 +133,12 @@ if (isset($_POST['peticion'])) {
                     }
                 }
 
-                $resModel->setFecha($_POST['fecha']);
+                $fechaMover = $_POST['fecha'];
+                if ($esPublico && strtotime($fechaMover) < strtotime(date('Y-m-d'))) {
+                    throw new Exception("No puede mover la reservación a una fecha pasada.");
+                }
+
+                $resModel->setFecha($fechaMover);
                 $resModel->setHora(!empty($_POST['hora']) ? $_POST['hora'] : $registro['hora']);
                 $resModel->setHoraFin(!empty($_POST['hora_fin']) ? $_POST['hora_fin'] : $registro['hora_fin']);
                 $resModel->setCedulaCliente($registro['cedula_cliente'] ?? '');
