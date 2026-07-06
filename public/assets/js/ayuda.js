@@ -158,11 +158,22 @@ document.addEventListener('DOMContentLoaded', function() {
                                         await new Promise(r => setTimeout(r, 400));
                                         
                                         steps = [
-                                            { element: '.select2-container', popover: { title: 'Seleccionar Cliente', description: 'Busca al cliente registrado. Si es nuevo, regístralo primero en el módulo Clientes.', side: "bottom", align: 'start' } },
-                                            { element: '#fecha', popover: { title: 'Fecha', description: 'Se asigna sola si haces clic en el calendario, pero puedes modificarla.', side: "bottom", align: 'start' } },
-                                            { element: '#hora', popover: { title: 'Inicio y Fin', description: 'Fija las horas para saber exactamente cuánto tiempo estará ocupada la mesa.', side: "bottom", align: 'start' } },
-                                            { element: '#id_mesa', popover: { title: 'Mesa y Estado', description: 'Asigna una mesa específica si lo deseas, y cambia el estado a Confirmado si aseguraron la reserva.', side: "top", align: 'start' } },
-                                            { element: '.btn-save-custom', popover: { title: 'Guardar', description: 'Guarda los cambios y verás el bloque de reservación en el calendario.', side: "top", align: 'end' } }
+                                            { 
+                                                element: '#formReservacion .modal-body > div:nth-of-type(1)', 
+                                                popover: { title: 'Seleccionar Cliente', description: 'Busca al cliente registrado. Si es nuevo, regístralo primero en el módulo Clientes.', side: "bottom", align: 'start' } 
+                                            },
+                                            { 
+                                                element: '#formReservacion .modal-body > div:nth-of-type(2)', 
+                                                popover: { title: 'Fecha y Horarios', description: 'La fecha se asigna sola desde el calendario. Fija las horas de inicio y fin para calcular la ocupación de la mesa.', side: "bottom", align: 'start' } 
+                                            },
+                                            { 
+                                                element: '#formReservacion .modal-body > div:nth-of-type(3)', 
+                                                popover: { title: 'Mesa y Estado', description: 'Asigna una mesa específica si lo deseas, y cambia el estado a Confirmado si aseguraron la reserva.', side: "top", align: 'start' } 
+                                            },
+                                            { 
+                                                element: '.btn-save-custom', 
+                                                popover: { title: 'Guardar', description: 'Guarda los cambios y verás el bloque de reservación en el calendario.', side: "top", align: 'end' } 
+                                            }
                                         ];
                                     }
                                 } else if (id === 'drag_drop_reservacion') {
