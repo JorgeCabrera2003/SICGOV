@@ -9,7 +9,7 @@
             <div class="modal-header bg-warning-subtle border-bottom-0">
                 <h5 class="modal-title fw-bold" id="modalAsociarLabel">
                     <i class="fas fa-box text-warning me-2"></i>
-                    <span id="modalTitleTextAsociar">Proovedores Asociados</span>
+                    <span id="modalTitleTextAsociar">Proveedores Asociados</span>
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
@@ -20,8 +20,8 @@
                     <!-- Fila: ID -->
                     <div class="row g-3 mb-3 justify-content-center">
                         <div class="col-md-6 position-relative">
-                                <input type="text" name="m-nombreInsumo" class="form-control" id="m-nombreInsumo" readOnly>
-                                <span class="form-label" id="sm-nombreInsumo"></span>
+                                <input type="text" name="entrada-nombreInsumo" class="form-control" id="entrada-nombreInsumo" readOnly>
+                                <span class="form-label" id="sentrada-nombreInsumo"></span>
                         </div>
                     </div>
 
