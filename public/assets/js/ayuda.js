@@ -110,10 +110,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(res => {
                 if (res.status === 'success') {
                     let extraHTML = '';
-                    if (id === 'gestion_reservaciones') {
+                    const tourIds = ['gestion_reservaciones', 'formulario_reservacion', 'drag_drop_reservacion'];
+                    
+                    if (tourIds.includes(id)) {
                         extraHTML = `
                             <div class="mt-4 text-center border-top pt-4">
-                                <button id="btn-tour-reservacion" class="btn btn-primary btn-sm rounded-pill shadow-sm px-3">
+                                <button id="btn-tour-ayuda" class="btn btn-primary btn-sm rounded-pill shadow-sm px-3">
                                     <i class="bi bi-play-circle me-1"></i> Iniciar Tutorial Interactivo
                                 </button>
                             </div>
@@ -128,29 +130,54 @@ document.addEventListener('DOMContentLoaded', function() {
                         ${extraHTML}
                     `;
 
-                    if (id === 'gestion_reservaciones') {
-                        document.getElementById('btn-tour-reservacion').addEventListener('click', async () => {
+                    if (tourIds.includes(id)) {
+                        document.getElementById('btn-tour-ayuda').addEventListener('click', async () => {
                             ayudaOffcanvas.hide();
                             
                             if (window.location.search.includes('page=Reservacion')) {
-                                const tour = new TourHelper({
-                                    steps: [
-                                        { 
-                                            element: '.fc-toolbar-title', 
-                                            popover: { title: 'Calendario', description: 'Aquí visualizarás el mes en curso. Usa los botones laterales para navegar entre meses.', side: "bottom", align: 'start' } 
-                                        },
-                                        { 
-                                            element: '.fc-view-harness', 
-                                            popover: { title: 'Cuadrícula Interactiva', description: 'Para registrar una nueva reservación, haz clic directamente en cualquier día de este calendario.', side: "top", align: 'start' } 
-                                        },
-                                        { 
-                                            element: 'a[href*="Reservacion"]', 
-                                            popover: { title: 'Acceso Rápido', description: 'Siempre puedes volver a esta Agenda Global desde el menú principal.', side: "right", align: 'start' } 
+                                const { TourHelper } = await import('./Helpers/TourHelper.js');
+                                let steps = [];
+
+                                if (id === 'gestion_reservaciones') {
+                                    steps = [
+                                        { element: '.fc-toolbar-title', popover: { title: 'Calendario', description: 'Aquí visualizarás el mes en curso. Usa los botones laterales para navegar entre meses.', side: "bottom", align: 'start' } },
+                                        { element: '.fc-view-harness', popover: { title: 'Cuadrícula Interactiva', description: 'Para registrar una nueva reservación, haz clic directamente en cualquier día de este calendario.', side: "top", align: 'start' } },
+                                        { element: 'a[href*="Reservacion"]', popover: { title: 'Acceso Rápido', description: 'Siempre puedes volver a esta Agenda Global desde el menú principal.', side: "right", align: 'start' } }
+                                    ];
+                                } else if (id === 'formulario_reservacion') {
+                                    const modalEl = document.getElementById('modalReservacion');
+                                    if (modalEl) {
+                                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                                        document.getElementById('formReservacion').reset();
+                                        if (typeof $ !== 'undefined' && $('.select2-cliente').length) {
+                                            $('.select2-cliente').val(null).trigger('change');
                                         }
-                                    ]
-                                });
-                                await tour.init();
-                                tour.start();
+                                        modal.show();
+                                        
+                                        // Esperar a que termine la animación del modal
+                                        await new Promise(r => setTimeout(r, 400));
+                                        
+                                        steps = [
+                                            { element: '.select2-container', popover: { title: 'Seleccionar Cliente', description: 'Busca al cliente registrado. Si es nuevo, regístralo primero en el módulo Clientes.', side: "bottom", align: 'start' } },
+                                            { element: '#fecha', popover: { title: 'Fecha', description: 'Se asigna sola si haces clic en el calendario, pero puedes modificarla.', side: "bottom", align: 'start' } },
+                                            { element: '#hora', popover: { title: 'Inicio y Fin', description: 'Fija las horas para saber exactamente cuánto tiempo estará ocupada la mesa.', side: "bottom", align: 'start' } },
+                                            { element: '#id_mesa', popover: { title: 'Mesa y Estado', description: 'Asigna una mesa específica si lo deseas, y cambia el estado a Confirmado si aseguraron la reserva.', side: "top", align: 'start' } },
+                                            { element: '.btn-save-custom', popover: { title: 'Guardar', description: 'Guarda los cambios y verás el bloque de reservación en el calendario.', side: "top", align: 'end' } }
+                                        ];
+                                    }
+                                } else if (id === 'drag_drop_reservacion') {
+                                    steps = [
+                                        { element: '.fc-event', popover: { title: 'Reservación Existente', description: 'Ubica un bloque de reservación (si hay alguno visible).', side: "bottom", align: 'start' } },
+                                        { element: '.fc-view-harness', popover: { title: 'Arrastrar y Soltar', description: 'Simplemente haz clic sostenido en una reserva y arrástrala a un nuevo día. ¡El cambio se guardará automáticamente!', side: "top", align: 'start' } }
+                                    ];
+                                }
+
+                                if (steps.length > 0) {
+                                    const tour = new TourHelper({ steps: steps });
+                                    await tour.init();
+                                    tour.start();
+                                }
+
                             } else {
                                 import('./Helpers/UIHelper.js').then(({ mensajes }) => {
                                     mensajes('info', 3000, 'Aviso', 'Debes estar en la sección "Agenda Global" para iniciar este tutorial.');
