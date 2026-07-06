@@ -115,29 +115,28 @@
 <!-- ===== SCRIPTS - ORDEN CORRECTO ===== -->
 
 <!-- 1. jQuery SIEMPRE primero -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="<?php echo BASE_URL; ?>/assets/js/lib/jquery-3.7.1.min.js"></script>
 
 <!-- 2. Bootstrap JS (depende de jQuery) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="<?php echo BASE_URL; ?>/assets/js/lib/bootstrap.bundle.min.js"></script>
 
 <!-- 3. DataTables (depende de jQuery) -->
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="<?php echo BASE_URL; ?>/assets/js/lib/jquery.dataTables.min.js"></script>
+<script src="<?php echo BASE_URL; ?>/assets/js/lib/dataTables.bootstrap5.min.js"></script>
 
 <!-- 4. Select2 (depende de jQuery) -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="<?php echo BASE_URL; ?>/assets/js/lib/select2.min.js"></script>
 
 <!-- 5. SweetAlert2 (no depende de jQuery) -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="<?php echo BASE_URL; ?>/assets/js/lib/sweetalert2.all.min.js"></script>
 
 <!-- 6. Chart.js (no depende de jQuery) -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="<?php echo BASE_URL; ?>/assets/js/lib/chart.umd.js"></script>
 
 <!-- 7. Scripts personalizados (dependen de jQuery) -->
-<script src="<?php echo BASE_URL; ?>/assets/js/main.js"></script>
-<script src="<?php echo BASE_URL; ?>/assets/js/utils.js"></script>
+<script type="module" src="<?php echo BASE_URL; ?>/assets/js/main.js"></script>
 <?php if (isset($_SESSION['user'])): ?>
-<script src="<?php echo BASE_URL; ?>/assets/js/ayuda.js"></script>
+<script type="module" src="<?php echo BASE_URL; ?>/assets/js/ayuda.js"></script>
 <?php endif; ?>
 <?php if (isset($_SESSION['user'])): ?>
     <script type="module" src="<?php echo BASE_URL; ?>/assets/js/modulo_notificaciones.js?v=<?php echo time(); ?>"></script>
@@ -150,9 +149,9 @@
     <?php endforeach; ?>
 <?php endif; ?>
 
-<!-- 9. Script específico de la página (solo si NO se usan ES Modules para esta página) -->
+<!-- 9. Script específico de la página -->
 <?php if (empty($extra_js_modules) && isset($page) && file_exists(__DIR__ . "/../../../public/assets/js/{$page}.js")): ?>
-<script src="<?php echo BASE_URL; ?>/assets/js/<?php echo $page; ?>.js"></script>
+<script type="module" src="<?php echo BASE_URL; ?>/assets/js/<?php echo $page; ?>.js"></script>
 <?php endif; ?>
 
 <!-- 10. ES Modules — scripts con import/export (requieren type="module") -->
