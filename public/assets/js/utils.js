@@ -613,57 +613,6 @@ function registrarEntrada() {
 }
 
 
-async function buscarSelect(etiqueta, valor, opcion) {
-  if (!etiqueta || !etiqueta.length) {
-    console.error("El selector " + etiqueta + " no existe");
-    return false;
-  }
-
-  if (opcion === 'text') {
-    let bool = false;
-
-    etiqueta.each(function () {
-      if ($(this).text().trim() === valor.trim()) {
-        $(this).prop('selected', true);
-        etiqueta.trigger('change');
-        bool = true;
-        return false;
-      }
-    });
-
-    if (bool) {
-      return true;
-    } else {
-      console.error("El valor '" + valor + "' no se encuentra en el campo select.")
-    }
-
-  } else if (opcion === 'value') {
-    if ((`${etiqueta} option[value="${valor}"]`).length > 0) {
-      etiqueta.val(`${valor}`).trigger('change');
-      return true;
-    } else {
-      console.error("El valor " + valor + " no se encuentra en el campo select.");
-    }
-
-  } else {
-    console.error("Opcion no Válida: " + opcion + "")
-  }
-  return false;
-}
-
-function selectEdificio(arreglo) {
-  if (!$("#id_edificio").length) return;
-
-  $("#id_edificio").empty();
-  $("#id_edificio").append(new Option('Seleccione un Edificio', 'default'));
-
-  if (Array.isArray(arreglo)) {
-    arreglo.forEach(item => {
-      $("#id_edificio").append(new Option(item.nombre, item.id_edificio));
-    });
-  }
-}
-
 function formatearTelefono($input) {
   if (!$input.length) return;
 
@@ -691,28 +640,6 @@ function formatearTelefonoSimple($input) {
   }
 }
 
-function capitalizarTexto(texto) {
-  if (!texto || typeof texto !== 'string') return texto;
-
-  return texto
-    .toLowerCase()
-    .split(/(\s+)/)
-    .map(segmento => {
-      if (/^\s+$/.test(segmento)) return segmento;
-      if (segmento.length > 0) {
-        return segmento.charAt(0).toUpperCase() + segmento.slice(1);
-      }
-      return segmento;
-    })
-    .join('');
-}
-
-function inicializarTooltips() {
-  $('[data-bs-toggle="tooltip"]').tooltip({
-    trigger: 'hover',
-    placement: 'top'
-  });
-}
 
 function mostrarLoading(mostrar = true) {
   if (mostrar) {
@@ -748,10 +675,6 @@ function formatearFecha(fecha, formato = 'dd/mm/yyyy') {
     default:
       return `${dia}/${mes}/${anio}`;
   }
-}
-
-function validarEmail(email) {
-  return patrones.email.test(email);
 }
 
 function generarCodigoAleatorio(longitud = 8) {
@@ -826,28 +749,6 @@ function throttle(func, limit) {
   };
 }
 
-function validarMaterialCompleto() {
-  const elementos = {
-    nombre: $('#nombre'),
-    ubicacion: $('#ubicacion'),
-    stock: $('#stock'),
-    id_material: $('#id_material')
-  };
-
-  return SistemaValidacion.validarFormularioSilencioso(elementos);
-}
-
-function limpiarValidacionMaterial() {
-  const elementos = {
-    nombre: $('#nombre'),
-    ubicacion: $('#ubicacion'),
-    stock: $('#stock'),
-    id_material: $('#id_material')
-  };
-
-  SistemaValidacion.limpiarValidacion(elementos);
-}
-
 // INICIALIZAR COMPONENTES
 $(document).ready(function () {
   inicializarTooltips();
@@ -859,59 +760,6 @@ $(document).ready(function () {
     setTimeout(() => {
       $submitBtn.prop('disabled', false);
     }, 5000);
-  });
-
-  $('input[type="text"]').on('blur', function () {
-    const $this = $(this);
-    if ($this.val()) {
-      $this.val(capitalizarTexto($this.val()));
-    }
-  });
-
-  $('body').on('input', '#nombre, #nombre_material', function () {
-    const $this = $(this);
-    const valor = $this.val();
-    if (valor && patrones.nombre_material.test(valor)) {
-      $this.removeClass('is-invalid').addClass('is-valid');
-    } else if (valor) {
-      $this.removeClass('is-valid').addClass('is-invalid');
-    }
-  });
-
-  $('body').on('input', '#stock', function () {
-    const $this = $(this);
-    const valor = $this.val();
-    if (valor && patrones.stock_material.test(valor)) {
-      $this.removeClass('is-invalid').addClass('is-valid');
-    } else if (valor) {
-      $this.removeClass('is-valid').addClass('is-invalid');
-    }
-  });
-
-  $('body').on('input', '#id_material', function () {
-    const $this = $(this);
-    const valor = $this.val();
-    if (valor && patrones.id_material.test(valor)) {
-      $this.removeClass('is-invalid').addClass('is-valid');
-    } else if (valor) {
-      $this.removeClass('is-valid').addClass('is-invalid');
-    }
-  });
-
-  $('body').on('focus', 'select', function () {
-    $(this).data('touched', true);
-  });
-
-  $('body').on('change', 'select', function (e) {
-    try {
-      if (!(e && e.originalEvent) && !$(this).data('touched')) {
-        SistemaValidacion.limpiarEstilosCampo($(this));
-        return;
-      }
-      SistemaValidacion.validarCampo.call(this);
-    } catch (err) {
-      console.error('Error en manejador global de select change:', err);
-    }
   });
 
   console.log("Utils cargado completamente");
@@ -967,8 +815,6 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     patrones,
     SistemaValidacion,
-    capitalizarTexto,
-    validarEmail,
     formatearFecha,
     generarCodigoAleatorio,
     debounce,
