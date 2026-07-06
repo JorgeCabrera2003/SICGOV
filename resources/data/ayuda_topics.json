@@ -103,5 +103,19 @@
         "keywords": ["backup", "respaldo", "copia de seguridad", "base de datos", "restaurar"],
         "modules": ["Backup"],
         "content": "<h4>Copias de Seguridad</h4><p>Protege la información de tu negocio realizando copias de seguridad de la base de datos.</p><ol><li>Ve a <strong>Seguridad y Auditoría > Control de Acceso > Centro de Respaldos</strong>.</li><li>Puedes generar un nuevo backup o restaurar uno anterior en caso de emergencia. Se recomienda hacer respaldos periódicamente.</li></ol>"
+    },
+    {
+        "id": "formulario_reservacion",
+        "title": "Detalle y Formulario de Reservación",
+        "keywords": ["formulario", "cliente", "hora", "fecha", "estado", "guardar", "cancelar", "modal"],
+        "modules": ["Reservacion"],
+        "content": "<h4>¿Cómo llenar el formulario de Reservación?</h4><p>Cuando haces clic en un día del calendario o en 'Nueva Reserva', se abre el modal <strong>Detalle de Reservación</strong>. Aquí te explicamos cómo llenarlo:</p><ol><li><strong>SELECCIONAR CLIENTE:</strong> Utiliza este menú desplegable para buscar y seleccionar al cliente que realiza la reserva. Puedes buscar por nombre o teléfono.</li><li><strong>FECHA:</strong> Se llenará automáticamente con el día que seleccionaste en el calendario, pero puedes cambiarla si es necesario.</li><li><strong>INICIO y FIN:</strong> Ingresa la hora exacta en la que el cliente llegará y la hora estimada en la que se retirará (fundamental para poder liberar la mesa a tiempo).</li><li><strong>MESA (OPCIONAL):</strong> Si el cliente pidió una mesa en específico o por el número de personas requiere una en especial, puedes seleccionarla aquí. Si no, déjalo 'Sin Asignar'.</li><li><strong>ESTADO:</strong> Por defecto es 'PENDIENTE'. Cámbialo a 'CONFIRMADO' si el cliente ya aseguró su asistencia, o a 'CANCELADO' si anulan la cita.</li></ol><p>Finalmente, presiona <strong>Guardar Cambios</strong> para registrar la reservación en la agenda global.</p>"
+    },
+    {
+        "id": "drag_drop_reservacion",
+        "title": "Reagendar con Drag & Drop",
+        "keywords": ["reagendar", "mover", "arrastrar", "soltar", "cambiar fecha", "drag", "drop", "calendario"],
+        "modules": ["Reservacion"],
+        "content": "<h4>Reagendar Reservaciones de forma rápida</h4><p>El calendario es completamente interactivo. Si un cliente llama para cambiar el día de su reservación, no necesitas abrir el formulario manualmente para cambiar la fecha.</p><h5>¿Cómo usar el Drag and Drop (Arrastrar y Soltar)?</h5><ol><li>Localiza la reservación (el bloque azul o dorado) que deseas mover en la cuadrícula del calendario.</li><li>Haz clic sobre ella y, <strong>sin soltar el botón del mouse</strong>, arrástrala hacia el nuevo día.</li><li>Suelta el botón del mouse sobre el nuevo recuadro.</li><li>El sistema actualizará instantáneamente la fecha de la reservación en la base de datos de manera automática.</li></ol><p><em>Nota:</em> Esta acción solo cambiará la fecha. Si necesitas cambiar la hora de Inicio o Fin, deberás hacer un clic normal en la reservación para editar esos detalles específicos en el formulario.</p>"
     }
 ]
