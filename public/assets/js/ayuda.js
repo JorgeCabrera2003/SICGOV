@@ -48,7 +48,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function fetchAyudaResults(query) {
-        fetch(`${BASE_URL}/?page=Ayuda&action=search&q=${encodeURIComponent(query)}`)
+        const currentPage = new URLSearchParams(window.location.search).get('page') || 'Dashboard';
+        fetch(`${BASE_URL}/?page=Ayuda&action=search&q=${encodeURIComponent(query)}&module=${encodeURIComponent(currentPage)}`)
             .then(response => response.json())
             .then(res => {
                 if (res.status === 'success') {
