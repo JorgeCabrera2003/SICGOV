@@ -4,7 +4,7 @@ import * as ValidadorHelper from "../Helpers/ValidadorHelper.js";
 import * as SelectHelper from "../Helpers/SelectHelper.js";
 import * as PermisoHelper from "../Helpers/PermisoHelper.js";
 
-//MODULO DE INGREDIENTES
+//MODULO DE INSUMOS
 
 //-------INICIALIZACIÖN-------
 
@@ -98,7 +98,6 @@ function manejarCambioEstado(formularioValido) {
   const accion = modal.boton.text();
 
   if (accion === "Eliminar") {
-    // Para eliminar solo validamos el ID
     const idValido = validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_insumo.val(), span.id_insumo, '');
     modal.boton.prop('disabled', !idValido);
   } else {
@@ -151,9 +150,7 @@ export async function EnviarDatos(operacion) {
 
           }
         }
-
       }
-
       peticion.append('stock_inicial', input.stock_inicial.val());
     }
 
@@ -217,7 +214,6 @@ export async function EnviarDatos(operacion) {
   if (!confirmacion) {
     modal.boton.prop('disabled', false);
   }
-
   input = null;
   modal = null;
   return json;
@@ -232,15 +228,15 @@ export async function EnviarFormulario(btn_string) {
     'Actualizar': 'modificar',
     'Borrar': 'eliminar'
   }
-  const DEFAULT = null
+  const DEFAULT = null;
 
-  accion = MANEJADOR[btn_string] || DEFAULT
+  accion = MANEJADOR[btn_string] || DEFAULT;
 
   if (accion != null) {
-    respuesta = await EnviarDatos(accion)
+    respuesta = await EnviarDatos(accion);
   } else {
-    respuesta = { resultado: 0 }
-    MensajeriaHelper.GenerarMensaje("danger", 10000, "Error, acción no válida", "")
+    respuesta = { resultado: 0 };
+    MensajeriaHelper.GenerarMensaje("danger", 10000, "Error, acción no válida", "");
   }
   return respuesta;
 };
@@ -260,9 +256,9 @@ export async function CrearSelectProveedores() {
   let datos = new FormData();
   let input = EtiquetasFormulario('input');
   const endpoint = "?page=Proveedor";
-  const mensaje = "Seleccione un Proveedor"
+  const mensaje = "Seleccione un Proveedor";
   let arreglo = [];
-  datos.append("peticion", "consultar")
+  datos.append("peticion", "consultar");
 
   try {
     json = await AjaxHelper.enviaAjax(datos, endpoint);
@@ -287,14 +283,13 @@ export async function CrearSelectUnidadMedida() {
   let input = EtiquetasFormulario('input');
   const endpoint = "?page=Insumo";
   const modulo = "UnidadMedida";
-  const mensaje = "Seleccione una Unidad de Medida"
+  const mensaje = "Seleccione una Unidad de Medida";
   let arreglo = [];
   datos.append("modulo", modulo);
-  datos.append("peticion", "consultar")
+  datos.append("peticion", "consultar");
 
   try {
     json = await AjaxHelper.enviaAjax(datos, endpoint);
-
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       const arrayUnidad = json.datos.map(item => ({
@@ -315,13 +310,12 @@ export async function CrearSelectCategoria() {
   let datos = new FormData();
   let input = EtiquetasFormulario('input');
   const endpoint = "?page=CategoriaInsumo";
-  const mensaje = "Seleccione una Categoría"
+  const mensaje = "Seleccione una Categoría";
   let arreglo = [];
-  datos.append("peticion", "consultar")
+  datos.append("peticion", "consultar");
 
   try {
     json = await AjaxHelper.enviaAjax(datos, endpoint);
-
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       const arrayCategoria = json.datos.map(item => ({
