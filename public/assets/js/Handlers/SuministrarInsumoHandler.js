@@ -201,7 +201,7 @@ export async function CrearSelectProveedores(id_insumo) {
   const modulo = "EntradaInsumo";
   const mensaje = "Seleccione un Proveedor"
   let arreglo = [];
-  datos.append("insumo", id_insumo);
+  datos.append("id_insumo", id_insumo);
   datos.append("modulo", modulo);
   datos.append("peticion", "filtrar");
 

@@ -349,7 +349,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 
 		//Filtrar
 		if ($_POST["peticion"] == "filtrar") {
-			$entradaInsumoModel->setIdInsumo($_POST['insumo']);
+			$entradaInsumoModel->setIdInsumo($_POST['id_insumo']);
 			$json = $entradaInsumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 		}
 
