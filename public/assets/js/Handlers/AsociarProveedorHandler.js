@@ -13,26 +13,22 @@ function EtiquetasFormulario(etiquetas) {
   let referencia = null
 
   const inputAsociar = {
-    insumo: $('#m-nombreInsumo'),
-    stock: $('#m-stockInsumo'),
-    unidad_medida: $('#m-unidadmedida')
+    insumo: $('#entrada-nombreInsumo')
   }
 
   const spanAsociar = {
-    insumo: $('#sm-nombreInsumo'),
-    stock: $('#sm-stockInsumo'),
-    unidad_medida: $('#sm-unidadmedida')
+    insumo: $('#sentrada-nombreInsumo')
   }
 
   if (etiquetas === "input") {
-    referencia = inputAsociar
+    referencia = inputAsociar;
   }
 
   if (etiquetas === "span") {
-    referencia = spanAsociar
+    referencia = spanAsociar;
   }
 
-  return referencia
+  return referencia;
 }
 //Fin de Interfaz de Acceso a los Elementos(inputs y span del formulario)
 
@@ -40,9 +36,9 @@ function EtiquetasModal(etiqueta) {
   let referencia = null
 
   const modalAsociar = {
-    modal: $('#modalAsociarInsumo'),
-    titulo: $('#modalTitleTextAsociarInsumo'),
-    boton: $('#btnAsociarInsumoForm')
+    modal: $('#modalAsociar'),
+    titulo: $('#modalTitleTextmodalAsociar'),
+    boton: $('#btnmodalAsociarForm')
   }
 
   if (etiqueta === "Asociar") {
@@ -107,12 +103,12 @@ export async function EnviarDatos(operacion) {
   peticion.append("modulo", "EntradaInsumo");
 
   //Registrar y Modificar
-  if (operacion == "suministrar") {
+  if (operacion == "asociar") {
 
     console.log(Validarenvio())
 
     if (Validarenvio()) {
-      confirmacion = await confirmarAccion(`Se va a suministrar un insumo`, mensajeConfirmacion, "question");
+      confirmacion = await confirmarAccion(`¿Guardar Configuración?`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', "suministrar");
@@ -126,12 +122,12 @@ export async function EnviarDatos(operacion) {
       btn_formulario = false;
       MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.")
     }
-  } //Fin del Registrar y Modificar
+  } //Fin del Asociar
   //Eliminar
-  if (operacion == "suministrar_lote") {
+  if (operacion == "eliminar_asociación") {
 
     if (ValidadorHelper.ValidarCampo("ID", input.id_insumo, span.id_insumo)) {
-      confirmacion = await confirmarAccion("Se eliminará un Asociar", mensajeConfirmacion, "warning");
+      confirmacion = await confirmarAccion("Desea desasociar el proveedor de este insumo?", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
@@ -169,9 +165,8 @@ export async function EnviarFormulario(btn_string) {
   let accion = null;
   let respuesta = null;
   const MANEJADOR = {
-    'Asociar': 'suministrar',
-    'Actualizar': 'modificar',
-    'Borrar': 'eliminar'
+    'Asociar': 'asociar',
+    'Eliminar': 'eliminar'
   }
   const DEFAULT = null
 
@@ -188,24 +183,23 @@ export async function EnviarFormulario(btn_string) {
 
 //CAPA DE VALIDACIÓN
 
-export async  function CargarModalTabla(parametros){
+export async function CargarModalTabla(parametros) {
   const endpoint = "?page=Insumo"
   let modal = EtiquetasModal("Asociar");
   let input = EtiquetasFormulario("input");
-  let respuesta = {resultado: 0};
+  let respuesta = { resultado: 0 };
   let datos = new FormData();
+  let nombre_insumo = parametros.nombre_insumo;
 
-  datos.append("modulo", "proveedor");
-  datos.append("peticion", "entrada")
+  datos.append("modulo", "EntradaInsumo");
+  datos.append("peticion", "filtrar")
   datos.append("id_insumo", parametros.id_insumo);
 
   respuesta = await AjaxHelper.enviaAjax(datos, endpoint);
 
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
     DataTable(respuesta.datos);
-    input.insumo.val(respuesta.datos_insumo.nombre_insumo);
-    input.stock.val(respuesta.datos_insumo.stock_actual);
-    input.unidad_medida.val(respuesta.datos_insumo.abreviatura);
+    input.insumo.val(nombre_insumo);
     modal.modal.modal("show");
   }
 }
@@ -253,18 +247,33 @@ function KeyUpAsociar() {
 
 }
 
+function RenderBotonEliminar(id) {
+
+  const boton = $('<button>').addClass('btn btn-danger').html('<i class="fas fa-trash"></i>');
+  boton.attr("data-proveedor", id)
+  const div = $('<div>').addClass('d-flex align-items-center ga-2');
+  div.append(boton);
+
+  return div.prop('outerHTML');
+}
+
+
 export async function DataTable(arreglo) {
-  if ($.fn.DataTable.isDataTable('#tablaEntrada')) {
-    $('#tablaEntrada').DataTable().destroy();
+  if ($.fn.DataTable.isDataTable('#tablaAsociar')) {
+    $('#tablaAsociar').DataTable().destroy();
   }
 
-  $('#tablaEntrada').DataTable({
+  $('#tablaAsociar').DataTable({
     processing: true,
     data: arreglo,
     columns: [
-      { data: 'fecha' },
       { data: 'proveedor' },
-      { data: 'descripcion' },
+      {
+        data: null,
+        render: function (row) {
+          return RenderBotonEliminar(row.id_entrada);
+        }
+      }
     ],
     order: [[1, 'asc']],
     language: { url: idiomaTabla }
@@ -280,10 +289,6 @@ export function LimpiarFormulario() {
   let fila_stock_inicial = $("#fila-stock-inicial");
 
   input.insumo.val("").prop("readOnly", false);
-  input.proveedor.val("default").prop("disabled", false);
-  input.stock.val("").prop("disabled", false);
-  input.insumo.prop('dataset').insumo = "";
-  input.unidad_medida.val("default").prop("disabled", false);
 
   // Deshabilitar el botón al limpiar (se habilitará automáticamente cuando los campos sean válidos)
   modal.boton.prop('disabled', false);
@@ -291,21 +296,3 @@ export function LimpiarFormulario() {
   span = null;
   modal = null;
 }
-
-export async function EditarFormAsociar(datos) {
-  LimpiarFormulario();
-  console.log(datos);
-  let input = EtiquetasFormulario("input");
-  let bool = false;
-  let modal = EtiquetasModal("Asociar")
-
-  input.insumo.val(datos.nombre_insumo).prop("disabled", true);
-  input.insumo.prop('dataset').insumo = datos.id_insumo;
-  input.stock.val("").prop("disabled", false);
-
-
-  await CrearSelectProveedores(datos.id_insumo);
-  await CrearSelectUnidadMedida(datos.id_unidad_medida);
-
-  EditarModal("suministrar");
-};
