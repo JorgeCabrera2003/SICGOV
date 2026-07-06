@@ -1,3 +1,5 @@
+import { debounce } from './Helpers/MiscHelper.js';
+
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('ayudaSearchInput');
     const dropdownMenu = document.getElementById('ayudaDropdownMenu');
