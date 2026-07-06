@@ -1,23 +1,21 @@
 import { debounce } from './Helpers/MiscHelper.js';
+import { TourHelper } from './Helpers/TourHelper.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('ayudaSearchInput');
     const dropdownMenu = document.getElementById('ayudaDropdownMenu');
     const resultsList = document.getElementById('ayudaResultsList');
     
-    // Si no existe el input, salimos
     if (!searchInput) return;
 
     let debounceTimer;
 
-    // Elementos del Offcanvas de Bootstrap
     const ayudaOffcanvasEl = document.getElementById('ayudaOffcanvas');
     let ayudaOffcanvas = null;
     if (ayudaOffcanvasEl) {
         ayudaOffcanvas = new bootstrap.Offcanvas(ayudaOffcanvasEl);
     }
 
-    // Escuchar cambios en el input
     searchInput.addEventListener('input', function() {
         clearTimeout(debounceTimer);
         const query = this.value.trim();
@@ -28,25 +26,22 @@ document.addEventListener('DOMContentLoaded', function() {
             
             debounceTimer = setTimeout(() => {
                 fetchAyudaResults(query);
-            }, 300); // 300ms debounce
+            }, 300);
         } else {
             dropdownMenu.style.display = 'none';
         }
     });
 
-    // Cerrar dropdown si se hace clic fuera
     document.addEventListener('click', function(e) {
         if (!searchInput.contains(e.target) && !dropdownMenu.contains(e.target)) {
             dropdownMenu.style.display = 'none';
         }
     });
 
-    // Abrir dropdown si se hace clic en input y hay texto
     searchInput.addEventListener('focus', function() {
         if (this.value.trim().length > 0) {
             dropdownMenu.style.display = 'block';
         } else {
-            // Podríamos cargar sugerencias iniciales
             dropdownMenu.style.display = 'block';
             fetchAyudaResults('');
         }
@@ -86,12 +81,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         resultsList.innerHTML = html;
 
-        // Añadir eventos click a los resultados
         document.querySelectorAll('.ayuda-item').forEach(el => {
             el.addEventListener('click', function() {
                 const id = this.getAttribute('data-id');
                 dropdownMenu.style.display = 'none';
-                searchInput.value = ''; // Limpiar
+                searchInput.value = '';
                 openTopic(id);
             });
         });
@@ -114,12 +108,56 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(res => {
                 if (res.status === 'success') {
+                    let extraHTML = '';
+                    if (id === 'gestion_reservaciones') {
+                        extraHTML = `
+                            <div class="mt-4 text-center border-top pt-4">
+                                <button id="btn-tour-reservacion" class="btn btn-primary btn-sm rounded-pill shadow-sm px-3">
+                                    <i class="bi bi-play-circle me-1"></i> Iniciar Tutorial Interactivo
+                                </button>
+                            </div>
+                        `;
+                    }
+
                     offcanvasBody.innerHTML = `
                         <h4 class="mb-4" style="color: var(--brand-dark-orange);">${res.data.title}</h4>
                         <div class="help-content lh-lg" style="font-size: 0.95rem;">
                             ${res.data.content}
                         </div>
+                        ${extraHTML}
                     `;
+
+                    if (id === 'gestion_reservaciones') {
+                        document.getElementById('btn-tour-reservacion').addEventListener('click', async () => {
+                            ayudaOffcanvas.hide();
+                            
+                            if (window.location.search.includes('page=Reservacion')) {
+                                const tour = new TourHelper({
+                                    steps: [
+                                        { 
+                                            element: '.fc-toolbar-title', 
+                                            popover: { title: 'Calendario', description: 'Aquí visualizarás el mes en curso. Usa los botones laterales para navegar entre meses.', side: "bottom", align: 'start' } 
+                                        },
+                                        { 
+                                            element: '.fc-view-harness', 
+                                            popover: { title: 'Cuadrícula Interactiva', description: 'Para registrar una nueva reservación, haz clic directamente en cualquier día de este calendario.', side: "top", align: 'start' } 
+                                        },
+                                        { 
+                                            element: 'a[href*="Reservacion"]', 
+                                            popover: { title: 'Acceso Rápido', description: 'Siempre puedes volver a esta Agenda Global desde el menú principal.', side: "right", align: 'start' } 
+                                        }
+                                    ]
+                                });
+                                await tour.init();
+                                tour.start();
+                            } else {
+                                import('./Helpers/UIHelper.js').then(({ mensajes }) => {
+                                    mensajes('info', 3000, 'Aviso', 'Debes estar en la sección "Agenda Global" para iniciar este tutorial.');
+                                    setTimeout(() => { window.location.href = '?page=Reservacion'; }, 2000);
+                                });
+                            }
+                        });
+                    }
                 } else {
                     offcanvasBody.innerHTML = `<div class="alert alert-danger">${res.message}</div>`;
                 }
