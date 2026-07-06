@@ -1,6 +1,7 @@
 import * as insumo from "../Handlers/InsumoHandler.js";
 import * as categoriaInsumo from "../Handlers/CategoriaInsumoHandler.js";
 import * as suministrarInsumo from "../Handlers/SuministrarInsumoHandler.js";
+import * as asociarProveedor from "../Handlers/AsociarProveedorHandler.js";
 import * as movimientoInsumo from "../Handlers/MovimientoInsumoHandler.js";
 import * as AjaxHelper from "../Helpers/AjaxHelper.js";
 
@@ -107,6 +108,7 @@ async function rellenar(pos, accion, modulo = "Insumo") {
   const linea = $(pos).closest('tr');
   const tabla = $('#tabla' + modulo).DataTable();
   const datosFila = tabla.row(linea).data();
+  let abrirModalInsumo = true;
 
   if (accion == 0) {
     str_accion = "modificar";
@@ -117,18 +119,21 @@ async function rellenar(pos, accion, modulo = "Insumo") {
   }
 
   if (accion == 2) {
-    const tablainsumo = $('#tablaInsumo').DataTable();
-    const datosInsumos = tablainsumo.row(linea).data()
-    suministrarInsumo.EditarFormSuministrar(datosInsumos);
+    abrirModalInsumo = false;
+    suministrarInsumo.EditarFormSuministrar(datosFila);
   }
 
   if (accion == 3) {
-    const tablainsumo = $('#tablaInsumo').DataTable();
-    const datosInsumos = tablainsumo.row(linea).data()
-    movimientoInsumo.CargarModalTabla(datosInsumos);
+    abrirModalInsumo = false;
+    movimientoInsumo.CargarModalTabla(datosFila);
   }
 
-  if (modulo == "Insumo") {
+  if (accion == 4) {
+    abrirModalInsumo = false;
+    asociarProveedor.CargarModalTabla(datosFila);
+  }
+
+  if (modulo == "Insumo" && abrirModalInsumo) {
     await insumo.EditarFormInsumo(datosFila, str_accion)
   }
 
@@ -147,9 +152,13 @@ $(document).on('click', '.btn-eliminar', function () {
 })
 
 $(document).on('click', '.btn-suministrar', function () {
-  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
+  rellenar($(this), $(this).attr("data-accion"), "Insumo")
 })
 
 $(document).on('click', '.btn-movimiento', function () {
-  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
+  rellenar($(this), $(this).attr("data-accion"), "Insumo")
+})
+
+$(document).on('click', '.btn-asociar', function () {
+  rellenar($(this), $(this).attr("data-accion"), "Insumo")
 })

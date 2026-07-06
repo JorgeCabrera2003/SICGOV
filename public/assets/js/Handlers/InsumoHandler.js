@@ -535,6 +535,7 @@ async function RenderPermisoBotones(modulo = "Insumo") {
   let btn_eliminar = "";
   let btn_modificar = "";
   let btn_suministrar = "";
+  let btn_asociar = "";
   let btn_movimiento = "";
   let separadorHTML = "";
 
@@ -560,6 +561,19 @@ async function RenderPermisoBotones(modulo = "Insumo") {
       .html('<i class="fa-solid fa-down-long me-2"></i>Suministrar');
     itemSumistrar.append(linkSumistrar);
     btn_suministrar = itemSumistrar;
+    bool = true;
+  }
+
+    if (permisos['insumo']['asociar'] != undefined && permisos['insumo']['asociar'] == 1) {
+    const itemAsociar = $('<li>');
+    const linkAsociar = $('<a>')
+      .addClass('dropdown-item btn-asociar text-info')
+      .attr('href', '#')
+      .attr('data-accion', 4)
+      .attr('data-modulo', "Asociar")
+      .html('<i class="bi bi-people me-2"></i>Proveedores Asociados');
+    itemAsociar.append(linkAsociar);
+    btn_asociar = itemAsociar;
     bool = true;
   }
 
@@ -603,7 +617,7 @@ async function RenderPermisoBotones(modulo = "Insumo") {
   const menu = $('<ul>').addClass('dropdown-menu');
 
 
-  menu.append(btn_modificar, btn_suministrar, btn_movimiento, separadorHTML, btn_eliminar);
+  menu.append(btn_modificar, btn_suministrar, btn_asociar, btn_movimiento, separadorHTML, btn_eliminar);
   dropdown.append(boton, menu);
 
   if (!bool) {
