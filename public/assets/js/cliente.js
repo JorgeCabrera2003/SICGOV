@@ -71,13 +71,13 @@ function editarModal(operacion) {
 
   if (operacion == 'registrar') {
     titulo = "Nuevo Cliente"
-    boton = "Nuevo"
+    boton = "Guardar Cliente"
     etiqueta_modal = etiquetasModal("principal");
   }
 
   if (operacion == 'modificar') {
     titulo = "Actualizar Cliente"
-    boton = "Actualizar"
+    boton = "Actualizar Cliente"
     etiqueta_modal = etiquetasModal("principal");
   }
 
@@ -102,7 +102,7 @@ const verificarCedulaDuplicada = debounce(async function (tipoCedula, numCedula)
     const accion   = etiquetasModal('principal').boton.text();
 
     // Solo verificar en modo registrar y si la cédula es formalmente válida
-    if (accion !== 'Nuevo') return;
+    if (accion !== 'Guardar Cliente') return;
     if (!tipoCedula || tipoCedula === 'default') return;
     if (!numCedula || numCedula.length < 7 || numCedula.length > 9) return;
 
@@ -413,8 +413,8 @@ async function enviarDatos(operacion) {
 $("#btnClienteForm").on("click", async function () {
   let accion = null;
   const MANEJADOR = {
-    'Nuevo': 'registrar',
-    'Actualizar': 'modificar',
+    'Guardar Cliente': 'registrar',
+    'Actualizar Cliente': 'modificar',
     'Borrar': 'eliminar'
   }
   const DEFAULT = null
