@@ -1,4 +1,17 @@
-import * as mensajeriaHelper from "./MensajeriaHelper.js";
+import { mensajes } from './UIHelper.js';
+
+export function mensajeHTTP(codigo = null) {
+  let mensaje = "";
+  const CODIGOS = {
+    '400': 'Datos del Formulario no Válidos',
+    '403': 'No tienes permiso para realizar esta acción',
+    '409': 'Registro duplicado',
+    '500': 'Ups, intente de nuevo más tarde'
+  }
+  const DEFAULT = "Algo no ha salido bien..."
+  mensaje = CODIGOS[codigo] || DEFAULT
+  return mensaje;
+}
 
 export async function enviaAjax(datos, controlador = "") {
   let response = null;
@@ -14,10 +27,7 @@ export async function enviaAjax(datos, controlador = "") {
       timeout: 10000,
       success: function (respuesta) {
         if (respuesta == undefined || respuesta == '' || respuesta == null) {
-          response = {
-            resultado: 204,
-            mensaje: ''
-          }
+          response = { resultado: 204, mensaje: '' }
         } else {
           try {
              response = (typeof respuesta === 'string') ? JSON.parse(respuesta) : respuesta;
@@ -35,7 +45,6 @@ export async function enviaAjax(datos, controlador = "") {
                 errorMsg = jsonErr.mensaje || null;
             }
         } catch(e) {}
-
         response = {
           resultado: request.status || 500,
           mensaje: errorMsg
@@ -45,7 +54,7 @@ export async function enviaAjax(datos, controlador = "") {
         } else {
           console.log("Ocurrió un error", err);
         }
-        mensajeriaHelper.GenerarMensaje("error", 10000, errorMsg || mensajeHTTP(response.resultado), null);
+        mensajes("error", 10000, errorMsg || mensajeHTTP(response.resultado), null);
       },
     });
   } catch (error) {
@@ -54,6 +63,11 @@ export async function enviaAjax(datos, controlador = "") {
        response = { resultado: error.status || 500, mensaje: "Fallo en la comunicación" };
      }
   }
-
   return response;
+}
+
+export function registrarEntrada() {
+  var peticion = new FormData();
+  peticion.append('peticion', 'entrada');
+  enviaAjax(peticion);
 }

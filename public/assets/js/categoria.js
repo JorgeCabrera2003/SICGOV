@@ -1,3 +1,7 @@
+import { mensajes, confirmarAccion } from './Helpers/UIHelper.js';
+import { debounce } from './Helpers/MiscHelper.js';
+import { enviaAjax } from './Helpers/AjaxHelper.js';
+
 // MODULO DE CATEGORÍAS DE MENÚ
 
 // Interfaz de Acceso a Elementos del Formulario
