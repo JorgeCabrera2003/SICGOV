@@ -94,10 +94,10 @@ require_once __DIR__ . '/../layout/head.php';
 
 
 <script src="<?php echo BASE_URL; ?>/assets/bootstrap/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<!-- Import jQuery specifically for this view if it isn't in auth.js -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="<?php echo BASE_URL; ?>/assets/js/forzar_cambio_clave.js"></script>
+<script src="<?php echo BASE_URL; ?>/assets/js/lib/sweetalert2.all.min.js"></script>
+<!-- 1. jQuery SIEMPRE primero -->
+<script src="<?php echo BASE_URL; ?>/assets/js/lib/jquery-3.7.1.min.js"></script>
+<script type="module" src="<?php echo BASE_URL; ?>/assets/js/forzar_cambio_clave.js"></script>
 
 </body>
 </html>

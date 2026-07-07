@@ -1,3 +1,7 @@
+import { mensajes, confirmarAccion } from './Helpers/UIHelper.js';
+import { SistemaValidacion } from './Helpers/ValidationHelper.js';
+import { enviaAjax } from './Helpers/AjaxHelper.js';
+
 $(document).ready(function () {
     // 1. Initial State & Setup
     aplicarMascaraTelefono();

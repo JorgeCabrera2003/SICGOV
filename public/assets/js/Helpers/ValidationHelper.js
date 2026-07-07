@@ -1,9 +1,6 @@
-// CONSTANTES GLOBALES
-const idiomaTabla = 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json'; // Usar CDN directamente
+import { capitalizarTexto } from './FormatHelper.js';
 
-// EXPREGIONES REGULARES UNIFICADAS
-console.log("Cargando Expresiones Regulares Unificadas");
-const patrones = {
+export const patrones = {
   // Patrones básicos
   letras: /^[a-zA-ZÀ-ÿ\s]{1,40}$/,
   letrasConNumeros: /^[0-9 a-zA-ZÀ-ÿ\s]{1,100}$/,
@@ -52,20 +49,10 @@ const patrones = {
   fecha_hora: /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/
 };
 
-/**
- * Sistema de Validación "Library-First"
- * Actúa como un motor de validación declarativo que lee configuraciones directamente del HTML.
- * @namespace SistemaValidacion
- */
-const SistemaValidacion = {
+export const SistemaValidacion = {
   elementos: {},
   callbackCambioEstado: null,
 
-  /**
-   * Inicializa el sistema de validación adjuntando eventos a un conjunto de elementos.
-   * @param {Object} elements - Un objeto de elementos jQuery a validar.
-   * @param {Function} [callbackCambioEstado] - Función que se ejecuta tras validar el formulario.
-   */
   inicializar: function (elements, callbackCambioEstado = null) {
     this.elementos = elements;
     this.callbackCambioEstado = callbackCambioEstado;
@@ -95,11 +82,6 @@ const SistemaValidacion = {
     }, 100);
   },
 
-  /**
-   * Esta función se ejecuta por el evento "blur" o "input".
-   * Lee dinámicamente los atributos `data-regla` y `data-requerido` para determinar validez de un campo individual.
-   * @returns {boolean} `true` si el campo cumple sus restricciones, de lo contrario `false`.
-   */
   validarCampo: function () {
     const $campo = $(this);
     const valor = $campo.val() ? $campo.val().trim() : '';
@@ -111,7 +93,6 @@ const SistemaValidacion = {
     const regla = $campo.data('regla');
     const requerido = $campo.data('requerido');
 
-    // Validación Library-First (Declarativa mediante data-regla / data-requerido)
     if (requerido && (valor === '' || valor === 'default' || valor === null)) {
       esValido = false;
       mensajeError = $campo.data('mensaje') || 'Este campo es requerido';
@@ -119,7 +100,6 @@ const SistemaValidacion = {
       esValido = patrones[regla].test(valor);
       mensajeError = $campo.data('mensaje') || 'Formato no válido';
     } else if (!regla && id) {
-      // Fallback al switch basado en ID si NO usa data-regla
       switch (id) {
         case 'codigo_bien':
           esValido = patrones.codigoBien.test(valor);
@@ -203,11 +183,6 @@ const SistemaValidacion = {
     return esValido;
   },
 
-  /**
-   * Recorre asincrónicamente el listado de todos los elementos monitoreados por la inicialización.
-   * Es útil para habilitar/deshabilitar el botón de `Guardar` global de un formulario complejo.
-   * @returns {boolean} `true` si TODOS los campos son válidos y `false` si hay al menos un error.
-   */
   verificarEstadoFormulario: function () {
     let esValido = true;
 
@@ -290,10 +265,6 @@ const SistemaValidacion = {
     return esValido;
   },
 
-  /**
-   * Normaliza los textos en estilo de Títulos Capitalizados para mantener limpieza en Base de Datos.
-   * @param {jQuery} $elemento - El elemento input jQuery a capitalizar
-   */
   autoCapitalizar: function ($elemento) {
     const valor = $elemento.val() ? $elemento.val().trim() : '';
     if (valor) {
@@ -445,379 +416,26 @@ const SistemaValidacion = {
   }
 };
 
-
-/**
- * Envía una Petición HTTP asíncrona estandarizada para toda la aplicación.
- * Pre-configurada para procesar `FormData` adecuadamente sin dañar las cabeceras de Multipart Files.
- *
- * @param {FormData} datos Objeto FormData que contiene que se va a enviar como Petición HTTP.
- * @param {string} controlador Ruta a la que se desea enviar la Petición, de estar vacía, se enviará a la misma URL por defecto.
- * @return {Promise<Object>} Promesa que resuelve a un objeto JSON si la respuesta fue exitosa. Retorna el código de error en caso de fallo.
- */
-async function enviaAjax(datos, controlador = "") {
-  let response = null;
-  try {
-    await $.ajax({
-      async: true,
-      url: controlador,
-      type: "POST",
-      contentType: false,
-      data: datos,
-      processData: false,
-      cache: false,
-      timeout: 10000,
-      success: function (respuesta) {
-        if (respuesta == undefined || respuesta == '' || respuesta == null) {
-          response = {
-            resultado: 204,
-            mensaje: ''
-          }
-        } else {
-          try {
-             response = (typeof respuesta === 'string') ? JSON.parse(respuesta) : respuesta;
-          } catch(e) {
-             console.error("Error parseando respuesta JSON:", e, respuesta);
-             response = { resultado: 500, mensaje: "Error procesando respuesta del servidor" };
-          }
-        }
-      },
-      error: function (request, status, err) {
-        let errorMsg = null;
-        try {
-            if (request.responseText) {
-                const jsonErr = JSON.parse(request.responseText);
-                errorMsg = jsonErr.mensaje || null;
-            }
-        } catch(e) {}
-
-        response = {
-          resultado: request.status || 500,
-          mensaje: errorMsg
-        }
-        if (status == "timeout") {
-          console.log("Servidor ocupado", "Intente de nuevo");
-        } else {
-          console.log("Ocurrió un error", err);
-        }
-        mensajes("error", 10000, errorMsg || mensajeHTTP(response.resultado), null);
-      },
-    });
-  } catch (error) {
-     console.error("Excepcion atrapada en enviaAjax:", error);
-     if (!response) {
-       response = { resultado: error.status || 500, mensaje: "Fallo en la comunicación" };
-     }
-  }
-
-  return response;
+export function validarEmail(email) {
+  return patrones.email.test(email);
 }
 
-/**Devuelve un Mensaje dependiendo del Código HTTP ingresado */
-function mensajeHTTP(codigo = null) {
-
-  let mensaje = "";
-  const CODIGOS = {
-    '400': 'Datos del Formulario no Válidos',
-    '403': 'No tienes permiso para realizar esta acción',
-    '409': 'Registro duplicado',
-    '500': 'Ups, intente de nuevo más tarde'
-  }
-  const DEFAULT = "Algo no a salido bien..."
-
-  mensaje = CODIGOS[codigo] || DEFAULT
-
-  return mensaje;
-}
-
-// FUNCIONES DE UTILIDAD
-function limpiarValidacionVisualGlobal() {
-  $('.is-valid, .is-invalid').removeClass('is-valid is-invalid');
-  $('.invalid-feedback, .valid-feedback').removeClass('invalid-feedback valid-feedback').text('');
-}
-
-function validarKeyPress(er, e) {
-  const key = e.keyCode;
-  const tecla = String.fromCharCode(key);
-  const a = er.test(tecla);
-  if (!a) {
-    e.preventDefault();
-  }
-}
-
-function validarKeyUp(er, etiqueta, etiquetamensaje, mensaje) {
-  const valor = etiqueta.val() ? etiqueta.val().trim() : '';
-  const a = er.test(valor);
-  if (a) {
-    $(etiqueta).removeClass("is-invalid").addClass("is-valid");
-    $(etiquetamensaje).removeClass("invalid-feedback").addClass("valid-feedback").text("✓ Correcto");
-    return 1;
-  } else {
-    $(etiqueta).removeClass("is-valid").addClass("is-invalid");
-    $(etiquetamensaje).removeClass("valid-feedback").addClass("invalid-feedback").text(mensaje);
-    return 0;
-  }
-}
-
-function estadoSelect(input, span, mensaje, estado) {
-  if (estado === 1) {
-    $(input).addClass("is-valid").removeClass("is-invalid");
-    $(span).removeClass("invalid-feedback").addClass("valid-feedback").text("✓ Correcto");
-  } else {
-    $(input).addClass("is-invalid").removeClass("is-valid");
-    $(span).removeClass("valid-feedback").addClass("invalid-feedback").text(mensaje);
-  }
-}
-
-function mensajes(icono, tiempo, titulo, mensaje) {
-  Swal.fire({
-    icon: icono,
-    timer: tiempo,
-    title: titulo,
-    text: mensaje,
-    showConfirmButton: true,
-    confirmButtonText: 'Aceptar',
-  });
-
-}
-
-async function confirmarAccion(titulo, mensaje, icono) {
-  let resultado = false;
-
-  await Swal.fire({
-    title: titulo,
-    text: mensaje,
-    icon: icono,
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Sí',
-    cancelButtonText: 'Cancelar'
-  }).then((result) => {
-    if (result.isConfirmed) {
-      console.log("Confirmado");
-      resultado = true;
-    } else {
-      console.log("Negado");
-      resultado = false;
-    }
-  });
-
-  return resultado;
-}
-
-
-function registrarEntrada() {
-  var peticion = new FormData();
-  peticion.append('peticion', 'entrada');
-  enviaAjax(peticion);
-}
-
-
-function formatearTelefono($input) {
-  if (!$input.length) return;
-
-  let numeros = $input.val().replace(/\D/g, '');
-  numeros = numeros.substring(0, 10);
-
-  if (numeros.length >= 6) {
-    $input.val('(' + numeros.substring(0, 3) + ') ' + numeros.substring(3, 6) + '-' + numeros.substring(6));
-  } else if (numeros.length >= 3) {
-    $input.val('(' + numeros.substring(0, 3) + ') ' + numeros.substring(3));
-  } else {
-    $input.val(numeros);
-  }
-}
-
-function formatearTelefonoSimple($input) {
-  if (!$input.length) return;
-
-  let numeros = $input.val().replace(/\D/g, '');
-
-  if (numeros.length > 4) {
-    $input.val(numeros.substring(0, 4) + '-' + numeros.substring(4));
-  } else {
-    $input.val(numeros);
-  }
-}
-
-
-function mostrarLoading(mostrar = true) {
-  if (mostrar) {
-    $('body').append(`
-      <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;">
-        <div class="spinner-border text-primary" role="status">
-          <span class="visually-hidden">Cargando...</span>
-        </div>
-      </div>
-    `);
-  } else {
-    $('#loading-overlay').remove();
-  }
-}
-
-function formatearFecha(fecha, formato = 'dd/mm/yyyy') {
-  if (!fecha) return '';
-
-  const date = new Date(fecha);
-  if (isNaN(date.getTime())) return fecha;
-
-  const dia = date.getDate().toString().padStart(2, '0');
-  const mes = (date.getMonth() + 1).toString().padStart(2, '0');
-  const anio = date.getFullYear();
-
-  switch (formato) {
-    case 'dd/mm/yyyy':
-      return `${dia}/${mes}/${anio}`;
-    case 'yyyy-mm-dd':
-      return `${anio}-${mes}-${dia}`;
-    case 'mm/dd/yyyy':
-      return `${mes}/${dia}/${anio}`;
-    default:
-      return `${dia}/${mes}/${anio}`;
-  }
-}
-
-function generarCodigoAleatorio(longitud = 8) {
-  const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let resultado = '';
-  for (let i = 0; i < longitud; i++) {
-    resultado += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
-  }
-  return resultado;
-}
-
-function copiarAlPortapapeles(texto) {
-  navigator.clipboard.writeText(texto).then(() => {
-    mensajes('success', 2000, 'Copiado', 'Texto copiado al portapapeles');
-  }).catch(err => {
-    console.error('Error al copiar: ', err);
-    mensajes('error', 3000, 'Error', 'No se pudo copiar al portapapeles');
-  });
-}
-
-function descargarArchivo(contenido, nombreArchivo, tipo = 'text/plain') {
-  const blob = new Blob([contenido], { type: tipo });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = nombreArchivo;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-function obtenerParametrosURL() {
-  const params = new URLSearchParams(window.location.search);
-  const resultado = {};
-  for (const [key, value] of params) {
-    resultado[key] = value;
-  }
-  return resultado;
-}
-
-function establecerParametrosURL(parametros) {
-  const url = new URL(window.location);
-  Object.keys(parametros).forEach(key => {
-    url.searchParams.set(key, parametros[key]);
-  });
-  window.history.replaceState({}, '', url);
-}
-
-function debounce(func, wait, immediate) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      timeout = null;
-      if (!immediate) func(...args);
-    };
-    const callNow = immediate && !timeout;
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-    if (callNow) func(...args);
+export function validarMaterialCompleto() {
+  const elementos = {
+    nombre: $('#nombre'),
+    ubicacion: $('#ubicacion'),
+    stock: $('#stock'),
+    id_material: $('#id_material')
   };
+  return SistemaValidacion.validarFormularioSilencioso(elementos);
 }
 
-function throttle(func, limit) {
-  let inThrottle;
-  return function (...args) {
-    if (!inThrottle) {
-      func.apply(this, args);
-      inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
-    }
+export function limpiarValidacionMaterial() {
+  const elementos = {
+    nombre: $('#nombre'),
+    ubicacion: $('#ubicacion'),
+    stock: $('#stock'),
+    id_material: $('#id_material')
   };
-}
-
-// INICIALIZAR COMPONENTES
-$(document).ready(function () {
-  inicializarTooltips();
-
-  $('form').on('submit', function () {
-    const $submitBtn = $(this).find('button[type="submit"], input[type="submit"]');
-    $submitBtn.prop('disabled', true);
-
-    setTimeout(() => {
-      $submitBtn.prop('disabled', false);
-    }, 5000);
-  });
-
-  console.log("Utils cargado completamente");
-});
-
-/**
- * Componente Global: Generador de Botón de Acciones (Dropdown)
- * @param {Object} options Configuración del botón y sus ítems
- * @returns {string} HTML del componente
- */
-function UIActionBtn(options = {}) {
-    const $dropdown = $('<div>', { class: 'dropdown d-inline-block' });
-    const $btn = $('<button>', {
-        class: `action-btn dropdown-toggle ${options.class || ''}`,
-        type: 'button',
-        'data-bs-toggle': 'dropdown',
-        'aria-expanded': 'false',
-        title: options.title || 'Acciones'
-    }).append($('<i>', { class: options.icon || 'fas fa-ellipsis-v' }));
-
-    if (options.text) {
-        $btn.append($('<span>', { class: 'ms-2 small fw-bold d-none d-md-inline', text: options.text }));
-    }
-
-    const $menu = $('<ul>', { class: 'dropdown-menu dropdown-menu-end shadow-sm' });
-    
-    if (options.items && Array.isArray(options.items)) {
-        options.items.forEach(item => {
-            if (item.divider) {
-                $menu.append($('<li>').append($('<hr>', { class: 'dropdown-divider' })));
-            } else {
-                const $link = $('<a>', {
-                    class: `dropdown-item d-flex align-items-center ${item.class || ''}`,
-                    href: item.href || 'javascript:void(0)',
-                    'data-id': item.id || '',
-                    onclick: item.onclick || null
-                });
-
-                if (item.icon) {
-                    $link.append($('<i>', { class: `${item.icon} me-2 opacity-75`, css: { width: '1.2rem' } }));
-                }
-                $link.append($('<span>', { text: item.text }));
-                $menu.append($('<li>').append($link));
-            }
-        });
-    }
-
-    return $dropdown.append($btn, $menu).prop('outerHTML');
-}
-
-// EXPORTAR FUNCIONES
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    patrones,
-    SistemaValidacion,
-    formatearFecha,
-    generarCodigoAleatorio,
-    debounce,
-    throttle
-  };
+  SistemaValidacion.limpiarValidacion(elementos);
 }

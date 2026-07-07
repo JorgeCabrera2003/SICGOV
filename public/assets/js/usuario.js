@@ -1,3 +1,6 @@
+import { mensajes, confirmarAccion, buscarSelect } from './Helpers/UIHelper.js';
+import { enviaAjax } from './Helpers/AjaxHelper.js';
+
 // ==========================================
 // MÓDULO DE USUARIOS - GOOD VIBES
 // JS / AJAX & DATATABLE LOGIC
