@@ -61,8 +61,14 @@ async function rellenar(pos, accion, modulo = "Rol") {
   const linea = $(pos).closest('tr');
   const tabla = $('#tabla' + modulo).DataTable();
   const datosFila = tabla.row(linea).data();
+  let str_accion = "";
+  if(accion == 0){
+    str_accion = "modificar";
+  } else {
+    str_accion = "eliminar";
+  }
 
-  rol.EditarFormRol(datosFila, accion)
+  rol.EditarFormRol(datosFila, str_accion)
 }
 
 $(document).on('click', '.btn-editar', function () {

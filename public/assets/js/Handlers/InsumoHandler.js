@@ -456,7 +456,7 @@ function Validarenvio() {
   let bool = true;
 
   if (input.proveedor.val() == "default") {
-    SelectHelper.FeedbackSelect($(this), span.proveedor, "Debe selccionar un Tipo de Documento", 0);
+    SelectHelper.FeedbackSelect($(this), span.proveedor, "Debe seleccionar un Tipo de Documento", 0);
     bool = false;
   }
 

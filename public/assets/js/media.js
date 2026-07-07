@@ -1,3 +1,5 @@
+import { enviaAjax } from './Helpers/AjaxHelper.js';
+
 /**
  * MEDIA.JS - Gestor de Multimedia
  */

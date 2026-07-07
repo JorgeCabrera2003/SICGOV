@@ -1,3 +1,5 @@
+import { enviaAjax } from './Helpers/AjaxHelper.js';
+
 /**
  * MEDIA-PICKER.JS - Puente para seleccionar imágenes de la galería
  */

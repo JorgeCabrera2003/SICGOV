@@ -21,7 +21,16 @@ if ($action === 'search') {
     $results = [];
 
     if (empty($query)) {
-        $results = $topics;
+        if (!empty($_REQUEST['module'])) {
+            $module = $_REQUEST['module'];
+            $filtered = array_filter($topics, function($t) use ($module) {
+                return isset($t['modules']) && in_array($module, $t['modules']);
+            });
+            // Si el módulo no tiene ayudas, devolvemos todo por defecto
+            $results = !empty($filtered) ? array_values($filtered) : $topics;
+        } else {
+            $results = $topics;
+        }
     } else {
         foreach ($topics as $topic) {
             $match = false;
@@ -79,22 +88,6 @@ if ($action === 'search') {
     exit;
 
 } elseif ($action === 'index') {
-    $page = 'ayuda';
-    $datos = $_SESSION['user'] ?? ['nombre' => 'Usuario'];
-    $permisosGlobales = $_SESSION['permisos'] ?? [];
-
-    require_once BASE_PATH . '/resources/views/layout/head.php';
-    require_once BASE_PATH . '/resources/views/layout/menu.php';
-
-    echo '<div class="container mt-5">
-            <div class="row justify-content-center">
-                <div class="col-md-8 text-center">
-                    <h2>Centro de Ayuda</h2>
-                    <p class="lead">Utiliza la barra de búsqueda en la parte superior ("¿Qué deseas hacer?") para encontrar guías interactivas sobre cómo utilizar el sistema.</p>
-                    <i class="bi bi-search" style="font-size: 5rem; color: var(--brand-orange, #f39c12);"></i>
-                </div>
-            </div>
-          </div>';
-
-    require_once BASE_PATH . '/resources/views/layout/footer.php';
+    header('Location: ?page=Dashboard');
+    exit;
 }

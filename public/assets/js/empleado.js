@@ -1,3 +1,9 @@
+import { mensajes, confirmarAccion, buscarSelect } from './Helpers/UIHelper.js';
+import { SistemaValidacion } from './Helpers/ValidationHelper.js';
+import { debounce } from './Helpers/MiscHelper.js';
+import { capitalizarTexto, formatearFecha } from './Helpers/FormatHelper.js';
+import { enviaAjax, registrarEntrada } from './Helpers/AjaxHelper.js';
+
 //MODULO DE EmpleadoS
 
 /** Estado global: true si la cédula ya existe en la BD */

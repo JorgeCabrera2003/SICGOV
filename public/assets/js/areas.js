@@ -1,3 +1,5 @@
+import { enviaAjax } from './Helpers/AjaxHelper.js';
+
 // ============================================
 // MÓDULO DE ÁREAS - GOOD VIBES
 // ============================================

@@ -12,26 +12,24 @@ import * as PermisoHelper from "../Helpers/PermisoHelper.js"
 function EtiquetasFormulario(etiquetas) {
   let referencia = null
 
-  const inputSuministrar = {
-    insumo: $('#suministrar-nombre'),
-    proveedor: $('#suministrar-entrada'),
-    stock: $('#suministrar-stock'),
-    unidad_medida: $('#suministrar-unidad')
+  const inputAsociar = {
+    insumo: $('#m-nombreInsumo'),
+    stock: $('#m-stockInsumo'),
+    unidad_medida: $('#m-unidadmedida')
   }
 
-  const spanSuministrar = {
-    insumo: $('#ssuministrar-nombre'),
-    proveedor: $('#ssuministrar-entrada'),
-    stock: $('#ssuministrar-stock'),
-    unidad_medida: $('#ssuministrar-unidad')
+  const spanAsociar = {
+    insumo: $('#sm-nombreInsumo'),
+    stock: $('#sm-stockInsumo'),
+    unidad_medida: $('#sm-unidadmedida')
   }
 
   if (etiquetas === "input") {
-    referencia = inputSuministrar
+    referencia = inputAsociar
   }
 
   if (etiquetas === "span") {
-    referencia = spanSuministrar
+    referencia = spanAsociar
   }
 
   return referencia
@@ -41,14 +39,14 @@ function EtiquetasFormulario(etiquetas) {
 function EtiquetasModal(etiqueta) {
   let referencia = null
 
-  const modalSuministrar = {
-    modal: $('#modalSuministrarInsumo'),
-    titulo: $('#modalTitleTextSuministrarInsumo'),
-    boton: $('#btnSuministrarInsumoForm')
+  const modalAsociar = {
+    modal: $('#modalAsociarInsumo'),
+    titulo: $('#modalTitleTextAsociarInsumo'),
+    boton: $('#btnAsociarInsumoForm')
   }
 
-  if (etiqueta === "Suministrar") {
-    referencia = modalSuministrar;
+  if (etiqueta === "Asociar") {
+    referencia = modalAsociar;
   }
 
   return referencia;
@@ -58,11 +56,11 @@ function EtiquetasModal(etiqueta) {
 export function EditarModal(operacion) {
   let titulo;
   let boton;
-  let etiqueta_modal = EtiquetasModal("Suministrar");
+  let etiqueta_modal = EtiquetasModal("Asociar");
 
   if (operacion == 'suministrar') {
-    titulo = "Suministrar Insumo";
-    boton = "Suministrar";
+    titulo = "Asociar Insumo";
+    boton = "Asociar";
   }
 
   etiqueta_modal.titulo.text(titulo)
@@ -74,7 +72,7 @@ export function EditarModal(operacion) {
 function manejarCambioEstado(formularioValido) {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
-  let modal = EtiquetasModal("Suministrar");
+  let modal = EtiquetasModal("Asociar");
   const accion = modal.boton.text();
 
   if (accion === "Eliminar") {
@@ -94,7 +92,7 @@ export async function EnviarDatos(operacion) {
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
-  let modal = EtiquetasModal("Suministrar");
+  let modal = EtiquetasModal("Asociar");
 
   let confirmacion = false;
   let str_acccion = "";
@@ -110,6 +108,8 @@ export async function EnviarDatos(operacion) {
 
   //Registrar y Modificar
   if (operacion == "suministrar") {
+
+    console.log(Validarenvio())
 
     if (Validarenvio()) {
       confirmacion = await confirmarAccion(`Se va a suministrar un insumo`, mensajeConfirmacion, "question");
@@ -131,7 +131,7 @@ export async function EnviarDatos(operacion) {
   if (operacion == "suministrar_lote") {
 
     if (ValidadorHelper.ValidarCampo("ID", input.id_insumo, span.id_insumo)) {
-      confirmacion = await confirmarAccion("Se eliminará un Suministrar", mensajeConfirmacion, "warning");
+      confirmacion = await confirmarAccion("Se eliminará un Asociar", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
@@ -140,7 +140,7 @@ export async function EnviarDatos(operacion) {
       }
     } else {
       btn_formulario = false;
-      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "El ID del Suministrar no es válido.");
+      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "El ID del Asociar no es válido.");
     }
   }//Fin del Eliminar
 
@@ -169,7 +169,7 @@ export async function EnviarFormulario(btn_string) {
   let accion = null;
   let respuesta = null;
   const MANEJADOR = {
-    'Suministrar': 'suministrar',
+    'Asociar': 'suministrar',
     'Actualizar': 'modificar',
     'Borrar': 'eliminar'
   }
@@ -188,82 +188,41 @@ export async function EnviarFormulario(btn_string) {
 
 //CAPA DE VALIDACIÓN
 
+export async  function CargarModalTabla(parametros){
+  const endpoint = "?page=Insumo"
+  let modal = EtiquetasModal("Asociar");
+  let input = EtiquetasFormulario("input");
+  let respuesta = {resultado: 0};
+  let datos = new FormData();
+
+  datos.append("modulo", "proveedor");
+  datos.append("peticion", "entrada")
+  datos.append("id_insumo", parametros.id_insumo);
+
+  respuesta = await AjaxHelper.enviaAjax(datos, endpoint);
+
+  if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
+    DataTable(respuesta.datos);
+    input.insumo.val(respuesta.datos_insumo.nombre_insumo);
+    input.stock.val(respuesta.datos_insumo.stock_actual);
+    input.unidad_medida.val(respuesta.datos_insumo.abreviatura);
+    modal.modal.modal("show");
+  }
+}
+
 export function CapaValidar() {
-  KeyPressSuministrar();
-  KeyUpSuministrar();
+  KeyPressAsociar();
+  KeyUpAsociar();
 }
 
-export async function CrearSelectProveedores(id_insumo) {
-  let json = null;
-  let datos = new FormData();
-  let input = EtiquetasFormulario('input');
-  const endpoint = "?page=Insumo";
-  const modulo = "EntradaInsumo";
-  const mensaje = "Seleccione un Proveedor"
-  let arreglo = [];
-  datos.append("insumo", id_insumo);
-  datos.append("modulo", modulo);
-  datos.append("peticion", "filtrar");
-
-  try {
-    json = await AjaxHelper.enviaAjax(datos, endpoint);
-
-
-    console.log(json.datos);
-
-    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-      const arrayCategoria = json.datos.map(item => ({
-        nombre: item.proveedor,
-        valor: item.id_entrada
-      }));
-      SelectHelper.RenderizarSelect(input.proveedor, arrayCategoria, mensaje);
-    };
-
-  } catch (error) {
-    console.log(error);
-    arreglo = [];
-  }
-}
-
-export async function CrearSelectUnidadMedida(id) {
-  let json = null;
-  let datos = new FormData();
-  let input = EtiquetasFormulario('input');
-  const endpoint = "?page=Insumo";
-  const modulo = "UnidadMedida";
-  const mensaje = "Seleccione una Unidad de Medida"
-  let arreglo = [];
-  datos.append("modulo", modulo);
-  datos.append("id_unidad", id);
-  datos.append("peticion", "filtrar");
-
-  try {
-    json = await AjaxHelper.enviaAjax(datos, endpoint);
-
-
-    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-      const arrayUnidad = json.datos.map(item => ({
-        nombre: item.nombre + " - " + item.abreviatura,
-        valor: item.id_unidad
-      }));
-      SelectHelper.RenderizarSelect(input.unidad_medida, arrayUnidad, mensaje);
-    };
-
-  } catch (error) {
-    console.log(error);
-    arreglo = [];
-  }
-}
-
-
-function KeyPressSuministrar() {
+function KeyPressAsociar() {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
 
   input.stock.on("keypress", function (e) { ValidadorHelper.ValidarTecla("NumeroDecimal", e); });
 }
 
-function KeyUpSuministrar() {
+function KeyUpAsociar() {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
 
@@ -294,27 +253,22 @@ function KeyUpSuministrar() {
 
 }
 
-function Validarenvio() {
-  let input = EtiquetasFormulario("input");
-  let span = EtiquetasFormulario("span");
-  let bool = true;
-
-  if (input.proveedor.val() == "default" || input.proveedor.val() == "" || input.proveedor.val() == null) {
-    SelectHelper.FeedbackSelect(input.proveedor, span.proveedor, "Debe selccionar un Tipo de Documento", 0);
-    bool = false;
+export async function DataTable(arreglo) {
+  if ($.fn.DataTable.isDataTable('#tablaEntrada')) {
+    $('#tablaEntrada').DataTable().destroy();
   }
 
-    if (input.unidad_medida.val() == "default" || input.unidad_medida.val() == "" || input.unidad_medida.val() == null) {
-    SelectHelper.FeedbackSelect(input.unidad_medida, span.unidad_medida, "Debe Seleccionar una Unidad de Medida", 0);
-    bool = false;
-  }
-
-  if (input.stock.val() == '' || input.stock.val() == null || input.stock.val() == 0) {
-    MensajeriaHelper.FeedbackToltipInput(input.stock, span.stock, "El stock a suministrar no puede estar en 0", 0)
-    bool = false;
-  }
-
-  return bool
+  $('#tablaEntrada').DataTable({
+    processing: true,
+    data: arreglo,
+    columns: [
+      { data: 'fecha' },
+      { data: 'proveedor' },
+      { data: 'descripcion' },
+    ],
+    order: [[1, 'asc']],
+    language: { url: idiomaTabla }
+  });
 }
 
 export function LimpiarFormulario() {
@@ -322,7 +276,7 @@ export function LimpiarFormulario() {
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
-  let modal = EtiquetasModal('Suministrar');
+  let modal = EtiquetasModal('Asociar');
   let fila_stock_inicial = $("#fila-stock-inicial");
 
   input.insumo.val("").prop("readOnly", false);
@@ -338,11 +292,12 @@ export function LimpiarFormulario() {
   modal = null;
 }
 
-export async function EditarFormSuministrar(datos) {
+export async function EditarFormAsociar(datos) {
   LimpiarFormulario();
+  console.log(datos);
   let input = EtiquetasFormulario("input");
   let bool = false;
-  let modal = EtiquetasModal("Suministrar")
+  let modal = EtiquetasModal("Asociar")
 
   input.insumo.val(datos.nombre_insumo).prop("disabled", true);
   input.insumo.prop('dataset').insumo = datos.id_insumo;
