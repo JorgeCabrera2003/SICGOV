@@ -110,19 +110,25 @@ class Proveedor extends Database
     {
         return $this->direccion;
     }
-    public function Transaccion($peticion, )
+    public function Transaccion($peticion)
     {
+        $bool = true;
+        if($peticion['peticion'] == 'obtener_proveedores' && !isset($peticion['id_insumo'])){
+            $bool = false;
+        }
+
         $response = [];
         $response['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"];
         $response['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => "Solicitud no válida"];
 
-        if (isset($peticion['peticion'])) {
+        if (isset($peticion['peticion']) && $bool) {
             $response = match ($peticion['peticion']) {
                 'registrar' => $this->RegistrarProveedor(),
                 'consultar' => $this->ConsultarProveedor(),
                 'actualizar', 'modificar' => $this->ModificarProveedor(),
                 'eliminar' => $this->EliminarProveedor(),
                 'validar' => $this->ValidarProveedor(),
+                'obtener_proveedores' => $this->ObtenerProveedoresDisponibles($peticion['id_insumo']),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
@@ -271,6 +277,58 @@ class Proveedor extends Database
         $this->DestruirConexion();
         return $dato;
     }
+    private function ObtenerProveedoresDisponibles($id_insumo)
+{
+    $dato = [];
+    $arreglo = [];
+    try {
+        $this->LlamarConexion();
+        $this->LlamarConexion()->beginTransaction();
+        
+        // Proveedores que NO están asociados (incluyendo los que están en estatus 0)
+        $sql = "SELECT p.*
+                FROM proveedor p
+                WHERE p.documento_legal NOT IN (
+                    SELECT ei.documento_proveedor 
+                    FROM entrada_insumo ei
+                    WHERE ei.id_insumo = :id_insumo 
+                    AND ei.estatus = 1  -- Solo los activos
+                )
+                AND p.estatus = 1"; // Proveedores activos
+        
+        $stm = $this->LlamarConexion()->prepare($sql);
+        $stm->bindParam(':id_insumo', $id_insumo);
+        $stm->execute();
+        
+        if ($stm->rowCount() > 0) {
+            $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
+            $dato['bool'] = 1;
+            $dato['mensaje'] = "Se encontraron proveedores disponibles";
+        } else {
+            $dato['bool'] = 0;
+            $dato['mensaje'] = "No hay proveedores disponibles para asignar";
+        }
+        
+        $this->LlamarConexion()->commit();
+        $stm = NULL;
+        
+        $dato['estado'] = 1;
+        $dato['response'] = ['resultado' => 200, 'datos' => $arreglo, 'total' => count($arreglo)];
+        $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+        
+    } catch (\PDOException $e) {
+        $this->LlamarConexion()->rollBack();
+        $dato['bool'] = -1;
+        $dato['estado'] = -1;
+        Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+        $dato['response'] = [
+            'resultado' => 500, 'mensaje' => "Error interno del servidor", 'datos' => []];
+        $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+    }
+    
+    $this->DestruirConexion();
+    return $dato;
+}
 
     private function ValidarProveedor()
     {
