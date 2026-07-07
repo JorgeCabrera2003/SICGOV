@@ -27,6 +27,9 @@ $permisosCategoriaInsumo = Helper::TraerPermisos("categoria_insumo");
 if (isset($_POST["peticion"]) && $_POST["peticion"] == "entrada") {
 	$json['HTTP_STATUS'] = ['codigo' => 204, 'mensaje' => ''];
 	$json['response'] = ['resultado' => 204, 'mensaje' => 'No hay contenido'];
+
+	header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
+	echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
 }
 
 if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
@@ -114,7 +117,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 											$detalleEntradaModel->setId($id_detalle);
 											$detalleEntradaModel->setIdUnidad($_POST["unidad_medida"]);
 											$detalleEntradaModel->setIdEntrada($entradaInsumoModel->getId());
-											$detalleEntradaModel->setDescripcion("Ingresado por primera vez con una cantidad de: ".$_POST["stock_inicial"]."".$validarUnidadMedida['response']['registro']['abreviatura']);
+											$detalleEntradaModel->setDescripcion("Ingresado por primera vez con una cantidad de: " . $_POST["stock_inicial"] . "" . $validarUnidadMedida['response']['registro']['abreviatura']);
 											$detalleEntradaModel->setCantidad($_POST["stock_inicial"]);
 											$responseDetalle = $detalleEntradaModel->Transaccion(['peticion' => "registrar"]);
 
@@ -390,7 +393,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 
 					$json = $detalleEntradaModel->Transaccion(['peticion' => 'registrar']);
 					$json['response']['mensaje'] = 'Insumo suministrado exitosamente';
-					$msg = "(" . $_SESSION['user']['cedula'] . "), realizó ingreso del insumo: ". $arregloInsumo['response']['registro']['nombre_insumo']. " con ". $_POST['stock']."".$arregloUnidad['response']['registro']['abreviatura'];
+					$msg = "(" . $_SESSION['user']['cedula'] . "), realizó ingreso del insumo: " . $arregloInsumo['response']['registro']['nombre_insumo'] . " con " . $_POST['stock'] . "" . $arregloUnidad['response']['registro']['abreviatura'];
 					Helper::Bitacora("SUMINISTRAR", 'INSUMO', $msg);
 				} else {
 					$json = $responseInsumo;
@@ -414,7 +417,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Movimiento") {
 	if (isset($_POST["peticion"])) {
 
 		//Movimientos de Entrada
-		if ($_POST["peticion"] == "entrada") {
+		if ($_POST["peticion"] == "entradaInsumo") {
 			$arregloInsumo = [];
 			$arregloUnidad = [];
 
