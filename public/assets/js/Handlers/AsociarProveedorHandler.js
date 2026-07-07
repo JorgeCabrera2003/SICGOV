@@ -4,8 +4,6 @@ import * as ValidadorHelper from "../Helpers/ValidadorHelper.js"
 import * as SelectHelper from "../Helpers/SelectHelper.js"
 import * as PermisoHelper from "../Helpers/PermisoHelper.js"
 
-//MODULO DE INGREDIENTES
-
 //-------INICIALIZACIÖN-------
 
 //Interfaz de Acceso a los Elementos(inputs y span del formulario)
@@ -194,12 +192,15 @@ export async function CargarModalTabla(parametros) {
   datos.append("modulo", "EntradaInsumo");
   datos.append("peticion", "filtrar")
   datos.append("id_insumo", parametros.id_insumo);
+  input.insumo.val(null);
+  input.insumo.attr("data-insumo", null);
 
   respuesta = await AjaxHelper.enviaAjax(datos, endpoint);
 
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
     DataTable(respuesta.datos);
     input.insumo.val(nombre_insumo);
+    input.insumo.attr("data-insumo", parametros.id_insumo);
     modal.modal.modal("show");
   }
 }
@@ -213,27 +214,11 @@ function KeyPressAsociar() {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
 
-  input.stock.on("keypress", function (e) { ValidadorHelper.ValidarTecla("NumeroDecimal", e); });
 }
 
 function KeyUpAsociar() {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
-
-  $(input.stock).on("blur", function () {
-    ValidadorHelper.FormatoNumeroDecimal($(this));
-    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock);
-  })
-
-  $(input.unidad_medida).on("change", function () {
-
-    if ($(this).val() == "default") {
-      SelectHelper.FeedbackSelect($(this), span.unidad_medida, "Debe seleccionar a una Unidad de Medida", 0)
-    } else {
-      SelectHelper.FeedbackSelect($(this), span.unidad_medida, "", 1)
-    }
-  })
-
 
   $(input.proveedor).on("change", function () {
 
@@ -249,12 +234,54 @@ function KeyUpAsociar() {
 
 function RenderBotonEliminar(id) {
 
-  const boton = $('<button>').addClass('btn btn-danger').html('<i class="fas fa-trash"></i>');
-  boton.attr("data-proveedor", id)
+  const boton = $('<button>').addClass('btn btn-danger btn-eliminar-proveedor').html('<i class="fas fa-trash"></i>');
+  boton.attr("data-proveedor", id);
   const div = $('<div>').addClass('d-flex align-items-center ga-2');
   div.append(boton);
 
   return div.prop('outerHTML');
+}
+
+function asignarIdSelect() {
+  $('.select-proveedor').length
+}
+
+
+async function RenderizarSelect(id_insumo) {
+  let json = null;
+  let datos = new FormData();
+  let div = $('<div>').addClass('d-flex align-items-center ga-2');
+  let input = $('<select>').addClass('form-select select-proveedor');
+  let span = $('<div>').addClass('form-label span-select_proveedor');
+
+  const endpoint = "?page=Proveedor";
+  const mensaje = "Seleccione un Proveedor"
+  let arreglo = [];
+  datos.append("id_insumo", id_insumo);
+  datos.append("peticion", "obtener_proveedor");
+
+  try {
+    json = await AjaxHelper.enviaAjax(datos, endpoint);
+
+
+    console.log(json.datos);
+
+    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
+      const array = json.datos.map(item => ({
+        nombre: item.nombre,
+        valor: item.documento_legal
+      }));
+      SelectHelper.RenderizarSelect(input, array, mensaje);
+    };
+
+    div.append(input, span);
+
+    return div.prop('outerHTML');
+
+  } catch (error) {
+    console.log(error);
+    arreglo = [];
+  }
 }
 
 
@@ -267,10 +294,22 @@ export async function DataTable(arreglo) {
     processing: true,
     data: arreglo,
     columns: [
-      { data: 'proveedor' },
+      { data: 'proveedor',
+        render: function (data, type, row) {
+          if (data) {
+            return row.proveedor;
+          }
+          return null;
+        }
+        
+      },
+      
       {
-        data: null,
-        render: function (row) {
+        data: 'boton',
+        render: function (data, type, row) {
+          if (data) {
+            return data;
+          }
           return RenderBotonEliminar(row.id_entrada);
         }
       }
@@ -280,8 +319,22 @@ export async function DataTable(arreglo) {
   });
 }
 
+export async function AgregarFilaInput() {
+  let inputTexto = EtiquetasFormulario("input");
+  let id_insumo = inputTexto.insumo.attr("data-insumo")
+  let tabla = $('#tablaAsociar').DataTable();
+  let selectProveedor = await RenderizarSelect(id_insumo);
+  let boton = await RenderBotonEliminar(null);
+
+  tabla.row.add({
+    proveedor: selectProveedor,
+    boton: boton
+  }).draw(false);
+
+  capaValidar();
+}
+
 export function LimpiarFormulario() {
-  SistemaValidacion.limpiarValidacion(EtiquetasFormulario('input'));
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');

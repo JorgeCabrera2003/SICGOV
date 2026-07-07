@@ -11,7 +11,7 @@ import * as AjaxHelper from "../Helpers/AjaxHelper.js";
 
 $(document).ready(function () {
   crearDataTable();
-  registrarEntrada();
+  AjaxHelper.registrarEntrada();
   iniciarValidaciones();
 });
 
@@ -50,6 +50,10 @@ $("#btnNuevaCategoria").on("click", function () {
 
 $("#btn-CategoriaCancel").on("click", function () {
   categoriaInsumo.CancelarFormulario();
+})
+
+$("#btn-agregarProveedor").on("click", function () {
+  asociarProveedor.AgregarFilaInput();
 })
 
 $("#btn-CategoriaForm").on("click", async function () {
