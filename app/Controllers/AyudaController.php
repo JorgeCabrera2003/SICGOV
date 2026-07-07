@@ -21,7 +21,16 @@ if ($action === 'search') {
     $results = [];
 
     if (empty($query)) {
-        $results = $topics;
+        if (!empty($_REQUEST['module'])) {
+            $module = $_REQUEST['module'];
+            $filtered = array_filter($topics, function($t) use ($module) {
+                return isset($t['modules']) && in_array($module, $t['modules']);
+            });
+            // Si el módulo no tiene ayudas, devolvemos todo por defecto
+            $results = !empty($filtered) ? array_values($filtered) : $topics;
+        } else {
+            $results = $topics;
+        }
     } else {
         foreach ($topics as $topic) {
             $match = false;

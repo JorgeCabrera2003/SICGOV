@@ -177,8 +177,8 @@ $openRegisterSlide = $openRegisterSlide ?? false;
 
 <script src="<?php echo BASE_URL; ?>/assets/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="<?php echo BASE_URL; ?>/assets/js/auth.js"></script>
+<script src="<?php echo BASE_URL; ?>/assets/js/lib/sweetalert2.all.min.js"></script>
+<script type="module" src="<?php echo BASE_URL; ?>/assets/js/auth.js"></script>
 <script>
     window.authOpenRegisterSlide = <?php echo json_encode($openRegisterSlide); ?>;
 </script>
