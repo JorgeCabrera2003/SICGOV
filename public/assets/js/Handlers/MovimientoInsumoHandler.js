@@ -196,7 +196,7 @@ export async  function CargarModalTabla(parametros){
   let datos = new FormData();
 
   datos.append("modulo", "Movimiento");
-  datos.append("peticion", "entrada")
+  datos.append("peticion", "entradaInsumo")
   datos.append("id_insumo", parametros.id_insumo);
 
   respuesta = await AjaxHelper.enviaAjax(datos, endpoint);
