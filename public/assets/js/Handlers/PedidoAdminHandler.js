@@ -118,6 +118,26 @@ async function verDetalle(idPedido, estadoActual) {
         });
 
         const res = await PedidoAdminController.buscarPedido(idPedido);
+        
+        // ============================================
+        // OBTENER TASA DEL DÍA (API ExchangeRate)
+        // ============================================
+        let tasaCambio = 60; // Fallback por defecto
+        
+        try {
+            const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+            if (response.ok) {
+                const data = await response.json();
+                tasaCambio = data.rates.VES || 60;
+                console.log('Tasa USD/VES obtenida:', tasaCambio);
+            } else {
+                console.warn('Error al obtener tasa, usando fallback:', tasaCambio);
+            }
+        } catch (error) {
+            console.error('Error al obtener tasa:', error);
+            // Mantener fallback
+        }
+        
         Swal.close();
         
         if (res.success && res.data) {
@@ -126,66 +146,122 @@ async function verDetalle(idPedido, estadoActual) {
             
             if (!body) return;
             
+            const totalBs = parseFloat(p.total) * tasaCambio;
+            
             let html = `
-                <div class="row mb-3">
-                    <div class="col-sm-6">
-                        <h5 class="fw-bold">Pedido #${p.numero_pedido || p.id_pedido}</h5>
-                        <strong>Cliente:</strong> ${escapeHtml(p.nombre ? p.nombre + ' ' + (p.apellido||'') : 'Mostrador')}<br>
-                        <strong>Teléfono:</strong> ${escapeHtml(p.telefono || 'N/A')}<br>
-                        <strong>Tipo:</strong> ${p.tipo_pedido}
-                        ${p.id_mesa ? `<br><strong>Mesa:</strong> ${p.numero_mesa || p.id_mesa}` : ''}
-                        ${p.metodo_pago ? `<br><strong>Método de Pago:</strong> ${escapeHtml(p.metodo_pago)}` : ''}
-                    </div>
-                    <div class="col-sm-6 text-end">
-                        <strong>Total:</strong> <span class="text-success fw-bold fs-5">$${parseFloat(p.total).toFixed(2)}</span><br>
-                        <strong>Estado:</strong> <span class="badge estado-${p.estado}">${p.estado}</span><br>
-                        <strong>Fecha:</strong> ${new Date(p.fecha_pedido).toLocaleString()}
-                    </div>
-                </div>
-                <h6 class="fw-bold border-bottom pb-2">Productos</h6>
-                <ul class="list-group list-group-flush mb-3">
+                <!-- ========== CARD PRINCIPAL ========== -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-3">
+                        
+                        <!-- HEADER DEL PEDIDO (compacto) -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-0">
+                                    <i class="fas fa-receipt text-primary me-1"></i>
+                                    Pedido #${p.numero_pedido || p.id_pedido}
+                                </h5>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge estado-${p.estado}">${p.estado}</span>
+                                <span class="badge bg-secondary">${p.tipo_pedido}</span>
+                                <small class="text-muted">${new Date(p.fecha_pedido).toLocaleString()}</small>
+                            </div>
+                        </div>
+                        
+                        <!-- INFORMACIÓN DEL CLIENTE Y PEDIDO (compacto) -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <div class="bg-light p-2 rounded-3">
+                                    <span class="fw-bold small">${escapeHtml(p.nombre ? p.nombre + ' ' + (p.apellido||'') : 'Mostrador')}</span>
+                                    <span class="text-muted small ms-2">${escapeHtml(p.telefono || 'N/A')}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="bg-light p-2 rounded-3 d-flex gap-3 flex-wrap">
+                                    ${p.id_mesa ? `<span class="small"><span class="text-muted">Mesa:</span> <strong>${p.numero_mesa || p.id_mesa}</strong></span>` : ''}
+                                    ${p.metodo_pago ? `<span class="small"><span class="text-muted">Pago:</span> <strong>${escapeHtml(p.metodo_pago)}</strong></span>` : ''}
+                                    ${p.referencia ? `<span class="small"><span class="text-muted">Ref:</span> <strong>${escapeHtml(p.referencia)}</strong></span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- PRODUCTOS (compacto) -->
+                        <div class="mb-2">
+                            <h6 class="fw-bold mb-2 small">
+                                <i class="fas fa-hamburger text-warning me-1"></i>Productos
+                            </h6>
             `;
-
+            
             if (p.detalles && p.detalles.length > 0) {
-                p.detalles.forEach(d => {
+                html += `<div class="list-group list-group-flush">`;
+                
+                p.detalles.forEach((d, index) => {
                     const subtotal = parseFloat(d.precio_unitario) * parseInt(d.cantidad);
                     
                     html += `
-                        <li class="list-group-item bg-transparent px-0">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <span class="fw-bold">${d.cantidad}x</span> ${escapeHtml(d.nombre_producto)}
-                                </div>
-                                <span class="fw-bold">$${subtotal.toFixed(2)}</span>
-                            </div>
+                        <div class="list-group-item px-0 py-1 ${index > 0 ? 'border-top' : ''}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="badge bg-primary rounded-pill">${d.cantidad}x</span>
+                                    <span class="fw-bold small">${escapeHtml(d.nombre_producto)}</span>
+                                    <span class="text-muted small">$${parseFloat(d.precio_unitario).toFixed(2)}</span>
                     `;
                     
                     if (d.indicacion && d.indicacion.trim() !== '') {
                         html += `
-                            <div class="small text-muted mt-1">
-                                <i class="fas fa-info-circle me-1"></i> ${escapeHtml(d.indicacion)}
-                            </div>
+                            <span class="badge bg-info text-white small">${escapeHtml(d.indicacion)}</span>
                         `;
                     }
                     
-                    html += `</li>`;
+                    html += `
+                                </div>
+                                <span class="fw-bold text-success small">$${subtotal.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    `;
                 });
+                
+                html += `</div>`;
             } else {
-                html += `<li class="list-group-item text-muted">No hay productos registrados</li>`;
+                html += `<div class="alert alert-warning py-1 small">No hay productos registrados</div>`;
             }
-
-            html += `</ul>`;
+            
+            // TOTAL (compacto)
+            html += `
+                        </div>
+                        
+                        <!-- TOTAL (compacto) -->
+                        <div class="mt-2">
+                            <div class="card bg-success text-white border-0">
+                                <div class="card-body py-2 px-3">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="fw-bold fs-6">$${parseFloat(p.total).toFixed(2)}</span>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="fw-bold fs-6">Bs ${totalBs.toFixed(2)}</span>
+                                            <br>
+                                            <small class="text-white-50">Tasa: 1$ = ${tasaCambio.toFixed(2)} Bs</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            `;
+            
             body.innerHTML = html;
 
             const group = document.getElementById('btnGroupEstados');
             if (group) {
                 group.innerHTML = '';
-                const estados = ['PENDIENTE', 'PREPARACION', 'LISTO', 'ENTREGADO', 'CANCELADO'];
+                const estados = ['PENDIENTE', 'PREPARANDO', 'LISTO', 'ENTREGADO', 'CANCELADO'];
                 estados.forEach(e => {
                     if (e !== estadoActual) {
                         const btn = document.createElement('button');
-                        // Cambiar btn-outline-dark por btn-outline-secondary
-                        btn.className = `btn btn-sm btn-outline-primary`;
+                        btn.className = `btn btn-sm btn-outline-secondary`;
                         btn.innerText = `Pasar a ${e}`;
                         btn.onclick = () => cambiarEstado(idPedido, e);
                         group.appendChild(btn);
