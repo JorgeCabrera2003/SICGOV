@@ -18,9 +18,34 @@ if ($isAjax || !empty($action)) {
 
     try {
         switch ($action) {
+            case 'verificar_stock':
+                $id_producto = $_POST['id_producto'] ?? '';
+                $cantidad = intval($_POST['cantidad'] ?? 1);
+                
+                if (!$id_producto) {
+                    echo json_encode(['success' => false, 'message' => 'ID de producto no proporcionado']);
+                    break;
+                }
+                
+                $menuModel = new Menu();
+                $resultado = $menuModel->verificarStockProducto($id_producto, $cantidad);
+                echo json_encode($resultado);
+                break;
+                
             case 'listar':
                 $data = $pedidoModel->Transaccion(['peticion' => 'listar']);
                 echo json_encode(['success' => true, 'data' => $data]);
+                break;
+
+            case 'obtener_insumos':
+                $id_producto = $_POST['id_producto'] ?? $_GET['id_producto'] ?? '';
+                if (!$id_producto) {
+                    echo json_encode(['success' => false, 'message' => 'ID de producto no proporcionado']);
+                    break;
+                }
+                $menuModel = new Menu(); // <-- Usar el modelo MENU
+                $insumos = $menuModel->obtenerInsumosProducto($id_producto);
+                echo json_encode(['success' => true, 'data' => $insumos]);
                 break;
 
             case 'buscar':
@@ -85,17 +110,17 @@ if ($isAjax || !empty($action)) {
                     'datosPago' => $datosPago
                 ]);
 
-                echo json_encode($res);
-                break;
-                case 'obtener_insumos':
-                    $id_producto = $_POST['id_producto'] ?? $_GET['id_producto'] ?? '';
-                    if (!$id_producto) {
-                        echo json_encode(['success' => false, 'message' => 'ID de producto no proporcionado']);
-                        break;
-                    }
-                    $menuModel = new Menu();
-                    $insumos = $menuModel->obtenerInsumosProducto($id_producto);
-                    echo json_encode(['success' => true, 'data' => $insumos]);
+                // Si el pedido se creó exitosamente, agregar numero_pedido a la respuesta
+                if ($res['success']) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => $res['message'],
+                        'id_pedido' => $res['id_pedido'],
+                        'numero_pedido' => $res['numero_pedido'] ?? null
+                    ]);
+                } else {
+                    echo json_encode($res);
+                }
                 break;
                 case 'listar_mesas_disponibles':
                     $mesas = $pedidoModel->Transaccion(['peticion' => 'listar_mesas_disponibles']);
