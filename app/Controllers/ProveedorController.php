@@ -77,7 +77,7 @@ if (isset($_POST["peticion"])) {
 	//Fin del Consultar 
 	//Proveedores Disponibles
 	if ($_POST["peticion"] == "obtener_proveedor") {
-		$json = $proveedorModel->Transaccion(['peticion' => "obtener_proveedores", 'id_insumo' => $_POST["peticion"]]);
+		$json = $proveedorModel->Transaccion(['peticion' => "obtener_proveedores", 'id_insumo' => $_POST["id_insumo"]]);
 	}
 	//Fin de Proveedores Disponibles
 //Eliminar
