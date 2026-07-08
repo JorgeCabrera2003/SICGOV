@@ -4,6 +4,7 @@ namespace App\Models\System;
 
 use App\Core\Database;
 use PDO;
+use App\Helpers\Helper;
 use Exception;
 
 class Menu extends Database
@@ -831,10 +832,28 @@ public function obtenerInsumosProducto($id_producto)
         $adicionales = [];
         
         foreach ($result as $item) {
+            // ==============================================
+            // LIMPIAR DECIMALES REDUNDANTES USANDO HELPER
+            // ==============================================
+            $cantidad = Helper::limpiarDecimales($item['cantidad']);
+            $precio_insumo = Helper::limpiarDecimales($item['precio_insumo'] ?? 0);
+            
+            $preparacion = [
+                'id_preparacion' => $item['id_preparacion'],
+                'id_insumo' => $item['id_insumo'],
+                'prioridad_insumo' => $item['prioridad_insumo'],
+                'cantidad' => $cantidad,
+                'id_unidad_medida' => $item['id_unidad_medida'],
+                'precio_insumo' => $precio_insumo,
+                'nombre_insumo' => $item['nombre_insumo'],
+                'stock_actual' => $item['stock_actual'],
+                'nombre_unidad' => $item['nombre_unidad']
+            ];
+            
             if ($item['prioridad_insumo'] == 1) {
-                $principales[] = $item;
+                $principales[] = $preparacion;
             } else {
-                $adicionales[] = $item;
+                $adicionales[] = $preparacion;
             }
         }
         
