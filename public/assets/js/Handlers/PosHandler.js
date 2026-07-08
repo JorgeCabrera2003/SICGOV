@@ -5,13 +5,30 @@ let productosDB = [];
 let productoActual = null;
 let insumosPrincipales = [];
 let insumosAdicionales = [];
+let tasaCambioPos = 60; // Tasa de cambio para el POS (fallback)
 window.extrasSeleccionados = [];
 window.removidosSeleccionados = [];
+
+async function obtenerTasaCambioPos() {
+    try {
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        if (response.ok) {
+            const data = await response.json();
+            tasaCambioPos = data.rates.VES || 60;
+            console.log('Tasa USD/VES para POS:', tasaCambioPos);
+        } else {
+            console.warn('Error al obtener tasa, usando fallback:', tasaCambioPos);
+        }
+    } catch (error) {
+        console.error('Error al obtener tasa:', error);
+    }
+}
+
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarProductosPOS();
 
-    
+    // Filtros de categorías
     const filtros = document.getElementById('posFiltros').querySelectorAll('button');
     filtros.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -26,12 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const boxMesa = document.getElementById('boxMesa');
     if (selectTipo) {
         selectTipo.addEventListener('change', () => {
-            if(selectTipo.value === 'MESA') {
+            if (selectTipo.value === 'MESA') {
                 boxMesa.style.display = 'block';
                 document.getElementById('posMesa').required = true;
+                cargarMesasDisponibles();
             } else {
                 boxMesa.style.display = 'none';
                 document.getElementById('posMesa').required = false;
+                document.getElementById('posMesa').value = '';
             }
         });
     }
@@ -41,6 +60,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Cobrar
     document.getElementById('btnPosCobrar').addEventListener('click', procesarCobro);
+
+    // ==============================================
+    // AL ABRIR MODAL POS - OBTENER TASA
+    // ==============================================
+    const modalPOS = document.getElementById('modalPOS');
+    if (modalPOS) {
+        modalPOS.addEventListener('show.bs.modal', async () => {
+            await obtenerTasaCambioPos();
+            // Si el tipo por defecto es MESA, cargar mesas
+            if (document.getElementById('posTipoPedido').value === 'MESA') {
+                await cargarMesasDisponibles();
+            }
+        });
+    }
 });
 
 async function cargarProductosPOS() {
@@ -460,6 +493,7 @@ function renderCarrito() {
     const container = document.getElementById('posCartItems');
     const badge = document.getElementById('posCount');
     const labelTotal = document.getElementById('posTotal');
+    const labelTotalBs = document.getElementById('posTotalBs');
     const btnCobrar = document.getElementById('btnPosCobrar');
 
     if (!container) return;
@@ -477,6 +511,7 @@ function renderCarrito() {
         `;
         if (badge) badge.innerText = '0';
         if (labelTotal) labelTotal.innerText = '$0.00';
+        if (labelTotalBs) labelTotalBs.innerText = 'Bs 0.00';
         if (btnCobrar) btnCobrar.disabled = true;
         return;
     }
@@ -494,12 +529,21 @@ function renderCarrito() {
                           </div>`;
         }
 
+        // Mostrar removidos si tiene
+        let removidosHtml = '';
+        if (item.removidos && item.removidos.length > 0) {
+            removidosHtml = `<div class="small text-danger mt-1">
+                                <i class="fas fa-ban"></i> Sin: ${item.removidos.map(r => r.nombre).join(', ')}
+                            </div>`;
+        }
+
         const div = document.createElement('div');
         div.className = 'pos-item';
         div.innerHTML = `
             <div class="flex-grow-1">
                 <div class="fw-bold text-truncate" style="max-width:180px;">${escapeHtml(item.nombre)}</div>
                 ${extrasHtml}
+                ${removidosHtml}
                 <div class="text-success fw-semibold">$${subtotal.toFixed(2)}</div>
             </div>
             <div class="pos-item__controls">
@@ -513,6 +557,15 @@ function renderCarrito() {
 
     if (badge) badge.innerText = count;
     if (labelTotal) labelTotal.innerText = `$${total.toFixed(2)}`;
+    
+    // ==============================================
+    // CALCULAR Y MOSTRAR TOTAL EN BS
+    // ==============================================
+    if (labelTotalBs) {
+        const totalBs = total * tasaCambioPos;
+        labelTotalBs.innerText = `Bs ${totalBs.toFixed(2)}`;
+    }
+    
     if (btnCobrar) btnCobrar.disabled = false;
 }
 

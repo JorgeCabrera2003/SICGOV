@@ -127,6 +127,11 @@
                                 <span id="posTotal" class="text-success">$0.00</span>
                             </div>
 
+                            <div class="d-flex justify-content-between small text-muted mb-3">
+                                <span>Total Bs (tasa del día):</span>
+                                <span id="posTotalBs">Bs 0.00</span>
+                            </div>
+                            
                             <form id="posForm">
                                 <div class="mb-2">
                                     <select class="form-select form-select-sm" id="posTipoPedido" required>
