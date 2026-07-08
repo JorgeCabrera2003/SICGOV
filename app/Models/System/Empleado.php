@@ -117,12 +117,14 @@ class Empleado extends Persona
 
 
 
-    private function ValidarCargoExistente($id_cargo)
+    public function validarCargo($id_cargo)
     {
         $db = $this->LlamarConexion();
         $stm = $db->prepare("SELECT id_cargo FROM cargo WHERE id_cargo = :id_cargo AND estatus = 1 LIMIT 1");
         $stm->execute([':id_cargo' => $id_cargo]);
-        return $stm->rowCount() > 0;
+        $isValid = $stm->rowCount() > 0;
+        $this->DestruirConexion();
+        return $isValid;
     }
 
 
@@ -139,13 +141,7 @@ class Empleado extends Persona
         try {
             $db = $this->LlamarConexion();
 
-            if (!$this->ValidarCargoExistente($this->id_cargo)) {
-                return [
-                    'estado'      => -1,
-                    'response'    => ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El cargo seleccionado no es válido o está inactivo.'],
-                    'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Cargo inválido'],
-                ];
-            }
+
 
             $stmCheck = $db->prepare("SELECT cedula FROM empleado WHERE cedula = :cedula");
             $stmCheck->execute([':cedula' => $this->cedula]);
@@ -249,13 +245,7 @@ class Empleado extends Persona
         try {
             $db = $this->LlamarConexion();
 
-            if (!$this->ValidarCargoExistente($this->id_cargo)) {
-                return [
-                    'estado'      => -1,
-                    'response'    => ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El cargo seleccionado no es válido o está inactivo.'],
-                    'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Cargo inválido'],
-                ];
-            }
+
 
             $db->beginTransaction();
 

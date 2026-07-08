@@ -32,11 +32,8 @@ INSERT INTO `unidad_medida` (`id_unidad`, `nombre`, `abreviatura`, `tipo`, `fact
 ('MEDIAML23220260519200547232', 'Mililitro', 'ml', 'VOLUMEN', 0.001000, 'L'),
 ('MEDIAGA23220260519200547232', 'Galón', 'gal', 'VOLUMEN', 3.785410, 'L'),
 ('MEDIAUN23220260519200547232', 'Unidad', 'U', 'UNIDAD', 1.000000, NULL),
-('MEDIADO23220260519200547232', 'Docena', 'doz', 'UNIDAD', 12.000000, 'UN'),
 ('MEDIAMT23220260519200547232', 'Metro', 'm', 'LONGITUD', 1.000000, 'm'),
-('MEDIACE23220260519200547232', 'Centímetro', 'cm', 'LONGITUD', 0.010000, 'm'),
-('MEDIAPA23220260519200547232', 'Paquete', 'pqt', 'UNIDAD', 1.000000, NULL),
-('MEDIACA23220260519200547232', 'Caja', 'cj', 'UNIDAD', 1.000000, NULL);
+('MEDIACE23220260519200547232', 'Centímetro', 'cm', 'LONGITUD', 0.010000, 'm');
 
 CREATE TABLE `cargo` (
   `id_cargo` varchar(30) NOT NULL,
@@ -326,7 +323,7 @@ CREATE TABLE `pedido` (
   `tipo_pedido` enum('MESA','LLEVAR','DELIVERY') NOT NULL,
   `fecha_pedido` timestamp NOT NULL DEFAULT current_timestamp(),
   `fecha_entrega` timestamp NULL DEFAULT NULL,
-  `estado` enum('PENDIENTE','COCINANDO','LISTO','ENTREGADO','PAGADO','CANCELADO') DEFAULT 'PENDIENTE',
+  `estado` enum('PENDIENTE','PREPARANDO','LISTO','ENTREGADO','PAGADO','CANCELADO') DEFAULT 'PENDIENTE',
   `observacion` varchar(255) DEFAULT NULL,
   `impuesto` decimal(10,2) DEFAULT 0.00,
   `total` decimal(10,2) NOT NULL DEFAULT 0.00,
@@ -455,6 +452,20 @@ i.stock_maximo,
 i.estatus FROM insumo AS i
 INNER JOIN unidad_medida AS u ON i.id_unidad_medida = u.id_unidad
 INNER JOIN categoria_insumo AS ci ON i.id_categoria = ci.id_categoria;
+
+CREATE VIEW `vw_entrada_insumo` AS 
+SELECT `ei`.*, `in`.`nombre_insumo` AS 'insumo', `p`.nombre AS 'proveedor' FROM `entrada_insumo` AS `ei`
+INNER JOIN `insumo` AS `in` ON `ei`.id_insumo = `in`.id_insumo
+INNER JOIN `proveedor`AS `p` ON `ei`.`documento_proveedor` = `p`.documento_legal;
+
+CREATE VIEW `vw_detalle_entrada_insumo` AS 
+SELECT `de`.`id_detalle`,`de`.`fecha`, `de`.`cantidad`, `de`.`descripcion`,
+`i`.`nombre_insumo` AS `insumo`, `i`.`id_insumo`, `p`.`nombre` AS `proveedor`, `i`.`stock_actual`
+FROM `detalle_entrada` AS `de`
+INNER JOIN `entrada_insumo` AS `ei` ON `ei`.`id_entrada` = `de`.`id_entrada`
+INNER JOIN `unidad_medida` AS `um` ON `um`.`id_unidad` = `de`.`id_unidad_medida`
+INNER JOIN `proveedor` AS `p` ON `p`.`documento_legal` = `ei`.`documento_proveedor`
+INNER JOIN `insumo` AS `i` ON `i`.`id_insumo` = `ei`.`id_insumo`;
 
 -- --------------------------------------------------------
 -- 8. DISPARADORES (TRIGGERS)

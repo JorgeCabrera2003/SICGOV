@@ -1,3 +1,7 @@
+import { mensajes, confirmarAccion } from './Helpers/UIHelper.js';
+import { debounce } from './Helpers/MiscHelper.js';
+import { enviaAjax } from './Helpers/AjaxHelper.js';
+
 // MODULO DE CATEGORÍAS DE MENÚ
 
 // Interfaz de Acceso a Elementos del Formulario
@@ -392,25 +396,34 @@ async function vistaPermisoCategoria() {
 
     const menu = $('<ul>').addClass('dropdown-menu dropdown-menu-end');
 
-    const itemEditar = $('<li>');
-    const linkEditar = $('<a>')
-        .addClass('dropdown-item text-primary')
-        .attr('href', '#')
-        .attr('onclick', 'rellenar(this, 0)')
-        .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
-    itemEditar.append(linkEditar);
+    if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.categoria_menu && permisosDB.categoria_menu.modificar == 1) {
+        const itemEditar = $('<li>');
+        const linkEditar = $('<a>')
+            .addClass('dropdown-item text-primary')
+            .attr('href', '#')
+            .attr('onclick', 'rellenar(this, 0)')
+            .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
+        itemEditar.append(linkEditar);
+        menu.append(itemEditar);
+    }
 
-    const separador = $('<li>').html('<hr class="dropdown-divider">');
+    if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.categoria_menu && permisosDB.categoria_menu.eliminar == 1) {
+        const separador = $('<li>').html('<hr class="dropdown-divider">');
+        const itemEliminar = $('<li>');
+        const linkEliminar = $('<a>')
+            .addClass('dropdown-item text-danger')
+            .attr('href', '#')
+            .attr('onclick', 'eliminar(this)')
+            .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
+        itemEliminar.append(linkEliminar);
+        menu.append(separador, itemEliminar);
+    }
 
-    const itemEliminar = $('<li>');
-    const linkEliminar = $('<a>')
-        .addClass('dropdown-item text-danger')
-        .attr('href', '#')
-        .attr('onclick', 'eliminar(this)')
-        .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
-    itemEliminar.append(linkEliminar);
 
-    menu.append(itemEditar, separador, itemEliminar);
+    if (menu.children().length === 0) {
+        return '<span class="text-muted"><i class="fas fa-lock"></i> Sin acciones</span>';
+    }
+
     dropdown.append(boton, menu);
 
     return dropdown.prop('outerHTML');
@@ -418,6 +431,11 @@ async function vistaPermisoCategoria() {
 
 // Crear DataTable
 async function crearDataTable() {
+    if (typeof permisosDB === 'undefined' || !permisosDB || !permisosDB.categoria_menu || permisosDB.categoria_menu.ver != 1) {
+        $('#tablaCategoria').closest('.card').html('<div class="card-body text-center py-5"><i class="fas fa-lock fs-1 text-danger mb-3"></i><h4 class="text-danger">Acceso Denegado</h4><p>No tienes permiso para ver la lista de categorías.</p></div>');
+        return;
+    }
+
     let peticion = new FormData();
     let arreglo = [];
     let botones = await vistaPermisoCategoria();
@@ -464,10 +482,12 @@ $(document).ready(function () {
     // Registrar listeners de inputs (capitalización + bloqueo + botón en tiempo real)
     inicializarInputListeners();
 
-    $("#btnNuevaCategoria").on("click", function () {
-        limpiar();
-        editarModal("registrar");
-    });
+    if ($("#btnNuevaCategoria").length) {
+        $("#btnNuevaCategoria").on("click", function () {
+            limpiar();
+            editarModal("registrar");
+        });
+    }
 
     $("#btnGuardarCategoria").on("click", function (e) {
         e.preventDefault();

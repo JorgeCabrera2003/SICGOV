@@ -84,7 +84,8 @@ export function DiccionarioValidacion(termino) {
     'Correo': "El formato para el correo eléctronico es: usuario@servidor.com",
     'Titulo': "Contenido no válido",
     'Direccion': "Dirección no válida",
-    'NumeroDecimal': "Solo se permiten números",
+    'NumeroDecimal': "Solo se permiten números decimales",
+    'NumerEntero': "Solo se permiten números sin decimales"
 
   };
   const DEFAULT = '';
@@ -100,6 +101,7 @@ export function FeedbackToltipInput(etiqueta, span, mensaje, estado = 1) {
 
   if (estado == 1) {
     etiqueta.addClass("is-valid");
+    span.removeClass("valid-tooltip-tooltip invalid-tooltip");
     span.text("");
   } else {
     etiqueta.addClass("is-invalid");

@@ -1,6 +1,8 @@
-import * as insumo from "../Handlers/InsumoHandler.js"
-import * as categoriaInsumo from "../Handlers/CategoriaInsumoHandler.js"
-import * as AjaxHelper from "../Helpers/AjaxHelper.js"
+import * as insumo from "../Handlers/InsumoHandler.js";
+import * as categoriaInsumo from "../Handlers/CategoriaInsumoHandler.js";
+import * as suministrarInsumo from "../Handlers/SuministrarInsumoHandler.js";
+import * as movimientoInsumo from "../Handlers/MovimientoInsumoHandler.js";
+import * as AjaxHelper from "../Helpers/AjaxHelper.js";
 
 //MODULO DE INGREDIENTES
 
@@ -17,6 +19,14 @@ $("#btnInsumoForm").on("click", async function () {
   let respuesta = null;
   respuesta = await insumo.EnviarFormulario($(this).text());
 
+  if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
+    await crearDataTable("insumos");
+  };
+});
+
+$("#btnSuministrarInsumoForm").on("click", async function () {
+  let respuesta = null;
+  respuesta = await suministrarInsumo.EnviarFormulario($(this).text());
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
     await crearDataTable("insumos");
   };
@@ -44,7 +54,6 @@ $("#btn-CategoriaCancel").on("click", function () {
 $("#btn-CategoriaForm").on("click", async function () {
   let respuesta = null;
   respuesta = await categoriaInsumo.EnviarFormulario($(this));
-  console.log(respuesta);
 
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
     await crearDataTable("categoria-insumo");
@@ -57,6 +66,7 @@ function iniciarValidaciones() {
   insumo.CapaValidar();
   categoriaInsumo.KeyPressCategoria();
   categoriaInsumo.KeyUpCategoria();
+  suministrarInsumo.CapaValidar();
 }
 
 async function crearDataTable(controlador = "insumos") {
@@ -89,8 +99,6 @@ async function crearDataTable(controlador = "insumos") {
     if (controlador === "categoria-insumo") {
       categoriaInsumo.DataTableCategoria(arreglo);
     }
-  } else {
-    console.log("falso");
   }
 }
 
@@ -108,6 +116,18 @@ async function rellenar(pos, accion, modulo = "Insumo") {
     str_accion = "eliminar";
   }
 
+  if (accion == 2) {
+    const tablainsumo = $('#tablaInsumo').DataTable();
+    const datosInsumos = tablainsumo.row(linea).data()
+    suministrarInsumo.EditarFormSuministrar(datosInsumos);
+  }
+
+  if (accion == 3) {
+    const tablainsumo = $('#tablaInsumo').DataTable();
+    const datosInsumos = tablainsumo.row(linea).data()
+    movimientoInsumo.CargarModalTabla(datosInsumos);
+  }
+
   if (modulo == "Insumo") {
     await insumo.EditarFormInsumo(datosFila, str_accion)
   }
@@ -123,5 +143,13 @@ $(document).on('click', '.btn-editar', function () {
 })
 
 $(document).on('click', '.btn-eliminar', function () {
+  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
+})
+
+$(document).on('click', '.btn-suministrar', function () {
+  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
+})
+
+$(document).on('click', '.btn-movimiento', function () {
   rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
 })

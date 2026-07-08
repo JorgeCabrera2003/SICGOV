@@ -3,7 +3,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     cargarPedidos();
 
-    // Event listener para marcar como pagado desde el modal del comprobante
+    
     const btnVerificarPago = document.getElementById('btnVerificarPago');
     if (btnVerificarPago) {
         btnVerificarPago.addEventListener('click', async function() {
@@ -72,7 +72,7 @@ async function cargarPedidos() {
                 const fecha = new Date(p.fecha_pedido).toLocaleString();
                 const cliente = p.nombre ? `${p.nombre} ${p.apellido || ''}` : 'Mostrador';
                 
-                // Botones de acción
+                
                 let btnComprobante = '';
                 if (p.metodo_pago === 'Pago Móvil') {
                     btnComprobante = `<button class="btn btn-sm btn-outline-info" onclick="verComprobante('${p.id_pedido}', '${p.estado}')" title="Ver Comprobante"><i class="fas fa-image"></i></button>`;
@@ -132,7 +132,7 @@ async function verDetalle(idPedido, estadoActual) {
                         <strong>Cliente:</strong> ${p.nombre ? p.nombre + ' ' + (p.apellido||'') : 'Mostrador'}<br>
                         <strong>Teléfono:</strong> ${p.telefono || 'N/A'}<br>
                         <strong>Tipo:</strong> ${p.tipo_pedido}
-                        ${p.id_mesa ? `<br><strong>Mesa:</strong> ${p.id_mesa}` : ''}
+                        ${p.id_mesa ? `<br><strong>Mesa:</strong> #${p.numero_mesa || p.id_mesa}` : ''}
                     </div>
                     <div class="col-sm-6 text-end">
                         <strong>Total:</strong> <span class="text-success fw-bold">$${parseFloat(p.total).toFixed(2)}</span><br>
@@ -157,7 +157,7 @@ async function verDetalle(idPedido, estadoActual) {
                             </div>
                     `;
                     
-                    // Mostrar extras si existen
+                    
                     if (d.indicacion && d.indicacion.trim() !== '') {
                         html += `
                             <div class="small text-muted mt-1">
@@ -179,7 +179,7 @@ async function verDetalle(idPedido, estadoActual) {
             const group = document.getElementById('btnGroupEstados');
             if (group) {
                 group.innerHTML = '';
-                const estados = ['PENDIENTE', 'PREPARACION', 'LISTO', 'ENTREGADO', 'CANCELADO'];
+                const estados = ['PENDIENTE', 'PREPARANDO', 'LISTO', 'ENTREGADO', 'CANCELADO'];
                 estados.forEach(e => {
                     if (e !== estadoActual) {
                         const btn = document.createElement('button');
@@ -288,6 +288,68 @@ async function cambiarEstado(idPedido, nuevoEstado) {
         }
     }
 }
+
+// Cargar mesas disponibles
+async function cargarMesasDisponibles() {
+    try {
+        const formData = new FormData();
+        formData.append('action', 'listar_mesas_disponibles');
+        
+        const res = await fetch('?page=pedidos', { method: 'POST', body: formData });
+        const data = await res.json();
+        
+        const selectMesa = document.getElementById('posMesa');
+        if (!selectMesa) return;
+        
+        // Limpiar select
+        selectMesa.innerHTML = '<option value="">Seleccione una mesa disponible</option>';
+        
+        if (data.success && data.data && data.data.length > 0) {
+            data.data.forEach(mesa => {
+                const option = document.createElement('option');
+                option.value = mesa.id_mesa;
+                option.textContent = `Mesa ${mesa.numero_mesa} (Cap: ${mesa.capacidad})`;
+                selectMesa.appendChild(option);
+            });
+        } else {
+            // Si no hay mesas disponibles
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'No hay mesas disponibles';
+            option.disabled = true;
+            selectMesa.appendChild(option);
+        }
+    } catch (error) {
+        console.error('Error al cargar mesas disponibles:', error);
+    }
+}
+
+// Tipo de Pedido change
+const selectTipo = document.getElementById('posTipoPedido');
+const boxMesa = document.getElementById('boxMesa');
+if (selectTipo) {
+    selectTipo.addEventListener('change', () => {
+        if (selectTipo.value === 'MESA') {
+            boxMesa.style.display = 'block';
+            document.getElementById('posMesa').required = true;
+            // Cargar mesas disponibles al seleccionar MESA
+            cargarMesasDisponibles();
+        } else {
+            boxMesa.style.display = 'none';
+            document.getElementById('posMesa').required = false;
+            document.getElementById('posMesa').value = '';
+        }
+    });
+}
+
+// Al abrir modal POS, también cargamos mesas si es necesario
+modalPOS.addEventListener('show.bs.modal', async () => {
+    // Cargar productos...
+    // Si el tipo por defecto es MESA, cargar mesas
+    if (document.getElementById('posTipoPedido').value === 'MESA') {
+        await cargarMesasDisponibles();
+    }
+});
 
 function escapeHtml(str) {
     if (!str) return '';

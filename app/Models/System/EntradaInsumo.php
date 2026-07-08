@@ -91,6 +91,7 @@ class EntradaInsumo extends Database
                 'consultar' => $this->ConsultarEntradaInsumo(),
                 'reactivar' => $this->ReactivarEntradaInsumo(),
                 'eliminar' => $this->EliminarEntradaInsumo(),
+                'filtrar' => $this->FiltrarEntradaInsumo(),
                 'validar' => $this->ValidarEntradaInsumo(),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
@@ -253,6 +254,42 @@ class EntradaInsumo extends Database
 
             $dato['estado'] = 1;
             $dato['response'] = ['resultado' => 200, 'registro' => $arreglo];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            $dato['bool'] = -1;
+            $dato['estado'] = -1;
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor", 'registro' => []];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    private function FiltrarEntradaInsumo()
+    {
+        $dato = [];
+        $arreglo = [];
+        try {
+            $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
+            $sql = "SELECT * FROM vw_entrada_insumo WHERE id_insumo  = :id_insumo";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->bindParam(':id_insumo', $this->id_insumo);
+            $stm->execute();
+            if ($stm->rowCount() > 0) {
+                $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
+                $dato['bool'] = 1;
+
+            } else {
+                $dato['bool'] = 0;
+            }
+            $this->LlamarConexion()->commit();
+            $stm = NULL;
+
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'datos' => $arreglo];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
         } catch (\PDOException $e) {
             $this->LlamarConexion()->rollBack();

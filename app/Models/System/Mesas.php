@@ -26,7 +26,7 @@ public function __construct()
     $this->estatus = 1;
 }
 
-public function LlamarConexion($nombreBD = 'system', PDO &$pdo = NULL)
+public function LlamarConexion($nombreBD = 'system', ?PDO &$pdo = NULL)
 {
     return parent::LlamarConexion($nombreBD, $pdo);
 }

@@ -676,3 +676,53 @@ body {
     display: block;
     margin-top: 0;
 }
+
+/* ==========================================
+   PUBLIC TOP NAV (Landing / Hide Sidebar)
+========================================== */
+.public-top-nav {
+    background: rgba(250, 158, 59, 0.95) !important; /* Brand Orange */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 2px solid var(--brand-dark-orange) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    height: 75px !important;
+    transition: all 0.3s ease;
+}
+.public-top-nav > div {
+    height: 75px !important;
+}
+.public-top-nav .btn-link, .public-top-nav i, .public-top-nav span:not(.notificacion__badge):not(.profile-role-badge) {
+    color: #ffffff !important;
+    transition: color 0.3s ease;
+}
+.public-top-nav .btn-link:hover, .public-top-nav .btn-link:hover i {
+    color: var(--color-acento) !important;
+}
+.public-top-nav .logo-img {
+    height: 100px !important;
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 0 10px rgba(255, 204, 0, 0.6));
+}
+.public-top-nav .logo-img:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 20px rgba(255, 204, 0, 0.9));
+}
+.public-top-nav .dropdown-menu i, .public-top-nav .dropdown-menu span, .public-top-nav .dropdown-menu .fw-semibold, .public-top-nav .dropdown-menu .text-muted {
+    color: inherit !important;
+}
+.public-top-nav .btn-primary {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    border: 2px solid transparent !important;
+}
+.public-top-nav .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(241, 90, 41, 0.4);
+    background-color: var(--brand-dark-orange) !important;
+    border-color: var(--brand-dark-orange) !important;
+    color: #FFF !important;
+}
+.public-top-nav .btn-primary:hover span, .public-top-nav .btn-primary:hover i {
+    color: #FFF !important;
+}

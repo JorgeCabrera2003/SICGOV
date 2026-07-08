@@ -1,3 +1,6 @@
+import { mensajes, confirmarAccion, buscarSelect } from './Helpers/UIHelper.js';
+import { enviaAjax } from './Helpers/AjaxHelper.js';
+
 // ==========================================
 // MÓDULO DE USUARIOS - GOOD VIBES
 // JS / AJAX & DATATABLE LOGIC
@@ -111,16 +114,26 @@ function aplicarEstilosCampo($campo, $feedback, esValido, mensaje, forzar = fals
     const val = $campo.val() ? $campo.val().trim() : '';
     if (!forzar && val === '') {
         $campo.removeClass('is-valid is-invalid');
+        $campo.css('border-color', '');
         $feedback.removeClass('invalid-tooltip d-inline-block').text('');
         return;
     }
 
     if (esValido) {
         $campo.addClass('is-valid').removeClass('is-invalid');
+        $campo[0].style.setProperty('border-color', '#198754', 'important');
+        $campo[0].style.removeProperty('background-image');
         $campo[0].setCustomValidity('');
         $feedback.removeClass('invalid-tooltip d-inline-block').text('');
     } else {
         $campo.addClass('is-invalid').removeClass('is-valid');
+        $campo[0].style.setProperty('border-color', '#dc3545', 'important');
+        
+        // Remove green checkmark explicitly if it persists due to CSS conflicts
+        if ($campo.is('select')) {
+            $campo[0].style.setProperty('background-image', 'none', 'important');
+        }
+        
         $campo[0].setCustomValidity(mensaje);
         $feedback.addClass('invalid-tooltip d-inline-block').text(mensaje);
     }
@@ -276,8 +289,10 @@ async function cargarRolesActivos() {
 
         if (json && json.datos) {
             json.datos.forEach(rol => {
-                $rolSelect.append(`<option value="${rol.id_rol}">${rol.nombre_rol}</option>`);
-                rolesValidosList.push(String(rol.id_rol));
+                if (rol.nombre_rol !== 'SuperUsuario' && rol.nombre_rol !== 'Super Usuario') {
+                    $rolSelect.append(`<option value="${rol.id_rol}">${rol.nombre_rol}</option>`);
+                    rolesValidosList.push(String(rol.id_rol));
+                }
             });
         }
     } catch (e) {
@@ -514,6 +529,11 @@ async function forzarCambioClave(pos) {
 
 // Inicialización de la DataTable principal
 async function crearDataTable() {
+    if (typeof permisosDB === 'undefined' || !permisosDB || !permisosDB.usuario || permisosDB.usuario.ver != 1) {
+        $('#tabla-usuario').closest('.card').html('<div class="card-body text-center py-5"><i class="fas fa-lock fs-1 text-danger mb-3"></i><h4 class="text-danger">Acceso Denegado</h4><p>No tienes permiso para ver la lista de usuarios.</p></div>');
+        return;
+    }
+
     let peticion = new FormData();
     let arreglo = [];
 
@@ -563,40 +583,60 @@ async function crearDataTable() {
 
                     const menu = $('<ul>').addClass('dropdown-menu dropdown-menu-end');
 
-                    const itemEditar = $('<li>');
-                    const linkEditar = $('<a>')
-                        .addClass('dropdown-item text-primary')
-                        .attr('href', '#')
-                        .attr('onclick', 'rellenar(this, 0)')
-                        .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
-                    itemEditar.append(linkEditar);
-
-                    const separador = $('<li>').html('<hr class="dropdown-divider">');
+                    if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.usuario && permisosDB.usuario.modificar == 1) {
+                        const itemEditar = $('<li>');
+                        const linkEditar = $('<a>')
+                            .addClass('dropdown-item text-primary')
+                            .attr('href', '#')
+                            .attr('onclick', 'rellenar(this, 0)')
+                            .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
+                        itemEditar.append(linkEditar);
+                        menu.append(itemEditar);
+                    }
 
                     // Cambiar estado (Activar / Inactivar)
-                    const itemToggle = $('<li>');
                     const esActivo = row.estatus == 1;
-                    const claseTexto = esActivo ? 'text-warning' : 'text-success';
-                    const icono = esActivo ? 'fa-user-slash' : 'fa-user-check';
-                    const textoAccion = esActivo ? 'Inactivar' : 'Activar';
+                    let addToggle = false;
+                    if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.usuario) {
+                        if (esActivo && permisosDB.usuario.eliminar == 1) addToggle = true;
+                        if (!esActivo && permisosDB.usuario.modificar == 1) addToggle = true;
+                    }
 
-                    const linkToggle = $('<a>')
-                        .addClass(`dropdown-item ${claseTexto}`)
-                        .attr('href', '#')
-                        .attr('onclick', `toggleEstatus(this, ${esActivo ? 0 : 1})`)
-                        .html(`<i class="fa-solid ${icono} me-2"></i>${textoAccion}`);
-                    itemToggle.append(linkToggle);
+                    if (addToggle) {
+                        if (menu.children().length > 0) {
+                            menu.append($('<li>').html('<hr class="dropdown-divider">'));
+                        }
+                        
+                        const itemToggle = $('<li>');
+                        const claseTexto = esActivo ? 'text-warning' : 'text-success';
+                        const icono = esActivo ? 'fa-user-slash' : 'fa-user-check';
+                        const textoAccion = esActivo ? 'Inactivar' : 'Activar';
 
-                    // Forzar cambio de clave
-                    const itemForzarClave = $('<li>');
-                    const linkForzarClave = $('<a>')
-                        .addClass('dropdown-item text-danger')
-                        .attr('href', '#')
-                        .attr('onclick', 'forzarCambioClave(this)')
-                        .html('<i class="fa-solid fa-key me-2"></i>Forzar cambio de clave');
-                    itemForzarClave.append(linkForzarClave);
+                        const linkToggle = $('<a>')
+                            .addClass(`dropdown-item ${claseTexto}`)
+                            .attr('href', '#')
+                            .attr('onclick', `toggleEstatus(this, ${esActivo ? 0 : 1})`)
+                            .html(`<i class="fa-solid ${icono} me-2"></i>${textoAccion}`);
+                        itemToggle.append(linkToggle);
+                        menu.append(itemToggle);
+                    }
 
-                    menu.append(itemEditar, separador, itemToggle, itemForzarClave);
+                    if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.usuario && permisosDB.usuario.modificar == 1) {
+                        // Forzar cambio de clave
+                        const itemForzarClave = $('<li>');
+                        const linkForzarClave = $('<a>')
+                            .addClass('dropdown-item text-danger')
+                            .attr('href', '#')
+                            .attr('onclick', 'forzarCambioClave(this)')
+                            .html('<i class="fa-solid fa-key me-2"></i>Forzar cambio de clave');
+                        itemForzarClave.append(linkForzarClave);
+                        menu.append(itemForzarClave);
+                    }
+
+                    if (menu.children().length === 0) {
+                        return '<span class="text-muted"><i class="fas fa-lock"></i> Sin acciones</span>';
+                    }
+
                     dropdown.append(boton, menu);
 
                     return dropdown.prop('outerHTML');
@@ -616,10 +656,12 @@ $(document).ready(function () {
     cargarRolesActivos(); // Carga de roles de forma segura una única vez al iniciar
 
     // Evento Click para botón de Registro
-    $("#btn-nuevo").on("click", function () {
-        limpiar();
-        editarModal("registrar");
-    });
+    if ($("#btn-nuevo").length) {
+        $("#btn-nuevo").on("click", function () {
+            limpiar();
+            editarModal("registrar");
+        });
+    }
 
     // Guardar/Actualizar
     $("#btnUsuarioForm").on("click", function (e) {

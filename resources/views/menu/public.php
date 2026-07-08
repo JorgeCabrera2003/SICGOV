@@ -11,28 +11,10 @@ foreach ($menus as $menuItem) {
 
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/pedidos-publico.css?v=<?= time() ?>">
 
-<!-- Top Bar -->
-<div class="news-top-bar py-2 shadow-sm border-bottom bg-body-tertiary">
-    <div class="container d-flex justify-content-between align-items-center">
-        <div class="date-now small">
-            <i class="far fa-calendar-alt me-2 text-primary"></i> Good Vibes Tapas Bar
-        </div>
-        <div class="d-flex align-items-center">
-            <?php if (!isset($_SESSION['user'])): ?>
-                <a href="<?= BASE_URL ?>?page=login" class="btn btn-sm btn-outline-primary fw-bold text-uppercase px-3 rounded-pill">
-                    <i class="fas fa-lock me-1"></i> Acceso
-                </a>
-            <?php else: ?>
-                <a href="<?= BASE_URL ?>?page=dashboard" class="btn btn-sm btn-primary fw-bold text-uppercase px-3 rounded-pill shadow-sm">
-                    <i class="fas fa-tachometer-alt me-1"></i> Panel
-                </a>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
+<!-- Top Bar Removida (Se usa el Header Global) -->
 
 <!-- Header Promocional -->
-<div class="menu-hero text-center py-5 bg-dark text-white position-relative overflow-hidden" style="background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('<?= BASE_URL ?>/assets/img/hero-menu-new.png') center/cover;">
+<div class="menu-hero text-center py-5 bg-dark text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(10, 43, 43, 0.9) 0%, rgba(10, 43, 43, 0.4) 100%), url('<?= BASE_URL ?>/assets/img/hero-menu-new.png') center/cover;">
     <div class="container position-relative z-1 py-4">
         <h1 class="display-4 fw-bold mb-3 font-monospace text-primary">NUESTRO MENÚ</h1>
         <p class="lead mb-0 text-light">Pide en línea y disfruta del mejor sabor.</p>
@@ -42,7 +24,7 @@ foreach ($menus as $menuItem) {
 <!-- Categorías -->
 <nav class="sticky-top bg-body border-bottom shadow-sm py-3" style="z-index: 1020;">
     <div class="container">
-        <ul class="nav nav-pills nav-fill gap-2 flex-nowrap overflow-auto hide-scrollbar" id="menu-categories-tab" role="tablist">
+        <ul class="nav nav-pills gap-2 flex-nowrap overflow-x-auto categories-scroll pb-2" id="menu-categories-tab" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active fw-bold text-uppercase px-4 rounded-pill text-nowrap" id="cat-todas-tab" data-bs-toggle="pill" data-bs-target="#cat-todas" type="button" role="tab">
                     <i class="fas fa-star me-2"></i>Todo
@@ -87,9 +69,15 @@ foreach ($menus as $menuItem) {
                                                     <h5 class="card-title fw-bold mb-1"><?= htmlspecialchars($p['nombre_producto']) ?></h5>
                                                     <p class="text-primary fw-bold fs-5 mb-2">$<?= number_format($p['precio'], 2) ?></p>
                                                     <p class="card-text text-muted small flex-grow-1"><?= htmlspecialchars($p['descripcion'] ?: 'Delicioso platillo preparado al momento.') ?></p>
+                                                    <?php if(isset($_SESSION['user'])): ?>
                                                     <button class="btn btn-outline-primary mt-3 rounded-pill fw-bold btn-add-product" data-id="<?= $p['id_producto'] ?>">
                                                         <i class="fas fa-plus me-1"></i> Añadir
                                                     </button>
+                                                    <?php else: ?>
+                                                    <a href="<?= BASE_URL ?>?page=login&msg=inicia-sesion" class="btn btn-outline-secondary mt-3 rounded-pill fw-bold">
+                                                        <i class="fas fa-lock me-1"></i> Iniciar Sesión
+                                                    </a>
+                                                    <?php endif; ?>
                                                 </div>
                                             </div>
                                         </div>
@@ -147,6 +135,7 @@ foreach ($menus as $menuItem) {
                     <div class="cart-header">
                         <i class="fas fa-shopping-basket me-2 text-primary"></i> Mi Pedido
                     </div>
+                    <?php if(isset($_SESSION['user'])): ?>
                     <div class="cart-items" id="cart-items-container">
                         <!-- Items rendered via JS -->
                         <div class="text-center text-muted mt-5" id="empty-cart-msg">
@@ -163,6 +152,16 @@ foreach ($menus as $menuItem) {
                             Proceder al Pago
                         </button>
                     </div>
+                    <?php else: ?>
+                    <div class="cart-items d-flex flex-column align-items-center justify-content-center text-center p-4">
+                        <i class="fas fa-lock text-muted fs-1 mb-3 opacity-50"></i>
+                        <h5 class="fw-bold text-muted mb-2">Carrito Bloqueado</h5>
+                        <p class="small text-muted mb-4">Debes iniciar sesión para comenzar a armar tu pedido.</p>
+                        <a href="<?= BASE_URL ?>?page=login&msg=inicia-sesion" class="btn btn-primary rounded-pill fw-bold w-100">
+                            Iniciar Sesión
+                        </a>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -182,6 +181,7 @@ foreach ($menus as $menuItem) {
     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
   <div class="offcanvas-body d-flex flex-column p-0">
+    <?php if(isset($_SESSION['user'])): ?>
     <div class="cart-items flex-grow-1 p-3" id="mobile-cart-items-container">
         <!-- Rendered via JS -->
     </div>
@@ -194,6 +194,16 @@ foreach ($menus as $menuItem) {
             Proceder al Pago
         </button>
     </div>
+    <?php else: ?>
+    <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center text-center p-4">
+        <i class="fas fa-lock text-muted fs-1 mb-3 opacity-50"></i>
+        <h5 class="fw-bold text-muted mb-2">Carrito Bloqueado</h5>
+        <p class="small text-muted mb-4">Debes iniciar sesión para comenzar a armar tu pedido.</p>
+        <a href="<?= BASE_URL ?>?page=login&msg=inicia-sesion" class="btn btn-primary rounded-pill fw-bold w-100">
+            Iniciar Sesión
+        </a>
+    </div>
+    <?php endif; ?>
   </div>
 </div>
 
@@ -352,8 +362,22 @@ foreach ($menus as $menuItem) {
 
 
 <style>
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    /* Scrollbar horizontal personalizado para escritorio */
+    .categories-scroll::-webkit-scrollbar {
+        height: 8px;
+    }
+    .categories-scroll::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.05); 
+        border-radius: 10px;
+    }
+    .categories-scroll::-webkit-scrollbar-thumb {
+        background: var(--brand-orange); 
+        border-radius: 10px;
+    }
+    .categories-scroll::-webkit-scrollbar-thumb:hover {
+        background: var(--brand-dark-orange); 
+    }
+    
     .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important; }
     .transition-all { transition: all .3s ease; }
     .transition-scale { transition: transform .5s ease; }

@@ -28,24 +28,24 @@ class Reservacion extends Database
         $this->estado = "PENDIENTE";
     }
 
-    // SETTERS CON VALIDACIÓN RIGUROSA
+    
     public function setId(string $id) { 
         if (RegexHelper::ValidarFormatos($id, 'ID') == 0) {
-            throw new Exception("El ID de reservación no es válido.");
+            throw new Exception("El formato del ID de reservación no es válido.");
         }
         $this->id_reservacion = $id; 
     }
 
     public function setCedulaCliente(string $cedula) { 
         if (RegexHelper::ValidarFormatos($cedula, 'Cedula') == 0) {
-            throw new Exception("La cédula del cliente no es válida.");
+            throw new Exception("El formato de la cédula del cliente no es válido.");
         }
         $this->cedula_cliente = $cedula; 
     }
 
     public function setIdMesa(?string $id_mesa) { 
         if (!empty($id_mesa) && RegexHelper::ValidarFormatos($id_mesa, 'ID') == 0) {
-            throw new Exception("El ID de la mesa no es válido.");
+            throw new Exception("El formato del ID de la mesa no es válido.");
         }
         $this->id_mesa = empty($id_mesa) ? null : $id_mesa; 
     }
@@ -119,7 +119,7 @@ class Reservacion extends Database
     private function Registrar()
     {
         try {
-            // Validar si el horario ya está ocupado
+            $this->ValidarExistencias();
             $this->ValidarDisponibilidad($this->fecha, $this->hora);
 
             $this->LlamarConexion()->beginTransaction();
@@ -158,7 +158,7 @@ class Reservacion extends Database
     private function Modificar()
     {
         try {
-            // Validar si el nuevo horario ya está ocupado (excluyendo la actual)
+            $this->ValidarExistencias();
             $this->ValidarDisponibilidad($this->fecha, $this->hora, $this->id_reservacion);
 
             $this->LlamarConexion()->beginTransaction();
@@ -174,7 +174,7 @@ class Reservacion extends Database
                 ':estado' => $this->estado
             ]);
 
-            // Eliminar asignaciones anteriores
+            
             $sqlDelMesa = "DELETE FROM asignacion_mesa WHERE id_reservacion = :id";
             $stmDelMesa = $this->LlamarConexion()->prepare($sqlDelMesa);
             $stmDelMesa->execute([':id' => $this->id_reservacion]);
@@ -201,12 +201,12 @@ class Reservacion extends Database
 
     private function ValidarDisponibilidad($fecha, $hora, $id_excluir = null)
     {
-        // Validar que fin sea mayor que inicio
+        
         if (strtotime($this->hora_fin) <= strtotime($this->hora)) {
             throw new Exception("La hora de fin debe ser mayor a la hora de inicio.");
         }
 
-        // Si se seleccionó una mesa, validamos que no esté ocupada en ese horario
+        
         if (!empty($this->id_mesa)) {
             $sql = "SELECT COUNT(*) FROM reservacion 
                     JOIN asignacion_mesa ON reservacion.id_reservacion = asignacion_mesa.id_reservacion
@@ -221,7 +221,7 @@ class Reservacion extends Database
                 ':hora_fin' => $this->hora_fin
             ];
         } else {
-            // Si no se seleccionó mesa, validamos que el mismo cliente no tenga otra reserva en ese horario
+            
             $sql = "SELECT COUNT(*) FROM reservacion 
                     WHERE reservacion.fecha = :fecha 
                     AND reservacion.cedula_cliente = :cedula 
@@ -247,6 +247,25 @@ class Reservacion extends Database
                 throw new Exception("La mesa seleccionada ya se encuentra reservada en este horario.");
             } else {
                 throw new Exception("El cliente ya tiene una reservación que interfiere con este horario.");
+            }
+        }
+    }
+
+    private function ValidarExistencias()
+    {
+        $sql = "SELECT COUNT(*) FROM cliente WHERE cedula = :cedula";
+        $stm = $this->LlamarConexion()->prepare($sql);
+        $stm->execute([':cedula' => $this->cedula_cliente]);
+        if ($stm->fetchColumn() == 0) {
+            throw new Exception("El cliente seleccionado no se encuentra registrado en el sistema.");
+        }
+
+        if (!empty($this->id_mesa)) {
+            $sqlMesa = "SELECT COUNT(*) FROM mesa WHERE id_mesa = :id_mesa";
+            $stmMesa = $this->LlamarConexion()->prepare($sqlMesa);
+            $stmMesa->execute([':id_mesa' => $this->id_mesa]);
+            if ($stmMesa->fetchColumn() == 0) {
+                throw new Exception("La mesa seleccionada no existe en el sistema.");
             }
         }
     }

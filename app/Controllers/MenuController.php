@@ -17,6 +17,7 @@ if ($type === 'admin') {
         $categorias = $menuModel->Transaccion(['peticion' => 'categorias']) ?: [];
         $insumos = $menuModel->Transaccion(['peticion' => 'insumos']) ?: [];
         $unidades = $menuModel->Transaccion(['peticion' => 'unidades']) ?: [];
+        $permisosMenu = Helper::TraerPermisos("producto");
 
         Helper::cargarVista(
             'menu/index',
@@ -24,7 +25,9 @@ if ($type === 'admin') {
             [
                 'categorias' => $categorias,
                 'insumos' => $insumos,
-                'unidades' => $unidades
+                'unidades' => $unidades,
+                'permisos' => $permisosMenu,
+                'ver' => $permisosMenu['producto']['ver']
             ]
         );
         exit;
@@ -32,25 +35,70 @@ if ($type === 'admin') {
 
     Helper::verificarSesion();
     $objMenu = new Menu();
+    $permisosMenu = Helper::TraerPermisos("producto");
 
     if (!empty($peticion) || $isAjax) {
         
         if (ob_get_length()) ob_clean();
         header('Content-Type: application/json');
 
-        
-
-
         if ($peticion == 'guardar' || $peticion == 'registrar' || $peticion == 'modificar') {
+            $accion_permiso = false;
+            $peticion_real = empty($_POST['id_producto']) ? 'registrar' : 'modificar';
+
+            if (isset($permisosMenu['producto']['registrar']) && $permisosMenu['producto']['registrar'] == 1 && $peticion_real == 'registrar') {
+                $accion_permiso = true;
+            }
+            if (isset($permisosMenu['producto']['modificar']) && $permisosMenu['producto']['modificar'] == 1 && $peticion_real == 'modificar') {
+                $accion_permiso = true;
+            }
+
+            if (!$accion_permiso) {
+                echo json_encode(['success' => false, 'message' => 'Error, No tienes permiso para ' . $peticion_real . ' un producto del menú']);
+                exit;
+            }
+
             try {
+                
+                $id_categoria = $_POST['id_categoria'] ?? null;
+                if (!empty($id_categoria) && !$objMenu->validarCategoria($id_categoria)) {
+                    throw new Exception("La categoría seleccionada no existe en la base de datos.");
+                }
+
+                $insumos_principales_json = $_POST['insumos_principales'] ?? '[]';
+                $insumos_principales = is_string($insumos_principales_json) ? json_decode($insumos_principales_json, true) : $insumos_principales_json;
+                if (!empty($insumos_principales) && is_array($insumos_principales)) {
+                    foreach ($insumos_principales as $ing) {
+                        if (!empty($ing['id']) && !$objMenu->validarInsumo($ing['id'])) {
+                            throw new Exception("El insumo principal seleccionado no existe o está inactivo.");
+                        }
+                        if (!empty($ing['unidad']) && !$objMenu->validarUnidadMedida($ing['unidad'])) {
+                            throw new Exception("La unidad de medida seleccionada para el insumo no existe en la base de datos.");
+                        }
+                    }
+                }
+
+                $insumos_adicionales_json = $_POST['insumos_adicionales'] ?? '[]';
+                $insumos_adicionales = is_string($insumos_adicionales_json) ? json_decode($insumos_adicionales_json, true) : $insumos_adicionales_json;
+                if (!empty($insumos_adicionales) && is_array($insumos_adicionales)) {
+                    foreach ($insumos_adicionales as $ing) {
+                        if (!empty($ing['id']) && !$objMenu->validarInsumo($ing['id'])) {
+                            throw new Exception("El insumo adicional seleccionado no existe o está inactivo.");
+                        }
+                        if (!empty($ing['unidad']) && !$objMenu->validarUnidadMedida($ing['unidad'])) {
+                            throw new Exception("La unidad de medida seleccionada para el insumo adicional no existe en la base de datos.");
+                        }
+                    }
+                }
+
                 $objMenu->setIdProducto($_POST['id_producto'] ?? '');
                 $objMenu->setNombreProducto($_POST['nombre'] ?? '');
                 $objMenu->setDescripcion($_POST['descripcion'] ?? '');
                 $objMenu->setPrecio($_POST['precio'] ?? 0);
-                $objMenu->setIdCategoria($_POST['id_categoria'] ?? null);
+                $objMenu->setIdCategoria($id_categoria);
                 $objMenu->setTipoProducto($_POST['tipo_producto'] ?? 'COCINA');
-                $objMenu->setInsumosPrincipales($_POST['insumos_principales'] ?? '[]');
-                $objMenu->setInsumosAdicionales($_POST['insumos_adicionales'] ?? '[]');
+                $objMenu->setInsumosPrincipales($insumos_principales_json);
+                $objMenu->setInsumosAdicionales($insumos_adicionales_json);
 
                 $imagen_nombre = null;
                 
@@ -127,6 +175,16 @@ if ($type === 'admin') {
 
 
         if ($peticion == 'eliminar') {
+            $accion_permiso = false;
+            if (isset($permisosMenu['producto']['eliminar']) && $permisosMenu['producto']['eliminar'] == 1) {
+                $accion_permiso = true;
+            }
+
+            if (!$accion_permiso) {
+                echo json_encode(['success' => false, 'message' => 'Error, No tienes permiso para eliminar un producto del menú']);
+                exit;
+            }
+
             try {
                 if (empty($_POST['id'])) {
                     echo json_encode(['success' => false, 'message' => 'ID no proporcionado']);
@@ -150,6 +208,16 @@ if ($type === 'admin') {
 
 
         if ($peticion == 'listar' || $peticion == 'listarJson') {
+            $accion_permiso = false;
+            if (isset($permisosMenu['producto']['ver']) && $permisosMenu['producto']['ver'] == 1) {
+                $accion_permiso = true;
+            }
+
+            if (!$accion_permiso) {
+                echo json_encode(['data' => []]);
+                exit;
+            }
+
             try {
                 $menus = $objMenu->Transaccion(['peticion' => 'listar']) ?: [];
                 echo json_encode(['data' => $menus]);
@@ -166,7 +234,7 @@ if ($type === 'admin') {
 
 
 } else {
-    // MODO PÚBLICO
+    
     $menuModel = new Menu();
     $menus = $menuModel->Transaccion(['peticion' => 'listar']) ?: [];
     $categorias = $menuModel->Transaccion(['peticion' => 'categorias']) ?: [];
@@ -174,14 +242,24 @@ if ($type === 'admin') {
     $page = 'menu_publico';
     $titulo = 'Nuestro Menú - Good Vibes';
     
-    $extra_css = [BASE_URL . '/assets/css/main.css?v=' . time()];
+    $extra_css = [
+        BASE_URL . '/assets/css/landing.css?v=' . time(),
+        BASE_URL . '/assets/css/main.css?v=' . time()
+    ];
     $extra_js = [
         BASE_URL . '/assets/js/Controllers/PedidoPublicoController.js?v=' . time(),
         BASE_URL . '/assets/js/Handlers/PedidoPublicoHandler.js?v=' . time()
     ];
 
     require_once BASE_PATH . '/resources/views/layout/head.php';
-    echo '<main class="main-content flex-grow-1 ms-0 w-100" id="main-content"><div class="content-wrapper bg-body">';
+    
+    $hideSidebar = true;
+    $datos = $_SESSION['user'] ?? null;
+    require_once BASE_PATH . '/resources/views/layout/menu.php';
+
     require_once BASE_PATH . '/resources/views/menu/public.php';
+
+    echo '</div></main>';
+
     require_once BASE_PATH . '/resources/views/layout/footer.php';
 }
