@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     cargarPedidos();
 
     
+
+
     const btnVerificarPago = document.getElementById('btnVerificarPago');
     if (btnVerificarPago) {
         btnVerificarPago.addEventListener('click', async function() {
@@ -85,10 +87,10 @@ async function cargarPedidos() {
                     <td>${escapeHtml(cliente)}</td>
                     <td><span class="badge bg-secondary">${p.tipo_pedido}</span></td>
                     <td class="fw-bold text-success">$${parseFloat(p.total).toFixed(2)}</td>
-                    <td><span class="estado-badge estado-${p.estado}">${p.estado}</span></td>
+                    <td><span class="estado-badge estado-${p.estado || 'PENDIENTE'}">${p.estado || 'PENDIENTE'}</span></td>
                     <td>
                         <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-primary" onclick="verDetalle('${p.id_pedido}', '${p.estado}')" title="Ver Detalle"><i class="fas fa-eye"></i></button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="verDetalle('${p.id_pedido}', '${p.estado || 'PENDIENTE'}')" title="Ver Detalle"><i class="fas fa-eye"></i></button>
                             ${btnComprobante}
                         </div>
                     </td>
@@ -111,6 +113,9 @@ async function cargarPedidos() {
 
 async function verDetalle(idPedido, estadoActual) {
     try {
+        if (!estadoActual || estadoActual === 'undefined') {
+            estadoActual = 'PENDIENTE';
+        }
         Swal.fire({
             title: 'Cargando...',
             allowOutsideClick: false,
@@ -254,19 +259,41 @@ async function verDetalle(idPedido, estadoActual) {
             
             body.innerHTML = html;
 
+                        // ==============================================
+            // BOTONES DE ESTADO DINÁMICOS (CON FLUJO)
+            // ==============================================
             const group = document.getElementById('btnGroupEstados');
             if (group) {
                 group.innerHTML = '';
-                const estados = ['PENDIENTE', 'PREPARANDO', 'LISTO', 'ENTREGADO', 'CANCELADO'];
-                estados.forEach(e => {
-                    if (e !== estadoActual) {
-                        const btn = document.createElement('button');
-                        btn.className = `btn btn-sm btn-outline-primary`;
-                        btn.innerText = `Pasar a ${e}`;
-                        btn.onclick = () => cambiarEstado(idPedido, e);
-                        group.appendChild(btn);
+                
+                const botones = obtenerBotonesEstado(estadoActual);
+                
+                if (botones.length === 0) {
+                    // Pedido finalizado
+                    const span = document.createElement('span');
+                    span.className = 'text-muted';
+                    
+                    // Mensaje según el estado final
+                    if (estadoActual === 'ENTREGADO') {
+                        span.innerText = '✅ Pedido entregado';
+                    } else if (estadoActual === 'PAGADO') {
+                        span.innerText = '💰 Pedido pagado';
+                    } else if (estadoActual === 'CANCELADO') {
+                        span.innerText = '❌ Pedido cancelado';
+                    } else {
+                        span.innerText = '✅ Pedido completado';
                     }
-                });
+                    
+                    group.appendChild(span);
+                } else {
+                    botones.forEach(btn => {
+                        const btnElement = document.createElement('button');
+                        btnElement.className = `btn btn-sm btn-outline-${btn.color} me-1`;
+                        btnElement.innerHTML = btn.html;
+                        btnElement.onclick = () => cambiarEstado(idPedido, btn.estado, estadoActual);
+                        group.appendChild(btnElement);
+                    });
+                }
             }
 
             const modal = new bootstrap.Modal(document.getElementById('modalDetallePedido'));
@@ -325,15 +352,74 @@ async function verComprobante(idPedido, estado) {
     }
 }
 
-async function cambiarEstado(idPedido, nuevoEstado) {
+// ==============================================
+// CONFIGURACIÓN DE FLUJO DE ESTADOS
+// ==============================================
+const FLUJO_ESTADOS = {
+    'PENDIENTE': {
+        siguientes: ['CONFIRMADO', 'CANCELADO'],
+        label: 'Pendiente',
+        color: 'warning'
+    },
+    'CONFIRMADO': {
+        siguientes: ['PREPARANDO', 'CANCELADO'],
+        label: 'Confirmado',
+        color: 'primary'
+    },
+    'PREPARANDO': {
+        siguientes: ['LISTO', 'CANCELADO'],
+        label: 'Preparando',
+        color: 'info'
+    },
+    'LISTO': {
+        siguientes: ['ENTREGADO', 'PAGADO', 'CANCELADO'],  // <-- Agregar PAGADO
+        label: 'Listo',
+        color: 'success'
+    },
+    'ENTREGADO': {
+        siguientes: ['PAGADO'],  // <-- Se puede pagar después de entregar
+        label: 'Entregado',
+        color: 'success'
+    },
+    'PAGADO': {
+        siguientes: [],  // <-- Estado final
+        label: 'Pagado',
+        color: 'success'
+    },
+    'CANCELADO': {
+        siguientes: [],
+        label: 'Cancelado',
+        color: 'danger'
+    }
+};
+
+// Estados que NO se pueden cancelar
+const ESTADOS_NO_CANCELABLES = ['ENTREGADO', 'PAGADO', 'CANCELADO'];
+
+
+async function cambiarEstado(idPedido, nuevoEstado, estadoActual) {
+    // Validar que el nuevo estado sea válido según el flujo
+    const config = FLUJO_ESTADOS[estadoActual] || { siguientes: [] };
+    if (!config.siguientes.includes(nuevoEstado)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Transición no válida',
+            text: `No se puede pasar de "${estadoActual}" a "${nuevoEstado}"`,
+            confirmButtonColor: '#d33'
+        });
+        return;
+    }
+    
+    const info = FLUJO_ESTADOS[nuevoEstado];
+    
     const confirmResult = await Swal.fire({
-        title: '¿Cambiar estado?',
-        text: `¿Estás seguro de cambiar el estado a ${nuevoEstado}?`,
+        title: `¿Cambiar a ${info.label}?`,
+        text: `El pedido pasará de "${FLUJO_ESTADOS[estadoActual]?.label || estadoActual}" a "${info.label}"`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, cambiar',
+        confirmButtonText: `Sí, pasar a ${info.label}`,
         cancelButtonText: 'Cancelar'
     });
     
@@ -350,7 +436,7 @@ async function cambiarEstado(idPedido, nuevoEstado) {
             Swal.fire({
                 icon: 'success',
                 title: 'Estado actualizado',
-                text: res.message,
+                text: `Pedido ahora está en "${info.label}"`,
                 confirmButtonColor: '#28a745'
             });
             const modal = bootstrap.Modal.getInstance(document.getElementById('modalDetallePedido'));
@@ -365,6 +451,60 @@ async function cambiarEstado(idPedido, nuevoEstado) {
             });
         }
     }
+}
+
+function obtenerBotonesEstado(estadoActual) {
+    if (!FLUJO_ESTADOS[estadoActual]) {
+        estadoActual = 'PENDIENTE';
+    }
+
+    const config = FLUJO_ESTADOS[estadoActual];
+    if (!config) return [];
+    
+    if (config.siguientes.length === 0) {
+        return [];
+    }
+    
+    return config.siguientes.map(estado => {
+        const info = FLUJO_ESTADOS[estado];
+        let icono = '';
+        let btnColor = 'secondary';
+        
+        switch (estado) {
+            case 'CONFIRMADO':
+                icono = '<i class="fas fa-check-circle me-1"></i>';
+                btnColor = 'primary';
+                break;
+            case 'PREPARANDO':
+                icono = '<i class="fas fa-utensils me-1"></i>';
+                btnColor = 'info';
+                break;
+            case 'LISTO':
+                icono = '<i class="fas fa-check-double me-1"></i>';
+                btnColor = 'success';
+                break;
+            case 'ENTREGADO':
+                icono = '<i class="fas fa-truck me-1"></i>';
+                btnColor = 'success';
+                break;
+            case 'PAGADO':  // <-- Nuevo
+                icono = '<i class="fas fa-money-bill-wave me-1"></i>';
+                btnColor = 'success';
+                break;
+            case 'CANCELADO':
+                icono = '<i class="fas fa-times-circle me-1"></i>';
+                btnColor = 'danger';
+                break;
+        }
+        
+        return {
+            estado: estado,
+            label: info.label,
+            icono: icono,
+            color: btnColor,
+            html: `${icono} ${info.label}`
+        };
+    });
 }
 
 // Cargar mesas disponibles

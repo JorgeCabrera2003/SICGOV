@@ -324,7 +324,7 @@ CREATE TABLE `pedido` (
   `tipo_pedido` enum('MESA','LLEVAR','DELIVERY') NOT NULL,
   `fecha_pedido` timestamp NOT NULL DEFAULT current_timestamp(),
   `fecha_entrega` timestamp NULL DEFAULT NULL,
-  `estado` enum('PENDIENTE','PREPARANDO','LISTO','ENTREGADO','PAGADO','CANCELADO') DEFAULT 'PENDIENTE',
+  `estado` enum('PENDIENTE','CONFIRMADO','PREPARANDO','LISTO','ENTREGADO','PAGADO','CANCELADO') DEFAULT 'PENDIENTE',
   `observacion` varchar(255) DEFAULT NULL,
   `impuesto` decimal(10,2) DEFAULT 0.00,
   `total` decimal(10,2) NOT NULL DEFAULT 0.00,
