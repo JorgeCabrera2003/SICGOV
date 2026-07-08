@@ -22,7 +22,7 @@
                 <table class="table table-hover align-middle table-pedidos" id="pedidosTable">
                     <thead class="table-light">
                         <tr>
-                            <th>Nro. Pedido</th>
+                            <th># Pedido</th> 
                             <th>Fecha</th>
                             <th>Cliente</th>
                             <th>Tipo</th>

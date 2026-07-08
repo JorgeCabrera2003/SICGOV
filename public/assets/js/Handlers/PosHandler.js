@@ -493,11 +493,14 @@ async function procesarCobro() {
 
         if (res.success) {
             Swal.fire({
-                icon: 'success',
-                title: '¡Pedido registrado!',
-                text: res.message,
-                confirmButtonColor: '#28a745'
-            }).then(() => {
+            icon: 'success',
+            title: '¡Pedido registrado!',
+            html: `
+                ${res.message}<br>
+                <strong>Número de pedido: #${res.numero_pedido || res.id_pedido}</strong>
+            `,
+            confirmButtonColor: '#28a745'
+        }).then(() => {
                 posCart = [];
                 document.getElementById('posClienteNombre').value = '';
                 document.getElementById('posMesa').value = '';

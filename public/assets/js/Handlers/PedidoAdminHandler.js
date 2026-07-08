@@ -72,7 +72,7 @@ async function cargarPedidos() {
                 const fecha = new Date(p.fecha_pedido).toLocaleString();
                 const cliente = p.nombre ? `${p.nombre} ${p.apellido || ''}` : 'Mostrador';
                 
-                
+                // Botones de acción
                 let btnComprobante = '';
                 if (p.metodo_pago === 'Pago Móvil') {
                     btnComprobante = `<button class="btn btn-sm btn-outline-info" onclick="verComprobante('${p.id_pedido}', '${p.estado}')" title="Ver Comprobante"><i class="fas fa-image"></i></button>`;
@@ -80,7 +80,7 @@ async function cargarPedidos() {
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="fw-bold">${p.id_pedido}</td>
+                    <td class="fw-bold">#${p.numero_pedido || p.id_pedido}</td>
                     <td>${fecha}</td>
                     <td>${escapeHtml(cliente)}</td>
                     <td><span class="badge bg-secondary">${p.tipo_pedido}</span></td>
@@ -129,14 +129,17 @@ async function verDetalle(idPedido, estadoActual) {
             let html = `
                 <div class="row mb-3">
                     <div class="col-sm-6">
-                        <strong>Cliente:</strong> ${p.nombre ? p.nombre + ' ' + (p.apellido||'') : 'Mostrador'}<br>
-                        <strong>Teléfono:</strong> ${p.telefono || 'N/A'}<br>
+                        <h5 class="fw-bold">Pedido #${p.numero_pedido || p.id_pedido}</h5>
+                        <strong>Cliente:</strong> ${escapeHtml(p.nombre ? p.nombre + ' ' + (p.apellido||'') : 'Mostrador')}<br>
+                        <strong>Teléfono:</strong> ${escapeHtml(p.telefono || 'N/A')}<br>
                         <strong>Tipo:</strong> ${p.tipo_pedido}
-                        ${p.id_mesa ? `<br><strong>Mesa:</strong> #${p.numero_mesa || p.id_mesa}` : ''}
+                        ${p.id_mesa ? `<br><strong>Mesa:</strong> ${p.numero_mesa || p.id_mesa}` : ''}
+                        ${p.metodo_pago ? `<br><strong>Método de Pago:</strong> ${escapeHtml(p.metodo_pago)}` : ''}
                     </div>
                     <div class="col-sm-6 text-end">
-                        <strong>Total:</strong> <span class="text-success fw-bold">$${parseFloat(p.total).toFixed(2)}</span><br>
-                        <strong>Método de Pago:</strong> ${p.metodo_pago || 'N/A'}
+                        <strong>Total:</strong> <span class="text-success fw-bold fs-5">$${parseFloat(p.total).toFixed(2)}</span><br>
+                        <strong>Estado:</strong> <span class="badge estado-${p.estado}">${p.estado}</span><br>
+                        <strong>Fecha:</strong> ${new Date(p.fecha_pedido).toLocaleString()}
                     </div>
                 </div>
                 <h6 class="fw-bold border-bottom pb-2">Productos</h6>
@@ -151,17 +154,16 @@ async function verDetalle(idPedido, estadoActual) {
                         <li class="list-group-item bg-transparent px-0">
                             <div class="d-flex justify-content-between">
                                 <div>
-                                    <span class="fw-bold">${d.cantidad}x</span> ${d.nombre_producto}
+                                    <span class="fw-bold">${d.cantidad}x</span> ${escapeHtml(d.nombre_producto)}
                                 </div>
                                 <span class="fw-bold">$${subtotal.toFixed(2)}</span>
                             </div>
                     `;
                     
-                    
                     if (d.indicacion && d.indicacion.trim() !== '') {
                         html += `
                             <div class="small text-muted mt-1">
-                                <i class="fas fa-info-circle me-1"></i> ${d.indicacion}
+                                <i class="fas fa-info-circle me-1"></i> ${escapeHtml(d.indicacion)}
                             </div>
                         `;
                     }
@@ -175,14 +177,14 @@ async function verDetalle(idPedido, estadoActual) {
             html += `</ul>`;
             body.innerHTML = html;
 
-            // Botones de estado
             const group = document.getElementById('btnGroupEstados');
             if (group) {
                 group.innerHTML = '';
-                const estados = ['PENDIENTE', 'PREPARANDO', 'LISTO', 'ENTREGADO', 'CANCELADO'];
+                const estados = ['PENDIENTE', 'PREPARACION', 'LISTO', 'ENTREGADO', 'CANCELADO'];
                 estados.forEach(e => {
                     if (e !== estadoActual) {
                         const btn = document.createElement('button');
+                        // Cambiar btn-outline-dark por btn-outline-secondary
                         btn.className = `btn btn-sm btn-outline-primary`;
                         btn.innerText = `Pasar a ${e}`;
                         btn.onclick = () => cambiarEstado(idPedido, e);

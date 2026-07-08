@@ -41,25 +41,25 @@ class Pedido
 
     private function listarPedidos()
     {
-        $sql = "SELECT p.id_pedido, p.fecha_pedido, p.tipo_pedido, p.estado, p.total, p.observacion,
-                       c.cedula AS cedula_cliente, per.nombre, per.apellido,
-                       pag.id_pago, pag.referencia, mp.nombre AS metodo_pago
+        $sql = "SELECT p.id_pedido, p.numero_pedido, p.fecha_pedido, p.tipo_pedido, p.estado, p.total, p.observacion,
+                    c.cedula AS cedula_cliente, per.nombre, per.apellido,
+                    pag.id_pago, pag.referencia, mp.nombre AS metodo_pago
                 FROM pedido p
                 LEFT JOIN cliente c ON p.cedula_cliente = c.cedula
                 LEFT JOIN persona per ON c.cedula = per.cedula
                 LEFT JOIN pago pag ON p.id_pedido = pag.id_pedido
                 LEFT JOIN metodo_pago mp ON pag.id_metodo_pago = mp.id_metodo_pago
-                ORDER BY p.fecha_pedido DESC";
+                ORDER BY p.numero_pedido DESC";
         $stmt = $this->dbBusiness->query($sql);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     private function buscarPedido($id_pedido)
     {
-        $sql = "SELECT p.*, 
-                per.nombre, per.apellido, per.telefono, 
-                pag.id_pago, pag.referencia, mp.nombre AS metodo_pago,
-                m.numero_mesa
+        $sql = "SELECT p.id_pedido, p.numero_pedido, p.fecha_pedido, p.tipo_pedido, p.estado, p.total, p.observacion,
+                    per.nombre, per.apellido, per.telefono, 
+                    pag.id_pago, pag.referencia, mp.nombre AS metodo_pago,
+                    m.numero_mesa
                 FROM pedido p
                 LEFT JOIN cliente c ON p.cedula_cliente = c.cedula
                 LEFT JOIN persona per ON c.cedula = per.cedula
@@ -73,9 +73,9 @@ class Pedido
 
         if ($pedido) {
             $sqlDetalle = "SELECT dp.*, pr.nombre_producto 
-                           FROM detalle_pedido dp
-                           JOIN producto pr ON dp.id_producto = pr.id_producto
-                           WHERE dp.id_pedido = ?";
+                        FROM detalle_pedido dp
+                        JOIN producto pr ON dp.id_producto = pr.id_producto
+                        WHERE dp.id_pedido = ?";
             $stmtDet = $this->dbBusiness->prepare($sqlDetalle);
             $stmtDet->execute([$id_pedido]);
             $pedido['detalles'] = $stmtDet->fetchAll(PDO::FETCH_ASSOC);
@@ -280,8 +280,9 @@ class Pedido
             $tipoPedido = $datosCliente['tipo_pedido'] ?? 'LLEVAR';
             $idMesa = !empty($datosCliente['id_mesa']) ? $datosCliente['id_mesa'] : null;
 
-            $sqlPedido = "INSERT INTO pedido (id_pedido, cedula_cliente, cedula_empleado, id_mesa, tipo_pedido, total, observacion, estado) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDIENTE')";
+            // INSERT con numero_pedido = NULL (AUTO_INCREMENT asignará automáticamente)
+            $sqlPedido = "INSERT INTO pedido (id_pedido, numero_pedido, cedula_cliente, cedula_empleado, id_mesa, tipo_pedido, total, observacion, estado) 
+                        VALUES (?, NULL, ?, ?, ?, ?, ?, ?, 'PENDIENTE')";
             $this->dbBusiness->prepare($sqlPedido)->execute([
                 $idPedido,
                 $cedula,
@@ -291,6 +292,14 @@ class Pedido
                 $totalPedido,
                 $observacion
             ]);
+
+            // Obtener el numero_pedido asignado automáticamente
+            $sqlNumero = "SELECT numero_pedido FROM pedido WHERE id_pedido = ?";
+            $stmtNumero = $this->dbBusiness->prepare($sqlNumero);
+            $stmtNumero->execute([$idPedido]);
+            $numeroPedido = $stmtNumero->fetch(PDO::FETCH_ASSOC)['numero_pedido'];
+            
+            error_log("Pedido creado - ID: $idPedido, Número: $numeroPedido");
 
             // ==============================================
             // 4. DETALLES DEL PEDIDO (CON INDICACION)
@@ -413,11 +422,12 @@ class Pedido
             $this->dbBusiness->commit();
             
             return [
-                'success' => true, 
-                'message' => $hayProductosCocina 
-                    ? 'Pedido registrado exitosamente. Pasará a preparación.' 
-                    : 'Pedido registrado exitosamente. Productos listos para entregar.',
-                'id_pedido' => $idPedido
+            'success' => true, 
+            'message' => $hayProductosCocina 
+                ? 'Pedido registrado exitosamente. Pasará a preparación.' 
+                : 'Pedido registrado exitosamente. Productos listos para entregar.',
+            'id_pedido' => $idPedido,
+            'numero_pedido' => $numeroPedido // <-- Devolver también el número
             ];
 
         } catch (Exception $e) {
