@@ -4,6 +4,7 @@ namespace App\Models\System;
 
 use App\Core\Database;
 use PDO;
+use App\Helpers\Helper;
 use Exception;
 
 class Menu extends Database
@@ -831,10 +832,28 @@ public function obtenerInsumosProducto($id_producto)
         $adicionales = [];
         
         foreach ($result as $item) {
+            // ==============================================
+            // LIMPIAR DECIMALES REDUNDANTES USANDO HELPER
+            // ==============================================
+            $cantidad = Helper::limpiarDecimales($item['cantidad']);
+            $precio_insumo = Helper::limpiarDecimales($item['precio_insumo'] ?? 0);
+            
+            $preparacion = [
+                'id_preparacion' => $item['id_preparacion'],
+                'id_insumo' => $item['id_insumo'],
+                'prioridad_insumo' => $item['prioridad_insumo'],
+                'cantidad' => $cantidad,
+                'id_unidad_medida' => $item['id_unidad_medida'],
+                'precio_insumo' => $precio_insumo,
+                'nombre_insumo' => $item['nombre_insumo'],
+                'stock_actual' => $item['stock_actual'],
+                'nombre_unidad' => $item['nombre_unidad']
+            ];
+            
             if ($item['prioridad_insumo'] == 1) {
-                $principales[] = $item;
+                $principales[] = $preparacion;
             } else {
-                $adicionales[] = $item;
+                $adicionales[] = $preparacion;
             }
         }
         
@@ -846,5 +865,125 @@ public function obtenerInsumosProducto($id_producto)
         return ['principales' => [], 'adicionales' => []];
     }
 }
+
+/**
+ * Verifica si un producto tiene suficiente stock para una cantidad específica
+ * @param string $id_producto ID del producto
+ * @param int $cantidad Cantidad solicitada
+ * @return array ['success' => bool, 'message' => string, 'stock_disponible' => int, 'porcentaje' => float]
+ */
+public function verificarStockProducto($id_producto, $cantidad = 1)
+{
+    try {
+        $this->LlamarConexion();
+        
+        // Obtener todos los insumos del producto con su stock
+        $sql = "SELECT p.id_insumo, p.cantidad as cantidad_requerida, 
+                       i.stock_actual, i.nombre_insumo,
+                       i.stock_minimo, i.stock_maximo
+                FROM preparacion p
+                JOIN insumo i ON p.id_insumo = i.id_insumo
+                WHERE p.id_producto = ? AND p.prioridad_insumo = 1
+                AND i.estatus = 1";
+        
+        $stmt = $this->LlamarConexion()->prepare($sql);
+        $stmt->execute([$id_producto]);
+        $insumos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $this->DestruirConexion();
+        
+        if (empty($insumos)) {
+            return [
+                'success' => true, 
+                'message' => 'Producto sin insumos registrados',
+                'stock_disponible' => 999,
+                'porcentaje' => 100
+            ];
+        }
+        
+        // Calcular cuántas unidades se pueden hacer con el stock actual
+        $unidadesPosibles = PHP_INT_MAX;
+        $insumoLimitante = null;
+        $insumosStock = [];
+        
+        foreach ($insumos as $insumo) {
+            if ($insumo['cantidad_requerida'] > 0) {
+                $unidades = floor($insumo['stock_actual'] / $insumo['cantidad_requerida']);
+                $insumosStock[] = [
+                    'nombre' => $insumo['nombre_insumo'],
+                    'stock_actual' => $insumo['stock_actual'],
+                    'requerido' => $insumo['cantidad_requerida'],
+                    'unidades_posibles' => $unidades
+                ];
+                
+                if ($unidades < $unidadesPosibles) {
+                    $unidadesPosibles = $unidades;
+                    $insumoLimitante = $insumo['nombre_insumo'];
+                }
+            }
+        }
+        
+        // Calcular porcentaje de stock disponible (basado en el insumo más crítico)
+        $porcentaje = 0;
+        if (!empty($insumosStock)) {
+            // Buscar el insumo con menor porcentaje
+            $menorPorcentaje = 100;
+            foreach ($insumosStock as $item) {
+                $stockMinimo = $insumos[array_search($item['nombre'], array_column($insumos, 'nombre_insumo'))]['stock_minimo'] ?? 0;
+                $porcentajeInsumo = $item['stock_actual'] > 0 ? ($item['stock_actual'] / ($item['stock_actual'] + $stockMinimo)) * 100 : 0;
+                if ($porcentajeInsumo < $menorPorcentaje) {
+                    $menorPorcentaje = $porcentajeInsumo;
+                }
+            }
+            $porcentaje = min(100, $menorPorcentaje);
+        }
+        
+        // Verificar si la cantidad solicitada es posible
+        $stockDisponible = $unidadesPosibles;
+        
+        if ($cantidad > $stockDisponible) {
+            return [
+                'success' => false,
+                'message' => "Stock insuficiente. Solo hay stock para $stockDisponible unidades. Insumo limitante: $insumoLimitante",
+                'stock_disponible' => $stockDisponible,
+                'porcentaje' => $porcentaje,
+                'insumo_limitante' => $insumoLimitante
+            ];
+        }
+        
+        // Verificar si el stock está por debajo del 70%
+        $porcentajeMinimo = 30; // 70% de stock mínimo requerido
+        
+        if ($porcentaje < $porcentajeMinimo) {
+            return [
+                'success' => false,
+                'message' => "No se puede preparar este producto. El stock está al $porcentaje% de su capacidad mínima. (Mínimo requerido: $porcentajeMinimo%)",
+                'stock_disponible' => $stockDisponible,
+                'porcentaje' => $porcentaje,
+                'insumo_limitante' => $insumoLimitante,
+                'porcentaje_minimo' => $porcentajeMinimo
+            ];
+        }
+        
+        return [
+            'success' => true,
+            'message' => 'Stock suficiente',
+            'stock_disponible' => $stockDisponible,
+            'porcentaje' => $porcentaje,
+            'insumos' => $insumosStock
+        ];
+        
+    } catch (\PDOException $e) {
+        error_log("Error en verificarStockProducto: " . $e->getMessage());
+        return [
+            'success' => false,
+            'message' => 'Error al verificar stock: ' . $e->getMessage(),
+            'stock_disponible' => 0,
+            'porcentaje' => 0
+        ];
+    }
+}
+
+
 
 }
