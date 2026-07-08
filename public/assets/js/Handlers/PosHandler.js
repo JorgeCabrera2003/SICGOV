@@ -124,15 +124,14 @@ function renderProductos(categoriaId) {
 async function seleccionarProducto(producto) {
     productoActual = producto;
     
-    // Si no es personalizable, agregar directamente
+    // Si no es personalizable, verificar stock y agregar
     if (!producto.es_personalizable) {
-        agregarAlCarrito(productoActual, [], []);
+        await agregarAlCarritoConVerificacion(productoActual, [], []);
         return;
     }
     
     if (producto.tipo_producto === 'BARRA') {
-        // Si es de barra, agregar directamente sin personalización
-        agregarAlCarrito(productoActual, [], [], parseFloat(productoActual.precio), '');
+        await agregarAlCarritoConVerificacion(productoActual, [], [], parseFloat(productoActual.precio), '');
         return;
     }
 
@@ -157,6 +156,7 @@ async function seleccionarProducto(producto) {
             insumosPrincipales = data.data.principales || [];
             insumosAdicionales = data.data.adicionales || [];
             extrasSeleccionados = [];
+            removidosSeleccionados = [];
             
             mostrarModalPersonalizacion();
         } else {
@@ -288,7 +288,7 @@ function confirmarPersonalizacion() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('modalPersonalizar'));
     modal.hide();
     
-    // Obtener ingredientes removidos (los que están desmarcados)
+    // Obtener ingredientes removidos
     removidosSeleccionados = [];
     if (insumosPrincipales.length > 0) {
         for (let i = 0; i < insumosPrincipales.length; i++) {
@@ -302,7 +302,7 @@ function confirmarPersonalizacion() {
         }
     }
     
-    // Obtener extras seleccionados (checkbox de adicionales marcados)
+    // Obtener extras seleccionados
     extrasSeleccionados = [];
     const checkboxesExtras = document.querySelectorAll('#listaAdicionales .form-check-input:checked');
     checkboxesExtras.forEach(checkbox => {
@@ -314,7 +314,7 @@ function confirmarPersonalizacion() {
         });
     });
     
-    // Calcular precio final desde el total mostrado
+    // Calcular precio final
     const precioFinal = parseFloat(document.getElementById('precioPersonalizadoTotal').textContent.replace('$', ''));
     const precioBase = parseFloat(document.getElementById('productoPrecioBase').value) || 0;
     
@@ -331,9 +331,52 @@ function confirmarPersonalizacion() {
     }
     indicacion = indicacion.trim();
     
-    // Agregar al carrito con el precio final calculado
-    agregarAlCarrito(productoActual, extrasSeleccionados, removidosSeleccionados, precioFinal, indicacion);
+    // Verificar stock antes de agregar
+    agregarAlCarritoConVerificacion(productoActual, extrasSeleccionados, removidosSeleccionados, precioFinal, indicacion);
 }
+
+
+async function agregarAlCarritoConVerificacion(producto, extras = [], removidos = [], precioPersonalizado = null, indicacion = '') {
+    // Verificar stock antes de agregar
+    try {
+        const formData = new FormData();
+        formData.append('action', 'verificar_stock');
+        formData.append('id_producto', producto.id_producto);
+        formData.append('cantidad', 1);
+        
+        const res = await fetch('?page=pedidos', { method: 'POST', body: formData });
+        const data = await res.json();
+        
+        if (!data.success) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Stock insuficiente',
+                html: `
+                    ${data.message}<br><br>
+                    <strong>Stock disponible:</strong> ${data.stock_disponible} unidades<br>
+                    <strong>Porcentaje de stock:</strong> ${data.porcentaje || 0}%
+                `,
+                confirmButtonColor: '#d33'
+            });
+            return false;
+        }
+        
+        // Si hay stock, agregar al carrito
+        agregarAlCarrito(producto, extras, removidos, precioPersonalizado, indicacion);
+        return true;
+        
+    } catch (error) {
+        console.error('Error verificando stock:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo verificar el stock del producto',
+            confirmButtonColor: '#d33'
+        });
+        return false;
+    }
+}
+
 
 function agregarAlCarrito(producto, extras = [], removidos = [], precioPersonalizado = null, indicacion = '') {
     const index = posCart.findIndex(item => 
@@ -363,11 +406,53 @@ function agregarAlCarrito(producto, extras = [], removidos = [], precioPersonali
     renderCarrito();
 }
 
-function actualizarCantidad(index, delta) {
-    posCart[index].cantidad += delta;
-    if (posCart[index].cantidad <= 0) {
+async function actualizarCantidad(index, delta) {
+    const item = posCart[index];
+    if (!item) return;
+    
+    const nuevaCantidad = item.cantidad + delta;
+    
+    // Si es menor o igual a 0, eliminar
+    if (nuevaCantidad <= 0) {
         posCart.splice(index, 1);
+        renderCarrito();
+        return;
     }
+    
+    // Si está sumando (+), verificar stock
+    if (delta > 0) {
+        try {
+            const formData = new FormData();
+            formData.append('action', 'verificar_stock');
+            formData.append('id_producto', item.id_producto);
+            formData.append('cantidad', nuevaCantidad);
+            
+            const res = await fetch('?page=pedidos', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            if (!data.success) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Stock insuficiente',
+                    html: `${data.message}<br><br><strong>Stock disponible:</strong> ${data.stock_disponible} unidades`,
+                    confirmButtonColor: '#d33'
+                });
+                return;
+            }
+        } catch (error) {
+            console.error('Error verificando stock:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo verificar el stock',
+                confirmButtonColor: '#d33'
+            });
+            return;
+        }
+    }
+    
+    // Si pasa la verificación, actualizar cantidad
+    posCart[index].cantidad = nuevaCantidad;
     renderCarrito();
 }
 
@@ -439,6 +524,54 @@ async function procesarCobro() {
             text: 'No hay productos en el pedido',
             confirmButtonColor: '#3085d6',
             confirmButtonText: 'Aceptar'
+        });
+        return;
+    }
+
+Swal.fire({
+        title: 'Verificando stock...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+    
+    let stockOk = true;
+    let erroresStock = [];
+    
+    for (const item of posCart) {
+        try {
+            const formData = new FormData();
+            formData.append('action', 'verificar_stock');
+            formData.append('id_producto', item.id_producto);
+            formData.append('cantidad', item.cantidad);
+            
+            const res = await fetch('?page=pedidos', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            if (!data.success) {
+                stockOk = false;
+                erroresStock.push(`- ${item.nombre}: ${data.message}`);
+            }
+        } catch (error) {
+            console.error('Error verificando stock:', error);
+            stockOk = false;
+            erroresStock.push(`- ${item.nombre}: Error al verificar stock`);
+        }
+    }
+    
+    Swal.close();
+    
+    if (!stockOk) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Stock insuficiente',
+            html: `
+                <div class="text-start">
+                    <p>No se puede procesar el pedido por los siguientes problemas:</p>
+                    <ul class="mb-0">${erroresStock.map(e => `<li>${e}</li>`).join('')}</ul>
+                </div>
+            `,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Entendido'
         });
         return;
     }

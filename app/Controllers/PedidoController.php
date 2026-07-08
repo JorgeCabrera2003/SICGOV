@@ -18,6 +18,20 @@ if ($isAjax || !empty($action)) {
 
     try {
         switch ($action) {
+            case 'verificar_stock':
+                $id_producto = $_POST['id_producto'] ?? '';
+                $cantidad = intval($_POST['cantidad'] ?? 1);
+                
+                if (!$id_producto) {
+                    echo json_encode(['success' => false, 'message' => 'ID de producto no proporcionado']);
+                    break;
+                }
+                
+                $menuModel = new Menu();
+                $resultado = $menuModel->verificarStockProducto($id_producto, $cantidad);
+                echo json_encode($resultado);
+                break;
+                
             case 'listar':
                 $data = $pedidoModel->Transaccion(['peticion' => 'listar']);
                 echo json_encode(['success' => true, 'data' => $data]);
