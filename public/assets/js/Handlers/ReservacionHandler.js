@@ -93,6 +93,15 @@ export function inicializarCalendario(calendarEl, pickers) {
         editable: !ES_PUBLICO,           
         eventResizableFromStart: true,
         selectAllow: function(selectInfo) {
+            // Evitar selección de múltiples días
+            if (selectInfo.allDay) {
+                const unDiaDespues = new Date(selectInfo.start);
+                unDiaDespues.setDate(unDiaDespues.getDate() + 1);
+                if (selectInfo.end > unDiaDespues) {
+                    return false;
+                }
+            }
+
             if (!ES_PUBLICO) return true;
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
