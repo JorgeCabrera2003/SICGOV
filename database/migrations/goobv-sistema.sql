@@ -317,6 +317,7 @@ CREATE TABLE `asignacion_mesa` (
 
 CREATE TABLE `pedido` (
   `id_pedido` varchar(30) NOT NULL,
+  `numero_pedido` int(11) NOT NULL AUTO_INCREMENT UNIQUE,
   `cedula_cliente` varchar(15) DEFAULT NULL,
   `cedula_empleado` varchar(15) NOT NULL,
   `id_mesa` varchar(30) DEFAULT NULL,
@@ -328,6 +329,7 @@ CREATE TABLE `pedido` (
   `impuesto` decimal(10,2) DEFAULT 0.00,
   `total` decimal(10,2) NOT NULL DEFAULT 0.00,
   PRIMARY KEY (`id_pedido`),
+  UNIQUE KEY `idx_numero_pedido` (`numero_pedido`),
   KEY `fk_ped_cli` (`cedula_cliente`),
   KEY `fk_ped_emp` (`cedula_empleado`),
   KEY `fk_ped_mesa` (`id_mesa`),
@@ -335,7 +337,6 @@ CREATE TABLE `pedido` (
   CONSTRAINT `fk_ped_emp` FOREIGN KEY (`cedula_empleado`) REFERENCES `empleado` (`cedula`),
   CONSTRAINT `fk_ped_mesa` FOREIGN KEY (`id_mesa`) REFERENCES `mesa` (`id_mesa`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE `detalle_pedido` (
   `id_detalle` varchar(30) NOT NULL,
   `id_pedido` varchar(30) NOT NULL,
