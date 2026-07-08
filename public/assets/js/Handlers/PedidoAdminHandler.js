@@ -261,7 +261,7 @@ async function verDetalle(idPedido, estadoActual) {
                 estados.forEach(e => {
                     if (e !== estadoActual) {
                         const btn = document.createElement('button');
-                        btn.className = `btn btn-sm btn-outline-secondary`;
+                        btn.className = `btn btn-sm btn-outline-primary`;
                         btn.innerText = `Pasar a ${e}`;
                         btn.onclick = () => cambiarEstado(idPedido, e);
                         group.appendChild(btn);
