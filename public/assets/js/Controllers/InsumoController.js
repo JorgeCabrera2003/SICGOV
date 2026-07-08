@@ -148,21 +148,25 @@ async function rellenar(pos, accion, modulo = "Insumo") {
 }
 
 $(document).on('click', '.btn-editar', function () {
-  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
+  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"));
 })
 
 $(document).on('click', '.btn-eliminar', function () {
-  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
+  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"));
 })
 
 $(document).on('click', '.btn-suministrar', function () {
-  rellenar($(this), $(this).attr("data-accion"), "Insumo")
+  rellenar($(this), $(this).attr("data-accion"), "Insumo");
 })
 
 $(document).on('click', '.btn-movimiento', function () {
-  rellenar($(this), $(this).attr("data-accion"), "Insumo")
+  rellenar($(this), $(this).attr("data-accion"), "Insumo");
 })
 
 $(document).on('click', '.btn-asociar', function () {
-  rellenar($(this), $(this).attr("data-accion"), "Insumo")
+  rellenar($(this), $(this).attr("data-accion"), "Insumo");
+})
+
+$(document).on('click', '.btn-eliminar-proveedor', function () {
+  asociarProveedor.BorrarProveedor($(this));
 })

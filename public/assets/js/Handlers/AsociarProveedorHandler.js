@@ -242,8 +242,20 @@ function RenderBotonEliminar(id) {
   return div.prop('outerHTML');
 }
 
-function asignarIdSelect() {
-  $('.select-proveedor').length
+export function BorrarProveedor(boton) {
+    const $boton = $(boton);
+
+    const datos = $boton.data();
+    const linea = $(boton).closest('tr');
+    const tabla = $('#tablaAsociar').DataTable();
+    console.log('Todos los datos del botón:', datos)
+
+    if(boton.attr("data-proveedor") == null || boton.attr("data-proveedor") == "" || boton.attr("data-proveedor") == undefined){
+      tabla.row(linea).remove().draw(false)
+
+    } else {
+
+    }
 }
 
 
@@ -255,16 +267,13 @@ async function RenderizarSelect(id_insumo) {
   let span = $('<div>').addClass('form-label span-select_proveedor');
 
   const endpoint = "?page=Proveedor";
-  const mensaje = "Seleccione un Proveedor"
+  const mensaje = "Seleccione un Proveedor";
   let arreglo = [];
   datos.append("id_insumo", id_insumo);
   datos.append("peticion", "obtener_proveedor");
 
   try {
     json = await AjaxHelper.enviaAjax(datos, endpoint);
-
-
-    console.log(json.datos);
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       const array = json.datos.map(item => ({
@@ -324,7 +333,7 @@ export async function AgregarFilaInput() {
   let id_insumo = inputTexto.insumo.attr("data-insumo")
   let tabla = $('#tablaAsociar').DataTable();
   let selectProveedor = await RenderizarSelect(id_insumo);
-  let boton = await RenderBotonEliminar(null);
+  let boton = await RenderBotonEliminar("");
 
   tabla.row.add({
     proveedor: selectProveedor,
@@ -339,8 +348,6 @@ export function LimpiarFormulario() {
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
   let modal = EtiquetasModal('Asociar');
-  let fila_stock_inicial = $("#fila-stock-inicial");
-
   input.insumo.val("").prop("readOnly", false);
 
   // Deshabilitar el botón al limpiar (se habilitará automáticamente cuando los campos sean válidos)
