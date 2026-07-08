@@ -23,6 +23,17 @@ if ($isAjax || !empty($action)) {
                 echo json_encode(['success' => true, 'data' => $data]);
                 break;
 
+            case 'obtener_insumos':
+                $id_producto = $_POST['id_producto'] ?? $_GET['id_producto'] ?? '';
+                if (!$id_producto) {
+                    echo json_encode(['success' => false, 'message' => 'ID de producto no proporcionado']);
+                    break;
+                }
+                $menuModel = new Menu(); // <-- Usar el modelo MENU
+                $insumos = $menuModel->obtenerInsumosProducto($id_producto);
+                echo json_encode(['success' => true, 'data' => $insumos]);
+                break;
+
             case 'buscar':
                 $id = $_POST['id_pedido'] ?? $_GET['id_pedido'] ?? '';
                 $data = $pedidoModel->Transaccion(['peticion' => 'buscar', 'id_pedido' => $id]);

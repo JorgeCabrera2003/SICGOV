@@ -199,6 +199,10 @@
                     <strong>Extras:</strong> Tienen costo adicional y se suman al total.
                 </div>
             </div>
+            <div class="alert alert-success py-2 mb-3 d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Total:</span>
+                <span id="precioPersonalizadoTotal" class="fw-bold fs-5">$0.00</span>
+            </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-warning" id="btnConfirmarPersonalizar">

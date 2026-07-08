@@ -66,6 +66,18 @@ async function cargarProductosPOS() {
     }
 }
 
+function actualizarPrecioPersonalizado() {
+    let total = parseFloat(document.getElementById('productoPrecioBase').value) || 0;
+    
+    // Sumar el precio de los extras seleccionados
+    document.querySelectorAll('#listaAdicionales .form-check-input:checked').forEach(cb => {
+        total += parseFloat(cb.dataset.precio) || 0;
+    });
+    
+    // Actualizar el total mostrado
+    document.getElementById('precioPersonalizadoTotal').textContent = `$${total.toFixed(2)}`;
+}
+
 function renderProductos(categoriaId) {
     const grid = document.getElementById('posProductos');
     if (!grid) return;
@@ -172,58 +184,59 @@ function mostrarModalPersonalizacion() {
     document.getElementById('productoId').value = productoActual.id_producto;
     document.getElementById('productoPrecioBase').value = productoActual.precio;
     
-    // Resetear arrays globales
-    window.extrasSeleccionados = [];
-    window.removidosSeleccionados = [];
+    // Inicializar precio total
+    document.getElementById('precioPersonalizadoTotal').textContent = `$${parseFloat(productoActual.precio).toFixed(2)}`;
     
-    // Mostrar insumos principales (ingredientes que se pueden quitar)
+    extrasSeleccionados = [];
+    removidosSeleccionados = [];
+    
+    // Mostrar insumos principales (con checkbox, marcados por defecto)
     const listaPrincipales = document.getElementById('listaPrincipales');
-    if (listaPrincipales) {
-        if (insumosPrincipales && insumosPrincipales.length > 0) {
-            let html = '';
-            insumosPrincipales.forEach((insumo, index) => {
-                html += `
-                    <div class="form-check border-bottom py-1">
-                        <input class="form-check-input" type="checkbox" id="principal_${index}" 
-                               value="${insumo.id_insumo}" data-nombre="${escapeHtml(insumo.nombre_insumo)}" checked
-                               onchange="togglePrincipal(this)">
-                        <label class="form-check-label" for="principal_${index}">
-                            ${escapeHtml(insumo.nombre_insumo)} <small class="text-muted">(${insumo.cantidad} ${insumo.nombre_unidad})</small>
-                        </label>
-                    </div>
-                `;
-            });
-            listaPrincipales.innerHTML = html;
-        } else {
-            listaPrincipales.innerHTML = '<div class="text-muted text-center p-2">No hay ingredientes para personalizar</div>';
-        }
+    if (insumosPrincipales.length > 0) {
+        let html = '';
+        insumosPrincipales.forEach((insumo, index) => {
+            html += `
+                <div class="form-check border-bottom py-1">
+                    <input class="form-check-input" type="checkbox" id="principal_${index}" 
+                           value="${insumo.id_insumo}" data-nombre="${escapeHtml(insumo.nombre_insumo)}" checked
+                           onchange="actualizarPrecioPersonalizado()">
+                    <label class="form-check-label" for="principal_${index}">
+                        ${escapeHtml(insumo.nombre_insumo)} <small class="text-muted">(${insumo.cantidad} ${insumo.nombre_unidad})</small>
+                    </label>
+                </div>
+            `;
+        });
+        listaPrincipales.innerHTML = html;
+    } else {
+        listaPrincipales.innerHTML = '<div class="text-muted text-center p-2">No hay ingredientes configurados</div>';
     }
     
-    // Mostrar insumos adicionales (extras con costo)
+    // Mostrar insumos adicionales (extras con checkbox sin marcar)
     const listaAdicionales = document.getElementById('listaAdicionales');
-    if (listaAdicionales) {
-        if (insumosAdicionales && insumosAdicionales.length > 0) {
-            let html = '';
-            insumosAdicionales.forEach((insumo, index) => {
-                const precioExtra = parseFloat(insumo.precio_insumo || 0);
-                html += `
-                    <div class="form-check border-bottom py-1">
-                        <input class="form-check-input" type="checkbox" id="extra_${index}" 
-                               value="${insumo.id_insumo}" data-precio="${precioExtra}"
-                               data-nombre="${escapeHtml(insumo.nombre_insumo)}"
-                               onchange="toggleExtra(this)">
-                        <label class="form-check-label d-flex justify-content-between w-100" for="extra_${index}">
-                            <span>${escapeHtml(insumo.nombre_insumo)} <small class="text-muted">(${insumo.cantidad} ${insumo.nombre_unidad})</small></span>
-                            <span class="text-warning fw-bold">${precioExtra > 0 ? '+$' + precioExtra.toFixed(2) : 'Gratis'}</span>
-                        </label>
-                    </div>
-                `;
-            });
-            listaAdicionales.innerHTML = html;
-        } else {
-            listaAdicionales.innerHTML = '<div class="text-muted text-center p-2">No hay extras disponibles</div>';
-        }
+    if (insumosAdicionales.length > 0) {
+        let html = '';
+        insumosAdicionales.forEach((insumo, index) => {
+            const precioExtra = parseFloat(insumo.precio_insumo || 0);
+            html += `
+                <div class="form-check border-bottom py-1">
+                    <input class="form-check-input" type="checkbox" id="extra_${index}" 
+                           value="${insumo.id_insumo}" data-precio="${precioExtra}"
+                           data-nombre="${escapeHtml(insumo.nombre_insumo)}"
+                           onchange="actualizarPrecioPersonalizado()">
+                    <label class="form-check-label d-flex justify-content-between w-100" for="extra_${index}">
+                        <span>${escapeHtml(insumo.nombre_insumo)} <small class="text-muted">(${insumo.cantidad} ${insumo.nombre_unidad})</small></span>
+                        <span class="text-warning fw-bold">${precioExtra > 0 ? '+$' + precioExtra.toFixed(2) : 'Gratis'}</span>
+                    </label>
+                </div>
+            `;
+        });
+        listaAdicionales.innerHTML = html;
+    } else {
+        listaAdicionales.innerHTML = '<div class="text-muted text-center p-2">No hay extras disponibles</div>';
     }
+    
+    // Inicializar precio total
+    actualizarPrecioPersonalizado();
     
     const modal = new bootstrap.Modal(document.getElementById('modalPersonalizar'));
     modal.show();
@@ -235,7 +248,6 @@ function togglePrincipal(checkbox) {
     const nombreInsumo = checkbox.dataset.nombre;
     
     if (!checkbox.checked) {
-        // Se quitó el ingrediente
         if (!window.removidosSeleccionados) window.removidosSeleccionados = [];
         if (!window.removidosSeleccionados.find(r => r.id_insumo === idInsumo)) {
             window.removidosSeleccionados.push({
@@ -244,12 +256,14 @@ function togglePrincipal(checkbox) {
             });
         }
     } else {
-        
         window.removidosSeleccionados = window.removidosSeleccionados.filter(r => r.id_insumo !== idInsumo);
     }
+    
+    // Actualizar precio al quitar/marcar ingredientes principales
+    actualizarPrecioPersonalizado();
 }
 
-
+// SOLO UNA FUNCIÓN toggleExtra (elimina la duplicada)
 function toggleExtra(checkbox) {
     const precio = parseFloat(checkbox.dataset.precio || 0);
     const idInsumo = checkbox.value;
@@ -265,67 +279,60 @@ function toggleExtra(checkbox) {
     } else {
         window.extrasSeleccionados = window.extrasSeleccionados.filter(e => e.id_insumo !== idInsumo);
     }
-}
-
-function toggleExtra(checkbox) {
-    const precio = parseFloat(checkbox.dataset.precio || 0);
-    const idInsumo = checkbox.value;
-    const nombreInsumo = checkbox.dataset.nombre;
     
-    if (checkbox.checked) {
-        extrasSeleccionados.push({
-            id_insumo: idInsumo,
-            nombre: nombreInsumo,
-            precio: precio
-        });
-    } else {
-        extrasSeleccionados = extrasSeleccionados.filter(e => e.id_insumo !== idInsumo);
-    }
+    // Actualizar precio al marcar/desmarcar extras
+    actualizarPrecioPersonalizado();
 }
 
 function confirmarPersonalizacion() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('modalPersonalizar'));
     modal.hide();
     
+    // Obtener ingredientes removidos (los que están desmarcados)
+    removidosSeleccionados = [];
+    if (insumosPrincipales.length > 0) {
+        for (let i = 0; i < insumosPrincipales.length; i++) {
+            const checkbox = document.getElementById(`principal_${i}`);
+            if (checkbox && !checkbox.checked) {
+                removidosSeleccionados.push({
+                    id_insumo: insumosPrincipales[i].id_insumo,
+                    nombre: insumosPrincipales[i].nombre_insumo
+                });
+            }
+        }
+    }
     
-    const extras = window.extrasSeleccionados || [];
-    const removidos = window.removidosSeleccionados || [];
-    
-    // Calcular precio total con extras
-    let precioTotal = parseFloat(productoActual.precio);
-    let extrasTexto = [];
-    let sinTexto = [];
-    
-    extras.forEach(extra => {
-        precioTotal += extra.precio;
-        extrasTexto.push(extra.nombre);
+    // Obtener extras seleccionados (checkbox de adicionales marcados)
+    extrasSeleccionados = [];
+    const checkboxesExtras = document.querySelectorAll('#listaAdicionales .form-check-input:checked');
+    checkboxesExtras.forEach(checkbox => {
+        const precio = parseFloat(checkbox.dataset.precio) || 0;
+        extrasSeleccionados.push({
+            id_insumo: checkbox.value,
+            nombre: checkbox.dataset.nombre,
+            precio: precio
+        });
     });
     
-    removidos.forEach(removido => {
-        sinTexto.push(removido.nombre);
-    });
+    // Calcular precio final desde el total mostrado
+    const precioFinal = parseFloat(document.getElementById('precioPersonalizadoTotal').textContent.replace('$', ''));
+    const precioBase = parseFloat(document.getElementById('productoPrecioBase').value) || 0;
     
+    // Construir indicación
+    const extrasTexto = extrasSeleccionados.map(e => e.nombre);
+    const sinTexto = removidosSeleccionados.map(r => r.nombre);
     
     let indicacion = '';
     if (sinTexto.length > 0) {
-        indicacion = `Sin: ${sinTexto.join(', ')}. `;
+        indicacion += `Sin: ${sinTexto.join(', ')}. `;
     }
     if (extrasTexto.length > 0) {
         indicacion += `Extras: ${extrasTexto.join(', ')}. `;
     }
     indicacion = indicacion.trim();
     
-    console.log("Personalización:", {
-        producto: productoActual.nombre_producto,
-        precio_base: productoActual.precio,
-        precio_final: precioTotal,
-        sin: sinTexto,
-        extras: extrasTexto,
-        indicacion: indicacion
-    });
-    
-    
-    agregarAlCarrito(productoActual, extras, removidos, precioTotal, indicacion);
+    // Agregar al carrito con el precio final calculado
+    agregarAlCarrito(productoActual, extrasSeleccionados, removidosSeleccionados, precioFinal, indicacion);
 }
 
 function agregarAlCarrito(producto, extras = [], removidos = [], precioPersonalizado = null, indicacion = '') {
