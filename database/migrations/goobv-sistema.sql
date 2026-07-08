@@ -319,7 +319,7 @@ CREATE TABLE `pedido` (
   `id_pedido` varchar(30) NOT NULL,
   `numero_pedido` int(11) NOT NULL AUTO_INCREMENT UNIQUE,
   `cedula_cliente` varchar(15) DEFAULT NULL,
-  `cedula_empleado` varchar(15) NOT NULL,
+  `cedula_empleado` varchar(15) DEFAULT NULL,  -- <-- AHORA PERMITE NULL
   `id_mesa` varchar(30) DEFAULT NULL,
   `tipo_pedido` enum('MESA','LLEVAR','DELIVERY') NOT NULL,
   `fecha_pedido` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -334,7 +334,7 @@ CREATE TABLE `pedido` (
   KEY `fk_ped_emp` (`cedula_empleado`),
   KEY `fk_ped_mesa` (`id_mesa`),
   CONSTRAINT `fk_ped_cli` FOREIGN KEY (`cedula_cliente`) REFERENCES `cliente` (`cedula`) ON DELETE SET NULL,
-  CONSTRAINT `fk_ped_emp` FOREIGN KEY (`cedula_empleado`) REFERENCES `empleado` (`cedula`),
+  CONSTRAINT `fk_ped_emp` FOREIGN KEY (`cedula_empleado`) REFERENCES `empleado` (`cedula`) ON DELETE SET NULL,  -- <-- ON DELETE SET NULL
   CONSTRAINT `fk_ped_mesa` FOREIGN KEY (`id_mesa`) REFERENCES `mesa` (`id_mesa`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 CREATE TABLE `detalle_pedido` (
