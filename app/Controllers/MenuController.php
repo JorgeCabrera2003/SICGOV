@@ -59,14 +59,46 @@ if ($type === 'admin') {
             }
 
             try {
+                
+                $id_categoria = $_POST['id_categoria'] ?? null;
+                if (!empty($id_categoria) && !$objMenu->validarCategoria($id_categoria)) {
+                    throw new Exception("La categoría seleccionada no existe en la base de datos.");
+                }
+
+                $insumos_principales_json = $_POST['insumos_principales'] ?? '[]';
+                $insumos_principales = is_string($insumos_principales_json) ? json_decode($insumos_principales_json, true) : $insumos_principales_json;
+                if (!empty($insumos_principales) && is_array($insumos_principales)) {
+                    foreach ($insumos_principales as $ing) {
+                        if (!empty($ing['id']) && !$objMenu->validarInsumo($ing['id'])) {
+                            throw new Exception("El insumo principal seleccionado no existe o está inactivo.");
+                        }
+                        if (!empty($ing['unidad']) && !$objMenu->validarUnidadMedida($ing['unidad'])) {
+                            throw new Exception("La unidad de medida seleccionada para el insumo no existe en la base de datos.");
+                        }
+                    }
+                }
+
+                $insumos_adicionales_json = $_POST['insumos_adicionales'] ?? '[]';
+                $insumos_adicionales = is_string($insumos_adicionales_json) ? json_decode($insumos_adicionales_json, true) : $insumos_adicionales_json;
+                if (!empty($insumos_adicionales) && is_array($insumos_adicionales)) {
+                    foreach ($insumos_adicionales as $ing) {
+                        if (!empty($ing['id']) && !$objMenu->validarInsumo($ing['id'])) {
+                            throw new Exception("El insumo adicional seleccionado no existe o está inactivo.");
+                        }
+                        if (!empty($ing['unidad']) && !$objMenu->validarUnidadMedida($ing['unidad'])) {
+                            throw new Exception("La unidad de medida seleccionada para el insumo adicional no existe en la base de datos.");
+                        }
+                    }
+                }
+
                 $objMenu->setIdProducto($_POST['id_producto'] ?? '');
                 $objMenu->setNombreProducto($_POST['nombre'] ?? '');
                 $objMenu->setDescripcion($_POST['descripcion'] ?? '');
                 $objMenu->setPrecio($_POST['precio'] ?? 0);
-                $objMenu->setIdCategoria($_POST['id_categoria'] ?? null);
+                $objMenu->setIdCategoria($id_categoria);
                 $objMenu->setTipoProducto($_POST['tipo_producto'] ?? 'COCINA');
-                $objMenu->setInsumosPrincipales($_POST['insumos_principales'] ?? '[]');
-                $objMenu->setInsumosAdicionales($_POST['insumos_adicionales'] ?? '[]');
+                $objMenu->setInsumosPrincipales($insumos_principales_json);
+                $objMenu->setInsumosAdicionales($insumos_adicionales_json);
 
                 $imagen_nombre = null;
                 
@@ -202,7 +234,7 @@ if ($type === 'admin') {
 
 
 } else {
-    // MODO PÚBLICO
+    
     $menuModel = new Menu();
     $menus = $menuModel->Transaccion(['peticion' => 'listar']) ?: [];
     $categorias = $menuModel->Transaccion(['peticion' => 'categorias']) ?: [];
@@ -210,14 +242,24 @@ if ($type === 'admin') {
     $page = 'menu_publico';
     $titulo = 'Nuestro Menú - Good Vibes';
     
-    $extra_css = [BASE_URL . '/assets/css/main.css?v=' . time()];
+    $extra_css = [
+        BASE_URL . '/assets/css/landing.css?v=' . time(),
+        BASE_URL . '/assets/css/main.css?v=' . time()
+    ];
     $extra_js = [
         BASE_URL . '/assets/js/Controllers/PedidoPublicoController.js?v=' . time(),
         BASE_URL . '/assets/js/Handlers/PedidoPublicoHandler.js?v=' . time()
     ];
 
     require_once BASE_PATH . '/resources/views/layout/head.php';
-    echo '<main class="main-content flex-grow-1 ms-0 w-100" id="main-content"><div class="content-wrapper bg-body">';
+    
+    $hideSidebar = true;
+    $datos = $_SESSION['user'] ?? null;
+    require_once BASE_PATH . '/resources/views/layout/menu.php';
+
     require_once BASE_PATH . '/resources/views/menu/public.php';
+
+    echo '</div></main>';
+
     require_once BASE_PATH . '/resources/views/layout/footer.php';
 }

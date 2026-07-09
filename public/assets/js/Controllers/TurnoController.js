@@ -33,15 +33,7 @@ async function crearDataTable() {
     json = { datos: [] };
   }
   const arreglo = Array.isArray(json?.datos) ? json.datos : [];
-  // Mapar datos para asegurar compatibilidad con la nueva columna (sin estatus)
-  const datos = arreglo.map(item => ({
-    id_turno: item.id_turno,
-    nombre: item.nombre,
-    hora_inicio: item.hora_inicio,
-    hora_fin: item.hora_fin,
-    minuto_tolerancia: item.minuto_tolerancia
-  }));
-  turno.DataTablePrincipal(datos);
+  turno.DataTablePrincipal(arreglo);
 }
 
 async function rellenar(pos, accion) {

@@ -24,6 +24,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'buscarProducto') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if ($action === 'verificar_stock') {
+        $id_producto = $_POST['id_producto'] ?? '';
+        $cantidad = intval($_POST['cantidad'] ?? 1);
+        
+        if (!$id_producto) {
+            echo json_encode(['success' => false, 'message' => 'ID de producto no proporcionado']);
+            exit;
+        }
+        
+        $menuModel = new Menu();
+        $resultado = $menuModel->verificarStockProducto($id_producto, $cantidad);
+        echo json_encode($resultado);
+        exit;
+    }
+
     $response = ['success' => false, 'message' => 'Error desconocido.'];
     
     try {

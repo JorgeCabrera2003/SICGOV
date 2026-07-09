@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use App\Models\System\Pedido;
-use App\Models\System\Menu; // Para obtener productos en el POS
+use App\Models\System\Menu; 
 use App\Helpers\Helper;
 
 // Verificamos sesión para el área de administración
@@ -18,9 +18,34 @@ if ($isAjax || !empty($action)) {
 
     try {
         switch ($action) {
+            case 'verificar_stock':
+                $id_producto = $_POST['id_producto'] ?? '';
+                $cantidad = intval($_POST['cantidad'] ?? 1);
+                
+                if (!$id_producto) {
+                    echo json_encode(['success' => false, 'message' => 'ID de producto no proporcionado']);
+                    break;
+                }
+                
+                $menuModel = new Menu();
+                $resultado = $menuModel->verificarStockProducto($id_producto, $cantidad);
+                echo json_encode($resultado);
+                break;
+                
             case 'listar':
                 $data = $pedidoModel->Transaccion(['peticion' => 'listar']);
                 echo json_encode(['success' => true, 'data' => $data]);
+                break;
+
+            case 'obtener_insumos':
+                $id_producto = $_POST['id_producto'] ?? $_GET['id_producto'] ?? '';
+                if (!$id_producto) {
+                    echo json_encode(['success' => false, 'message' => 'ID de producto no proporcionado']);
+                    break;
+                }
+                $menuModel = new Menu(); // <-- Usar el modelo MENU
+                $insumos = $menuModel->obtenerInsumosProducto($id_producto);
+                echo json_encode(['success' => true, 'data' => $insumos]);
                 break;
 
             case 'buscar':
@@ -85,19 +110,22 @@ if ($isAjax || !empty($action)) {
                     'datosPago' => $datosPago
                 ]);
 
-                echo json_encode($res);
+                // Si el pedido se creó exitosamente, agregar numero_pedido a la respuesta
+                if ($res['success']) {
+                    echo json_encode([
+                        'success' => true,
+                        'message' => $res['message'],
+                        'id_pedido' => $res['id_pedido'],
+                        'numero_pedido' => $res['numero_pedido'] ?? null
+                    ]);
+                } else {
+                    echo json_encode($res);
+                }
                 break;
-                case 'obtener_insumos':
-                    $id_producto = $_POST['id_producto'] ?? $_GET['id_producto'] ?? '';
-                    if (!$id_producto) {
-                        echo json_encode(['success' => false, 'message' => 'ID de producto no proporcionado']);
-                        break;
-                    }
-                    $menuModel = new Menu();
-                    $insumos = $menuModel->obtenerInsumosProducto($id_producto);
-                    echo json_encode(['success' => true, 'data' => $insumos]);
-                break;
-
+                case 'listar_mesas_disponibles':
+                    $mesas = $pedidoModel->Transaccion(['peticion' => 'listar_mesas_disponibles']);
+                    echo json_encode(['success' => true, 'data' => $mesas]);
+                break;   
             default:
                 echo json_encode(['success' => false, 'message' => 'Acción no válida.']);
                 break;
@@ -112,7 +140,7 @@ if ($isAjax || !empty($action)) {
 $page = $_GET['page'] ?? 'pedidos';
 
 if ($page === 'pedidos') {
-    // Vista de gestión de pedidos y POS (Modal)
+    
     $menuModel = new Menu();
     $categorias = $menuModel->Transaccion(['peticion' => 'categorias']);
 
@@ -125,11 +153,16 @@ if ($page === 'pedidos') {
         BASE_URL . '/assets/js/Handlers/PosHandler.js'
     ];
 
-    $titulo = 'Gestión de Pedidos - Good Vibes';
-    $datos = Helper::getDatosUsuario();
+     $permisosUsuario = Helper::TraerPermisos("pedido");
 
-    require_once BASE_PATH . '/resources/views/layout/head.php';
-    require_once BASE_PATH . '/resources/views/layout/menu.php';
-    require_once BASE_PATH . '/resources/views/pedidos/index.php';
-    require_once BASE_PATH . '/resources/views/layout/footer.php';
+    Helper::cargarVista(
+        'pedidos/index',
+        'Gestión de Pedidos - Good Vibes',
+        [
+            'ver' => $permisosUsuario['pedido']['ver'] ?? 1,
+            'categorias' => $categorias,
+            'extra_css' => $extra_css,
+            'extra_js' => $extra_js
+        ]
+    );
 }

@@ -10,10 +10,12 @@ use Exception;
 $type = $_REQUEST['type'] ?? 'admin';
 $esPublico = ($type === 'publico');
 
-Helper::verificarSesion();
-$datos = Helper::getDatosUsuario();
+if (!$esPublico) {
+    Helper::verificarSesion();
+}
+$datos = (isset($_SESSION['user'])) ? Helper::getDatosUsuario() : null;
 $resModel = new Reservacion();
-$permisosReservacion = Helper::TraerPermisos("reservacion");
+$permisosReservacion = isset($_SESSION['user']) ? Helper::TraerPermisos("reservacion") : [];
 
 $puedeVerAgenda = isset($permisosReservacion['reservacion']['agenda']) && $permisosReservacion['reservacion']['agenda'] == 1;
 
@@ -23,7 +25,8 @@ if (!$esPublico && !$puedeVerAgenda) {
         echo json_encode(['resultado' => 403, 'mensaje' => 'No tienes permiso para realizar esta acción']);
         exit;
     } else {
-        header('Location: ' . BASE_URL . '/?page=Dashboard');
+        $target = (isset($_SESSION['user']['rol']) && strtoupper(trim($_SESSION['user']['rol'])) === 'CLIENTE') ? 'Reservacion&type=publico' : 'Dashboard';
+        header('Location: ' . rtrim(BASE_URL, '/') . '/?page=' . $target);
         exit;
     }
 }
@@ -90,10 +93,15 @@ if (isset($_POST['peticion'])) {
 
                 $id = ($peticion === 'registrar') ? Helper::generarId('RES') : ($_POST['id_reservacion'] ?? '');
                 
+                $fechaSel = $_POST['fecha'] ?? '';
+                if ($esPublico && $peticion === 'registrar' && strtotime($fechaSel) < strtotime(date('Y-m-d'))) {
+                    throw new Exception("No puede realizar una reservación en una fecha pasada.");
+                }
+
                 $resModel->setId($id);
                 $resModel->setCedulaCliente($_POST['cedula_cliente'] ?? '');
                 $resModel->setIdMesa(!empty($_POST['id_mesa']) ? $_POST['id_mesa'] : null);
-                $resModel->setFecha($_POST['fecha'] ?? '');
+                $resModel->setFecha($fechaSel);
                 $resModel->setHora($_POST['hora'] ?? '');
                 $resModel->setHoraFin($_POST['hora_fin'] ?? '');
                 $resModel->setEstado($_POST['estado'] ?? 'PENDIENTE');
@@ -128,7 +136,12 @@ if (isset($_POST['peticion'])) {
                     }
                 }
 
-                $resModel->setFecha($_POST['fecha']);
+                $fechaMover = $_POST['fecha'];
+                if ($esPublico && strtotime($fechaMover) < strtotime(date('Y-m-d'))) {
+                    throw new Exception("No puede mover la reservación a una fecha pasada.");
+                }
+
+                $resModel->setFecha($fechaMover);
                 $resModel->setHora(!empty($_POST['hora']) ? $_POST['hora'] : $registro['hora']);
                 $resModel->setHoraFin(!empty($_POST['hora_fin']) ? $_POST['hora_fin'] : $registro['hora_fin']);
                 $resModel->setCedulaCliente($registro['cedula_cliente'] ?? '');
@@ -181,6 +194,7 @@ $mesasModel = new Mesas();
 $mesasList = $mesasModel->Transaccion(['peticion' => 'consultar']);
 
 Helper::cargarVista($vista, $titulo, [
+    'hideSidebar' => $esPublico,
     'clientes' => $esPublico ? [] : $resModel->ObtenerClientes(),
     'mesas' => ($mesasList['estado'] == 1) ? $mesasList['response']['datos'] : [],
     'extra_css' => [

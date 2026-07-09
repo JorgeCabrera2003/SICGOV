@@ -26,7 +26,8 @@
 }
 
 .estado-PENDIENTE { background-color: #ffc107; color: #000; }
-.estado-PREPARACION { background-color: #17a2b8; color: #fff; }
+.estado-CONFIRMADO { background-color: #17a2b8; color: #fff; }
+.estado-PREPARANDO { background-color: #17a2b8; color: #fff; }
 .estado-LISTO     { background-color: #fd7e14; color: #fff; }
 .estado-ENTREGADO { background-color: #28a745; color: #fff; }
 .estado-PAGADO    { background-color: #20c997; color: #fff; }

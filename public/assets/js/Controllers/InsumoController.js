@@ -1,7 +1,9 @@
-import * as insumo from "../Handlers/InsumoHandler.js"
-import * as categoriaInsumo from "../Handlers/CategoriaInsumoHandler.js"
-import * as suministrarInsumo from "../Handlers/SuministrarInsumoHandler.js"
-import * as AjaxHelper from "../Helpers/AjaxHelper.js"
+import * as insumo from "../Handlers/InsumoHandler.js";
+import * as categoriaInsumo from "../Handlers/CategoriaInsumoHandler.js";
+import * as suministrarInsumo from "../Handlers/SuministrarInsumoHandler.js";
+import * as asociarProveedor from "../Handlers/AsociarProveedorHandler.js";
+import * as movimientoInsumo from "../Handlers/MovimientoInsumoHandler.js";
+import * as AjaxHelper from "../Helpers/AjaxHelper.js";
 
 //MODULO DE INGREDIENTES
 
@@ -9,7 +11,7 @@ import * as AjaxHelper from "../Helpers/AjaxHelper.js"
 
 $(document).ready(function () {
   crearDataTable();
-  registrarEntrada();
+  AjaxHelper.registrarEntrada();
   iniciarValidaciones();
 });
 
@@ -50,10 +52,17 @@ $("#btn-CategoriaCancel").on("click", function () {
   categoriaInsumo.CancelarFormulario();
 })
 
+$("#btn-agregarProveedor").on("click", function () {
+  asociarProveedor.AgregarFilaInput();
+})
+
+$("#btnAsociarForm").on("click", function () {
+  asociarProveedor.EnviarFormulario("Asociar")
+})
+
 $("#btn-CategoriaForm").on("click", async function () {
   let respuesta = null;
   respuesta = await categoriaInsumo.EnviarFormulario($(this));
-  console.log(respuesta);
 
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
     await crearDataTable("categoria-insumo");
@@ -66,7 +75,12 @@ function iniciarValidaciones() {
   insumo.CapaValidar();
   categoriaInsumo.KeyPressCategoria();
   categoriaInsumo.KeyUpCategoria();
+  suministrarInsumo.CapaValidar();
 }
+
+$('#tablaAsociar').on('change', '.select-proveedor', function () {
+  asociarProveedor.validarDuplicados();
+});
 
 async function crearDataTable(controlador = "insumos") {
   const MODULOS = {
@@ -106,6 +120,7 @@ async function rellenar(pos, accion, modulo = "Insumo") {
   const linea = $(pos).closest('tr');
   const tabla = $('#tabla' + modulo).DataTable();
   const datosFila = tabla.row(linea).data();
+  let abrirModalInsumo = true;
 
   if (accion == 0) {
     str_accion = "modificar";
@@ -116,12 +131,21 @@ async function rellenar(pos, accion, modulo = "Insumo") {
   }
 
   if (accion == 2) {
-    const tablainsumo = $('#tablaInsumo').DataTable();
-    const datosInsumos = tablainsumo.row(linea).data()
-    suministrarInsumo.EditarFormSuministrar(datosInsumos);
+    abrirModalInsumo = false;
+    suministrarInsumo.EditarFormSuministrar(datosFila);
   }
 
-  if (modulo == "Insumo") {
+  if (accion == 3) {
+    abrirModalInsumo = false;
+    movimientoInsumo.CargarModalTabla(datosFila);
+  }
+
+  if (accion == 4) {
+    abrirModalInsumo = false;
+    asociarProveedor.CargarModalTabla(datosFila);
+  }
+
+  if (modulo == "Insumo" && abrirModalInsumo) {
     await insumo.EditarFormInsumo(datosFila, str_accion)
   }
 
@@ -132,13 +156,26 @@ async function rellenar(pos, accion, modulo = "Insumo") {
 }
 
 $(document).on('click', '.btn-editar', function () {
-  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
+  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"));
 })
 
 $(document).on('click', '.btn-eliminar', function () {
-  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
+  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"));
 })
 
 $(document).on('click', '.btn-suministrar', function () {
-  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
+  rellenar($(this), $(this).attr("data-accion"), "Insumo");
+})
+
+$(document).on('click', '.btn-movimiento', function () {
+  rellenar($(this), $(this).attr("data-accion"), "Insumo");
+})
+
+$(document).on('click', '.btn-asociar', function () {
+  rellenar($(this), $(this).attr("data-accion"), "Insumo");
+  asociarProveedor.DesbloquearBotonAgregar();
+})
+
+$(document).on('click', '.btn-eliminar-proveedor', function () {
+  asociarProveedor.BorrarProveedor($(this));
 })

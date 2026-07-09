@@ -1,0 +1,149 @@
+[
+    {
+        "id": "crear_categoria",
+        "title": "Crear y Gestionar Categorías del Menú",
+        "keywords": ["categoria", "menu", "plato", "agrupar", "crear categoria", "nueva categoria"],
+        "modules": ["Categoria", "Menu"],
+        "content": "<h4>Gestión de Categorías del Menú</h4><p>Las categorías te permiten organizar tus platillos y bebidas (ej. Entradas, Platos Principales, Bebidas, Postres). Para crear o gestionar categorías:</p><ol><li>Dirígete a <strong>Cocina e Inventario > Menú y Recetas > Categorías del Menú</strong>.</li><li>Haz clic en el botón <strong>'Nueva Categoría'</strong> o similar en la parte superior.</li><li>Ingresa el nombre y una breve descripción si es necesario.</li><li>Guarda los cambios. Ahora podrás asignar platillos a esta nueva categoría.</li></ol>"
+    },
+    {
+        "id": "crear_menu",
+        "title": "Añadir o Modificar Productos del Menú",
+        "keywords": ["menu", "carta", "producto", "plato", "bebida", "precio", "receta", "crear menu"],
+        "modules": ["Menu"],
+        "content": "<h4>Gestión de Productos (Carta / Menú)</h4><p>En este módulo puedes registrar todos los platillos y bebidas que ofreces a tus clientes.</p><h5>¿Cómo añadir un nuevo platillo?</h5><ol><li>Ve al menú lateral izquierdo: <strong>Cocina e Inventario > Menú y Recetas > Carta / Menú</strong>.</li><li>Presiona el botón para agregar un nuevo registro (usualmente un botón verde o con el ícono de suma '+').</li><li>Llena el formulario con la información del producto: <ul><li><strong>Nombre:</strong> El nombre comercial del platillo.</li><li><strong>Categoría:</strong> Selecciona a qué categoría pertenece (ej. Bebidas).</li><li><strong>Precio:</strong> Define el precio de venta al público.</li><li><strong>Descripción:</strong> Una breve descripción de los ingredientes o preparación para que el mesero pueda explicarlo al cliente.</li></ul></li><li>Guarda los datos.</li></ol><h5>Modificar o Desactivar</h5><p>Si un platillo ya no está disponible, puedes desactivarlo desde la lista de productos haciendo clic en el botón de estado, sin necesidad de eliminarlo del sistema.</p>"
+    },
+    {
+        "id": "modulo_insumos",
+        "title": "Gestión de Insumos y Materia Prima",
+        "keywords": ["insumo", "materia prima", "inventario", "stock", "ingrediente"],
+        "modules": ["Insumo", "CategoriaInsumo"],
+        "content": "<h4>Control de Insumos</h4><p>El módulo de insumos sirve para llevar el control de stock de los ingredientes que usas en tu restaurante.</p><ol><li>Ve a <strong>Cocina e Inventario > Menú y Recetas > Insumos</strong>.</li><li>Aquí puedes registrar la materia prima (Ej. Harina, Azúcar, Tomates) especificando la unidad de medida (Kg, Litros, Unidades).</li><li>Es vital mantener esto actualizado para tener un coste real de cada receta.</li></ol>"
+    },
+    {
+        "id": "gestion_mesas",
+        "title": "Control de Áreas y Mesas",
+        "keywords": ["mesa", "area", "salon", "terraza", "crear mesa", "disponibilidad"],
+        "modules": ["Mesas", "Areas"],
+        "content": "<h4>Gestión del Salón</h4><p>Para poder atender a tus clientes, necesitas definir la distribución de tu local.</p><ul><li><strong>Áreas:</strong> (Ej. Terraza, Salón Principal, VIP). Se configuran en <em>Gestión del Salón > Áreas del Local</em>.</li><li><strong>Mesas:</strong> Asignas las mesas a un área específica y les das un identificador o número en <em>Gestión del Salón > Control de Mesas</em>.</li></ul><p>Asegúrate de configurar esto antes de empezar a tomar pedidos, ya que el sistema te pedirá asignar una mesa a cada nuevo pedido en salón.</p>"
+    },
+    {
+        "id": "gestion_clientes",
+        "title": "Registro y Gestión de Clientes",
+        "keywords": ["cliente", "crm", "nuevo cliente", "datos cliente", "registro"],
+        "modules": ["Cliente"],
+        "content": "<h4>Gestión de Clientes</h4><p>Mantiene un registro de tus clientes para brindar una atención personalizada o para facturación.</p><ol><li>Ve a <strong>Atención al Cliente > Servicio y Citas > Clientes</strong>.</li><li>Puedes agregar clientes con sus datos de contacto y facturación.</li><li>Tener a los clientes registrados agiliza la toma de pedidos y reservas.</li></ol>"
+    },
+    {
+        "id": "gestion_pedidos",
+        "title": "Toma y Gestión de Pedidos",
+        "keywords": ["pedido", "comanda", "orden", "tomar pedido", "facturar", "cobrar"],
+        "modules": ["Pedido", "PedidoPublico"],
+        "content": "<h4>Gestión de Pedidos</h4><p>Aquí es donde registras las ventas o comandas.</p><ol><li>Ve a <strong>Atención al Cliente > Servicio y Citas > Gestión de Pedidos</strong>.</li><li>Al crear un pedido, seleccionas el cliente, la mesa (si es en salón) y los productos del menú que desea.</li><li>Puedes registrar el pago e imprimir el comprobante desde esta sección.</li></ol>"
+    },
+    {
+        "id": "gestion_reservaciones",
+        "title": "Agenda Global de Reservaciones",
+        "keywords": ["reserva", "cita", "agenda", "calendario", "fecha", "reservacion"],
+        "modules": ["Reservacion", "Dashboard"],
+        "content": "<h4>Control de Reservaciones</h4><p>La <strong>Agenda Global</strong> es el núcleo para organizar todas las reservas de mesas o citas especiales en el restaurante. Al mantener el calendario actualizado, evitas sobrecupos y garantizas una excelente atención.</p><h5>Navegación en el Calendario</h5><ul><li><strong>Vistas Disponibles:</strong> En la esquina superior derecha, puedes alternar entre vista de <em>Mes</em>, <em>Semana</em> o <em>Día</em> para tener una mejor perspectiva de la carga de trabajo.</li><li><strong>Cambio de Fecha:</strong> Utiliza las flechas (<code>&lt;</code> <code>&gt;</code>) en la parte superior izquierda para navegar a meses o semanas anteriores/siguientes. El botón <em>Hoy</em> te devolverá instantáneamente al día actual.</li></ul><h5>¿Cómo registrar una nueva reserva?</h5><ol><li>Haz <strong>clic directamente sobre el cuadro del día</strong> deseado en el calendario, o utiliza el botón de 'Nueva Reserva' en el menú lateral.</li><li>Se abrirá un formulario. Deberás seleccionar al <strong>Cliente</strong> (si no está registrado, debes ir primero al módulo de Clientes).</li><li>Indica la <strong>Mesa</strong> asignada. El sistema te mostrará las mesas disponibles.</li><li>Establece la <strong>Hora</strong> y cantidad de personas, además de notas adicionales (ej. Cumpleaños, Silla de bebé).</li><li>Haz clic en <strong>Guardar</strong> y la reservación aparecerá visualmente en tu calendario como un bloque de color.</li></ol><h5>Gestión Diaria</h5><p>Para ver los detalles de una reserva, simplemente haz clic sobre el bloque azul/dorado en el calendario. Desde allí podrás confirmar su asistencia o cancelarla si el cliente no se presenta.</p>"
+    },
+    {
+        "id": "crear_reservacion_rapida",
+        "title": "Conflictos y Disponibilidad de Mesas",
+        "keywords": ["conflicto", "mesa ocupada", "disponibilidad", "doble reserva", "error reserva"],
+        "modules": ["Reservacion", "Mesas"],
+        "content": "<h4>Evitar Dobles Reservaciones</h4><p>El sistema cuenta con prevención automática de colisiones. Si intentas asignar una mesa que ya está reservada para esa misma fecha y hora (considerando un margen de tiempo por comida), el sistema arrojará una alerta.</p><ul><li>Asegúrate de limpiar el estado de la mesa en el módulo de pedidos una vez el cliente se retire.</li><li>Revisa la vista de 'Día' en el calendario para observar las horas exactas en las que la mesa está ocupada.</li></ul>"
+    },
+    {
+        "id": "gestion_promociones",
+        "title": "Configuración de Promociones",
+        "keywords": ["promocion", "descuento", "oferta", "combo", "rebaja"],
+        "modules": ["Promocion"],
+        "content": "<h4>Promociones</h4><p>Atrae a más clientes con ofertas especiales.</p><ol><li>Ve a <strong>Atención al Cliente > Servicio y Citas > Promociones</strong>.</li><li>Puedes crear promociones por tiempo limitado o aplicar descuentos a ciertos productos y categorías.</li></ol>"
+    },
+    {
+        "id": "gestion_proveedores",
+        "title": "Administración de Proveedores",
+        "keywords": ["proveedor", "compras", "suministros", "contacto proveedor"],
+        "modules": ["Proveedor"],
+        "content": "<h4>Proveedores</h4><p>Lleva el control de quienes te suministran la materia prima.</p><ol><li>Ve a <strong>Logística y Almacén > Suministros y Activos > Proveedores</strong>.</li><li>Registra los datos de contacto y empresariales de tus proveedores para tenerlos a mano al momento de hacer pedidos de insumos.</li></ol>"
+    },
+    {
+        "id": "marketing_noticias",
+        "title": "Multimedia y Noticias",
+        "keywords": ["noticia", "blog", "galeria", "imagen", "marketing", "publicacion"],
+        "modules": ["Media", "Noticia"],
+        "content": "<h4>Marketing y Contenido</h4><p>Mantén informados a tus clientes y administra el contenido visual.</p><ul><li><strong>Galería Multimedia:</strong> Sube y gestiona imágenes que usarás en el sistema o en la vista pública (<strong>Difusión Digital > Galería Multimedia</strong>).</li><li><strong>Noticias / Blog:</strong> Crea artículos o anuncios para informar sobre eventos, nuevos platos o avisos importantes (<strong>Difusión Digital > Blog / Noticias</strong>).</li></ul>"
+    },
+    {
+        "id": "gestion_personal",
+        "title": "Empleados, Cargos y Asistencia",
+        "keywords": ["empleado", "personal", "recursos humanos", "rrhh", "asistencia", "cargo", "turno"],
+        "modules": ["Empleado", "Cargo", "Turno", "Asistencia"],
+        "content": "<h4>Gestión del Personal</h4><p>Todo lo relacionado a tu equipo de trabajo.</p><ul><li><strong>Empleados y Cargos:</strong> Registra a tu personal y asígnales un cargo específico.</li><li><strong>Turnos:</strong> Define los horarios de trabajo (mañana, tarde, noche).</li><li><strong>Asistencia:</strong> Controla el ingreso y salida de tu personal diario.</li></ul><p>Todo esto lo encuentras en <strong>Gestión del Personal > Equipo y Horario</strong>.</p>"
+    },
+    {
+        "id": "reportes_estadisticas",
+        "title": "Reportes y Estadísticas de Negocio",
+        "keywords": ["reporte", "estadistica", "grafico", "ventas", "pdf", "analisis", "cierre"],
+        "modules": ["Reporte"],
+        "content": "<h4>Inteligencia de Negocio</h4><p>Analiza el rendimiento de tu local.</p><ul><li><strong>Estadísticas Reales:</strong> Gráficos visuales sobre ventas, productos más vendidos, etc.</li><li><strong>Centro de Reportes:</strong> Genera documentos en PDF sobre ventas, inventario, cierres de caja por fechas específicas.</li></ul><p>Ubicado en <strong>Inteligencia de Negocio > Análisis y PDF</strong>.</p>"
+    },
+    {
+        "id": "seguridad_usuarios",
+        "title": "Seguridad, Usuarios y Roles",
+        "keywords": ["usuario", "rol", "permiso", "seguridad", "clave", "contraseña", "acceso"],
+        "modules": ["Usuario", "Rol", "Permiso", "TipoPermiso", "Bitacora"],
+        "content": "<h4>Seguridad y Control de Acceso</h4><p>Define quién entra al sistema y qué puede hacer.</p><ul><li><strong>Usuarios:</strong> Crea cuentas de acceso para tu personal.</li><li><strong>Roles y Permisos:</strong> Define perfiles (Ej. Mesero, Cajero, Administrador) y asigna permisos específicos de qué módulos pueden ver o editar.</li><li><strong>Bitácora:</strong> Revisa el historial de acciones realizadas por cada usuario en el sistema.</li></ul><p>Encuéntralo en <strong>Seguridad y Auditoría > Control de Acceso</strong>.</p>"
+    },
+    {
+        "id": "seguridad_respaldos",
+        "title": "Centro de Respaldos (Backups)",
+        "keywords": ["backup", "respaldo", "copia de seguridad", "base de datos", "restaurar"],
+        "modules": ["Backup"],
+        "content": "<h4>Copias de Seguridad</h4><p>Protege la información de tu negocio realizando copias de seguridad de la base de datos.</p><ol><li>Ve a <strong>Seguridad y Auditoría > Control de Acceso > Centro de Respaldos</strong>.</li><li>Puedes generar un nuevo backup o restaurar uno anterior en caso de emergencia. Se recomienda hacer respaldos periódicamente.</li></ol>"
+    },
+    {
+        "id": "formulario_reservacion",
+        "title": "Detalle y Formulario de Reservación",
+        "keywords": ["formulario", "cliente", "hora", "fecha", "estado", "guardar", "cancelar", "modal"],
+        "modules": ["Reservacion"],
+        "content": "<h4>¿Cómo llenar el formulario de Reservación?</h4><p>Cuando haces clic en un día del calendario o en 'Nueva Reserva', se abre el modal <strong>Detalle de Reservación</strong>. Aquí te explicamos cómo llenarlo:</p><ol><li><strong>SELECCIONAR CLIENTE:</strong> Utiliza este menú desplegable para buscar y seleccionar al cliente que realiza la reserva. Puedes buscar por nombre o teléfono.</li><li><strong>FECHA:</strong> Se llenará automáticamente con el día que seleccionaste en el calendario, pero puedes cambiarla si es necesario.</li><li><strong>INICIO y FIN:</strong> Ingresa la hora exacta en la que el cliente llegará y la hora estimada en la que se retirará (fundamental para poder liberar la mesa a tiempo).</li><li><strong>MESA (OPCIONAL):</strong> Si el cliente pidió una mesa en específico o por el número de personas requiere una en especial, puedes seleccionarla aquí. Si no, déjalo 'Sin Asignar'.</li><li><strong>ESTADO:</strong> Por defecto es 'PENDIENTE'. Cámbialo a 'CONFIRMADO' si el cliente ya aseguró su asistencia, o a 'CANCELADO' si anulan la cita.</li></ol><p>Finalmente, presiona <strong>Guardar Cambios</strong> para registrar la reservación en la agenda global.</p>"
+    },
+    {
+        "id": "drag_drop_reservacion",
+        "title": "Reagendar con Drag & Drop",
+        "keywords": ["reagendar", "mover", "arrastrar", "soltar", "cambiar fecha", "drag", "drop", "calendario"],
+        "modules": ["Reservacion"],
+        "content": "<h4>Reagendar Reservaciones de forma rápida</h4><p>El calendario es completamente interactivo. Si un cliente llama para cambiar el día de su reservación, no necesitas abrir el formulario manualmente para cambiar la fecha.</p><h5>¿Cómo usar el Drag and Drop (Arrastrar y Soltar)?</h5><ol><li>Localiza la reservación (el bloque azul o dorado) que deseas mover en la cuadrícula del calendario.</li><li>Haz clic sobre ella y, <strong>sin soltar el botón del mouse</strong>, arrástrala hacia el nuevo día.</li><li>Suelta el botón del mouse sobre el nuevo recuadro.</li><li>El sistema actualizará instantáneamente la fecha de la reservación en la base de datos de manera automática.</li></ol><p><em>Nota:</em> Esta acción solo cambiará la fecha. Si necesitas cambiar la hora de Inicio o Fin, deberás hacer un clic normal en la reservación para editar esos detalles específicos en el formulario.</p>"
+    },
+    {
+        "id": "solicitar_cita_publico",
+        "title": "Cómo Solicitar una Cita",
+        "keywords": ["cita", "reserva", "solicitar", "calendario", "nueva cita"],
+        "modules": ["ReservacionPublico"],
+        "content": "<h4>Solicitar una Cita</h4><p>Para solicitar una reservación, puedes hacer clic directamente en el día que deseas en el calendario, o presionar el botón de nueva reserva en la parte superior.</p>"
+    },
+    {
+        "id": "formulario_publico",
+        "title": "Llenar Formulario de Cita",
+        "keywords": ["formulario", "datos", "hora", "fecha"],
+        "modules": ["ReservacionPublico"],
+        "content": "<h4>Detalles de tu Visita</h4><p>Indica la fecha, hora de llegada y hora estimada de salida para tu reservación. Una vez enviado, el sistema registrará tu solicitud y confirmaremos tu cita.</p>"
+    },
+    {
+        "id": "gestion_pedidos_tabla",
+        "title": "Navegar y Gestionar Pedidos",
+        "keywords": ["tabla", "estado", "factura", "cobrar", "pedido"],
+        "modules": ["Pedido"],
+        "content": "<h4>Tabla de Pedidos</h4><p>En esta sección podrás ver un listado general de todos los pedidos activos o históricos.</p><ul><li><strong>Nuevo Pedido:</strong> Usa el botón POS en la esquina superior para iniciar una nueva venta.</li><li><strong>Ver Detalle:</strong> Haz clic en el botón de la lupa o del ojo para ver qué productos incluye el pedido y cambiar su estado a Preparando, Listo o Entregado.</li></ul>"
+    },
+    {
+        "id": "tomar_pedido_pos",
+        "title": "Cómo Usar el POS (Punto de Venta)",
+        "keywords": ["pos", "venta", "cobro", "carrito", "agregar", "caja"],
+        "modules": ["Pedido"],
+        "content": "<h4>Punto de Venta</h4><p>El POS es donde tomas los pedidos a los clientes rápidamente.</p><ol><li><strong>Productos:</strong> A la izquierda verás tu menú. Filtra por categoría y haz clic en los productos para agregarlos al carrito.</li><li><strong>Personalización:</strong> Al seleccionar algunos productos, podrías ver opciones de ingredientes y extras.</li><li><strong>Orden Actual:</strong> A la derecha verás tu carrito con los totales en dólares y bolívares al cambio del día.</li><li><strong>Cobro:</strong> Selecciona el método de pago, el tipo de orden (para llevar o en mesa) y pulsa Procesar y Cobrar.</li></ol>"
+    }
+]

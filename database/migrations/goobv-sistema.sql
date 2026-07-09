@@ -32,11 +32,8 @@ INSERT INTO `unidad_medida` (`id_unidad`, `nombre`, `abreviatura`, `tipo`, `fact
 ('MEDIAML23220260519200547232', 'Mililitro', 'ml', 'VOLUMEN', 0.001000, 'L'),
 ('MEDIAGA23220260519200547232', 'Galón', 'gal', 'VOLUMEN', 3.785410, 'L'),
 ('MEDIAUN23220260519200547232', 'Unidad', 'U', 'UNIDAD', 1.000000, NULL),
-('MEDIADO23220260519200547232', 'Docena', 'doz', 'UNIDAD', 12.000000, 'UN'),
 ('MEDIAMT23220260519200547232', 'Metro', 'm', 'LONGITUD', 1.000000, 'm'),
-('MEDIACE23220260519200547232', 'Centímetro', 'cm', 'LONGITUD', 0.010000, 'm'),
-('MEDIAPA23220260519200547232', 'Paquete', 'pqt', 'UNIDAD', 1.000000, NULL),
-('MEDIACA23220260519200547232', 'Caja', 'cj', 'UNIDAD', 1.000000, NULL);
+('MEDIACE23220260519200547232', 'Centímetro', 'cm', 'LONGITUD', 0.010000, 'm');
 
 CREATE TABLE `cargo` (
   `id_cargo` varchar(30) NOT NULL,
@@ -320,25 +317,26 @@ CREATE TABLE `asignacion_mesa` (
 
 CREATE TABLE `pedido` (
   `id_pedido` varchar(30) NOT NULL,
+  `numero_pedido` int(11) NOT NULL AUTO_INCREMENT UNIQUE,
   `cedula_cliente` varchar(15) DEFAULT NULL,
-  `cedula_empleado` varchar(15) NOT NULL,
+  `cedula_empleado` varchar(15) DEFAULT NULL,  -- <-- AHORA PERMITE NULL
   `id_mesa` varchar(30) DEFAULT NULL,
   `tipo_pedido` enum('MESA','LLEVAR','DELIVERY') NOT NULL,
   `fecha_pedido` timestamp NOT NULL DEFAULT current_timestamp(),
   `fecha_entrega` timestamp NULL DEFAULT NULL,
-  `estado` enum('PENDIENTE','COCINANDO','LISTO','ENTREGADO','PAGADO','CANCELADO') DEFAULT 'PENDIENTE',
+  `estado` enum('PENDIENTE','CONFIRMADO','PREPARANDO','LISTO','ENTREGADO','PAGADO','CANCELADO') DEFAULT 'PENDIENTE',
   `observacion` varchar(255) DEFAULT NULL,
   `impuesto` decimal(10,2) DEFAULT 0.00,
   `total` decimal(10,2) NOT NULL DEFAULT 0.00,
   PRIMARY KEY (`id_pedido`),
+  UNIQUE KEY `idx_numero_pedido` (`numero_pedido`),
   KEY `fk_ped_cli` (`cedula_cliente`),
   KEY `fk_ped_emp` (`cedula_empleado`),
   KEY `fk_ped_mesa` (`id_mesa`),
   CONSTRAINT `fk_ped_cli` FOREIGN KEY (`cedula_cliente`) REFERENCES `cliente` (`cedula`) ON DELETE SET NULL,
-  CONSTRAINT `fk_ped_emp` FOREIGN KEY (`cedula_empleado`) REFERENCES `empleado` (`cedula`),
+  CONSTRAINT `fk_ped_emp` FOREIGN KEY (`cedula_empleado`) REFERENCES `empleado` (`cedula`) ON DELETE SET NULL,  -- <-- ON DELETE SET NULL
   CONSTRAINT `fk_ped_mesa` FOREIGN KEY (`id_mesa`) REFERENCES `mesa` (`id_mesa`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE `detalle_pedido` (
   `id_detalle` varchar(30) NOT NULL,
   `id_pedido` varchar(30) NOT NULL,
@@ -460,6 +458,15 @@ CREATE VIEW `vw_entrada_insumo` AS
 SELECT `ei`.*, `in`.`nombre_insumo` AS 'insumo', `p`.nombre AS 'proveedor' FROM `entrada_insumo` AS `ei`
 INNER JOIN `insumo` AS `in` ON `ei`.id_insumo = `in`.id_insumo
 INNER JOIN `proveedor`AS `p` ON `ei`.`documento_proveedor` = `p`.documento_legal;
+
+CREATE VIEW `vw_detalle_entrada_insumo` AS 
+SELECT `de`.`id_detalle`,`de`.`fecha`, `de`.`cantidad`, `de`.`descripcion`,
+`i`.`nombre_insumo` AS `insumo`, `i`.`id_insumo`, `p`.`nombre` AS `proveedor`, `i`.`stock_actual`
+FROM `detalle_entrada` AS `de`
+INNER JOIN `entrada_insumo` AS `ei` ON `ei`.`id_entrada` = `de`.`id_entrada`
+INNER JOIN `unidad_medida` AS `um` ON `um`.`id_unidad` = `de`.`id_unidad_medida`
+INNER JOIN `proveedor` AS `p` ON `p`.`documento_legal` = `ei`.`documento_proveedor`
+INNER JOIN `insumo` AS `i` ON `i`.`id_insumo` = `ei`.`id_insumo`;
 
 -- --------------------------------------------------------
 -- 8. DISPARADORES (TRIGGERS)

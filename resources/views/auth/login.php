@@ -5,10 +5,15 @@ $openRegisterSlide = $openRegisterSlide ?? false;
 ?>
 
 <main class="auth-shell">
+    <!-- Botón Volver Atrás Absoluto -->
+    <a href="<?= BASE_URL ?>" class="btn btn-outline-light position-absolute top-0 start-0 m-4 rounded-pill fw-bold" style="z-index: 1050; border-width: 2px;">
+        <i class="fas fa-arrow-left me-2"></i> Volver Atrás
+    </a>
+    
     <div class="container">
         <div class="row justify-content-center align-items-center">
             <div class="col-12 col-xxl-10">
-                <div class="card border-0 auth-card">
+                <div class="card border-0 auth-card position-relative">
                     <div class="row g-0">
                         <!-- Columna de Branding (Visible solo en Desktop) -->
                         <div class="col-lg-5 d-none d-lg-flex auth-card__banner align-items-center justify-content-center text-center p-5">
@@ -172,8 +177,8 @@ $openRegisterSlide = $openRegisterSlide ?? false;
 
 <script src="<?php echo BASE_URL; ?>/assets/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="<?php echo BASE_URL; ?>/assets/js/auth.js"></script>
+<script src="<?php echo BASE_URL; ?>/assets/js/lib/sweetalert2.all.min.js"></script>
+<script type="module" src="<?php echo BASE_URL; ?>/assets/js/auth.js"></script>
 <script>
     window.authOpenRegisterSlide = <?php echo json_encode($openRegisterSlide); ?>;
 </script>

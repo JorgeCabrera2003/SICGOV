@@ -1,3 +1,6 @@
+import { mensajes, confirmarAccion, buscarSelect } from './Helpers/UIHelper.js';
+import { enviaAjax } from './Helpers/AjaxHelper.js';
+
 // ==========================================
 // MÓDULO DE USUARIOS - GOOD VIBES
 // JS / AJAX & DATATABLE LOGIC
@@ -111,16 +114,26 @@ function aplicarEstilosCampo($campo, $feedback, esValido, mensaje, forzar = fals
     const val = $campo.val() ? $campo.val().trim() : '';
     if (!forzar && val === '') {
         $campo.removeClass('is-valid is-invalid');
+        $campo.css('border-color', '');
         $feedback.removeClass('invalid-tooltip d-inline-block').text('');
         return;
     }
 
     if (esValido) {
         $campo.addClass('is-valid').removeClass('is-invalid');
+        $campo[0].style.setProperty('border-color', '#198754', 'important');
+        $campo[0].style.removeProperty('background-image');
         $campo[0].setCustomValidity('');
         $feedback.removeClass('invalid-tooltip d-inline-block').text('');
     } else {
         $campo.addClass('is-invalid').removeClass('is-valid');
+        $campo[0].style.setProperty('border-color', '#dc3545', 'important');
+
+        // Remove green checkmark explicitly if it persists due to CSS conflicts
+        if ($campo.is('select')) {
+            $campo[0].style.setProperty('background-image', 'none', 'important');
+        }
+
         $campo[0].setCustomValidity(mensaje);
         $feedback.addClass('invalid-tooltip d-inline-block').text(mensaje);
     }
@@ -276,8 +289,10 @@ async function cargarRolesActivos() {
 
         if (json && json.datos) {
             json.datos.forEach(rol => {
-                $rolSelect.append(`<option value="${rol.id_rol}">${rol.nombre_rol}</option>`);
-                rolesValidosList.push(String(rol.id_rol));
+                if (rol.nombre_rol !== 'SuperUsuario' && rol.nombre_rol !== 'Super Usuario') {
+                    $rolSelect.append(`<option value="${rol.id_rol}">${rol.nombre_rol}</option>`);
+                    rolesValidosList.push(String(rol.id_rol));
+                }
             });
         }
     } catch (e) {
@@ -591,7 +606,7 @@ async function crearDataTable() {
                         if (menu.children().length > 0) {
                             menu.append($('<li>').html('<hr class="dropdown-divider">'));
                         }
-                        
+
                         const itemToggle = $('<li>');
                         const claseTexto = esActivo ? 'text-warning' : 'text-success';
                         const icono = esActivo ? 'fa-user-slash' : 'fa-user-check';
@@ -629,7 +644,7 @@ async function crearDataTable() {
             }
         ],
         order: [[0, 'asc']],
-        language: { url: idiomaTabla }
+        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' }
     });
 }
 
@@ -741,3 +756,8 @@ function reconectarObservadorDOM() {
         domObserver.observe(inputCedulaEditar, opcionesObserver);
     }
 }
+
+// Exponer funciones al scope global para que los eventos inline (onclick) funcionen
+window.rellenar = rellenar;
+window.toggleEstatus = toggleEstatus;
+window.forzarCambioClave = forzarCambioClave;

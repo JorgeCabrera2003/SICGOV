@@ -4,6 +4,7 @@ namespace App\Models\System;
 
 use App\Core\Database;
 use PDO;
+use App\Helpers\Helper;
 use Exception;
 
 class Menu extends Database
@@ -62,14 +63,6 @@ class Menu extends Database
             throw new Exception("La categoría es obligatoria.");
         }
         
-        $stmt = $this->LlamarConexion()->prepare("SELECT id_categoria FROM categoria_producto WHERE id_categoria = ?");
-        $stmt->execute([$id_categoria]);
-        $rowCount = $stmt->rowCount();
-        $this->DestruirConexion();
-
-        if ($rowCount === 0) {
-            throw new Exception("La categoría seleccionada no existe en la base de datos.");
-        }
 
         $this->id_categoria = $id_categoria;
     }
@@ -90,28 +83,28 @@ class Menu extends Database
 
     public function setInsumosPrincipales($insumos_json)
     {
-        if ($this->tipo_producto === 'COCINA') {
+        if ($this->tipo_producto === 'COCINA' || $this->tipo_producto === 'BARRA') {
             $insumos = is_string($insumos_json) ? json_decode($insumos_json, true) : $insumos_json;
-            if (empty($insumos) || !is_array($insumos)) {
+            
+            if ($this->tipo_producto === 'COCINA' && (empty($insumos) || !is_array($insumos))) {
                 throw new Exception("El producto de cocina debe tener al menos un insumo principal.");
             }
-            try {
+            if ($this->tipo_producto === 'BARRA' && (empty($insumos) || !is_array($insumos) || count($insumos) !== 1)) {
+                throw new Exception("El producto de barra debe tener exactamente un insumo principal.");
+            }
+
+            if (!empty($insumos) && is_array($insumos)) {
                 foreach ($insumos as $ing) {
+                    if (empty($ing['id'])) {
+                        throw new Exception("El insumo es obligatorio para los insumos principales.");
+                    }
                     if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
                         throw new Exception("Las cantidades de los insumos principales deben ser números mayores a 0.");
                     }
                     if (empty($ing['unidad'])) {
                         throw new Exception("La unidad de medida es obligatoria para los insumos principales.");
                     }
-                    
-                    $stmt = $this->LlamarConexion()->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
-                    $stmt->execute([$ing['unidad']]);
-                    if ($stmt->rowCount() === 0) {
-                        throw new Exception("La unidad de medida seleccionada para el insumo no existe en la base de datos.");
-                    }
                 }
-            } finally {
-                $this->DestruirConexion();
             }
         }
         $this->insumos_principales = $insumos_json;
@@ -124,27 +117,25 @@ class Menu extends Database
         if ($this->tipo_producto === 'COCINA') {
             $insumos = is_string($insumos_json) ? json_decode($insumos_json, true) : $insumos_json;
             if (!empty($insumos) && is_array($insumos)) {
-                try {
-                    foreach ($insumos as $ing) {
-                        if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
-                            throw new Exception("Las cantidades de los insumos adicionales deben ser números mayores a 0.");
-                        }
-                        if (!isset($ing['precio']) || !is_numeric($ing['precio']) || $ing['precio'] <= 0) {
-                            throw new Exception("El precio de los insumos adicionales debe ser un número válido mayor a 0.");
-                        }
-                        if (empty($ing['unidad'])) {
-                            throw new Exception("La unidad de medida es obligatoria para los insumos adicionales.");
-                        }
-                        
-                        $stmt = $this->LlamarConexion()->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
-                        $stmt->execute([$ing['unidad']]);
-                        if ($stmt->rowCount() === 0) {
-                            throw new Exception("La unidad de medida seleccionada para el insumo adicional no existe en la base de datos.");
-                        }
+                foreach ($insumos as $ing) {
+                    if (empty($ing['id'])) {
+                        throw new Exception("El insumo es obligatorio para los insumos adicionales.");
                     }
-                } finally {
-                    $this->DestruirConexion();
+                    if (empty($ing['cantidad']) || !is_numeric($ing['cantidad']) || $ing['cantidad'] <= 0) {
+                        throw new Exception("Las cantidades de los insumos adicionales deben ser números mayores a 0.");
+                    }
+                    if (!isset($ing['precio']) || !is_numeric($ing['precio']) || $ing['precio'] <= 0) {
+                        throw new Exception("El precio de los insumos adicionales debe ser un número válido mayor a 0.");
+                    }
+                    if (empty($ing['unidad'])) {
+                        throw new Exception("La unidad de medida es obligatoria para los insumos adicionales.");
+                    }
                 }
+            }
+        } else if ($this->tipo_producto === 'BARRA') {
+            $insumos = is_string($insumos_json) ? json_decode($insumos_json, true) : $insumos_json;
+            if (!empty($insumos) && is_array($insumos) && count($insumos) > 0) {
+                throw new Exception("Los productos de barra no pueden tener insumos adicionales.");
             }
         }
         $this->insumos_adicionales = $insumos_json;
@@ -153,7 +144,9 @@ class Menu extends Database
 
 
 
-  
+    //#########################################################################################
+
+
     public function getIdProducto()
     {
         return $this->id_producto;
@@ -199,7 +192,58 @@ class Menu extends Database
         return $this->insumos_adicionales;
     }
 
+
+
+
+
+
+
+
+
+
 //#########################################################################################
+
+
+    public function validarCategoria($id_categoria)
+    {
+        $stmt = $this->LlamarConexion()->prepare("SELECT id_categoria FROM categoria_producto WHERE id_categoria = ?");
+        $stmt->execute([$id_categoria]);
+        $isValid = $stmt->rowCount() > 0;
+        $this->DestruirConexion();
+        return $isValid;
+    }
+
+    public function validarUnidadMedida($id_unidad)
+    {
+        $stmt = $this->LlamarConexion()->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
+        $stmt->execute([$id_unidad]);
+        $isValid = $stmt->rowCount() > 0;
+        $this->DestruirConexion();
+        return $isValid;
+    }
+
+    public function validarInsumo($id_insumo)
+    {
+        $stmt = $this->LlamarConexion()->prepare("SELECT id_insumo FROM insumo WHERE id_insumo = ? AND estatus = 1");
+        $stmt->execute([$id_insumo]);
+        $isValid = $stmt->rowCount() > 0;
+        $this->DestruirConexion();
+        return $isValid;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    //#########################################################################################
 
 
     public function Transaccion($peticion)
@@ -746,6 +790,24 @@ class Menu extends Database
         }
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+//#########################################################################################
+
+
 public function obtenerInsumosProducto($id_producto)
 {
     try {
@@ -770,10 +832,28 @@ public function obtenerInsumosProducto($id_producto)
         $adicionales = [];
         
         foreach ($result as $item) {
+            // ==============================================
+            // LIMPIAR DECIMALES REDUNDANTES USANDO HELPER
+            // ==============================================
+            $cantidad = Helper::limpiarDecimales($item['cantidad']);
+            $precio_insumo = Helper::limpiarDecimales($item['precio_insumo'] ?? 0);
+            
+            $preparacion = [
+                'id_preparacion' => $item['id_preparacion'],
+                'id_insumo' => $item['id_insumo'],
+                'prioridad_insumo' => $item['prioridad_insumo'],
+                'cantidad' => $cantidad,
+                'id_unidad_medida' => $item['id_unidad_medida'],
+                'precio_insumo' => $precio_insumo,
+                'nombre_insumo' => $item['nombre_insumo'],
+                'stock_actual' => $item['stock_actual'],
+                'nombre_unidad' => $item['nombre_unidad']
+            ];
+            
             if ($item['prioridad_insumo'] == 1) {
-                $principales[] = $item;
+                $principales[] = $preparacion;
             } else {
-                $adicionales[] = $item;
+                $adicionales[] = $preparacion;
             }
         }
         
@@ -785,5 +865,133 @@ public function obtenerInsumosProducto($id_producto)
         return ['principales' => [], 'adicionales' => []];
     }
 }
+
+/**
+ * Verifica si un producto tiene suficiente stock para una cantidad específica
+ * @param string $id_producto ID del producto
+ * @param int $cantidad Cantidad solicitada
+ * @return array ['success' => bool, 'message' => string, 'stock_disponible' => int, 'porcentaje' => float]
+ */
+public function verificarStockProducto($id_producto, $cantidad = 1)
+{
+    try {
+        $this->LlamarConexion();
+        
+        // Obtener todos los insumos del producto con su stock
+        $sql = "SELECT p.id_insumo, p.cantidad as cantidad_requerida, 
+                       i.stock_actual, i.nombre_insumo,
+                       i.stock_minimo, i.stock_maximo,
+                       up.abreviatura as abrev_req,
+                       ui.abreviatura as abrev_stock
+                FROM preparacion p
+                JOIN insumo i ON p.id_insumo = i.id_insumo
+                LEFT JOIN unidad_medida up ON p.id_unidad_medida = up.id_unidad
+                LEFT JOIN unidad_medida ui ON i.id_unidad_medida = ui.id_unidad
+                WHERE p.id_producto = ? AND i.estatus = 1";
+        
+        $stmt = $this->LlamarConexion()->prepare($sql);
+        $stmt->execute([$id_producto]);
+        $insumos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $this->DestruirConexion();
+        
+        if (empty($insumos)) {
+            return [
+                'success' => true, 
+                'message' => 'Producto sin insumos registrados',
+                'stock_disponible' => 999,
+                'porcentaje' => 100
+            ];
+        }
+        
+        // Calcular cuántas unidades se pueden hacer con el stock actual
+        $unidadesPosibles = PHP_INT_MAX;
+        $insumoLimitante = null;
+        $insumosStock = [];
+        
+        $unidadMedida = new \App\Models\System\UnidadMedida();
+
+        foreach ($insumos as $insumo) {
+            if ($insumo['cantidad_requerida'] > 0) {
+                $abrevReq = $insumo['abrev_req'] ?? 'U';
+                $abrevStock = $insumo['abrev_stock'] ?? 'U';
+                
+                try {
+                    // Convertir la cantidad requerida a la unidad del stock sumándole 0 al stock base ficticio
+                    $reqEnUnidadStock = $unidadMedida->TablaConversion($insumo['cantidad_requerida'], 0, $abrevReq, $abrevStock, 'sumar');
+                } catch (\Exception $e) {
+                    error_log("Error de conversión en verificarStockProducto: " . $e->getMessage());
+                    $reqEnUnidadStock = $insumo['cantidad_requerida'];
+                }
+                
+                // Evitar división por cero
+                if ($reqEnUnidadStock > 0) {
+                    $unidades = floor($insumo['stock_actual'] / $reqEnUnidadStock);
+                } else {
+                    $unidades = 999;
+                }
+
+                $insumosStock[] = [
+                    'nombre' => $insumo['nombre_insumo'],
+                    'stock_actual' => $insumo['stock_actual'],
+                    'requerido' => $insumo['cantidad_requerida'],
+                    'unidades_posibles' => $unidades
+                ];
+                
+                if ($unidades < $unidadesPosibles) {
+                    $unidadesPosibles = $unidades;
+                    $insumoLimitante = $insumo['nombre_insumo'];
+                }
+            }
+        }
+        
+        // Calcular porcentaje de stock disponible (basado en el insumo más crítico)
+        $porcentaje = 0;
+        if (!empty($insumosStock)) {
+            // Buscar el insumo con menor porcentaje
+            $menorPorcentaje = 100;
+            foreach ($insumosStock as $item) {
+                $stockMinimo = $insumos[array_search($item['nombre'], array_column($insumos, 'nombre_insumo'))]['stock_minimo'] ?? 0;
+                $porcentajeInsumo = $item['stock_actual'] > 0 ? ($item['stock_actual'] / ($item['stock_actual'] + $stockMinimo)) * 100 : 0;
+                if ($porcentajeInsumo < $menorPorcentaje) {
+                    $menorPorcentaje = $porcentajeInsumo;
+                }
+            }
+            $porcentaje = min(100, $menorPorcentaje);
+        }
+        
+        // Verificar si la cantidad solicitada es posible
+        $stockDisponible = $unidadesPosibles;
+        
+        if ($cantidad > $stockDisponible) {
+            return [
+                'success' => false,
+                'message' => "Stock insuficiente. Solo hay stock para $stockDisponible unidades. Insumo limitante: $insumoLimitante",
+                'stock_disponible' => $stockDisponible,
+                'porcentaje' => $porcentaje,
+                'insumo_limitante' => $insumoLimitante
+            ];
+        }
+        
+        return [
+            'success' => true,
+            'message' => 'Stock suficiente',
+            'stock_disponible' => $stockDisponible,
+            'porcentaje' => $porcentaje,
+            'insumos' => $insumosStock
+        ];
+        
+    } catch (\PDOException $e) {
+        error_log("Error en verificarStockProducto: " . $e->getMessage());
+        return [
+            'success' => false,
+            'message' => 'Error al verificar stock: ' . $e->getMessage(),
+            'stock_disponible' => 0,
+            'porcentaje' => 0
+        ];
+    }
+}
+
+
 
 }

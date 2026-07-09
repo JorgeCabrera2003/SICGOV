@@ -1,3 +1,5 @@
+import { enviaAjax } from './Helpers/AjaxHelper.js';
+
 import * as AjaxHelper from "./Helpers/AjaxHelper.js"
 
 /**

@@ -1,3 +1,7 @@
+import { mensajes, confirmarAccion } from './Helpers/UIHelper.js';
+import { debounce } from './Helpers/MiscHelper.js';
+import { enviaAjax } from './Helpers/AjaxHelper.js';
+
 // MODULO DE CATEGORÍAS DE MENÚ
 
 // Interfaz de Acceso a Elementos del Formulario
@@ -382,48 +386,7 @@ async function eliminar(pos) {
     }
 }
 
-// Menú de acciones en DataTable
-async function vistaPermisoCategoria() {
-    const dropdown = $('<div>').addClass('dropdown');
-    const boton = $('<button>').addClass('btn btn-sm bg-body text-body border dropdown-toggle')
-        .attr('type', 'button')
-        .attr('data-bs-toggle', 'dropdown')
-        .html('<i class="fas fa-ellipsis-v me-2"></i>Acciones');
 
-    const menu = $('<ul>').addClass('dropdown-menu dropdown-menu-end');
-
-    if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.categoria_menu && permisosDB.categoria_menu.modificar == 1) {
-        const itemEditar = $('<li>');
-        const linkEditar = $('<a>')
-            .addClass('dropdown-item text-primary')
-            .attr('href', '#')
-            .attr('onclick', 'rellenar(this, 0)')
-            .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
-        itemEditar.append(linkEditar);
-        menu.append(itemEditar);
-    }
-
-    if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.categoria_menu && permisosDB.categoria_menu.eliminar == 1) {
-        const separador = $('<li>').html('<hr class="dropdown-divider">');
-        const itemEliminar = $('<li>');
-        const linkEliminar = $('<a>')
-            .addClass('dropdown-item text-danger')
-            .attr('href', '#')
-            .attr('onclick', 'eliminar(this)')
-            .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
-        itemEliminar.append(linkEliminar);
-        menu.append(separador, itemEliminar);
-    }
-
-
-    if (menu.children().length === 0) {
-        return '<span class="text-muted"><i class="fas fa-lock"></i> Sin acciones</span>';
-    }
-
-    dropdown.append(boton, menu);
-
-    return dropdown.prop('outerHTML');
-}
 
 // Crear DataTable
 async function crearDataTable() {
@@ -434,7 +397,7 @@ async function crearDataTable() {
 
     let peticion = new FormData();
     let arreglo = [];
-    let botones = await vistaPermisoCategoria();
+
 
     try {
         peticion.append('peticion', 'consultar');
@@ -449,6 +412,7 @@ async function crearDataTable() {
     }
 
     $('#tablaCategoria').DataTable({
+        responsive: true,
         processing: true,
         data: arreglo,
         columns: [
@@ -461,19 +425,74 @@ async function crearDataTable() {
             {
                 data: null,
                 className: 'text-end',
-                render: function () {
-                    return botones;
+                render: function (data, type, row) {
+                    const dropdown = $('<div>').addClass('dropdown d-inline-block');
+                    const boton = $('<button>').addClass('btn btn-sm bg-body text-body border dropdown-toggle')
+                        .attr('type', 'button')
+                        .attr('data-bs-toggle', 'dropdown')
+                        .html('<i class="fas fa-ellipsis-v me-2"></i>Acciones');
+
+                    const menu = $('<ul>').addClass('dropdown-menu dropdown-menu-end');
+
+                    if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.categoria_menu && permisosDB.categoria_menu.modificar == 1) {
+                        const itemEditar = $('<li>');
+                        const linkEditar = $('<a>')
+                            .addClass('dropdown-item text-primary')
+                            .attr('href', '#')
+                            .attr('onclick', 'rellenar(this, 0)')
+                            .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
+                        itemEditar.append(linkEditar);
+                        menu.append(itemEditar);
+                    }
+
+                    if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.categoria_menu && permisosDB.categoria_menu.eliminar == 1) {
+                        const separador = $('<li>').html('<hr class="dropdown-divider">');
+                        const itemEliminar = $('<li>');
+                        const linkEliminar = $('<a>')
+                            .addClass('dropdown-item text-danger')
+                            .attr('href', '#')
+                            .attr('onclick', 'eliminar(this)')
+                            .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
+                        itemEliminar.append(linkEliminar);
+                        menu.append(separador, itemEliminar);
+                    }
+
+                    if (menu.children().length === 0) {
+                        return '<span class="text-muted"><i class="fas fa-lock"></i> Sin acciones</span>';
+                    }
+
+                    dropdown.append(boton, menu);
+                    return dropdown.prop('outerHTML');
                 }
             }
         ],
         order: [[0, 'asc']],
-        language: { url: idiomaTabla } // Asumiento que idiomaTabla es una config global
+        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' }
     });
 }
 
 // Event Listeners
 $(document).ready(function () {
     crearDataTable();
+
+    // Forzar inicialización de Popper.js en hover con delay para evitar que se cierre por el gap
+    $('#tablaCategoria').on('mouseenter', '.dropdown', function () {
+        const $this = $(this);
+        clearTimeout($this.data('hideTimeout'));
+        const toggleBtn = $this.find('.dropdown-toggle')[0];
+        if (toggleBtn) bootstrap.Dropdown.getOrCreateInstance(toggleBtn).show();
+    }).on('mouseleave', '.dropdown', function () {
+        const $this = $(this);
+        const toggleBtn = $this.find('.dropdown-toggle')[0];
+        const hideTimeout = setTimeout(() => {
+            if (toggleBtn) bootstrap.Dropdown.getOrCreateInstance(toggleBtn).hide();
+        }, 150);
+        $this.data('hideTimeout', hideTimeout);
+    }).on('click', '.dropdown-toggle', function (e) {
+        // Evita que el clic desactive el Dropdown mientras está abierto por hover
+        e.stopPropagation();
+        e.preventDefault();
+    });
 
     // Registrar listeners de inputs (capitalización + bloqueo + botón en tiempo real)
     inicializarInputListeners();
@@ -500,3 +519,7 @@ $(document).ready(function () {
         }
     });
 });
+
+// Exponer funciones al scope global
+window.rellenar = rellenar;
+window.eliminar = eliminar;

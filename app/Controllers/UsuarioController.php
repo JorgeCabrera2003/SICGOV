@@ -157,18 +157,7 @@ if ($type === 'index') {
                         $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El rol es obligatorio.'];
                         $bool_formulario = false;
                     } else {
-                        
-                        $rolModel = new Rol();
-                        $rolesResult = $rolModel->Transaccion(['peticion' => 'consultar']);
-                        $validRoles = [];
-                        if (isset($rolesResult['response']['datos']) && is_array($rolesResult['response']['datos'])) {
-                            foreach ($rolesResult['response']['datos'] as $r) {
-                                if (isset($r['id_rol'])) {
-                                    $validRoles[] = (string)$r['id_rol'];
-                                }
-                            }
-                        }
-                        if (!in_array((string)$_POST["rol"], $validRoles, true)) {
+                        if (!$usuarioModel->validarRol($_POST["rol"])) {
                             $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => '¡Modificación detectada! El rol seleccionado no es válido o está inactivo.'];
                             $bool_formulario = false;
                         }

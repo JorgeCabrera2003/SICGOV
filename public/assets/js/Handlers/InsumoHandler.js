@@ -4,7 +4,7 @@ import * as ValidadorHelper from "../Helpers/ValidadorHelper.js";
 import * as SelectHelper from "../Helpers/SelectHelper.js";
 import * as PermisoHelper from "../Helpers/PermisoHelper.js";
 
-//MODULO DE INGREDIENTES
+//MODULO DE INSUMOS
 
 //-------INICIALIZACIÖN-------
 
@@ -98,7 +98,6 @@ function manejarCambioEstado(formularioValido) {
   const accion = modal.boton.text();
 
   if (accion === "Eliminar") {
-    // Para eliminar solo validamos el ID
     const idValido = validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_insumo.val(), span.id_insumo, '');
     modal.boton.prop('disabled', !idValido);
   } else {
@@ -132,14 +131,35 @@ export async function EnviarDatos(operacion) {
   if (operacion == "registrar" || operacion == "modificar") {
     let bool_peticion = true;
     let stock_maximo = input.stock_maximo.val();
+
     if (operacion == "registrar") {
       str_acccion = "registrará";
-      accion = "registrar"
+      accion = "registrar";
+
       if (input.stock_inicial.val() == "" || input.stock_inicial.val() == null) {
         MensajeriaHelper.FeedbackToltipInput(input.stock_inicial, span.stock_inicial,
           "El Stock Inicial no puede estar vacío", 0)
         bool_peticion = false;
       }
+
+
+      if (input.unidad_medida.val() != null && input.unidad_medida.val() != "default") {
+        if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+          if (!ValidadorHelper.ValidarCampo("NumeroEntero", input.stock_inicial, span.stock_inicial)) {
+            bool = false;
+          }
+        } else {
+          if (!ValidadorHelper.ValidarCampo("NumeroDecimal", input.stock_maximo, span.stock_maximo)) {
+            bool = false;
+          }
+        }
+      }
+
+      if (!ValidadorHelper.ValidarCampo("FormatoDocumentoLegal", input.proveedor, span.proveedor)) {
+        bool_peticion = false;
+      };
+
+      peticion.append('id_proveedor', input.proveedor.val());
       peticion.append('stock_inicial', input.stock_inicial.val());
     }
 
@@ -147,6 +167,7 @@ export async function EnviarDatos(operacion) {
       str_acccion = "actualizará";
       accion = "modificar";
       peticion.append('id_insumo', input.id_insumo.val());
+      peticion.append('id_proveedor', input.proveedor.val());
     }
 
     if (input.stock_maximo.val() == "" || input.stock_maximo.val() == null) {
@@ -154,7 +175,7 @@ export async function EnviarDatos(operacion) {
     }
 
     if (Validarenvio() && bool_peticion) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', accion);
@@ -164,7 +185,7 @@ export async function EnviarDatos(operacion) {
         peticion.append('stock_maximo', stock_maximo);
         peticion.append('stock_minimo', input.stock_minimo.val());
         peticion.append('id_categoria', input.categoria_id.val());
-        peticion.append('id_proveedor', input.proveedor.val());
+
         btn_formulario = true;
       }
     } else {
@@ -176,7 +197,7 @@ export async function EnviarDatos(operacion) {
   if (operacion == "eliminar") {
 
     if (ValidadorHelper.ValidarCampo("ID", input.id_insumo, span.id_insumo)) {
-      confirmacion = await confirmarAccion("Se eliminará un Insumo", mensajeConfirmacion, "warning");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion("Se eliminará un Insumo", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
@@ -203,7 +224,6 @@ export async function EnviarDatos(operacion) {
   if (!confirmacion) {
     modal.boton.prop('disabled', false);
   }
-
   input = null;
   modal = null;
   return json;
@@ -218,15 +238,15 @@ export async function EnviarFormulario(btn_string) {
     'Actualizar': 'modificar',
     'Borrar': 'eliminar'
   }
-  const DEFAULT = null
+  const DEFAULT = null;
 
-  accion = MANEJADOR[btn_string] || DEFAULT
+  accion = MANEJADOR[btn_string] || DEFAULT;
 
   if (accion != null) {
-    respuesta = await EnviarDatos(accion)
+    respuesta = await EnviarDatos(accion);
   } else {
-    respuesta = { resultado: 0 }
-    MensajeriaHelper.GenerarMensaje("danger", 10000, "Error, acción no válida", "")
+    respuesta = { resultado: 0 };
+    MensajeriaHelper.GenerarMensaje("danger", 10000, "Error, acción no válida", "");
   }
   return respuesta;
 };
@@ -246,9 +266,9 @@ export async function CrearSelectProveedores() {
   let datos = new FormData();
   let input = EtiquetasFormulario('input');
   const endpoint = "?page=Proveedor";
-  const mensaje = "Seleccione un Proveedor"
+  const mensaje = "Seleccione un Proveedor";
   let arreglo = [];
-  datos.append("peticion", "consultar")
+  datos.append("peticion", "consultar");
 
   try {
     json = await AjaxHelper.enviaAjax(datos, endpoint);
@@ -273,14 +293,13 @@ export async function CrearSelectUnidadMedida() {
   let input = EtiquetasFormulario('input');
   const endpoint = "?page=Insumo";
   const modulo = "UnidadMedida";
-  const mensaje = "Seleccione una Unidad de Medida"
+  const mensaje = "Seleccione una Unidad de Medida";
   let arreglo = [];
   datos.append("modulo", modulo);
-  datos.append("peticion", "consultar")
+  datos.append("peticion", "consultar");
 
   try {
     json = await AjaxHelper.enviaAjax(datos, endpoint);
-
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       const arrayUnidad = json.datos.map(item => ({
@@ -301,13 +320,12 @@ export async function CrearSelectCategoria() {
   let datos = new FormData();
   let input = EtiquetasFormulario('input');
   const endpoint = "?page=CategoriaInsumo";
-  const mensaje = "Seleccione una Categoría"
+  const mensaje = "Seleccione una Categoría";
   let arreglo = [];
-  datos.append("peticion", "consultar")
+  datos.append("peticion", "consultar");
 
   try {
     json = await AjaxHelper.enviaAjax(datos, endpoint);
-
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       const arrayCategoria = json.datos.map(item => ({
@@ -348,18 +366,53 @@ function KeyUpInsumo() {
   })
 
   $(input.stock_inicial).on("blur", function () {
-    ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
-    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_inicial);
+
+    if (input.unidad_medida.val() != null && input.unidad_medida.val() != "default") {
+      if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+        ValidadorHelper.FormatoNumeroEntero($(this))
+        ValidadorHelper.ValidarCampo("NumeroEntero", $(this), span.stock_inicial);
+      } else {
+        ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+        ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
+      }
+    } else {
+      ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+      ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_inicial);
+    }
+
   })
 
   $(input.stock_minimo).on("blur", function () {
-    ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
-    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_minimo);
+
+    if (input.unidad_medida.val() != null && input.unidad_medida.val() != "default") {
+      if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+        ValidadorHelper.FormatoNumeroEntero($(this))
+        ValidadorHelper.ValidarCampo("NumeroEntero", $(this), span.stock_minimo);
+      } else {
+        ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+        ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
+      }
+    } else {
+      ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+      ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_minimo);
+    }
+
   })
 
   $(input.stock_maximo).on("blur", function () {
-    ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
-    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
+
+    if (input.unidad_medida.val() != null && input.unidad_medida.val() != "default") {
+      if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+        ValidadorHelper.FormatoNumeroEntero($(this))
+        ValidadorHelper.ValidarCampo("NumeroEntero", $(this), span.stock_maximo);
+      } else {
+        ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+        ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
+      }
+    } else {
+      ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+      ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock_maximo);
+    }
   })
 
   $(input.unidad_medida).on("change", function () {
@@ -368,6 +421,15 @@ function KeyUpInsumo() {
       SelectHelper.FeedbackSelect($(this), span.unidad_medida, "Debe seleccionar a una Unidad de Medida", 0)
     } else {
       SelectHelper.FeedbackSelect($(this), span.unidad_medida, "", 1)
+      if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+        ValidadorHelper.FormatoNumeroEntero(input.stock_minimo);
+        ValidadorHelper.FormatoNumeroEntero(input.stock_maximo);
+        ValidadorHelper.FormatoNumeroEntero(input.stock_inicial);
+      } else {
+        ValidadorHelper.FormatoNumeroDecimal(input.stock_minimo, "medida");
+        ValidadorHelper.FormatoNumeroDecimal(input.stock_maximo, "medida");
+        ValidadorHelper.FormatoNumeroDecimal(input.stock_inicial, "medida");
+      }
     }
 
   })
@@ -398,7 +460,7 @@ function Validarenvio() {
   let bool = true;
 
   if (input.proveedor.val() == "default") {
-    SelectHelper.FeedbackSelect($(this), span.proveedor, "Debe selccionar un Tipo de Documento", 0);
+    SelectHelper.FeedbackSelect($(this), span.proveedor, "Debe seleccionar un Tipo de Documento", 0);
     bool = false;
   }
 
@@ -411,10 +473,6 @@ function Validarenvio() {
   if (!ValidadorHelper.ValidarCampo("ID", input.unidad_medida, span.unidad_medida)) {
     bool = false;
   }
-
-  if (!ValidadorHelper.ValidarCampo("FormatoDocumentoLegal", input.proveedor, span.proveedor)) {
-    bool = false;
-  };
 
   if (!ValidadorHelper.ValidarCampo("ID", input.categoria_id, span.categoria_id)) {
     bool = false;
@@ -435,6 +493,12 @@ function Validarenvio() {
     bool = false;
   }
 
+  if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+    if (!ValidadorHelper.ValidarCampo("NumeroEntero", input.stock_minimo, span.stock_minimo)) {
+      bool = false;
+    }
+  }
+
   if (input.categoria_id.val() == "default") {
     SelectHelper.FeedbackSelect(input.categoria_id, span.categoria_id, "Debe Seleccionar una Categoría", 0);
     bool = false;
@@ -450,6 +514,12 @@ function Validarenvio() {
     let stockMaximo = parseFloat(input.stock_maximo.val());
     if (isNaN(stockMinimo)) stockMinimo = 0;
     if (isNaN(stockMaximo)) stockMaximo = 0;
+
+    if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
+      if (!ValidadorHelper.ValidarCampo("NumeroEntero", input.stock_maximo, span.stock_maximo)) {
+        bool = false;
+      }
+    }
 
     if (stockMinimo >= stockMaximo) {
       MensajeriaHelper.FeedbackToltipInput(input.stock_minimo, span.stock_minimo, "El Stock Mínimo debe ser menor al Stock Máximo", 0);
@@ -471,6 +541,8 @@ async function RenderPermisoBotones(modulo = "Insumo") {
   let btn_eliminar = "";
   let btn_modificar = "";
   let btn_suministrar = "";
+  let btn_asociar = "";
+  let btn_movimiento = "";
   let separadorHTML = "";
 
   if (permisos['insumo']['modificar'] != undefined && permisos['insumo']['modificar'] == 1) {
@@ -498,6 +570,32 @@ async function RenderPermisoBotones(modulo = "Insumo") {
     bool = true;
   }
 
+  if (permisos['insumo']['asociar'] != undefined && permisos['insumo']['asociar'] == 1) {
+    const itemAsociar = $('<li>');
+    const linkAsociar = $('<a>')
+      .addClass('dropdown-item btn-asociar text-info')
+      .attr('href', '#')
+      .attr('data-accion', 4)
+      .attr('data-modulo', "Asociar")
+      .html('<i class="bi bi-people me-2"></i>Proveedores Asociados');
+    itemAsociar.append(linkAsociar);
+    btn_asociar = itemAsociar;
+    bool = true;
+  }
+
+  if (permisos['insumo']['ver'] != undefined && permisos['insumo']['ver'] == 1) {
+    const itemMovimiento = $('<li>');
+    const linkMovimiento = $('<a>')
+      .addClass('dropdown-item btn-movimiento text-info')
+      .attr('href', '#')
+      .attr('data-accion', 3)
+      .attr('data-modulo', "Movimiento")
+      .html('<i class="fa-solid fa-up-down me-2"></i>Movimientos');
+    itemMovimiento.append(linkMovimiento);
+    btn_movimiento = itemMovimiento;
+    bool = true;
+  }
+
   if (permisos['insumo']['eliminar'] != undefined && permisos['insumo']['modificar'] == 1) {
     const itemEliminar = $('<li>');
     const linkEliminar = $('<a>')
@@ -511,7 +609,7 @@ async function RenderPermisoBotones(modulo = "Insumo") {
     bool = true;
   }
 
-  if ((btn_modificar != "" || btn_suministrar != "") && btn_eliminar != "") {
+  if ((btn_modificar != "" || btn_suministrar != "" || btn_movimiento != "") && btn_eliminar != "") {
     const separador = $('<li>').html('<hr class="dropdown-divider">');
     separadorHTML = separador;
   }
@@ -525,7 +623,7 @@ async function RenderPermisoBotones(modulo = "Insumo") {
   const menu = $('<ul>').addClass('dropdown-menu');
 
 
-  menu.append(btn_modificar, btn_suministrar, separadorHTML, btn_eliminar);
+  menu.append(btn_modificar, btn_suministrar, btn_asociar, btn_movimiento, separadorHTML, btn_eliminar);
   dropdown.append(boton, menu);
 
   if (!bool) {
@@ -536,6 +634,8 @@ async function RenderPermisoBotones(modulo = "Insumo") {
 
 function RenderConfigStock(stockMinimo, abreviatura, stockMaximo) {
 
+  stockMinimo = ValidadorHelper.FormatearNumeroSinCeros(stockMinimo)
+
   const textMin = $('<span>').addClass('text-danger me-1').text(stockMinimo + " " + abreviatura);
   const textMax = $('<span>').addClass('me-1');
   const strong = $('<strong>')
@@ -544,6 +644,7 @@ function RenderConfigStock(stockMinimo, abreviatura, stockMaximo) {
   let abreviaturaMax = null;
 
   if (stockMaximo != null && !isNaN(parseFloat(stockMaximo)) && isFinite(stockMaximo)) {
+    stockMaximo = ValidadorHelper.FormatearNumeroSinCeros(stockMaximo);
     textMax.text(stockMaximo + " " + abreviatura).addClass('text-success me-1');
     abreviaturaMax = abreviatura;
   } else {
@@ -556,6 +657,8 @@ function RenderConfigStock(stockMinimo, abreviatura, stockMaximo) {
 }
 
 function RenderColorearStock(stockActual, stockMinimo, stockMaximo = null, abreviatura) {
+  stockActual = ValidadorHelper.FormatearNumeroSinCeros(stockActual);
+  stockMinimo = ValidadorHelper.FormatearNumeroSinCeros(stockMinimo);
   const texto = $('<span>');
   const div = $('<div>').addClass('d-flex align-items-center gap-1');
   let color = "";
@@ -576,6 +679,7 @@ function RenderColorearStock(stockActual, stockMinimo, stockMaximo = null, abrev
   }
 
   if (stockMaximo != null && !isNaN(parseFloat(stockMaximo)) && isFinite(stockMaximo)) {
+    stockMaximo = ValidadorHelper.FormatearNumeroSinCeros(stockMaximo);
     if (stockActual == stockMaximo) {
       color = "text-success";
     }
@@ -627,27 +731,26 @@ export async function DataTablePrincipal(arreglo) {
       }
     ],
     order: [[1, 'asc']],
-    language: { url: idiomaTabla }
+    language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' }
   });
 }
 
 export function LimpiarFormulario() {
-  SistemaValidacion.limpiarValidacion(EtiquetasFormulario('input'));
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
   let modal = EtiquetasModal('Insumo');
   let fila_stock_inicial = $("#fila-stock-inicial");
 
-  input.id_insumo.val("").prop("disabled", true);
-  input.nombre.val("").prop("disabled", false);
-  input.costo_unitario.val("").prop("disabled", false);
-  input.unidad_medida.val("default").prop("disabled", false);
-  input.proveedor.val("default").prop("disabled", false);
-  input.categoria_id.val("default").prop("disabled", false);
-  input.stock_inicial.val("").prop("disabled", false);
-  input.stock_maximo.val("").prop("disabled", false);
-  input.stock_minimo.val("").prop("disabled", false);
+  input.id_insumo.val("").prop("disabled", true).removeClass("is-invalid is-valid");;
+  input.nombre.val("").prop("disabled", false).removeClass("is-invalid is-valid");;
+  input.costo_unitario.val("").prop("disabled", false).removeClass("is-invalid is-valid");;
+  input.unidad_medida.val("default").prop("disabled", false).removeClass("is-invalid is-valid");;
+  input.proveedor.val("default").prop("disabled", false).removeClass("is-invalid is-valid d-none");
+  input.categoria_id.val("default").prop("disabled", false).removeClass("is-invalid is-valid");;
+  input.stock_inicial.val("").prop("disabled", false).removeClass("is-invalid is-valid");;
+  input.stock_maximo.val("").prop("disabled", false).removeClass("is-invalid is-valid");;
+  input.stock_minimo.val("").prop("disabled", false).removeClass("is-invalid is-valid");;
 
   fila_stock_inicial.removeClass("d-none");
   // Deshabilitar el botón al limpiar (se habilitará automáticamente cuando los campos sean válidos)
@@ -673,9 +776,11 @@ export async function EditarFormInsumo(datos, accion) {
   input.categoria_id.prop("disabled", bool);
   SelectHelper.BuscarValor(input.unidad_medida, datos.id_unidad_medida, "value")
   SelectHelper.BuscarValor(input.categoria_id, datos.id_categoria, "value")
-  input.stock_inicial.val(datos.stock_actual).prop("disabled", true);
-  input.stock_maximo.val(datos.stock_maximo).prop("disabled", bool);
-  input.stock_minimo.val(datos.stock_minimo).prop("disabled", bool);
+  input.stock_inicial.val(ValidadorHelper.FormatearNumeroSinCeros(datos.stock_actual)).prop("disabled", true);
+  input.stock_maximo.val(ValidadorHelper.FormatearNumeroSinCeros(datos.stock_maximo)).prop("disabled", bool);
+  input.stock_minimo.val(ValidadorHelper.FormatearNumeroSinCeros(datos.stock_minimo)).prop("disabled", bool);
+
+  input.proveedor.val("default").addClass("d-none").prop("disabled", false);
 
   fila_stock_inicial.addClass("d-none")
   modal.boton.prop('disabled', false);

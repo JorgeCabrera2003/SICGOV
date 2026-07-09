@@ -3,8 +3,8 @@ import * as MensajeriaHelper from "./MensajeriaHelper.js";
 export function ValidarCampo(patron, etiqueta, span) {
     let regex = null;
     let bool = false;
-    etiqueta.removeClass("is-valid is-invalid");
-    span.removeClass("valid-tooltip invalid-tooltip")
+    $(etiqueta).removeClass("is-valid is-invalid");
+    $(span).removeClass("valid-tooltip invalid-tooltip")
 
     const REGEX = {
         'Cedula': /^[0-9]{7,15}$/,
@@ -20,7 +20,8 @@ export function ValidarCampo(patron, etiqueta, span) {
         'Correo': /^[a-zA-Z0-9][a-zA-Z0-9._%+-]{1,63}@[a-zA-Z0-9][a-zA-Z0-9.-]{1,50}\.(com|es|mx|co\.uk|org|net)$/,
         'Titulo': /^[0-9a-zA-ZÁÉÍÓÚÜáéíóúüñÑçÇ\s\-.,()!?\"\'%:;]{3,150}$/,
         'Direccion': /^[0-9a-zA-ZÁÉÍÓÚÜáéíóúüñÑçÇ\s\-.,()!?\"\'%:;\/]{10,200}$/,
-        'NumeroDecimal': /^[0-9]+[.]{1}[0-9]{2,8}$/
+        'NumeroDecimal': /^[0-9]+[.]{1}[0-9]{2,8}$/,
+        'NumeroEntero': /^[0-9]{1,11}$/
     };
     const DEFAULT = '';
     regex = REGEX[patron] || DEFAULT;
@@ -68,7 +69,8 @@ export function ValidarTecla(patron, etiqueta) {
         'Correo': /^[a-zA-Z0-9._%+-@]*$/,
         'Titulo': /^[0-9a-zA-ZÁÉÍÓÚÜáéíóúñÑçÇ\s\-.,()!?\"\'%:;]*$/,
         'Direccion': /^[0-9a-zA-ZÁÉÍÓÚÜáéíóúñÑçÇ\s\-.,()!?\"\'%:;\/]*$/,
-        'NumeroDecimal': /^[0-9,]*$/
+        'NumeroDecimal': /^[0-9,]*$/,
+        'NumeroEntero': /^[0-9]*$/
     };
     const DEFAULT = '';
 
@@ -156,44 +158,112 @@ export function FormatoNumeroDecimal(etiqueta, formato = null) {
     let valor = $(etiqueta).val();
     let cantidad_decimales = 0;
 
-    if (formato == "medida"){
+    if (formato == "medida") {
         cantidad_decimales = 3;
     } else {
         cantidad_decimales = 2;
     }
-    
+
     if (valor === '' || valor === null || valor === undefined) {
         return '';
     }
-    
+
     let numeros = valor
-    
+
     if (numeros === '') {
         return '';
     }
-    
+
     // Reemplazar coma por punto temporalmente para trabajar
     let conPunto = numeros.replace(',', '.');
     let numero = parseFloat(conPunto);
-    
+
     if (isNaN(numero)) {
         return '';
     }
-    
+
     // Asegurar 3 decimales
     let resultado = numero.toFixed(cantidad_decimales);
-    
+
     // Separar parte entera y decimal
     let partes = resultado.split('.');
     let parteEntera = partes[0];
     let parteDecimal = partes[1];
-    
+
     // Formatear parte entera con separador de miles
     parteEntera = parseInt(parteEntera, 10).toLocaleString('es-ES');
-    
+
     let final = parteEntera + '.' + parteDecimal;
 
     $(etiqueta).val(final);
-    
+
     return final;
+}
+
+export function FormatoNumeroEntero(etiqueta) {
+    let valor = $(etiqueta).val();
+
+    if (valor === '' || valor === null || valor === undefined) {
+        return '';
+    }
+
+    let limpio = valor.replace(/,/g, '');
+    let parteEntera = limpio.split('.')[0];
+
+    if (!parteEntera) {
+        parteEntera = limpio;
+    }
+
+    parteEntera = parteEntera.replace(/[^0-9]/g, '');
+
+    if (parteEntera === '') {
+        $(etiqueta).val('');
+        return '';
+    }
+
+    let numero = parseInt(parteEntera, 10);
+
+    if (isNaN(numero) || numero === 0) {
+        $(etiqueta).val('0');
+        return '0';
+    }
+
+    let final = numero.toLocaleString('es-ES');
+    $(etiqueta).val(final);
+
+    return final;
+}
+
+export function FormatearNumeroSinCeros(valor) {
+    if (valor === '' || valor === null || valor === undefined) {
+        return '';
+    }
+
+    // Si es 0, devolver "0"
+    if (valor === 0 || valor === '0') {
+        return '0';
+    }
+
+    // Convertir a string
+    let strValor = typeof valor === 'number' ? valor.toString() : String(valor);
+
+    // Si no tiene punto decimal, devolver como está
+    if (!strValor.includes('.')) {
+        return strValor;
+    }
+
+    // Eliminar ceros innecesarios al final
+    let resultado = strValor.replace(/\.?0+$/, '');
+
+    // Si queda un punto al final, eliminarlo
+    if (resultado.endsWith('.')) {
+        resultado = resultado.slice(0, -1);
+    }
+
+    // Si queda vacío o es "-", devolver "0"
+    if (resultado === '' || resultado === '-') {
+        return '0';
+    }
+
+    return resultado;
 }

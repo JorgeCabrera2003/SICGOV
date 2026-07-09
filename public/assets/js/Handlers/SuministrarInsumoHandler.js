@@ -106,19 +106,13 @@ export async function EnviarDatos(operacion) {
   let peticion = new FormData();
   let json = { resultado: 0 };
 
-  peticion.append("modulo", "Suministrar");
+  peticion.append("modulo", "EntradaInsumo");
 
   //Registrar y Modificar
   if (operacion == "suministrar") {
-    let bool_peticion = true;
-    let stock_maximo = input.stock_maximo.val();
 
-    if (input.stock_maximo.val() == "" || input.stock_maximo.val() == null) {
-      stock_maximo = 0;
-    }
-
-    if (Validarenvio() && bool_peticion) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} un Suministrar`, mensajeConfirmacion, "question");
+    if (Validarenvio()) {
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se va a suministrar un insumo`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', "suministrar");
@@ -137,7 +131,7 @@ export async function EnviarDatos(operacion) {
   if (operacion == "suministrar_lote") {
 
     if (ValidadorHelper.ValidarCampo("ID", input.id_insumo, span.id_insumo)) {
-      confirmacion = await confirmarAccion("Se eliminará un Suministrar", mensajeConfirmacion, "warning");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion("Se eliminará un Suministrar", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
@@ -197,9 +191,6 @@ export async function EnviarFormulario(btn_string) {
 export function CapaValidar() {
   KeyPressSuministrar();
   KeyUpSuministrar();
-  CrearSelectProveedores();
-  CrearSelectCategoria();
-  CrearSelectUnidadMedida();
 }
 
 export async function CrearSelectProveedores(id_insumo) {
@@ -210,7 +201,7 @@ export async function CrearSelectProveedores(id_insumo) {
   const modulo = "EntradaInsumo";
   const mensaje = "Seleccione un Proveedor"
   let arreglo = [];
-  datos.append("insumo", id_insumo);
+  datos.append("id_insumo", id_insumo);
   datos.append("modulo", modulo);
   datos.append("peticion", "filtrar");
 
@@ -278,10 +269,8 @@ function KeyUpSuministrar() {
 
   $(input.stock).on("blur", function () {
     ValidadorHelper.FormatoNumeroDecimal($(this));
-    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.costo_unitario);
+    ValidadorHelper.ValidarCampo("NumeroDecimal", $(this), span.stock);
   })
-
-
 
   $(input.unidad_medida).on("change", function () {
 
@@ -310,17 +299,17 @@ function Validarenvio() {
   let span = EtiquetasFormulario("span");
   let bool = true;
 
-  if (input.proveedor.val() == "default") {
-    SelectHelper.FeedbackSelect($(this), span.proveedor, "Debe selccionar un Tipo de Documento", 0);
+  if (input.proveedor.val() == "default" || input.proveedor.val() == "" || input.proveedor.val() == null) {
+    SelectHelper.FeedbackSelect(input.proveedor, span.proveedor, "Debe selccionar un Tipo de Documento", 0);
     bool = false;
   }
 
-    if (input.unidad_medida.val() == "default") {
+    if (input.unidad_medida.val() == "default" || input.unidad_medida.val() == "" || input.unidad_medida.val() == null) {
     SelectHelper.FeedbackSelect(input.unidad_medida, span.unidad_medida, "Debe Seleccionar una Unidad de Medida", 0);
     bool = false;
   }
 
-  if (input.stock == '' || input.stock == null || input.stock == 0) {
+  if (input.stock.val() == '' || input.stock.val() == null || input.stock.val() == 0) {
     MensajeriaHelper.FeedbackToltipInput(input.stock, span.stock, "El stock a suministrar no puede estar en 0", 0)
     bool = false;
   }
@@ -329,17 +318,16 @@ function Validarenvio() {
 }
 
 export function LimpiarFormulario() {
-  SistemaValidacion.limpiarValidacion(EtiquetasFormulario('input'));
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
   let modal = EtiquetasModal('Suministrar');
   let fila_stock_inicial = $("#fila-stock-inicial");
 
-  input.insumo.val("").prop("readOnly", true);
+  input.insumo.val("").prop("readOnly", false);
   input.proveedor.val("default").prop("disabled", false);
   input.stock.val("").prop("disabled", false);
-  input.insumo.prop('dataset').insumo = ""
+  input.insumo.prop('dataset').insumo = "";
   input.unidad_medida.val("default").prop("disabled", false);
 
   // Deshabilitar el botón al limpiar (se habilitará automáticamente cuando los campos sean válidos)
@@ -351,7 +339,6 @@ export function LimpiarFormulario() {
 
 export async function EditarFormSuministrar(datos) {
   LimpiarFormulario();
-  console.log(datos);
   let input = EtiquetasFormulario("input");
   let bool = false;
   let modal = EtiquetasModal("Suministrar")

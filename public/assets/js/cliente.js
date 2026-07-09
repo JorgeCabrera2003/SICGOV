@@ -1,3 +1,9 @@
+import { mensajes, confirmarAccion, buscarSelect } from './Helpers/UIHelper.js';
+import { SistemaValidacion } from './Helpers/ValidationHelper.js';
+import { debounce } from './Helpers/MiscHelper.js';
+import { capitalizarTexto, formatearFecha } from './Helpers/FormatHelper.js';
+import { enviaAjax, registrarEntrada } from './Helpers/AjaxHelper.js';
+
 //MODULO DE CLIENTES
 
 /** Estado global: true si la cédula ya existe en la BD */
@@ -71,13 +77,13 @@ function editarModal(operacion) {
 
   if (operacion == 'registrar') {
     titulo = "Nuevo Cliente"
-    boton = "Nuevo"
+    boton = "Guardar Cliente"
     etiqueta_modal = etiquetasModal("principal");
   }
 
   if (operacion == 'modificar') {
     titulo = "Actualizar Cliente"
-    boton = "Actualizar"
+    boton = "Actualizar Cliente"
     etiqueta_modal = etiquetasModal("principal");
   }
 
@@ -97,36 +103,36 @@ function editarModal(operacion) {
  * Solo se activa en modo 'registrar'; en 'modificar' la cédula no puede cambiar.
  */
 const verificarCedulaDuplicada = debounce(async function (tipoCedula, numCedula) {
-    const input    = etiquetasFormulario('input');
-    const $span    = $('#scedula');
-    const accion   = etiquetasModal('principal').boton.text();
+  const input = etiquetasFormulario('input');
+  const $span = $('#scedula');
+  const accion = etiquetasModal('principal').boton.text();
 
-    // Solo verificar en modo registrar y si la cédula es formalmente válida
-    if (accion !== 'Nuevo') return;
-    if (!tipoCedula || tipoCedula === 'default') return;
-    if (!numCedula || numCedula.length < 7 || numCedula.length > 9) return;
+  // Solo verificar en modo registrar y si la cédula es formalmente válida
+  if (accion !== 'Guardar Cliente') return;
+  if (!tipoCedula || tipoCedula === 'default') return;
+  if (!numCedula || numCedula.length < 7 || numCedula.length > 9) return;
 
-    const cedulaCompleta = tipoCedula + '-' + numCedula;
+  const cedulaCompleta = tipoCedula + '-' + numCedula;
 
-    try {
-        const fd = new FormData();
-        fd.append('peticion', 'verificar_cedula');
-        fd.append('cedula', cedulaCompleta);
+  try {
+    const fd = new FormData();
+    fd.append('peticion', 'verificar_cedula');
+    fd.append('cedula', cedulaCompleta);
 
-        const json = await enviaAjax(fd);
+    const json = await enviaAjax(fd);
 
-        if (json && json.existe) {
-            _cedulaDuplicada = true;
-            input.cedula.addClass('is-invalid').removeClass('is-valid');
-            $span.text(json.mensaje || 'Ya existe un cliente con esta cédula.');
-        } else {
-            _cedulaDuplicada = false;
-        }
-    } catch (e) {
-        _cedulaDuplicada = false;
+    if (json && json.existe) {
+      _cedulaDuplicada = true;
+      input.cedula.addClass('is-invalid').removeClass('is-valid');
+      $span.text(json.mensaje || 'Ya existe un cliente con esta cédula.');
+    } else {
+      _cedulaDuplicada = false;
     }
+  } catch (e) {
+    _cedulaDuplicada = false;
+  }
 
-    validarCamposCliente();
+  validarCamposCliente();
 }, 500);
 
 /**
@@ -135,180 +141,198 @@ const verificarCedulaDuplicada = debounce(async function (tipoCedula, numCedula)
  * habilita o deshabilita el botón según el resultado global.
  */
 function validarCamposCliente() {
-    const input = etiquetasFormulario('input');
-    const modal = etiquetasModal('principal');
-    const accion = modal.boton.text();
-    let formularioValido = true;
+  const input = etiquetasFormulario('input');
+  const modal = etiquetasModal('principal');
+  const accion = modal.boton.text();
+  let formularioValido = true;
 
-    // Helper local para aplicar estilos y mensaje en un span
-    function aplicar($campo, $span, valido, msg) {
-        const val = typeof $campo.val === 'function' ? $campo.val() : '';
-        const tieneValor = val !== '' && val !== 'default' && val !== null;
+  // Helper local para aplicar estilos y mensaje en un span
+  function aplicar($campo, $span, valido, msg) {
+    const val = typeof $campo.val === 'function' ? $campo.val() : '';
+    const tieneValor = val !== '' && val !== 'default' && val !== null;
 
-        if (!tieneValor && !valido) {
-            // Campo obligatorio vacío: mostrar error sólo si fue tocado
-            if ($campo.data('touched')) {
-                $campo.addClass('is-invalid').removeClass('is-valid');
-                $span.addClass('invalid-tooltip d-inline-block');
-                $span.text(msg);
-            } else {
-                $campo.removeClass('is-valid is-invalid');
-                $span.removeClass('invalid-tooltip d-inline-block');
-                $span.text('');
-            }
-        } else if (tieneValor && !valido) {
-            $campo.addClass('is-invalid').removeClass('is-valid');
-            $span.addClass('invalid-tooltip d-inline-block');
-            $span.text(msg);
-        } else if (valido) {
-            // Solo colorear verde si el campo tiene contenido; vacío = sin color
-            if (tieneValor) {
-                $campo.addClass('is-valid').removeClass('is-invalid');
-            } else {
-                $campo.removeClass('is-valid is-invalid');
-            }
-            $span.removeClass('invalid-tooltip d-inline-block');
-            $span.text('');
-        } else {
-            $campo.removeClass('is-valid is-invalid');
-            $span.removeClass('invalid-tooltip d-inline-block');
-            $span.text('');
-        }
-
-        if (!valido) formularioValido = false;
-    }
-
-    // ── Cédula ───────────────────────────────────────────
-    const tipoCedula = input.tipo_doc.val();
-    const numCedula  = input.cedula.val().trim();
-    const $spanCedula = $('#scedula');
-
-    let cedulaValida = false;
-    let msgCedula = '';
-
-    if (!tipoCedula || tipoCedula === 'default') {
-        msgCedula = 'Selecciona el tipo de documento.';
-    } else if (numCedula.length < 7) {
-        msgCedula = 'La cédula debe tener al menos 7 dígitos.';
-    } else if (numCedula.length > 9) {
-        msgCedula = 'La cédula no puede tener más de 9 dígitos.';
-    } else if (!/^\d+$/.test(numCedula)) {
-        msgCedula = 'La cédula solo puede contener números.';
-    } else if (_cedulaDuplicada) {
-        msgCedula = 'Esta cédula ya está registrada.';
+    if (!tieneValor && !valido) {
+      // Campo obligatorio vacío: mostrar error sólo si fue tocado
+      if ($campo.data('touched')) {
+        $campo.addClass('is-invalid').removeClass('is-valid');
+        $span.addClass('invalid-tooltip d-inline-block');
+        $span.text(msg);
+      } else {
+        $campo.removeClass('is-valid is-invalid');
+        $span.removeClass('invalid-tooltip d-inline-block');
+        $span.text('');
+      }
+    } else if (tieneValor && !valido) {
+      $campo.addClass('is-invalid').removeClass('is-valid');
+      $span.addClass('invalid-tooltip d-inline-block');
+      $span.text(msg);
+    } else if (valido) {
+      // Solo colorear verde si el campo tiene contenido; vacío = sin color
+      if (tieneValor) {
+        $campo.addClass('is-valid').removeClass('is-invalid');
+      } else {
+        $campo.removeClass('is-valid is-invalid');
+      }
+      $span.removeClass('invalid-tooltip d-inline-block');
+      $span.text('');
     } else {
-        cedulaValida = true;
+      $campo.removeClass('is-valid is-invalid');
+      $span.removeClass('invalid-tooltip d-inline-block');
+      $span.text('');
     }
 
-    // Para cédula aplicamos sobre el input numérico
-    // (si async ya marcó is-invalid, no sobreescribir con is-valid prematuro)
-    if (!_cedulaDuplicada || !cedulaValida) {
-        if (numCedula !== '' || input.cedula.data('touched')) {
-            input.cedula.addClass(cedulaValida ? 'is-valid' : 'is-invalid')
-                        .removeClass(cedulaValida ? 'is-invalid' : 'is-valid');
-            if (cedulaValida) {
-                $spanCedula.removeClass('invalid-tooltip d-inline-block');
-                $spanCedula.text('');
-            } else {
-                $spanCedula.addClass('invalid-tooltip d-inline-block');
-                $spanCedula.text(msgCedula);
-            }
-        } else {
-            input.cedula.removeClass('is-valid is-invalid');
-            $spanCedula.removeClass('invalid-tooltip d-inline-block');
-            $spanCedula.text('');
-        }
-    }
-    if (!cedulaValida) formularioValido = false;
+    if (!valido) formularioValido = false;
+  }
 
-    // ── Nombre ───────────────────────────────────────────
-    const nombre = input.nombre.val().trim();
-    const nombreValido = nombre.length >= 2;
-    aplicar(input.nombre, $('#snombre'), nombreValido, 'El nombre debe tener al menos 2 caracteres.');
+  // ── Cédula ───────────────────────────────────────────
+  const tipoCedula = input.tipo_doc.val();
+  const numCedula = input.cedula.val().trim();
+  const $spanCedula = $('#scedula');
 
-    // ── Apellido ─────────────────────────────────────────
-    const apellido = input.apellido.val().trim();
-    const apellidoValido = apellido.length >= 2;
-    aplicar(input.apellido, $('#sapellido'), apellidoValido, 'El apellido debe tener al menos 2 caracteres.');
+  let cedulaValida = false;
+  let msgCedula = '';
 
-    // ── Fecha de Nacimiento ─────────────────────────────
-    const fechaNac = input.fecha_nacimiento.val();
-    const fechaValida = fechaNac !== '';
-    aplicar(input.fecha_nacimiento, $('#sfecha_nacimiento'), fechaValida, 'La fecha de nacimiento es obligatoria.');
+  if (!tipoCedula || tipoCedula === 'default') {
+    msgCedula = 'Selecciona el tipo de documento.';
+  } else if (numCedula.length < 7) {
+    msgCedula = 'La cédula debe tener al menos 7 dígitos.';
+  } else if (numCedula.length > 9) {
+    msgCedula = 'La cédula no puede tener más de 9 dígitos.';
+  } else if (!/^\d+$/.test(numCedula)) {
+    msgCedula = 'La cédula solo puede contener números.';
+  } else if (_cedulaDuplicada) {
+    msgCedula = 'Esta cédula ya está registrada.';
+  } else {
+    cedulaValida = true;
+  }
 
-    // ── Teléfono (opcional) ─────────────────────────────
-    const prefijo   = input.prefijo_telefono.val();
-    const numTel    = input.telefono.val().trim();
-    const $spanTel  = $('#stelefono');
-    let telValido   = true;
-    let msgTel      = '';
-
-    if (numTel !== '') {
-        // Si escribió número → prefijo obligatorio
-        if (!prefijo || prefijo === 'default') {
-            telValido = false;
-            msgTel = 'Selecciona el prefijo del teléfono.';
-        } else if (numTel.length !== 7) {
-            telValido = false;
-            msgTel = 'El número de teléfono debe tener exactamente 7 dígitos.';
-        } else if (!/^\d{7}$/.test(numTel)) {
-            telValido = false;
-            msgTel = 'El teléfono solo puede contener números.';
-        }
-    } else if (prefijo && prefijo !== 'default') {
-        // Si seleccionó prefijo pero no escribió número
-        telValido = false;
-        msgTel = 'Ingresa el número de teléfono o retira el prefijo.';
-    }
-
-    if (numTel !== '' || (prefijo && prefijo !== 'default')) {
-        input.telefono.addClass(telValido ? 'is-valid' : 'is-invalid')
-                      .removeClass(telValido ? 'is-invalid' : 'is-valid');
-        if (telValido) {
-            $spanTel.removeClass('invalid-tooltip d-inline-block');
-            $spanTel.text('');
-        } else {
-            $spanTel.addClass('invalid-tooltip d-inline-block');
-            $spanTel.text(msgTel);
-        }
+  // Para cédula aplicamos sobre el input numérico
+  // (si async ya marcó is-invalid, no sobreescribir con is-valid prematuro)
+  if (!_cedulaDuplicada || !cedulaValida) {
+    if (numCedula !== '' || input.cedula.data('touched')) {
+      input.cedula.addClass(cedulaValida ? 'is-valid' : 'is-invalid')
+        .removeClass(cedulaValida ? 'is-invalid' : 'is-valid');
+      if (cedulaValida) {
+        $spanCedula.removeClass('invalid-tooltip d-inline-block');
+        $spanCedula.text('');
+      } else {
+        $spanCedula.addClass('invalid-tooltip d-inline-block');
+        $spanCedula.text(msgCedula);
+      }
     } else {
-        input.telefono.removeClass('is-valid is-invalid');
-        $spanTel.removeClass('invalid-tooltip d-inline-block');
-        $spanTel.text('');
+      input.cedula.removeClass('is-valid is-invalid');
+      $spanCedula.removeClass('invalid-tooltip d-inline-block');
+      $spanCedula.text('');
     }
-    if (!telValido) formularioValido = false;
+  }
+  if (!cedulaValida) formularioValido = false;
 
-    // ── Sexo (obligatorio) ──────────────────────────────
-    const sexoVal   = input.sexo.val();
-    const sexoValido = sexoVal && sexoVal !== 'default';
-    aplicar(input.sexo, $('#ssexo'), sexoValido, 'El sexo es obligatorio.');
+  // ── Nombre ───────────────────────────────────────────
+  const nombre = input.nombre.val().trim();
+  const nombreValido = nombre.length >= 2;
+  aplicar(input.nombre, $('#snombre'), nombreValido, 'El nombre debe tener al menos 2 caracteres.');
 
-    // ── Correo (opcional) ──────────────────────────────
-    const correoVal = input.correo.val().trim();
-    const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const correoValido = correoVal === '' || regexEmail.test(correoVal);
-    aplicar(input.correo, $('#scorreo'), correoValido, 'El formato del correo no es válido.');
+  // ── Apellido ─────────────────────────────────────────
+  const apellido = input.apellido.val().trim();
+  const apellidoValido = apellido.length >= 2;
+  aplicar(input.apellido, $('#sapellido'), apellidoValido, 'El apellido debe tener al menos 2 caracteres.');
 
-    // ── Dirección (obligatoria) ──────────────────────────
-    const dirVal   = input.direccion.val().trim();
-    const dirValida = dirVal.length >= 3;
-    aplicar(input.direccion, $('#sdireccion'), dirValida, 'La dirección debe tener al menos 3 caracteres.');
+  // ── Fecha de Nacimiento ─────────────────────────────
+  const fechaNac = input.fecha_nacimiento.val();
+  const fechaValida = fechaNac !== '';
+  aplicar(input.fecha_nacimiento, $('#sfecha_nacimiento'), fechaValida, 'La fecha de nacimiento es obligatoria.');
 
-    // ── Resultado final ──────────────────────────────────
-    if (accion === 'Borrar') {
-        modal.boton.prop('disabled', !cedulaValida);
+  // ── Teléfono (opcional) ─────────────────────────────
+  const prefijo = input.prefijo_telefono.val();
+  const numTel = input.telefono.val().trim();
+  const $spanTel = $('#stelefono');
+  let telValido = true;
+  let msgTel = '';
+
+  if (numTel !== '') {
+    // Si escribió número → prefijo obligatorio
+    if (!prefijo || prefijo === 'default') {
+      telValido = false;
+      msgTel = 'Selecciona el prefijo del teléfono.';
+    } else if (numTel.length !== 7) {
+      telValido = false;
+      msgTel = 'El número de teléfono debe tener exactamente 7 dígitos.';
+    } else if (!/^\d{7}$/.test(numTel)) {
+      telValido = false;
+      msgTel = 'El teléfono solo puede contener números.';
+    }
+  } else if (prefijo && prefijo !== 'default') {
+    // Si seleccionó prefijo pero no escribió número
+    telValido = false;
+    msgTel = 'Ingresa el número de teléfono o retira el prefijo.';
+  }
+
+  if (numTel !== '' || (prefijo && prefijo !== 'default')) {
+    input.telefono.addClass(telValido ? 'is-valid' : 'is-invalid')
+      .removeClass(telValido ? 'is-invalid' : 'is-valid');
+    if (telValido) {
+      $spanTel.removeClass('invalid-tooltip d-inline-block');
+      $spanTel.text('');
     } else {
-        modal.boton.prop('disabled', !formularioValido);
+      $spanTel.addClass('invalid-tooltip d-inline-block');
+      $spanTel.text(msgTel);
     }
+  } else {
+    input.telefono.removeClass('is-valid is-invalid');
+    $spanTel.removeClass('invalid-tooltip d-inline-block');
+    $spanTel.text('');
+  }
+  if (!telValido) formularioValido = false;
+
+  // ── Sexo (obligatorio) ──────────────────────────────
+  const sexoVal = input.sexo.val();
+  const sexoValido = sexoVal && sexoVal !== 'default';
+  aplicar(input.sexo, $('#ssexo'), sexoValido, 'El sexo es obligatorio.');
+
+  // ── Correo (opcional) ──────────────────────────────
+  const correoVal = input.correo.val().trim();
+  const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const correoValido = correoVal === '' || regexEmail.test(correoVal);
+  aplicar(input.correo, $('#scorreo'), correoValido, 'El formato del correo no es válido.');
+
+  // ── Dirección (obligatoria) ──────────────────────────
+  const dirVal = input.direccion.val().trim();
+  const dirValida = dirVal.length >= 3;
+  aplicar(input.direccion, $('#sdireccion'), dirValida, 'La dirección debe tener al menos 3 caracteres.');
+
+  // ── Resultado final ──────────────────────────────────
+  if (accion === 'Borrar') {
+    modal.boton.prop('disabled', !cedulaValida);
+  } else {
+    modal.boton.prop('disabled', !formularioValido);
+  }
 }
 
 //Función para manejar el cambio de estado del formulario (mantener compatibilidad con SistemaValidacion)
 function manejarCambioEstado(formularioValido) {
-    validarCamposCliente();
+  validarCamposCliente();
 }
 
 $(document).ready(function () {
   crearDataTable();
+
+  // Forzar inicialización de Popper.js en hover con delay para evitar que se cierre por el gap
+  $('#tablaCliente').on('mouseenter', '.dropdown', function () {
+    const $this = $(this);
+    clearTimeout($this.data('hideTimeout'));
+    const toggleBtn = $this.find('.dropdown-toggle')[0];
+    if (toggleBtn) bootstrap.Dropdown.getOrCreateInstance(toggleBtn).show();
+  }).on('mouseleave', '.dropdown', function () {
+    const $this = $(this);
+    const toggleBtn = $this.find('.dropdown-toggle')[0];
+    const hideTimeout = setTimeout(() => {
+      if (toggleBtn) bootstrap.Dropdown.getOrCreateInstance(toggleBtn).hide();
+    }, 150);
+    $this.data('hideTimeout', hideTimeout);
+  }).on('click', '.dropdown-toggle', function (e) {
+    e.stopPropagation();
+    e.preventDefault();
+  });
   registrarEntrada();
   capaValidar();
 
@@ -331,7 +355,7 @@ async function enviarDatos(operacion) {
   let btn_formulario = false;
   let estado_peticion = null;
   let peticion = new FormData();
-  
+
   //Registrar y Modificar
   if (operacion == "registrar" || operacion == "modificar") {
 
@@ -356,9 +380,9 @@ async function enviarDatos(operacion) {
         peticion.append('fecha_nacimiento', input.fecha_nacimiento.val());
         let telefonoFull = "";
         if (input.prefijo_telefono.val() && input.prefijo_telefono.val() !== 'default' && input.telefono.val()) {
-           telefonoFull = input.prefijo_telefono.val() + '-' + input.telefono.val();
+          telefonoFull = input.prefijo_telefono.val() + '-' + input.telefono.val();
         } else {
-           telefonoFull = input.telefono.val() || "";
+          telefonoFull = input.telefono.val() || "";
         }
         peticion.append('telefono', telefonoFull);
         peticion.append('correo', input.correo.val());
@@ -371,7 +395,7 @@ async function enviarDatos(operacion) {
       mensajes("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.");
     }
   } //Fin del Registrar y Modificar
-  
+
   //Eliminar
   if (operacion == "eliminar") {
 
@@ -404,7 +428,7 @@ async function enviarDatos(operacion) {
   if (!confirmacion) {
     modal.boton.prop('disabled', false);
   }
-  
+
   input = null;
   modal = null;
 }
@@ -413,8 +437,8 @@ async function enviarDatos(operacion) {
 $("#btnClienteForm").on("click", async function () {
   let accion = null;
   const MANEJADOR = {
-    'Nuevo': 'registrar',
-    'Actualizar': 'modificar',
+    'Guardar Cliente': 'registrar',
+    'Actualizar Cliente': 'modificar',
     'Borrar': 'eliminar'
   }
   const DEFAULT = null
@@ -429,11 +453,11 @@ $("#btnClienteForm").on("click", async function () {
 });
 
 if ($("#btnNuevoCliente").length) {
-    $("#btnNuevoCliente").on("click", function () {
-        limpia();
-        editarModal("registrar")
-        // El botón se habilita automáticamente mediante el callback cuando los campos sean válidos
-    });
+  $("#btnNuevoCliente").on("click", function () {
+    limpia();
+    editarModal("registrar")
+    // El botón se habilita automáticamente mediante el callback cuando los campos sean válidos
+  });
 }
 
 // Aplicar capitalización automática cuando el modal se muestra
@@ -445,49 +469,49 @@ $('#modalCliente').on('shown.bs.modal', function () {
 });
 
 async function vistaPermiso() {
-    const dropdown = $('<div>').addClass('dropdown');
-    const boton = $('<button>').addClass('btn btn-sm bg-body text-body border dropdown-toggle')
-        .attr('type', 'button')
-        .attr('data-bs-toggle', 'dropdown')
-        .html('<i class="fas fa-ellipsis-v me-2"></i>Acciones');
+  const dropdown = $('<div>').addClass('dropdown d-inline-block');
+  const boton = $('<button>').addClass('btn btn-sm bg-body text-body border dropdown-toggle')
+    .attr('type', 'button')
+    .attr('data-bs-toggle', 'dropdown')
+    .html('<i class="fas fa-ellipsis-v me-2"></i>Acciones');
 
-    const menu = $('<ul>').addClass('dropdown-menu dropdown-menu-end');
+  const menu = $('<ul>').addClass('dropdown-menu dropdown-menu-end');
 
-    const itemConsultar = $('<li>');
-    const linkConsultar = $('<a>')
-        .addClass('dropdown-item text-info')
-        .attr('href', '#')
-        .attr('onclick', 'consultarFila(this)')
-        .html('<i class="fa-solid fa-eye me-2"></i>Consultar');
-    itemConsultar.append(linkConsultar);
+  const itemConsultar = $('<li>');
+  const linkConsultar = $('<a>')
+    .addClass('dropdown-item text-info')
+    .attr('href', '#')
+    .attr('onclick', 'consultarFila(this)')
+    .html('<i class="fa-solid fa-eye me-2"></i>Consultar');
+  itemConsultar.append(linkConsultar);
 
-    menu.append(itemConsultar);
+  menu.append(itemConsultar);
 
-    if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.cliente && permisosDB.cliente.modificar == 1) {
-        const itemEditar = $('<li>');
-        const linkEditar = $('<a>')
-            .addClass('dropdown-item text-primary')
-            .attr('href', '#')
-            .attr('onclick', 'rellenar(this, 0)')
-            .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
-        itemEditar.append(linkEditar);
-        menu.append(itemEditar);
-    }
+  if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.cliente && permisosDB.cliente.modificar == 1) {
+    const itemEditar = $('<li>');
+    const linkEditar = $('<a>')
+      .addClass('dropdown-item text-primary')
+      .attr('href', '#')
+      .attr('onclick', 'rellenar(this, 0)')
+      .html('<i class="fa-solid fa-pen-to-square me-2"></i>Editar');
+    itemEditar.append(linkEditar);
+    menu.append(itemEditar);
+  }
 
-    if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.cliente && permisosDB.cliente.eliminar == 1) {
-        const separador = $('<li>').html('<hr class="dropdown-divider">');
-        const itemEliminar = $('<li>');
-        const linkEliminar = $('<a>')
-            .addClass('dropdown-item text-danger')
-            .attr('href', '#')
-            .attr('onclick', 'eliminarClienteDirecto(this)')
-            .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
-        itemEliminar.append(linkEliminar);
-        menu.append(separador, itemEliminar);
-    }
-    dropdown.append(boton, menu);
+  if (typeof permisosDB !== 'undefined' && permisosDB && permisosDB.cliente && permisosDB.cliente.eliminar == 1) {
+    const separador = $('<li>').html('<hr class="dropdown-divider">');
+    const itemEliminar = $('<li>');
+    const linkEliminar = $('<a>')
+      .addClass('dropdown-item text-danger')
+      .attr('href', '#')
+      .attr('onclick', 'eliminarClienteDirecto(this)')
+      .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
+    itemEliminar.append(linkEliminar);
+    menu.append(separador, itemEliminar);
+  }
+  dropdown.append(boton, menu);
 
-    return dropdown.prop('outerHTML');
+  return dropdown.prop('outerHTML');
 }
 
 function capaValidar() {
@@ -495,76 +519,76 @@ function capaValidar() {
 
   // Marcar como tocado y validar al interactuar
   function marcarYValidar() {
-      $(this).data('touched', true);
-      validarCamposCliente();
+    $(this).data('touched', true);
+    validarCamposCliente();
   }
 
   // Bloqueo de teclas
   input.cedula.on('keypress', function (e) {
-      validarKeyPress(/^[0-9]*$/, e);
+    validarKeyPress(/^[0-9]*$/, e);
   });
   input.nombre.on('keypress', function (e) {
-      validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/, e);
+    validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/, e);
   });
   input.apellido.on('keypress', function (e) {
-      validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/, e);
+    validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/, e);
   });
   input.telefono.on('keypress', function (e) {
-      validarKeyPress(/^[0-9\b]*$/, e);
+    validarKeyPress(/^[0-9\b]*$/, e);
   });
 
   // Capitalización automática de primera letra
   input.nombre.on('input', function () {
-      const valor = $(this).val();
-      if (valor.length === 1) $(this).val(valor.toUpperCase());
-      marcarYValidar.call(this);
+    const valor = $(this).val();
+    if (valor.length === 1) $(this).val(valor.toUpperCase());
+    marcarYValidar.call(this);
   });
   input.apellido.on('input', function () {
-      const valor = $(this).val();
-      if (valor.length === 1) $(this).val(valor.toUpperCase());
-      marcarYValidar.call(this);
+    const valor = $(this).val();
+    if (valor.length === 1) $(this).val(valor.toUpperCase());
+    marcarYValidar.call(this);
   });
 
   // Inputs que solo disparan validación
   input.cedula.on('input', function () {
-      $(this).data('touched', true);
-      // Resetear estado duplicado al cambiar el número
-      _cedulaDuplicada = false;
-      validarCamposCliente();
-      // Disparar verificación async
-      const tipo = input.tipo_doc.val();
-      verificarCedulaDuplicada(tipo, $(this).val().trim());
+    $(this).data('touched', true);
+    // Resetear estado duplicado al cambiar el número
+    _cedulaDuplicada = false;
+    validarCamposCliente();
+    // Disparar verificación async
+    const tipo = input.tipo_doc.val();
+    verificarCedulaDuplicada(tipo, $(this).val().trim());
   });
   input.fecha_nacimiento.on('change', marcarYValidar);
-  input.telefono.on('input', function() {
-      if ($(this).val().trim() === '') {
-          input.prefijo_telefono.val('default');
-          input.prefijo_telefono.removeClass('is-valid is-invalid');
-      }
-      marcarYValidar.call(this);
+  input.telefono.on('input', function () {
+    if ($(this).val().trim() === '') {
+      input.prefijo_telefono.val('default');
+      input.prefijo_telefono.removeClass('is-valid is-invalid');
+    }
+    marcarYValidar.call(this);
   });
   input.correo.on('input', marcarYValidar);
   input.direccion.on('input', marcarYValidar);
 
   // Selects: marcar tocados y revalidar al cambiar
   input.tipo_doc.on('change', function () {
-      $(this).data('touched', true);
-      input.cedula.data('touched', true);
-      // Resetear duplicado al cambiar el tipo
-      _cedulaDuplicada = false;
-      validarCamposCliente();
-      // Disparar verificación async con el nuevo tipo
-      const num = input.cedula.val().trim();
-      verificarCedulaDuplicada($(this).val(), num);
+    $(this).data('touched', true);
+    input.cedula.data('touched', true);
+    // Resetear duplicado al cambiar el tipo
+    _cedulaDuplicada = false;
+    validarCamposCliente();
+    // Disparar verificación async con el nuevo tipo
+    const num = input.cedula.val().trim();
+    verificarCedulaDuplicada($(this).val(), num);
   });
   input.prefijo_telefono.on('change', function () {
-      $(this).data('touched', true);
-      input.telefono.data('touched', true);
-      validarCamposCliente();
+    $(this).data('touched', true);
+    input.telefono.data('touched', true);
+    validarCamposCliente();
   });
   input.sexo.on('change', function () {
-      $(this).data('touched', true);
-      validarCamposCliente();
+    $(this).data('touched', true);
+    validarCamposCliente();
   });
 }
 
@@ -600,13 +624,13 @@ async function crearDataTable() {
     processing: true,
     data: arreglo,
     columns: [
-      { 
+      {
         data: 'cedula',
         render: function (data, type) {
           if (!data) return data;
           let formatted = data;
           if (data.indexOf('-') === -1 && data.length > 1) {
-              formatted = data.charAt(0) + '-' + data.slice(1);
+            formatted = data.charAt(0) + '-' + data.slice(1);
           }
           if (type === 'display') return formatted;
           if (type === 'filter') return data + ' ' + formatted;
@@ -615,7 +639,7 @@ async function crearDataTable() {
       },
       { data: 'nombre' },
       { data: 'apellido' },
-      { 
+      {
         data: 'telefono',
         render: function (data, type) {
           if (!data || data.trim() === '') {
@@ -623,19 +647,19 @@ async function crearDataTable() {
           }
           let formatted = data;
           if (data.indexOf('-') === -1 && data.length >= 5) {
-             formatted = data.substring(0, 4) + '-' + data.substring(4);
+            formatted = data.substring(0, 4) + '-' + data.substring(4);
           }
           if (type === 'display') return formatted;
           if (type === 'filter') return data + ' ' + formatted;
           return data;
         }
       },
-      { 
+      {
         data: 'fecha_nacimiento',
-        render: function(data) {
+        render: function (data) {
           if (!data) return "N/A";
           const partes = data.split("-");
-          if(partes.length !== 3) return "N/A";
+          if (partes.length !== 3) return "N/A";
           const fn = new Date(partes[0], partes[1] - 1, partes[2]);
           const hoy = new Date();
           let edad = hoy.getFullYear() - fn.getFullYear();
@@ -655,7 +679,7 @@ async function crearDataTable() {
       }
     ],
     order: [[0, 'desc']],
-    language: { url: idiomaTabla }
+    language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' }
   });
 }
 
@@ -677,14 +701,14 @@ function limpia() {
 
   // Resetear estado visual de validación y flags 'touched'
   Object.values(input).forEach(function ($el) {
-      if ($el && typeof $el.removeClass === 'function') {
-          $el.removeClass('is-valid is-invalid').removeData('touched');
-      }
+    if ($el && typeof $el.removeClass === 'function') {
+      $el.removeClass('is-valid is-invalid').removeData('touched');
+    }
   });
   // Limpiar solo los spans de feedback del formulario de clientes
   $('#scedula, #snombre, #sapellido, #sfecha_nacimiento, #stelefono, #ssexo, #scorreo, #sdireccion')
-      .removeClass('invalid-tooltip d-inline-block')
-      .text('');
+    .removeClass('invalid-tooltip d-inline-block')
+    .text('');
 
   // Deshabilitar el botón al limpiar
   $('#btnClienteForm').prop('disabled', true);
@@ -708,17 +732,17 @@ function rellenar(pos, accion) {
   input.apellido.val(capitalizarTexto(datosFila.apellido));
   input.fecha_nacimiento.val(datosFila.fecha_nacimiento);
   if (datosFila.telefono) {
-     let telLimpio = datosFila.telefono.replace('-', '');
-     if (telLimpio.length === 11) {
-         buscarSelect(input.prefijo_telefono, telLimpio.substring(0, 4), "value");
-         input.telefono.val(telLimpio.substring(4));
-     } else {
-         input.prefijo_telefono.val("default");
-         input.telefono.val(datosFila.telefono);
-     }
+    let telLimpio = datosFila.telefono.replace('-', '');
+    if (telLimpio.length === 11) {
+      buscarSelect(input.prefijo_telefono, telLimpio.substring(0, 4), "value");
+      input.telefono.val(telLimpio.substring(4));
+    } else {
+      input.prefijo_telefono.val("default");
+      input.telefono.val(datosFila.telefono);
+    }
   } else {
-     input.prefijo_telefono.val("default");
-     input.telefono.val("");
+    input.prefijo_telefono.val("default");
+    input.telefono.val("");
   }
   input.correo.val(datosFila.correo);
   input.direccion.val(datosFila.direccion);
@@ -747,35 +771,35 @@ function rellenar(pos, accion) {
 
 // Función exclusiva para Eliminar Cliente directamente sin Modal
 async function eliminarClienteDirecto(pos) {
-    const linea = $(pos).closest('tr');
-    const tabla = $('#tablaCliente').DataTable();
-    const datosFila = tabla.row(linea).data();
-    
-    let confirmacion = await confirmarAccion(`Se eliminará al Cliente`, "¿Está seguro de realizar la acción?", "warning");
-    
-    if (confirmacion) {
-        let peticionData = new FormData();
-        peticionData.append('peticion', 'eliminar');
-        
-        let cedulaFormateada = datosFila.cedula;
-        if(cedulaFormateada && cedulaFormateada.indexOf('-') === -1 && cedulaFormateada.length > 1) {
-             cedulaFormateada = cedulaFormateada.charAt(0) + '-' + cedulaFormateada.slice(1);
-        }
-        peticionData.append('cedula', cedulaFormateada);
-        
-        try {
-            let json = await enviaAjax(peticionData);
+  const linea = $(pos).closest('tr');
+  const tabla = $('#tablaCliente').DataTable();
+  const datosFila = tabla.row(linea).data();
 
-            if (json.resultado >= 200 && json.resultado < 300) {
-                crearDataTable();
-                mensajes("success", 3000, "Éxito", json.mensaje);
-            } else {
-                mensajes("error", 5000, "Error", json.mensaje || "Ocurrió un error inesperado.");
-            }
-        } catch (error) {
-            mensajes("error", 5000, "Error", "Error de comunicación con el servidor.");
-        }
+  let confirmacion = await confirmarAccion(`Se eliminará al Cliente`, "¿Está seguro de realizar la acción?", "warning");
+
+  if (confirmacion) {
+    let peticionData = new FormData();
+    peticionData.append('peticion', 'eliminar');
+
+    let cedulaFormateada = datosFila.cedula;
+    if (cedulaFormateada && cedulaFormateada.indexOf('-') === -1 && cedulaFormateada.length > 1) {
+      cedulaFormateada = cedulaFormateada.charAt(0) + '-' + cedulaFormateada.slice(1);
     }
+    peticionData.append('cedula', cedulaFormateada);
+
+    try {
+      let json = await enviaAjax(peticionData);
+
+      if (json.resultado >= 200 && json.resultado < 300) {
+        crearDataTable();
+        mensajes("success", 3000, "Éxito", json.mensaje);
+      } else {
+        mensajes("error", 5000, "Error", json.mensaje || "Ocurrió un error inesperado.");
+      }
+    } catch (error) {
+      mensajes("error", 5000, "Error", "Error de comunicación con el servidor.");
+    }
+  }
 }
 
 function consultarFila(pos) {
@@ -787,7 +811,7 @@ function consultarFila(pos) {
   let edadTexto = "N/A";
   if (datosFila.fecha_nacimiento) {
     const partes = datosFila.fecha_nacimiento.split("-");
-    if(partes.length === 3) {
+    if (partes.length === 3) {
       const fn = new Date(partes[0], partes[1] - 1, partes[2]);
       const hoy = new Date();
       let edad = hoy.getFullYear() - fn.getFullYear();
@@ -800,13 +824,13 @@ function consultarFila(pos) {
   }
 
   let cedulaFormateada = datosFila.cedula;
-  if(cedulaFormateada && cedulaFormateada.indexOf('-') === -1 && cedulaFormateada.length > 1) {
-     cedulaFormateada = cedulaFormateada.charAt(0) + '-' + cedulaFormateada.slice(1);
+  if (cedulaFormateada && cedulaFormateada.indexOf('-') === -1 && cedulaFormateada.length > 1) {
+    cedulaFormateada = cedulaFormateada.charAt(0) + '-' + cedulaFormateada.slice(1);
   }
-  
+
   let telefonoFormateado = datosFila.telefono;
-  if(telefonoFormateado && telefonoFormateado.indexOf('-') === -1 && telefonoFormateado.length >= 5) {
-     telefonoFormateado = telefonoFormateado.substring(0, 4) + '-' + telefonoFormateado.substring(4);
+  if (telefonoFormateado && telefonoFormateado.indexOf('-') === -1 && telefonoFormateado.length >= 5) {
+    telefonoFormateado = telefonoFormateado.substring(0, 4) + '-' + telefonoFormateado.substring(4);
   }
 
   let sexoTxt = datosFila.sexo === 'M' ? 'Masculino' : (datosFila.sexo === 'F' ? 'Femenino' : 'No especificado');
@@ -842,3 +866,8 @@ function consultarFila(pos) {
 
   $('#modalConsultarCliente').modal('show');
 }
+
+// Exponer funciones al scope global
+window.consultarFila = consultarFila;
+window.rellenar = rellenar;
+window.eliminarClienteDirecto = eliminarClienteDirecto;
