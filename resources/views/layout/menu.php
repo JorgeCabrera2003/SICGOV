@@ -217,14 +217,14 @@
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Gestión del Personal</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Asistencia', 'Cargo', 'Empleado']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Asistencia', 'Cargo', 'Empleado', 'Turno', 'Horario']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#personal-submenu" role="button"
                     data-bs-tooltip-title="Equipo y Horario" title="Equipo y Horario">
                     <i class="bi bi-people fs-5"></i>
                     <span class="flex-grow-1">Equipo y Horario</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['Asistencia', 'Cargo', 'Empleado']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo in_array($page, ['Asistencia', 'Cargo', 'Empleado', 'Turno', 'Horario']) ? 'show' : ''; ?>"
                     id="personal-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
                         <?php if (isset($permisosGlobales['empleado']['ver']) && $permisosGlobales['empleado']['ver'] == 1) { ?>
@@ -245,12 +245,18 @@
                                 <i class="bi bi-journal-text me-2"></i>Cargos
                             </a>
                         <?php }
-                        // Enlace a Turnos (sin control de permisos por ahora)
-                        ?>
-                        <a href="?page=Turno" class="nav-link <?php echo ($page == 'Turno') ? 'active' : ''; ?> py-1">
-                            <i class="bi bi-clock me-2"></i>Turnos
-                        </a>
-                        <?php
+                        if (isset($permisosGlobales['turno']['ver']) && $permisosGlobales['turno']['ver'] == 1) {
+                            ?>
+                            <a href="?page=Turno" class="nav-link <?php echo ($page == 'Turno') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-clock me-2"></i>Turnos
+                            </a>
+                        <?php }
+                        if (isset($permisosGlobales['horario']['ver']) && $permisosGlobales['horario']['ver'] == 1) {
+                            ?>
+                            <a href="?page=Horario" class="nav-link <?php echo ($page == 'Horario') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-calendar3 me-2"></i>Horario
+                            </a>
+                        <?php }
                         if (isset($permisosGlobales['tipo_permiso']['ver']) && $permisosGlobales['tipo_permiso']['ver'] == 1) {
                             ?>
                             <a href="?page=TipoPermiso"
