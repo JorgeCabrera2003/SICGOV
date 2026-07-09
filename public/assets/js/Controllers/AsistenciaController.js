@@ -1,5 +1,6 @@
 import * as asistencia from "../Handlers/AsistenciaHandler.js";
 import * as AjaxHelper from "../Helpers/AjaxHelper.js";
+import { mensajes } from "../Helpers/UIHelper.js";
 
 const ENDPOINT = BASE_URL + '?page=asistencia';
 let activeAsistenciaView = 'historico';

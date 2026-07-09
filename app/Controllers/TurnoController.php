@@ -4,11 +4,13 @@ namespace App\Controllers;
 
 use App\Helpers\Helper;
 use App\Models\System\Turno;
+use App\Models\System\PlanificadorTurno;
 use Exception;
 
 Helper::verificarSesion();
 
 $turnoModel = new Turno();
+$planModel = new PlanificadorTurno();
 
 if (isset($_POST["modulo"]) && $_POST["modulo"] == "Turno") {
     if (isset($_POST["peticion"])) {
@@ -45,6 +47,48 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Turno") {
         // Consultar
         if ($_POST["peticion"] == "consultar") {
             $json = $turnoModel->Transaccion(['peticion' => $_POST["peticion"]]);
+        }
+
+        // Planificador (turnos asignados)
+        if ($_POST["peticion"] == "planificador_consultar") {
+            // opcional: recibir fecha
+            $fecha = $_POST['fecha'] ?? date('Y-m-d');
+            $planModel->setFecha($fecha);
+            $json = $planModel->Transaccion(['peticion' => 'consultar']);
+        }
+
+        if ($_POST["peticion"] == "planificador_registrar") {
+            $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+            try {
+                $planModel->setCedulaEmpleado($_POST['cedula_empleado'] ?? '');
+                $planModel->setIdTurno($_POST['id_turno'] ?? '');
+                $planModel->setFecha($_POST['fecha'] ?? date('Y-m-d'));
+                $json = $planModel->Transaccion(['peticion' => 'registrar']);
+            } catch (Exception $e) {
+                $json['response'] = ['resultado' => 400, 'mensaje' => $e->getMessage()];
+            }
+        }
+
+        if ($_POST["peticion"] == "planificador_modificar") {
+            $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+            try {
+                $planModel->setIdPlanificadorTurno($_POST['id_planificador_turno'] ?? '');
+                $planModel->setIdTurno($_POST['id_turno'] ?? '');
+                $planModel->setFecha($_POST['fecha'] ?? date('Y-m-d'));
+                $json = $planModel->Transaccion(['peticion' => 'modificar']);
+            } catch (Exception $e) {
+                $json['response'] = ['resultado' => 400, 'mensaje' => $e->getMessage()];
+            }
+        }
+
+        if ($_POST["peticion"] == "planificador_eliminar") {
+            $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+            try {
+                $planModel->setIdPlanificadorTurno($_POST['id_planificador_turno'] ?? '');
+                $json = $planModel->Transaccion(['peticion' => 'eliminar']);
+            } catch (Exception $e) {
+                $json['response'] = ['resultado' => 400, 'mensaje' => $e->getMessage()];
+            }
         }
 
         // Eliminar (lógico)

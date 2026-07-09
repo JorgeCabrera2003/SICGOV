@@ -124,6 +124,7 @@ export function DataTablePrincipal(arreglo) {
       '<ul class="dropdown-menu"><li><a class="dropdown-item btn-editar text-primary" href="#" data-accion="modificar"><i class="fas fa-edit me-2"></i>Editar</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item btn-eliminar text-danger" href="#" data-accion="eliminar"><i class="fas fa-trash me-2"></i>Eliminar</a></li></ul></div>';
   }
 
+  const idiomaUrl = window.idiomaTabla || '../../DataTables/espanol.json';
   $('#tablaTurno').DataTable({
     processing: true,
     data: arreglo,
@@ -136,7 +137,7 @@ export function DataTablePrincipal(arreglo) {
       { data: null, orderable: false, searchable: false, render: function () { return botonesAccion(); } }
     ],
     order: [[0, 'asc']],
-    language: { url: idiomaTabla }
+    language: { url: idiomaUrl }
   });
 }
 

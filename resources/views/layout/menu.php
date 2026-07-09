@@ -258,6 +258,13 @@
                                 <i class="bi bi-journal-text me-2"></i>Tipos de Permisos
                             </a>
                         <?php }
+                        if (isset($permisos['permiso_laboral']['ver']) && $permisos['permiso_laboral']['ver'] == 1) {
+                            ?>
+                            <a href="?page=PermisoLaboral"
+                                class="nav-link <?php echo ($page == 'PermisoLaboral') ? 'active' : ''; ?> py-1">
+                                <i class="bi bi-calendar-minus me-2"></i>Permisos Laborales
+                            </a>
+                        <?php }
                         ?>
                     </div>
                 </div>
