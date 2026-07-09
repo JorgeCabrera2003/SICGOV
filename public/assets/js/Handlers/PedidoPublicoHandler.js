@@ -36,9 +36,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Añadir al Carrito
-    document.getElementById('btn-add-to-cart').addEventListener('click', () => {
-        addToCart();
-        modalPersonalizar.hide();
+    document.getElementById('btn-add-to-cart').addEventListener('click', async () => {
+        const btn = document.getElementById('btn-add-to-cart');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Añadiendo...';
+        
+        const added = await addToCart();
+        
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-shopping-cart me-2"></i> Añadir a la Orden';
+        
+        if (added) {
+            modalPersonalizar.hide();
+        }
     });
 
     // Abrir Checkout
@@ -163,8 +173,35 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('modal-total-price-btn').textContent = `$${total.toFixed(2)}`;
     }
 
-    function addToCart() {
+    async function addToCart() {
         let qty = parseInt(qtyInput.value) || 1;
+        
+        let cantidadEnCarrito = 0;
+        cart.forEach(item => {
+            if (item.id_producto === currentProduct.id_producto) {
+                cantidadEnCarrito += item.cantidad;
+            }
+        });
+        const cantidadAVerificar = cantidadEnCarrito + qty;
+
+        try {
+            const formData = new FormData();
+            formData.append('action', 'verificar_stock');
+            formData.append('id_producto', currentProduct.id_producto);
+            formData.append('cantidad', cantidadAVerificar);
+            
+            const res = await fetch('?page=PedidoPublico', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            if (!data.success) {
+                alert(`Stock insuficiente:\n${data.message}\nStock disponible: ${data.stock_disponible || 0}`);
+                return false;
+            }
+        } catch (error) {
+            console.error('Error verificando stock:', error);
+            alert('No se pudo verificar el stock del producto.');
+            return false;
+        }
         
         let removedPrincipales = [];
         document.querySelectorAll('.principal-check:not(:checked)').forEach(chk => {
@@ -200,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         saveCart();
         renderCart();
+        return true;
     }
 
     function saveCart() {
