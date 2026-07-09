@@ -312,6 +312,20 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
         $tipoPedido = $datosCliente['tipo_pedido'] ?? 'LLEVAR';
         $idMesa = !empty($datosCliente['id_mesa']) ? $datosCliente['id_mesa'] : null;
 
+        // Validar que la mesa exista si fue seleccionada
+        if ($idMesa) {
+            $stmtMesa = $this->dbBusiness->prepare("SELECT id_mesa, estado FROM mesa WHERE id_mesa = ?");
+            $stmtMesa->execute([$idMesa]);
+            $mesaData = $stmtMesa->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$mesaData) {
+                throw new Exception("La mesa seleccionada no existe en la base de datos. Por favor, selecciona una mesa válida.");
+            }
+            if ($mesaData['estado'] !== 'DISPONIBLE') {
+                throw new Exception("La mesa seleccionada no está disponible en este momento.");
+            }
+        }
+
         // Si es SuperUsuario, pasar NULL para evitar la llave foránea
         $cedulaEmpleadoFinal = $esAdmin ? null : $cedulaEmpleado;
 
@@ -483,14 +497,20 @@ private function descontarInsumosPedido($id_pedido)
         error_log("=== descontarInsumosPedido ===");
         error_log("ID Pedido: $id_pedido");
         
+        $unidadMedida = new \App\Models\System\UnidadMedida();
+
         // Obtener todos los productos del pedido con sus detalles
         $sql = "SELECT dp.id_producto, dp.cantidad, dp.indicacion,
                        p.id_preparacion, p.id_insumo, p.cantidad as cantidad_insumo,
-                       i.stock_actual, i.nombre_insumo
+                       i.stock_actual, i.nombre_insumo,
+                       up.abreviatura as abrev_req,
+                       ui.abreviatura as abrev_stock
                 FROM detalle_pedido dp
                 JOIN producto pr ON dp.id_producto = pr.id_producto
                 JOIN preparacion p ON pr.id_producto = p.id_producto
                 JOIN insumo i ON p.id_insumo = i.id_insumo
+                LEFT JOIN unidad_medida up ON p.id_unidad_medida = up.id_unidad
+                LEFT JOIN unidad_medida ui ON i.id_unidad_medida = ui.id_unidad
                 WHERE dp.id_pedido = ? AND p.prioridad_insumo = 1";
         
         $stmt = $this->dbBusiness->prepare($sql);
@@ -505,11 +525,15 @@ private function descontarInsumosPedido($id_pedido)
             // Si no hay insumos con prioridad=1, intentar con todos los insumos
             $sql2 = "SELECT dp.id_producto, dp.cantidad,
                             p.id_insumo, p.cantidad as cantidad_insumo,
-                            i.stock_actual, i.nombre_insumo
+                            i.stock_actual, i.nombre_insumo,
+                            up.abreviatura as abrev_req,
+                            ui.abreviatura as abrev_stock
                      FROM detalle_pedido dp
                      JOIN producto pr ON dp.id_producto = pr.id_producto
                      JOIN preparacion p ON pr.id_producto = p.id_producto
                      JOIN insumo i ON p.id_insumo = i.id_insumo
+                     LEFT JOIN unidad_medida up ON p.id_unidad_medida = up.id_unidad
+                     LEFT JOIN unidad_medida ui ON i.id_unidad_medida = ui.id_unidad
                      WHERE dp.id_pedido = ?";
             
             $stmt2 = $this->dbBusiness->prepare($sql2);
@@ -523,27 +547,43 @@ private function descontarInsumosPedido($id_pedido)
             }
         }
         
+        $insumosAprocesar = [];
+
         // Verificar stock suficiente
         foreach ($insumos as $item) {
-            $stockNecesario = $item['cantidad'] * $item['cantidad_insumo'];
-            error_log("Insumo: {$item['nombre_insumo']}, Stock actual: {$item['stock_actual']}, Necesario: $stockNecesario");
+            $reqTotal = $item['cantidad'] * $item['cantidad_insumo'];
+            $abrevReq = strtolower($item['abrev_req'] ?? 'u');
+            $abrevStock = strtolower($item['abrev_stock'] ?? 'u');
+
+            try {
+                $reqEnUnidadStock = $unidadMedida->TablaConversion($reqTotal, 0, $abrevReq, $abrevStock, 'sumar');
+            } catch (\Exception $e) {
+                return ['success' => false, 'message' => "Error de conversión para {$item['nombre_insumo']}: " . $e->getMessage()];
+            }
+
+            error_log("Insumo: {$item['nombre_insumo']}, Stock actual: {$item['stock_actual']}, Necesario (en {$abrevStock}): $reqEnUnidadStock");
             
-            if ($item['stock_actual'] < $stockNecesario) {
+            if ($item['stock_actual'] < $reqEnUnidadStock) {
                 return [
                     'success' => false, 
                     'message' => "Stock insuficiente para el insumo: {$item['nombre_insumo']}"
                 ];
             }
+
+            $insumosAprocesar[] = [
+                'id_insumo' => $item['id_insumo'],
+                'cantidad_descontar' => $reqEnUnidadStock,
+                'nombre_insumo' => $item['nombre_insumo']
+            ];
         }
         
         // Descontar insumos
         $sqlUpdate = "UPDATE insumo SET stock_actual = stock_actual - ? WHERE id_insumo = ?";
         $stmtUpdate = $this->dbBusiness->prepare($sqlUpdate);
         
-        foreach ($insumos as $item) {
-            $stockNecesario = $item['cantidad'] * $item['cantidad_insumo'];
-            $stmtUpdate->execute([$stockNecesario, $item['id_insumo']]);
-            error_log("Descontado: {$item['nombre_insumo']} - $stockNecesario unidades");
+        foreach ($insumosAprocesar as $item) {
+            $stmtUpdate->execute([$item['cantidad_descontar'], $item['id_insumo']]);
+            error_log("Descontado: {$item['nombre_insumo']} - {$item['cantidad_descontar']} unidades");
         }
         
         return ['success' => true, 'message' => 'Insumos descontados correctamente'];
@@ -560,11 +600,18 @@ private function descontarInsumosPedido($id_pedido)
 private function restaurarInsumosPedido($id_pedido)
 {
     try {
+        $unidadMedida = new \App\Models\System\UnidadMedida();
+
         $sql = "SELECT dp.id_producto, dp.cantidad,
-                       p.id_insumo, p.cantidad as cantidad_insumo
+                       p.id_insumo, p.cantidad as cantidad_insumo,
+                       up.abreviatura as abrev_req,
+                       ui.abreviatura as abrev_stock
                 FROM detalle_pedido dp
                 JOIN producto pr ON dp.id_producto = pr.id_producto
                 JOIN preparacion p ON pr.id_producto = p.id_producto
+                JOIN insumo i ON p.id_insumo = i.id_insumo
+                LEFT JOIN unidad_medida up ON p.id_unidad_medida = up.id_unidad
+                LEFT JOIN unidad_medida ui ON i.id_unidad_medida = ui.id_unidad
                 WHERE dp.id_pedido = ? AND p.prioridad_insumo = 1";
         
         $stmt = $this->dbBusiness->prepare($sql);
@@ -579,8 +626,16 @@ private function restaurarInsumosPedido($id_pedido)
         $stmtUpdate = $this->dbBusiness->prepare($sqlUpdate);
         
         foreach ($insumos as $item) {
-            $stockARestaurar = $item['cantidad'] * $item['cantidad_insumo'];
-            $stmtUpdate->execute([$stockARestaurar, $item['id_insumo']]);
+            $reqTotal = $item['cantidad'] * $item['cantidad_insumo'];
+            $abrevReq = strtolower($item['abrev_req'] ?? 'u');
+            $abrevStock = strtolower($item['abrev_stock'] ?? 'u');
+
+            try {
+                $stockARestaurar = $unidadMedida->TablaConversion($reqTotal, 0, $abrevReq, $abrevStock, 'sumar');
+                $stmtUpdate->execute([$stockARestaurar, $item['id_insumo']]);
+            } catch (\Exception $e) {
+                error_log("Error al restaurar insumo {$item['id_insumo']}: " . $e->getMessage());
+            }
         }
         
         return ['success' => true, 'message' => 'Insumos restaurados correctamente'];
