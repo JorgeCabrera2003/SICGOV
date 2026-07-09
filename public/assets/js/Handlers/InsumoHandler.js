@@ -165,7 +165,7 @@ export async function EnviarDatos(operacion) {
     }
 
     if (Validarenvio() && bool_peticion) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', accion);
@@ -187,7 +187,7 @@ export async function EnviarDatos(operacion) {
   if (operacion == "eliminar") {
 
     if (ValidadorHelper.ValidarCampo("ID", input.id_insumo, span.id_insumo)) {
-      confirmacion = await confirmarAccion("Se eliminará un Insumo", mensajeConfirmacion, "warning");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion("Se eliminará un Insumo", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');

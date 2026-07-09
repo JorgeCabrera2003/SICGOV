@@ -115,7 +115,7 @@ export async function EnviarDatos(operacion) {
     }
 
     if (ValidarEnvio()) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} un Proveedor`, mensajeConfirmacion, "question");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} un Proveedor`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', accion);
@@ -144,7 +144,7 @@ export async function EnviarDatos(operacion) {
     }
 
     if (bool_eliminar) {
-      confirmacion = await confirmarAccion("Se eliminará un Proveedor", mensajeConfirmacion, "warning");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion("Se eliminará un Proveedor", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
