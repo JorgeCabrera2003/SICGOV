@@ -10,10 +10,12 @@ use Exception;
 $type = $_REQUEST['type'] ?? 'admin';
 $esPublico = ($type === 'publico');
 
-Helper::verificarSesion();
-$datos = Helper::getDatosUsuario();
+if (!$esPublico) {
+    Helper::verificarSesion();
+}
+$datos = (isset($_SESSION['user'])) ? Helper::getDatosUsuario() : null;
 $resModel = new Reservacion();
-$permisosReservacion = Helper::TraerPermisos("reservacion");
+$permisosReservacion = isset($_SESSION['user']) ? Helper::TraerPermisos("reservacion") : [];
 
 $puedeVerAgenda = isset($permisosReservacion['reservacion']['agenda']) && $permisosReservacion['reservacion']['agenda'] == 1;
 
@@ -23,7 +25,8 @@ if (!$esPublico && !$puedeVerAgenda) {
         echo json_encode(['resultado' => 403, 'mensaje' => 'No tienes permiso para realizar esta acción']);
         exit;
     } else {
-        header('Location: ' . BASE_URL . '/?page=Dashboard');
+        $target = (isset($_SESSION['user']['rol']) && strtoupper(trim($_SESSION['user']['rol'])) === 'CLIENTE') ? 'Reservacion&type=publico' : 'Dashboard';
+        header('Location: ' . rtrim(BASE_URL, '/') . '/?page=' . $target);
         exit;
     }
 }
@@ -191,6 +194,7 @@ $mesasModel = new Mesas();
 $mesasList = $mesasModel->Transaccion(['peticion' => 'consultar']);
 
 Helper::cargarVista($vista, $titulo, [
+    'hideSidebar' => $esPublico,
     'clientes' => $esPublico ? [] : $resModel->ObtenerClientes(),
     'mesas' => ($mesasList['estado'] == 1) ? $mesasList['response']['datos'] : [],
     'extra_css' => [

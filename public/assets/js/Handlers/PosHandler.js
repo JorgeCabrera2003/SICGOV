@@ -372,10 +372,18 @@ function confirmarPersonalizacion() {
 async function agregarAlCarritoConVerificacion(producto, extras = [], removidos = [], precioPersonalizado = null, indicacion = '') {
     // Verificar stock antes de agregar
     try {
+        let cantidadEnCarrito = 0;
+        posCart.forEach(item => {
+            if (item.id_producto === producto.id_producto) {
+                cantidadEnCarrito += item.cantidad;
+            }
+        });
+        const cantidadAVerificar = cantidadEnCarrito + 1;
+
         const formData = new FormData();
         formData.append('action', 'verificar_stock');
         formData.append('id_producto', producto.id_producto);
-        formData.append('cantidad', 1);
+        formData.append('cantidad', cantidadAVerificar);
         
         const res = await fetch('?page=pedidos', { method: 'POST', body: formData });
         const data = await res.json();
@@ -387,7 +395,7 @@ async function agregarAlCarritoConVerificacion(producto, extras = [], removidos 
                 html: `
                     ${data.message}<br><br>
                     <strong>Stock disponible:</strong> ${data.stock_disponible} unidades<br>
-                    <strong>Porcentaje de stock:</strong> ${data.porcentaje || 0}%
+                    <strong>Porcentaje de stock:</strong> ${Number(parseFloat(data.porcentaje || 0).toFixed(2))}%
                 `,
                 confirmButtonColor: '#d33'
             });
@@ -455,10 +463,17 @@ async function actualizarCantidad(index, delta) {
     // Si está sumando (+), verificar stock
     if (delta > 0) {
         try {
+            let cantidadEnCarrito = 0;
+            posCart.forEach((cartItem, i) => {
+                if (cartItem.id_producto === item.id_producto) {
+                    cantidadEnCarrito += (i === index) ? nuevaCantidad : cartItem.cantidad;
+                }
+            });
+
             const formData = new FormData();
             formData.append('action', 'verificar_stock');
             formData.append('id_producto', item.id_producto);
-            formData.append('cantidad', nuevaCantidad);
+            formData.append('cantidad', cantidadEnCarrito);
             
             const res = await fetch('?page=pedidos', { method: 'POST', body: formData });
             const data = await res.json();
@@ -590,24 +605,33 @@ Swal.fire({
     let stockOk = true;
     let erroresStock = [];
     
-    for (const item of posCart) {
+    // Agrupar cantidades por producto para validar correctamente
+    const totalesPorProducto = {};
+    posCart.forEach(item => {
+        if (!totalesPorProducto[item.id_producto]) {
+            totalesPorProducto[item.id_producto] = { nombre: item.nombre, cantidad: 0 };
+        }
+        totalesPorProducto[item.id_producto].cantidad += item.cantidad;
+    });
+    
+    for (const [id_producto, prodData] of Object.entries(totalesPorProducto)) {
         try {
             const formData = new FormData();
             formData.append('action', 'verificar_stock');
-            formData.append('id_producto', item.id_producto);
-            formData.append('cantidad', item.cantidad);
+            formData.append('id_producto', id_producto);
+            formData.append('cantidad', prodData.cantidad);
             
             const res = await fetch('?page=pedidos', { method: 'POST', body: formData });
             const data = await res.json();
             
             if (!data.success) {
                 stockOk = false;
-                erroresStock.push(`- ${item.nombre}: ${data.message}`);
+                erroresStock.push(`- ${prodData.nombre}: ${data.message}`);
             }
         } catch (error) {
             console.error('Error verificando stock:', error);
             stockOk = false;
-            erroresStock.push(`- ${item.nombre}: Error al verificar stock`);
+            erroresStock.push(`- ${prodData.nombre}: Error al verificar stock`);
         }
     }
     

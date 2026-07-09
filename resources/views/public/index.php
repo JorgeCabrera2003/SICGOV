@@ -82,14 +82,14 @@
                     </div>
                 </a>
             </div>
-            <!-- Pedidos -->
+            <!-- Reservaciones -->
             <div class="col-md-5">
-                <a href="<?= isset($_SESSION['user']) ? BASE_URL . '?page=pedidos' : BASE_URL . '?page=login&msg=inicia-sesion' ?>" class="view-card">
+                <a href="<?= isset($_SESSION['user']) ? BASE_URL . '?page=Reservacion&type=publico' : BASE_URL . '?page=login&msg=inicia-sesion' ?>" class="view-card">
                     <div class="view-img" style="background-image: url('<?= BASE_URL ?>assets/img/landing/ingredients.png');"></div>
                     <div class="view-content">
-                        <h3 class="view-title">Hacer un Pedido</h3>
+                        <h3 class="view-title">Hacer una Reservación</h3>
                         <p class="view-desc">
-                            <?= isset($_SESSION['user']) ? 'Pide online y disfruta en casa.' : 'Debes iniciar sesión para pedir.' ?>
+                            <?= isset($_SESSION['user']) ? 'Reserva tu mesa y disfruta con nosotros.' : 'Debes iniciar sesión para reservar.' ?>
                         </p>
                     </div>
                 </a>

@@ -1,5 +1,3 @@
-import { enviaAjax } from './Helpers/AjaxHelper.js';
-
 /**
  * MEDIA-PICKER.JS - Puente para seleccionar imágenes de la galería
  */
@@ -43,7 +41,11 @@ const MediaPicker = (function($) {
         fd.append('peticion', 'consultar');
 
         try {
-            const response = await enviaAjax(fd, BASE_URL + '?page=Media');
+            const response = await fetch(BASE_URL + '?page=Media', {
+                method: 'POST',
+                body: fd
+            }).then(res => res.json());
+            
             if (response && response.resultado === 200) {
                 mediaData = response.datos;
                 renderGrid();
@@ -96,11 +98,13 @@ const MediaPicker = (function($) {
         }
     }
 
-    return {
+    window.MediaPicker = {
         init,
         open,
         select
     };
+
+    return window.MediaPicker;
 
 })(jQuery);
 

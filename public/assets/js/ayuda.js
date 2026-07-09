@@ -48,7 +48,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function fetchAyudaResults(query) {
-        const currentPage = new URLSearchParams(window.location.search).get('page') || 'Dashboard';
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentPage = urlParams.get('page') || 'Dashboard';
+        if (currentPage === 'Reservacion' && urlParams.get('type') === 'publico') {
+            currentPage = 'ReservacionPublico';
+        }
         fetch(`${BASE_URL}/?page=Ayuda&action=search&q=${encodeURIComponent(query)}&module=${encodeURIComponent(currentPage)}`)
             .then(response => response.json())
             .then(res => {
@@ -110,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(res => {
                 if (res.status === 'success') {
                     let extraHTML = '';
-                    const tourIds = ['gestion_reservaciones', 'formulario_reservacion', 'drag_drop_reservacion'];
+                    const tourIds = ['gestion_reservaciones', 'formulario_reservacion', 'drag_drop_reservacion', 'solicitar_cita_publico', 'formulario_publico'];
                     
                     if (tourIds.includes(id)) {
                         extraHTML = `
@@ -144,6 +148,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                         { element: '.fc-view-harness', popover: { title: 'Cuadrícula Interactiva', description: 'Para registrar una nueva reservación, haz clic directamente en cualquier día de este calendario.', side: "top", align: 'start' } },
                                         { element: 'a[href*="Reservacion"]', popover: { title: 'Acceso Rápido', description: 'Siempre puedes volver a esta Agenda Global desde el menú principal.', side: "right", align: 'start' } }
                                     ];
+                                } else if (id === 'solicitar_cita_publico') {
+                                    steps = [
+                                        { element: '#calendarPublico', popover: { title: 'Calendario', description: 'Selecciona el día en el que deseas solicitar tu reservación.', side: "top", align: 'start' } },
+                                        { element: '#btnNuevaReservacion', popover: { title: 'Nueva Reservación', description: 'También puedes hacer clic aquí para iniciar el proceso de reserva.', side: "bottom", align: 'end' } },
+                                        { element: '.mb-3.d-flex.gap-3', popover: { title: 'Estados', description: 'Aquí puedes ver qué significa cada color de las reservas.', side: "bottom", align: 'start' } }
+                                    ];
                                 } else if (id === 'formulario_reservacion') {
                                     const modalEl = document.getElementById('modalReservacion');
                                     if (modalEl) {
@@ -173,6 +183,30 @@ document.addEventListener('DOMContentLoaded', function() {
                                             { 
                                                 element: '.btn-save-custom', 
                                                 popover: { title: 'Guardar', description: 'Guarda los cambios y verás el bloque de reservación en el calendario.', side: "top", align: 'end' } 
+                                            }
+                                        ];
+                                    }
+                                } else if (id === 'formulario_publico') {
+                                    const modalEl = document.getElementById('modalPublico');
+                                    if (modalEl) {
+                                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                                        document.getElementById('formReservarPublico').reset();
+                                        modal.show();
+                                        
+                                        await new Promise(r => setTimeout(r, 400));
+                                        
+                                        steps = [
+                                            { 
+                                                element: '#formReservarPublico .reservation-form-group.mb-4', 
+                                                popover: { title: 'Fecha de tu visita', description: 'Verifica la fecha que seleccionaste.', side: "bottom", align: 'start' } 
+                                            },
+                                            { 
+                                                element: '#formReservarPublico .row.g-3', 
+                                                popover: { title: 'Horarios', description: 'Fija las horas de inicio y fin para tu visita.', side: "bottom", align: 'start' } 
+                                            },
+                                            { 
+                                                element: '#formReservarPublico .btn-confirmar-premium', 
+                                                popover: { title: 'Confirmar', description: 'Envía tu solicitud y confirmaremos tu cita.', side: "top", align: 'end' } 
                                             }
                                         ];
                                     }

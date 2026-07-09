@@ -285,14 +285,14 @@ class UnidadMedida extends Database
         $resultado = NULL;
 
         $resultado = match ($medida) {
-            'Kg', 'kg', 'gr', 'g', 'oz', 'lb', => "masa",
-            'ml', 'l', 'L', => "volumen",
-            'u' => "unidad",
+            'kg', 'gr', 'g', 'oz', 'lb' => "masa",
+            'ml', 'l' => "volumen",
+            'u', 'un' => "unidad",
             default => 'error'
         };
 
         if ($resultado == "error") {
-            throw new \Exception("Unidad de Medida no válida");
+            throw new \Exception("Unidad de Medida no válida: " . $medida);
         }
 
         return $resultado;
