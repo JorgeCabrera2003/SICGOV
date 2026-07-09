@@ -470,7 +470,7 @@ export async function AgregarFilaInput() {
   if (contarSelectsDisponibles() <= json.total) {
 
     bool = true;
-    if (contarSelectsDisponibles() == (json.total - 1)) {
+    if (contarSelectsDisponibles() == (json.total)) {
       $("#btn-agregarProveedor").prop('disabled', true);
       MensajeriaHelper.GenerarMensaje("info", 10000, "", "No hay más proveedores disponibles para asociar a este insumo");
       bool = false;
