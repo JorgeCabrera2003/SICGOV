@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(res => {
                 if (res.status === 'success') {
                     let extraHTML = '';
-                    const tourIds = ['gestion_reservaciones', 'formulario_reservacion', 'drag_drop_reservacion', 'solicitar_cita_publico', 'formulario_publico'];
+                    const tourIds = ['gestion_reservaciones', 'formulario_reservacion', 'drag_drop_reservacion', 'solicitar_cita_publico', 'formulario_publico', 'gestion_pedidos', 'tomar_pedido_pos'];
                     
                     if (tourIds.includes(id)) {
                         extraHTML = `
@@ -138,7 +138,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('btn-tour-ayuda').addEventListener('click', async () => {
                             ayudaOffcanvas.hide();
                             
-                            if (window.location.search.includes('page=Reservacion')) {
+                            const currentPage = window.location.search.toLowerCase();
+                            const isReservacion = currentPage.includes('page=reservacion');
+                            const isPedido = currentPage.includes('page=pedido');
+                            
+                            if (isReservacion || isPedido) {
                                 const { TourHelper } = await import('./Helpers/TourHelper.js');
                                 let steps = [];
 
@@ -215,6 +219,26 @@ document.addEventListener('DOMContentLoaded', function() {
                                         { element: '.fc-event', popover: { title: 'Reservación Existente', description: 'Ubica un bloque de reservación (si hay alguno visible).', side: "bottom", align: 'start' } },
                                         { element: '.fc-view-harness', popover: { title: 'Arrastrar y Soltar', description: 'Simplemente haz clic sostenido en una reserva y arrástrala a un nuevo día. ¡El cambio se guardará automáticamente!', side: "top", align: 'start' } }
                                     ];
+                                } else if (id === 'gestion_pedidos' || id === 'gestion_pedidos_tabla') {
+                                    steps = [
+                                        { element: '#pedidosTable', popover: { title: 'Tabla de Pedidos', description: 'Aquí se listan todos los pedidos realizados, su estado, total y el cliente asociado.', side: "top", align: 'start' } },
+                                        { element: 'button[data-bs-target="#modalPOS"]', popover: { title: 'Nuevo Pedido POS', description: 'Haz clic aquí para abrir el Punto de Venta y registrar un nuevo pedido para un cliente.', side: "bottom", align: 'end' } }
+                                    ];
+                                } else if (id === 'tomar_pedido_pos') {
+                                    const modalEl = document.getElementById('modalPOS');
+                                    if (modalEl) {
+                                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                                        modal.show();
+                                        
+                                        await new Promise(r => setTimeout(r, 400));
+                                        
+                                        steps = [
+                                            { element: '#posFiltros', popover: { title: 'Filtros de Menú', description: 'Usa estas categorías para encontrar rápidamente los platillos o bebidas.', side: "bottom", align: 'start' } },
+                                            { element: '#posProductos', popover: { title: 'Catálogo de Productos', description: 'Haz clic en cualquier producto para agregarlo inmediatamente a tu orden actual.', side: "right", align: 'start' } },
+                                            { element: '.pos-ticket', popover: { title: 'Orden Actual', description: 'Aquí verás el resumen de los productos seleccionados, el total calculado en $ y Bs.', side: "left", align: 'start' } },
+                                            { element: '#posForm', popover: { title: 'Datos de Pago', description: 'Define si el pedido es para llevar o en mesa, selecciona el método de pago y procede a cobrar.', side: "top", align: 'start' } }
+                                        ];
+                                    }
                                 }
 
                                 if (steps.length > 0) {
@@ -225,8 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                             } else {
                                 import('./Helpers/UIHelper.js').then(({ mensajes }) => {
-                                    mensajes('info', 3000, 'Aviso', 'Debes estar en la sección "Agenda Global" para iniciar este tutorial.');
-                                    setTimeout(() => { window.location.href = '?page=Reservacion'; }, 2000);
+                                    mensajes('info', 3000, 'Aviso', 'Debes estar en el módulo correspondiente para iniciar este tutorial.');
                                 });
                             }
                         });
