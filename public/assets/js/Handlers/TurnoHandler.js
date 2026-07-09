@@ -136,7 +136,7 @@ export function DataTablePrincipal(arreglo) {
       { data: null, orderable: false, searchable: false, render: function () { return botonesAccion(); } }
     ],
     order: [[0, 'asc']],
-    language: { url: idiomaTabla }
+    language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' }
   });
 }
 
