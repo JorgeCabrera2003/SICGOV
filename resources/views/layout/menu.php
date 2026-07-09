@@ -435,7 +435,7 @@
                 <?php endif; ?>
 
                 <!-- Switch Admin/Público -->
-                <?php if (isset($_SESSION['user'])): ?>
+                <?php if (isset($_SESSION['user']) && (!isset($_SESSION['user']['rol']) || strtoupper($_SESSION['user']['rol']) !== 'CLIENTE')): ?>
                     <?php $esVistaPublica = (isset($hideSidebar) && $hideSidebar); ?>
                     <?php if ($esVistaPublica): ?>
                         <a href="<?php echo BASE_URL; ?>/?page=Dashboard" class="btn btn-link text-primary text-decoration-none p-2 d-flex align-items-center gap-1" title="Ir al Panel Administrativo">
