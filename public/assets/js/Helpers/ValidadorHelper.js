@@ -3,8 +3,8 @@ import * as MensajeriaHelper from "./MensajeriaHelper.js";
 export function ValidarCampo(patron, etiqueta, span) {
     let regex = null;
     let bool = false;
-    etiqueta.removeClass("is-valid is-invalid");
-    span.removeClass("valid-tooltip invalid-tooltip")
+    $(etiqueta).removeClass("is-valid is-invalid");
+    $(span).removeClass("valid-tooltip invalid-tooltip")
 
     const REGEX = {
         'Cedula': /^[0-9]{7,15}$/,

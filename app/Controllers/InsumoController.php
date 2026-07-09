@@ -450,6 +450,22 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 			}
 		}
 
+		if ($_POST["peticion"] == "eliminar") {
+
+				$entradaInsumoModel->setId($_POST['id_entrada']);
+				$response = $entradaInsumoModel->Transaccion(['peticion' => "eliminar"]); 
+
+				if ($response['estado'] == 1) {
+
+					$msg = "(" . $_SESSION['user']['cedula'] . "), Asociación eliminada";
+					$json = $response;
+					Helper::Bitacora("ELIMINAR ASOCIACIÓN DEL PROVEEDOR", 'INSUMO', $msg);
+				} else {
+					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+					$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no válidos'];
+				} 
+		}
+
 		//Enviar respuesta al navegador usando un encabezado HTTP
 		header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
 		echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
