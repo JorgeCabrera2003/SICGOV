@@ -56,6 +56,10 @@ $("#btn-agregarProveedor").on("click", function () {
   asociarProveedor.AgregarFilaInput();
 })
 
+$("#btnAsociarForm").on("click", function () {
+  asociarProveedor.EnviarFormulario("Asociar")
+})
+
 $("#btn-CategoriaForm").on("click", async function () {
   let respuesta = null;
   respuesta = await categoriaInsumo.EnviarFormulario($(this));
@@ -73,6 +77,10 @@ function iniciarValidaciones() {
   categoriaInsumo.KeyUpCategoria();
   suministrarInsumo.CapaValidar();
 }
+
+$('#tablaAsociar').on('change', '.select-proveedor', function () {
+  asociarProveedor.validarDuplicados();
+});
 
 async function crearDataTable(controlador = "insumos") {
   const MODULOS = {
@@ -165,6 +173,7 @@ $(document).on('click', '.btn-movimiento', function () {
 
 $(document).on('click', '.btn-asociar', function () {
   rellenar($(this), $(this).attr("data-accion"), "Insumo");
+  asociarProveedor.DesbloquearBotonAgregar();
 })
 
 $(document).on('click', '.btn-eliminar-proveedor', function () {

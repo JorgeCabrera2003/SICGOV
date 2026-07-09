@@ -102,17 +102,14 @@ export async function EnviarDatos(operacion) {
 
   //Registrar y Modificar
   if (operacion == "asociar") {
-
-    console.log(Validarenvio())
-
-    if (Validarenvio()) {
+    let datos = CrearArregloProveedor();
+    console.log(datos);
+    if (validarDuplicados()) {
       confirmacion = await confirmarAccion(`¿Guardar Configuración?`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', "suministrar");
-        peticion.append('id_entrada', input.proveedor.val());
-        peticion.append('stock', input.stock.val());
-        peticion.append('id_unidad', input.unidad_medida.val());
+        peticion.append('proveedores', JSON.stringify(datos));
         peticion.append('id_insumo', input.insumo.prop('dataset').insumo);
         btn_formulario = true;
       }
@@ -140,7 +137,7 @@ export async function EnviarDatos(operacion) {
 
   if (btn_formulario) {
     modal.boton.prop('disabled', true);
-    json = await AjaxHelper.enviaAjax(peticion, endpoint);
+    //json = await AjaxHelper.enviaAjax(peticion, endpoint);
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       modal.modal.modal("hide");
@@ -213,7 +210,6 @@ export function CapaValidar() {
 function KeyPressAsociar() {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
-
 }
 
 function KeyUpAsociar() {
@@ -232,6 +228,70 @@ function KeyUpAsociar() {
 
 }
 
+export function validarDuplicados() {
+  let valores = {};
+  let todosValidos = true;
+
+  // 1. PRIMERA PASADA: Recolectar todos los valores
+  $('#tablaAsociar .select-proveedor').each(function () {
+    let $select = $(this);
+    let valor = $select.val();
+
+    // Solo considerar valores válidos (no default)
+    if (valor && valor !== 'default' && valor !== '') {
+      if (!valores[valor]) {
+        valores[valor] = [];
+      }
+      valores[valor].push($select);
+    }
+  });
+
+  // 2. SEGUNDA PASADA: Marcar duplicados y limpiar validaciones anteriores
+  $('#tablaAsociar .select-proveedor').each(function () {
+    let $select = $(this);
+    let $span = $select.closest('div').find('.span-select_proveedor');
+    let valor = $select.val();
+
+    // Limpiar clases y mensajes anteriores
+    $select.removeClass('is-valid is-invalid');
+
+    // Si no tiene valor o es default
+    if (!valor || valor === 'default' || valor === '') {
+      $select.addClass('is-invalid');
+      $span.text('Seleccione un proveedor');
+      $span.addClass('invalid-tooltip');
+      todosValidos = false;
+      return;
+    }
+
+    // Verificar si es duplicado
+    if (valores[valor] && valores[valor].length > 1) {
+      // ESTE select es duplicado
+      $select.addClass('is-invalid');
+      $span.text('Proveedor duplicado');
+      $span.addClass('invalid-feedback invalid-tooltip');
+      todosValidos = false;
+    } else {
+      // Es válido
+      $select.addClass('is-valid');
+      $span.text('');
+      $span.removeClass('invalid-feedback invalid-tooltip');
+    }
+  });
+
+  // 3. Actualizar estado del botón guardar
+  if (todosValidos) {
+    $('#btn-guardar').prop('disabled', false);
+    $('#mensaje-error').hide();
+  } else {
+    $('#btn-guardar').prop('disabled', true);
+    $('#mensaje-error').show();
+    $('#mensaje-error').text('Corrige los errores marcados en rojo');
+  }
+
+  return todosValidos;
+}
+
 function RenderBotonEliminar(id) {
 
   const boton = $('<button>').addClass('btn btn-danger btn-eliminar-proveedor').html('<i class="fas fa-trash"></i>');
@@ -242,57 +302,104 @@ function RenderBotonEliminar(id) {
   return div.prop('outerHTML');
 }
 
-export function BorrarProveedor(boton) {
-    const $boton = $(boton);
+export async function BorrarProveedor(boton) {
+  let json = { resultado: 0 };
+  let inputTexto = EtiquetasFormulario("input");
+  let id_insumo = inputTexto.insumo.attr("data-insumo")
 
-    const datos = $boton.data();
-    const linea = $(boton).closest('tr');
-    const tabla = $('#tablaAsociar').DataTable();
-    console.log('Todos los datos del botón:', datos)
+  const $boton = $(boton);
 
-    if(boton.attr("data-proveedor") == null || boton.attr("data-proveedor") == "" || boton.attr("data-proveedor") == undefined){
-      tabla.row(linea).remove().draw(false)
+  const datos = $boton.data();
+  const linea = $(boton).closest('tr');
+  const tabla = $('#tablaAsociar').DataTable();
 
-    } else {
+  if (boton.attr("data-proveedor") == null || boton.attr("data-proveedor") == "" || boton.attr("data-proveedor") == undefined) {
+    tabla.row(linea).remove().draw(false)
 
-    }
+  }
+
+  json = await ConsultarProveedor(id_insumo)
+  if (contarSelectsDisponibles() < json.total) {
+    $("#btn-agregarProveedor").prop('disabled', false);
+  }
 }
 
+function contarSelectsDisponibles() {
+  var totalSelects = $('.select-proveedor').length
+
+  console.log('Selects creados:', totalSelects);
+
+  return totalSelects;
+}
+
+async function ConsultarProveedor(id_insumo) {
+  let json = { resultado: 0 };
+  let datos = new FormData();
+  const endpoint = "?page=Proveedor";
+  datos.append("id_insumo", id_insumo);
+  datos.append("peticion", "obtener_proveedor");
+  return json = await AjaxHelper.enviaAjax(datos, endpoint);
+}
+
+export async function DesbloquearBotonAgregar() {
+  $("#btn-agregarProveedor").prop('disabled', false);
+}
 
 async function RenderizarSelect(id_insumo) {
   let json = null;
-  let datos = new FormData();
   let div = $('<div>').addClass('d-flex align-items-center ga-2');
   let input = $('<select>').addClass('form-select select-proveedor');
   let span = $('<div>').addClass('form-label span-select_proveedor');
 
-  const endpoint = "?page=Proveedor";
+
   const mensaje = "Seleccione un Proveedor";
   let arreglo = [];
-  datos.append("id_insumo", id_insumo);
-  datos.append("peticion", "obtener_proveedor");
 
   try {
-    json = await AjaxHelper.enviaAjax(datos, endpoint);
+    json = await ConsultarProveedor(id_insumo);
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
+
       const array = json.datos.map(item => ({
         nombre: item.nombre,
         valor: item.documento_legal
       }));
       SelectHelper.RenderizarSelect(input, array, mensaje);
-    };
-
-    div.append(input, span);
-
-    return div.prop('outerHTML');
-
+      ;
+      div.append(input, span);
+      let objeto = {
+        select: $(input),
+        div: div
+      }
+      let referencia = objeto;
+      return referencia;
+    }
   } catch (error) {
     console.log(error);
     arreglo = [];
   }
 }
 
+function CrearArregloProveedor() {
+
+  let datos = [];
+  let input = EtiquetasFormulario("input");
+
+  $('.select-proveedor').each(function () {
+    let select = $(this);
+    let optionSeleccionado = select.find('option:selected');
+    let documento = select.val();
+
+    if (documento && documento !== '') {
+      datos.push({
+        documento: documento,
+        id_insumo: input.insumo.attr("data-insumo")
+      });
+    }
+  });
+
+  return datos;
+}
 
 export async function DataTable(arreglo) {
   if ($.fn.DataTable.isDataTable('#tablaAsociar')) {
@@ -303,16 +410,17 @@ export async function DataTable(arreglo) {
     processing: true,
     data: arreglo,
     columns: [
-      { data: 'proveedor',
+      {
+        data: 'proveedor',
         render: function (data, type, row) {
           if (data) {
             return row.proveedor;
           }
           return null;
         }
-        
+
       },
-      
+
       {
         data: 'boton',
         render: function (data, type, row) {
@@ -329,18 +437,36 @@ export async function DataTable(arreglo) {
 }
 
 export async function AgregarFilaInput() {
+
+  let json = { resultado: 0 };
+  let bool = false;
   let inputTexto = EtiquetasFormulario("input");
   let id_insumo = inputTexto.insumo.attr("data-insumo")
   let tabla = $('#tablaAsociar').DataTable();
-  let selectProveedor = await RenderizarSelect(id_insumo);
-  let boton = await RenderBotonEliminar("");
+  json = await ConsultarProveedor(id_insumo);
 
-  tabla.row.add({
-    proveedor: selectProveedor,
-    boton: boton
-  }).draw(false);
+  if (contarSelectsDisponibles() <= json.total) {
+    if (contarSelectsDisponibles() == (json.total - 1)) {
+      $("#btn-agregarProveedor").prop('disabled', true);
+    }
+    bool = true
+  } else {
+    $("#btn-agregarProveedor").prop('disabled', true);
+  };
 
-  capaValidar();
+  if (bool) {
+    let selectProveedor = await RenderizarSelect(id_insumo);
+    let boton = await RenderBotonEliminar("");
+
+    console.log(selectProveedor);
+
+    tabla.row.add({
+      proveedor: selectProveedor.div.prop("outerHTML"),
+      boton: boton
+    }).draw(false);
+    selectProveedor.select.val("default");
+  }
+  json = null;
 }
 
 export function LimpiarFormulario() {
