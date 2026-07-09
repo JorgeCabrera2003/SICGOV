@@ -93,6 +93,15 @@ export function inicializarCalendario(calendarEl, pickers) {
         editable: !ES_PUBLICO,           
         eventResizableFromStart: true,
         selectAllow: function(selectInfo) {
+            // Evitar selección de múltiples días
+            if (selectInfo.allDay) {
+                const unDiaDespues = new Date(selectInfo.start);
+                unDiaDespues.setDate(unDiaDespues.getDate() + 1);
+                if (selectInfo.end > unDiaDespues) {
+                    return false;
+                }
+            }
+
             if (!ES_PUBLICO) return true;
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
@@ -121,6 +130,11 @@ export function inicializarCalendario(calendarEl, pickers) {
         },
 
         select: function (info) {
+            if (ES_PUBLICO && $("#btnNuevaReservacion").length === 0) {
+                calendar.unselect();
+                MensajeriaHelper.GenerarMensaje('warning', 4000, 'Iniciar Sesión', 'Debes iniciar sesión para solicitar una reservación.');
+                return;
+            }
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
             if (ES_PUBLICO && info.start < hoy) {
@@ -135,7 +149,10 @@ export function inicializarCalendario(calendarEl, pickers) {
             const event = info.event;
             const props = event.extendedProps;
             
-            
+            if (ES_PUBLICO && $("#btnNuevaReservacion").length === 0) {
+                MensajeriaHelper.GenerarMensaje('warning', 4000, 'Iniciar Sesión', 'Debes iniciar sesión para ver o modificar una reservación.');
+                return;
+            }
             if (ES_PUBLICO && props.ocupado) return;
 
             abrirDetalleReservacion(event, props, timePickerInicio, timePickerFin, calendar);
