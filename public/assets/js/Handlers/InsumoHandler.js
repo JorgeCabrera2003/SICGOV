@@ -131,6 +131,7 @@ export async function EnviarDatos(operacion) {
   if (operacion == "registrar" || operacion == "modificar") {
     let bool_peticion = true;
     let stock_maximo = input.stock_maximo.val();
+
     if (operacion == "registrar") {
       str_acccion = "registrará";
       accion = "registrar";
@@ -140,17 +141,25 @@ export async function EnviarDatos(operacion) {
           "El Stock Inicial no puede estar vacío", 0)
         bool_peticion = false;
       }
+
+
       if (input.unidad_medida.val() != null && input.unidad_medida.val() != "default") {
         if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
-          if (input.stock_inicial.val() == "" || input.stock_inicial.val() == null) {
-            MensajeriaHelper.FeedbackToltipInput(input.stock_inicial, span.stock_inicial,
-              "El Stock Inicial no puede estar vacío", 0)
-            bool_peticion = false;
-          } else {
-
+          if (!ValidadorHelper.ValidarCampo("NumeroEntero", input.stock_inicial, span.stock_inicial)) {
+            bool = false;
+          }
+        } else {
+          if (!ValidadorHelper.ValidarCampo("NumeroDecimal", input.stock_maximo, span.stock_maximo)) {
+            bool = false;
           }
         }
       }
+
+      if (!ValidadorHelper.ValidarCampo("FormatoDocumentoLegal", input.proveedor, span.proveedor)) {
+        bool_peticion = false;
+      };
+
+      peticion.append('id_proveedor', input.proveedor.val());
       peticion.append('stock_inicial', input.stock_inicial.val());
     }
 
@@ -158,6 +167,7 @@ export async function EnviarDatos(operacion) {
       str_acccion = "actualizará";
       accion = "modificar";
       peticion.append('id_insumo', input.id_insumo.val());
+      peticion.append('id_proveedor', input.proveedor.val());
     }
 
     if (input.stock_maximo.val() == "" || input.stock_maximo.val() == null) {
@@ -175,7 +185,7 @@ export async function EnviarDatos(operacion) {
         peticion.append('stock_maximo', stock_maximo);
         peticion.append('stock_minimo', input.stock_minimo.val());
         peticion.append('id_categoria', input.categoria_id.val());
-        peticion.append('id_proveedor', input.proveedor.val());
+
         btn_formulario = true;
       }
     } else {
@@ -464,10 +474,6 @@ function Validarenvio() {
     bool = false;
   }
 
-  if (!ValidadorHelper.ValidarCampo("FormatoDocumentoLegal", input.proveedor, span.proveedor)) {
-    bool = false;
-  };
-
   if (!ValidadorHelper.ValidarCampo("ID", input.categoria_id, span.categoria_id)) {
     bool = false;
   };
@@ -488,7 +494,7 @@ function Validarenvio() {
   }
 
   if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
-    if (!ValidadorHelper.ValidarCampo("NumeroEntero", input.stock_minimo.val(), span.stock_minimo)) {
+    if (!ValidadorHelper.ValidarCampo("NumeroEntero", input.stock_minimo, span.stock_minimo)) {
       bool = false;
     }
   }
@@ -510,7 +516,7 @@ function Validarenvio() {
     if (isNaN(stockMaximo)) stockMaximo = 0;
 
     if (input.unidad_medida.val() == "MEDIAUN23220260519200547232") {
-      if (!ValidadorHelper.ValidarCampo("NumeroEntero", input.stock_maximo.val(), span.stock_maximo)) {
+      if (!ValidadorHelper.ValidarCampo("NumeroEntero", input.stock_maximo, span.stock_maximo)) {
         bool = false;
       }
     }
@@ -564,7 +570,7 @@ async function RenderPermisoBotones(modulo = "Insumo") {
     bool = true;
   }
 
-    if (permisos['insumo']['asociar'] != undefined && permisos['insumo']['asociar'] == 1) {
+  if (permisos['insumo']['asociar'] != undefined && permisos['insumo']['asociar'] == 1) {
     const itemAsociar = $('<li>');
     const linkAsociar = $('<a>')
       .addClass('dropdown-item btn-asociar text-info')
@@ -736,15 +742,15 @@ export function LimpiarFormulario() {
   let modal = EtiquetasModal('Insumo');
   let fila_stock_inicial = $("#fila-stock-inicial");
 
-  input.id_insumo.val("").prop("disabled", true);
-  input.nombre.val("").prop("disabled", false);
-  input.costo_unitario.val("").prop("disabled", false);
-  input.unidad_medida.val("default").prop("disabled", false);
-  input.proveedor.val("default").prop("disabled", false);
-  input.categoria_id.val("default").prop("disabled", false);
-  input.stock_inicial.val("").prop("disabled", false);
-  input.stock_maximo.val("").prop("disabled", false);
-  input.stock_minimo.val("").prop("disabled", false);
+  input.id_insumo.val("").prop("disabled", true).removeClass("is-invalid is-valid");;
+  input.nombre.val("").prop("disabled", false).removeClass("is-invalid is-valid");;
+  input.costo_unitario.val("").prop("disabled", false).removeClass("is-invalid is-valid");;
+  input.unidad_medida.val("default").prop("disabled", false).removeClass("is-invalid is-valid");;
+  input.proveedor.val("default").prop("disabled", false).removeClass("is-invalid is-valid d-none");
+  input.categoria_id.val("default").prop("disabled", false).removeClass("is-invalid is-valid");;
+  input.stock_inicial.val("").prop("disabled", false).removeClass("is-invalid is-valid");;
+  input.stock_maximo.val("").prop("disabled", false).removeClass("is-invalid is-valid");;
+  input.stock_minimo.val("").prop("disabled", false).removeClass("is-invalid is-valid");;
 
   fila_stock_inicial.removeClass("d-none");
   // Deshabilitar el botón al limpiar (se habilitará automáticamente cuando los campos sean válidos)
@@ -773,6 +779,8 @@ export async function EditarFormInsumo(datos, accion) {
   input.stock_inicial.val(ValidadorHelper.FormatearNumeroSinCeros(datos.stock_actual)).prop("disabled", true);
   input.stock_maximo.val(ValidadorHelper.FormatearNumeroSinCeros(datos.stock_maximo)).prop("disabled", bool);
   input.stock_minimo.val(ValidadorHelper.FormatearNumeroSinCeros(datos.stock_minimo)).prop("disabled", bool);
+
+  input.proveedor.val("default").addClass("d-none").prop("disabled", false);
 
   fila_stock_inicial.addClass("d-none")
   modal.boton.prop('disabled', false);

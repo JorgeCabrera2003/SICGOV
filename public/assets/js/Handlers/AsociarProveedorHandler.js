@@ -82,7 +82,7 @@ function manejarCambioEstado(formularioValido) {
   span = null;
 }
 
-export async function EnviarDatos(operacion) {
+export async function EnviarDatos(operacion, datosTabla = null) {
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
@@ -102,7 +102,7 @@ export async function EnviarDatos(operacion) {
 
   //Registrar y Modificar
   if (operacion == "asociar") {
-    
+
     if (validarDuplicados()) {
       confirmacion = await MensajeriaHelper.MostrarConfirmacion(`¿Guardar Configuración?`, mensajeConfirmacion, "question");
 
@@ -121,18 +121,14 @@ export async function EnviarDatos(operacion) {
   //Eliminar
   if (operacion == "eliminar_asociación") {
 
-    if (ValidadorHelper.ValidarCampo("ID", input.id_insumo, span.id_insumo)) {
-      confirmacion = await confirmarAccion("Desea desasociar el proveedor de este insumo?", mensajeConfirmacion, "warning");
+    confirmacion = await MensajeriaHelper.MostrarConfirmacion("¿Desea eliminar la asociación del proveedor con este insumo?", mensajeConfirmacion, "warning");
 
-      if (confirmacion) {
-        peticion.append('peticion', 'eliminar');
-        peticion.append('id_insumo', input.id_insumo.val());
-        btn_formulario = true;
-      }
-    } else {
-      btn_formulario = false;
-      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "El ID del Asociar no es válido.");
+    if (confirmacion) {
+      peticion.append('peticion', 'eliminar');
+      peticion.append('id_entrada', datosTabla.id_entrada);
+      btn_formulario = true;
     }
+
   }//Fin del Eliminar
 
   if (btn_formulario) {
@@ -140,7 +136,7 @@ export async function EnviarDatos(operacion) {
     json = await AjaxHelper.enviaAjax(peticion, endpoint);
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-      if(operacion == "asociar"){
+      if (operacion == "asociar" || operacion == "eliminar_asociación") {
         MensajeriaHelper.GenerarMensaje(json.icon, 10000, json.mensaje, null);
         RecargarModalTabla(input.insumo.attr("data-insumo"));
       } else {
@@ -338,8 +334,13 @@ export async function BorrarProveedor(boton) {
   const tabla = $('#tablaAsociar').DataTable();
 
   if (boton.attr("data-proveedor") == null || boton.attr("data-proveedor") == "" || boton.attr("data-proveedor") == undefined) {
-    tabla.row(linea).remove().draw(false)
-
+  } else {
+    let response = { resultado: 0 };
+    let datos_tabla = tabla.row(linea).data();
+    response = await EnviarDatos('eliminar_asociación', datos_tabla);
+    if (typeof response.resultado === 'number' && (response.resultado >= 200 && response.resultado <= 299)) {
+      tabla.row(linea).remove().draw(false);
+    }
   }
 
   json = await ConsultarProveedor(id_insumo)
@@ -467,10 +468,18 @@ export async function AgregarFilaInput() {
   json = await ConsultarProveedor(id_insumo);
 
   if (contarSelectsDisponibles() <= json.total) {
+
+    bool = true;
     if (contarSelectsDisponibles() == (json.total - 1)) {
       $("#btn-agregarProveedor").prop('disabled', true);
+      MensajeriaHelper.GenerarMensaje("info", 10000, "", "No hay más proveedores disponibles para asociar a este insumo");
+      bool = false;
     }
-    bool = true
+    if (json.total == 0) {
+      $("#btn-agregarProveedor").prop('disabled', true);
+      bool = false;
+      MensajeriaHelper.GenerarMensaje("info", 10000, "", "No hay más proveedores disponibles para asociar a este insumo");
+    }
   } else {
     $("#btn-agregarProveedor").prop('disabled', true);
   };
