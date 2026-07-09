@@ -880,9 +880,13 @@ public function verificarStockProducto($id_producto, $cantidad = 1)
         // Obtener todos los insumos del producto con su stock
         $sql = "SELECT p.id_insumo, p.cantidad as cantidad_requerida, 
                        i.stock_actual, i.nombre_insumo,
-                       i.stock_minimo, i.stock_maximo
+                       i.stock_minimo, i.stock_maximo,
+                       up.abreviatura as abrev_req,
+                       ui.abreviatura as abrev_stock
                 FROM preparacion p
                 JOIN insumo i ON p.id_insumo = i.id_insumo
+                LEFT JOIN unidad_medida up ON p.id_unidad_medida = up.id_unidad
+                LEFT JOIN unidad_medida ui ON i.id_unidad_medida = ui.id_unidad
                 WHERE p.id_producto = ? AND p.prioridad_insumo = 1
                 AND i.estatus = 1";
         
@@ -906,9 +910,28 @@ public function verificarStockProducto($id_producto, $cantidad = 1)
         $insumoLimitante = null;
         $insumosStock = [];
         
+        $unidadMedida = new \App\Models\System\UnidadMedida();
+
         foreach ($insumos as $insumo) {
             if ($insumo['cantidad_requerida'] > 0) {
-                $unidades = floor($insumo['stock_actual'] / $insumo['cantidad_requerida']);
+                $abrevReq = $insumo['abrev_req'] ?? 'U';
+                $abrevStock = $insumo['abrev_stock'] ?? 'U';
+                
+                try {
+                    // Convertir la cantidad requerida a la unidad del stock sumándole 0 al stock base ficticio
+                    $reqEnUnidadStock = $unidadMedida->TablaConversion($insumo['cantidad_requerida'], 0, $abrevReq, $abrevStock, 'sumar');
+                } catch (\Exception $e) {
+                    error_log("Error de conversión en verificarStockProducto: " . $e->getMessage());
+                    $reqEnUnidadStock = $insumo['cantidad_requerida'];
+                }
+                
+                // Evitar división por cero
+                if ($reqEnUnidadStock > 0) {
+                    $unidades = floor($insumo['stock_actual'] / $reqEnUnidadStock);
+                } else {
+                    $unidades = 999;
+                }
+
                 $insumosStock[] = [
                     'nombre' => $insumo['nombre_insumo'],
                     'stock_actual' => $insumo['stock_actual'],

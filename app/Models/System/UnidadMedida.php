@@ -239,6 +239,14 @@ class UnidadMedida extends Database
             $validar = true;
         }
 
+        if ($this->DiccionarioMedidas($medida_valor) == "unidad" && $this->DiccionarioMedidas($medida_stock) == "unidad") {
+            $resultado = $this->OperacionMatematatica($stock_actual, $valor, $operacion);
+            if ($resultado < 0) {
+                throw new \Exception("El valor resultante no puede ser negativo");
+            }
+            return $resultado;
+        }
+
         if ($validar) {
 
             $resultado = $resultadoBase->toUnit($medida_stock);
@@ -272,13 +280,14 @@ class UnidadMedida extends Database
         $resultado = NULL;
 
         $resultado = match ($medida) {
-            'Kg', 'kg', 'gr', 'g', 'oz', 'lb', => "masa",
-            'ml', 'l', 'L', => "volumen",
+            'kg', 'gr', 'g', 'oz', 'lb' => "masa",
+            'ml', 'l' => "volumen",
+            'u', 'un' => "unidad",
             default => 'error'
         };
 
         if ($resultado == "error") {
-            throw new \Exception("Unidad de Medida no válida");
+            throw new \Exception("Unidad de Medida no válida: " . $medida);
         }
 
         return $resultado;
