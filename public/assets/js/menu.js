@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderCatalogoInsumos(document.querySelector('.select-insumo-input').value);
             } else {
                 if (adicionalesTab) adicionalesTab.parentElement.style.display = 'block';
-                if (principalesTab) principalesTab.innerHTML = '<i class="fas fa-star text-warning me-1"></i> Principales (<span id="contPrincipales">0</span>)';
+                if (principalesTab) principalesTab.innerHTML = `<i class="fas fa-star text-warning me-1"></i> Principales (<span id="contPrincipales">${listPrincipales.length}</span>)`;
                 if (seccionInsumosH6) seccionInsumosH6.innerHTML = '<i class="fas fa-list-check me-2"></i>Receta e Insumos';
                 if (seccionInsumosP) seccionInsumosP.innerText = 'Selecciona los insumos y define sus cantidades.';
                 
@@ -804,8 +804,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Evitar duplicados
-        if (targetList.find(i => i.id === ing.id_insumo)) {
+        // Aumentar cantidad si ya existe
+        let existingItem = targetList.find(i => i.id === ing.id_insumo);
+        if (existingItem) {
+            existingItem.cantidad = parseFloat(existingItem.cantidad) + 1;
+            
+            // Activar el tab correspondiente
+            const tabEl = document.getElementById(isPrincipal ? 'principales-tab' : 'adicionales-tab');
+            if (tabEl) new bootstrap.Tab(tabEl).show();
+
+            renderReceta();
+            validateForm();
             return;
         }
 
