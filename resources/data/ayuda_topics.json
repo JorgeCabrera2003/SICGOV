@@ -117,5 +117,19 @@
         "keywords": ["reagendar", "mover", "arrastrar", "soltar", "cambiar fecha", "drag", "drop", "calendario"],
         "modules": ["Reservacion"],
         "content": "<h4>Reagendar Reservaciones de forma rápida</h4><p>El calendario es completamente interactivo. Si un cliente llama para cambiar el día de su reservación, no necesitas abrir el formulario manualmente para cambiar la fecha.</p><h5>¿Cómo usar el Drag and Drop (Arrastrar y Soltar)?</h5><ol><li>Localiza la reservación (el bloque azul o dorado) que deseas mover en la cuadrícula del calendario.</li><li>Haz clic sobre ella y, <strong>sin soltar el botón del mouse</strong>, arrástrala hacia el nuevo día.</li><li>Suelta el botón del mouse sobre el nuevo recuadro.</li><li>El sistema actualizará instantáneamente la fecha de la reservación en la base de datos de manera automática.</li></ol><p><em>Nota:</em> Esta acción solo cambiará la fecha. Si necesitas cambiar la hora de Inicio o Fin, deberás hacer un clic normal en la reservación para editar esos detalles específicos en el formulario.</p>"
+    },
+    {
+        "id": "solicitar_cita_publico",
+        "title": "Cómo Solicitar una Cita",
+        "keywords": ["cita", "reserva", "solicitar", "calendario", "nueva cita"],
+        "modules": ["ReservacionPublico"],
+        "content": "<h4>Solicitar una Cita</h4><p>Para solicitar una reservación, puedes hacer clic directamente en el día que deseas en el calendario, o presionar el botón de nueva reserva en la parte superior.</p>"
+    },
+    {
+        "id": "formulario_publico",
+        "title": "Llenar Formulario de Cita",
+        "keywords": ["formulario", "datos", "hora", "fecha"],
+        "modules": ["ReservacionPublico"],
+        "content": "<h4>Detalles de tu Visita</h4><p>Indica la fecha, hora de llegada y hora estimada de salida para tu reservación. Una vez enviado, el sistema registrará tu solicitud y confirmaremos tu cita.</p>"
     }
 ]

@@ -79,19 +79,24 @@ class EntradaInsumo extends Database
     //FIN GETTERS
 
     // MANEJADOR DE OPERACIONES
-    public function Transaccion($peticion, )
+    public function Transaccion($peticion)
     {
         $response = [];
         $response['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"];
         $response['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => "Solicitud no válida"];
+        $bool = true;
+        if ($peticion['peticion'] == 'asociar_proveedores' && !isset($peticion['proveedores'])) {
+            $bool = false;
+        }
 
-        if (isset($peticion['peticion'])) {
+        if (isset($peticion['peticion']) && $bool) {
             $response = match ($peticion['peticion']) {
                 'registrar' => $this->RegistrarEntradaInsumo(),
                 'consultar' => $this->ConsultarEntradaInsumo(),
                 'reactivar' => $this->ReactivarEntradaInsumo(),
                 'eliminar' => $this->EliminarEntradaInsumo(),
                 'filtrar' => $this->FiltrarEntradaInsumo(),
+                'asociar_proveedores' => $this->AsociarProveedores($peticion['proveedores']),
                 'validar' => $this->ValidarEntradaInsumo(),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
@@ -164,6 +169,62 @@ class EntradaInsumo extends Database
                 $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
                 $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
             }
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    private function AsociarProveedores($proveedores)
+    {
+        $dato = [];
+        $validacion = [];
+        $validar_registros = true;
+
+        foreach ($proveedores as $i) {
+
+            if (!isset($i['id_entrada']) || !isset($i['documento'])) {
+                $validar_registros = false;
+                break;
+            }
+
+            $this->setId($i['id_entrada']);
+            $this->setDocumentoLegal($i['documento']);
+            $validacion = $this->ValidarEntradaInsumo();
+            if ($validacion['bool'] == 1) {
+                $validar_registros = false;
+            }
+        }
+        if ($validar_registros) {
+            try {
+                $sql = "INSERT INTO entrada_insumo(id_entrada, id_insumo, documento_proveedor) 
+                VALUES (:id, :id_insumo, :documento_legal)";
+
+                $this->LlamarConexion();
+                $this->LlamarConexion()->beginTransaction();
+                $stm = $this->LlamarConexion()->prepare($sql);
+                foreach ($proveedores as $registro) {
+                    $stm->bindParam(':id', $registro['id_entrada']);
+                    $stm->bindParam(':id_insumo', $this->id_insumo);
+                    $stm->bindParam(':documento_legal', $registro['documento']);
+                    $stm->execute();
+                }
+                $this->LlamarConexion()->commit();
+
+                $dato['estado'] = 1;
+                $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Insumo asociado a proveedores correctamente"];
+                $dato['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => "OK"];
+
+            } catch (\PDOException $e) {
+                $this->LlamarConexion()->rollBack();
+                Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+                $dato['estado'] = -1;
+                $dato['response'] = ['resultado' => 500, 'mensaje' => "Ups, intente de nuevo más tarde"];
+                $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+            }
+        } else {
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 400, 'icon' => 'danger', 'mensaje' => "Datos no válidos"];
+            $dato['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => "Datos no válidos"];
         }
         $this->DestruirConexion();
         return $dato;

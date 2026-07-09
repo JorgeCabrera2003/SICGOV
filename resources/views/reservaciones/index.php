@@ -6,7 +6,13 @@
                 <i class="bi bi-calendar-check me-2"></i>Agenda de Reservaciones
             </h1>
         </div>
-
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <?php if (isset($permisosReservacion['reservacion']['registrar']) && $permisosReservacion['reservacion']['registrar'] == 1): ?>
+            <button class="btn btn-primary shadow-sm fw-bold px-4 rounded-3" id="btnNuevaReservacion">
+                <i class="bi bi-plus-lg me-2"></i> Nueva Reservación
+            </button>
+            <?php endif; ?>
+        </div>
     </div>
 
 

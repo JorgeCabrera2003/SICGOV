@@ -221,8 +221,8 @@ class UnidadMedida extends Database
             $unidadValor = new Mass($valor, $medida_valor);
             $unidadStock = new Mass($stock_actual, $medida_stock);
 
-            $valorStock = (int) round($unidadValor->toUnit('g'));
-            $valorEntrante = (int) round($unidadStock->toUnit('g'));
+            $valorStock = (int) round($unidadStock->toUnit('g'));
+            $valorEntrante = (int) round($unidadValor->toUnit('g'));
 
             $resultadoBase = new Mass($this->OperacionMatematatica($valorEntrante, $valorStock, $operacion), 'g');
             $validar = true;
@@ -232,16 +232,29 @@ class UnidadMedida extends Database
             $unidadValor = new Volume($valor, $medida_valor);
             $unidadStock = new Volume($stock_actual, $medida_stock);
 
-            $valorStock = (int) round($unidadValor->toUnit('ml'));
-            $valorEntrante = (int) round($unidadStock->toUnit('ml'));
+            
+            $valorEntrante  = (int) round($unidadValor->toUnit('ml'));
+            $valorStock = (int) round($unidadStock->toUnit('ml'));
 
             $resultadoBase = new Volume($this->OperacionMatematatica($valorEntrante, $valorStock, $operacion), 'ml');
             $validar = true;
         }
 
+        if ($this->DiccionarioMedidas($medida_valor) == "unidad" && $this->DiccionarioMedidas($medida_stock) == "unidad") {
+            $unidadValor = (int) $valor;
+            $unidadStock = (int) $stock_actual;
+
+            $resultadoBase = $this->OperacionMatematatica($unidadValor, $unidadStock, $operacion);
+            $validar = true;
+        }
+
         if ($validar) {
 
+        if($medida_stock != "u"){
             $resultado = $resultadoBase->toUnit($medida_stock);
+        } else {
+            $resultado = $resultadoBase;
+        }
 
         } else {
             throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock);
@@ -272,13 +285,14 @@ class UnidadMedida extends Database
         $resultado = NULL;
 
         $resultado = match ($medida) {
-            'Kg', 'kg', 'gr', 'g', 'oz', 'lb', => "masa",
-            'ml', 'l', 'L', => "volumen",
+            'kg', 'gr', 'g', 'oz', 'lb' => "masa",
+            'ml', 'l' => "volumen",
+            'u', 'un' => "unidad",
             default => 'error'
         };
 
         if ($resultado == "error") {
-            throw new \Exception("Unidad de Medida no válida");
+            throw new \Exception("Unidad de Medida no válida: " . $medida);
         }
 
         return $resultado;
