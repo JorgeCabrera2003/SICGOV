@@ -139,6 +139,9 @@
 <script type="module" src="<?php echo BASE_URL; ?>/assets/js/ayuda.js"></script>
 <?php endif; ?>
 <?php if (isset($_SESSION['user'])): ?>
+<script src="<?php echo BASE_URL; ?>/assets/js/ayuda.js"></script>
+<?php endif; ?>
+<?php if (isset($_SESSION['user'])): ?>
     <script type="module" src="<?php echo BASE_URL; ?>/assets/js/modulo_notificaciones.js?v=<?php echo time(); ?>"></script>
 <?php endif; ?>
 
