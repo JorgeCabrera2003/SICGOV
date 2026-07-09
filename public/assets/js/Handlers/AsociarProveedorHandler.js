@@ -102,15 +102,15 @@ export async function EnviarDatos(operacion) {
 
   //Registrar y Modificar
   if (operacion == "asociar") {
-    let datos = CrearArregloProveedor();
-    console.log(datos);
+    
     if (validarDuplicados()) {
-      confirmacion = await confirmarAccion(`¿Guardar Configuración?`, mensajeConfirmacion, "question");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`¿Guardar Configuración?`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
-        peticion.append('peticion', "suministrar");
+        let datos = CrearArregloProveedor();
+        peticion.append('peticion', "asociar_proveedor");
         peticion.append('proveedores', JSON.stringify(datos));
-        peticion.append('id_insumo', input.insumo.prop('dataset').insumo);
+        peticion.append('id_insumo', input.insumo.attr("data-insumo"));
         btn_formulario = true;
       }
     } else {
@@ -137,11 +137,15 @@ export async function EnviarDatos(operacion) {
 
   if (btn_formulario) {
     modal.boton.prop('disabled', true);
-    //json = await AjaxHelper.enviaAjax(peticion, endpoint);
+    json = await AjaxHelper.enviaAjax(peticion, endpoint);
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-      modal.modal.modal("hide");
-      MensajeriaHelper.GenerarMensaje(json.icon, 10000, json.mensaje, null);
+      if(operacion == "asociar"){
+        MensajeriaHelper.GenerarMensaje(json.icon, 10000, json.mensaje, null);
+        RecargarModalTabla(input.insumo.attr("data-insumo"));
+      } else {
+        modal.modal.modal("hide");
+      }
     }
     modal.boton.prop('disabled', false);
   }
@@ -199,6 +203,26 @@ export async function CargarModalTabla(parametros) {
     input.insumo.val(nombre_insumo);
     input.insumo.attr("data-insumo", parametros.id_insumo);
     modal.modal.modal("show");
+  }
+}
+
+export async function RecargarModalTabla(id_insumo) {
+  const endpoint = "?page=Insumo"
+  let input = EtiquetasFormulario("input");
+  let respuesta = { resultado: 0 };
+  let datos = new FormData();
+
+  datos.append("modulo", "EntradaInsumo");
+  datos.append("peticion", "filtrar")
+  datos.append("id_insumo", id_insumo);
+  input.insumo.attr("data-insumo", null);
+
+  respuesta = await AjaxHelper.enviaAjax(datos, endpoint);
+
+  if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
+    DataTable(respuesta.datos);
+    input.insumo.attr("data-insumo", id_insumo);
+
   }
 }
 
@@ -326,9 +350,6 @@ export async function BorrarProveedor(boton) {
 
 function contarSelectsDisponibles() {
   var totalSelects = $('.select-proveedor').length
-
-  console.log('Selects creados:', totalSelects);
-
   return totalSelects;
 }
 
@@ -393,7 +414,7 @@ function CrearArregloProveedor() {
     if (documento && documento !== '') {
       datos.push({
         documento: documento,
-        id_insumo: input.insumo.attr("data-insumo")
+        id_entrada: null
       });
     }
   });

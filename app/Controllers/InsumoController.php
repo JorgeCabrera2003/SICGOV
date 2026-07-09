@@ -406,6 +406,50 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 			}
 		}
 
+		if ($_POST["peticion"] == "asociar_proveedor") {
+			$arregloInsumo = [];
+			$validarProveedor = [];
+			$filtrarProveedores = [];
+
+			$jsonProveedores = json_decode($_POST['proveedores']);
+
+			$arregloProveedor = Helper::convertirJSON($jsonProveedores);
+
+			$insumoModel->setId($_POST['id_insumo']);
+			$arregloInsumo = $insumoModel->Transaccion(["peticion" => "validar"]);
+
+			if ($arregloInsumo['bool'] == 1) {
+				$contador = 0;
+
+				foreach ($arregloProveedor as &$i) {
+					$contador++;
+					$proveedorModel->setDocumentoLegal($i['documento']);
+					$validarProveedor = $proveedorModel->Transaccion(["peticion" => "validar"]);
+					if ($validarProveedor['bool'] == 1) {
+						if ($i['id_entrada'] == NULL) {
+							$i['id_entrada'] = Helper::generarId('ENTRA', "INSUM", $contador);
+						}
+					}
+				}
+				$entradaInsumoModel->setIdInsumo($_POST['id_insumo']);
+				$response = $entradaInsumoModel->Transaccion(['peticion' => "asociar_proveedores", 'proveedores' => $arregloProveedor]); 
+
+				if ($response['estado'] == 1) {
+
+					$msg = "(" . $_SESSION['user']['cedula'] . "), Proveedores asociados correctamente ";
+					$json = $response;
+					Helper::Bitacora("ASOCIAR PROVEEDORES", 'INSUMO', $msg);
+				} else {
+					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+					$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no válidos'];
+				}
+			} else {
+				$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+				$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no válidos'];
+				$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
+			}
+		}
+
 		//Enviar respuesta al navegador usando un encabezado HTTP
 		header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
 		echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
