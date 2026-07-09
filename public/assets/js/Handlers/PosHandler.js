@@ -5,13 +5,30 @@ let productosDB = [];
 let productoActual = null;
 let insumosPrincipales = [];
 let insumosAdicionales = [];
+let tasaCambioPos = 60; // Tasa de cambio para el POS (fallback)
 window.extrasSeleccionados = [];
 window.removidosSeleccionados = [];
+
+async function obtenerTasaCambioPos() {
+    try {
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        if (response.ok) {
+            const data = await response.json();
+            tasaCambioPos = data.rates.VES || 60;
+            console.log('Tasa USD/VES para POS:', tasaCambioPos);
+        } else {
+            console.warn('Error al obtener tasa, usando fallback:', tasaCambioPos);
+        }
+    } catch (error) {
+        console.error('Error al obtener tasa:', error);
+    }
+}
+
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarProductosPOS();
 
-    
+    // Filtros de categorías
     const filtros = document.getElementById('posFiltros').querySelectorAll('button');
     filtros.forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -26,12 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const boxMesa = document.getElementById('boxMesa');
     if (selectTipo) {
         selectTipo.addEventListener('change', () => {
-            if(selectTipo.value === 'MESA') {
+            if (selectTipo.value === 'MESA') {
                 boxMesa.style.display = 'block';
                 document.getElementById('posMesa').required = true;
+                cargarMesasDisponibles();
             } else {
                 boxMesa.style.display = 'none';
                 document.getElementById('posMesa').required = false;
+                document.getElementById('posMesa').value = '';
             }
         });
     }
@@ -41,6 +60,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Cobrar
     document.getElementById('btnPosCobrar').addEventListener('click', procesarCobro);
+
+    // ==============================================
+    // AL ABRIR MODAL POS - OBTENER TASA
+    // ==============================================
+    const modalPOS = document.getElementById('modalPOS');
+    if (modalPOS) {
+        modalPOS.addEventListener('show.bs.modal', async () => {
+            await obtenerTasaCambioPos();
+            // Si el tipo por defecto es MESA, cargar mesas
+            if (document.getElementById('posTipoPedido').value === 'MESA') {
+                await cargarMesasDisponibles();
+            }
+        });
+    }
 });
 
 async function cargarProductosPOS() {
@@ -64,6 +97,18 @@ async function cargarProductosPOS() {
             confirmButtonColor: '#d33'
         });
     }
+}
+
+function actualizarPrecioPersonalizado() {
+    let total = parseFloat(document.getElementById('productoPrecioBase').value) || 0;
+    
+    // Sumar el precio de los extras seleccionados
+    document.querySelectorAll('#listaAdicionales .form-check-input:checked').forEach(cb => {
+        total += parseFloat(cb.dataset.precio) || 0;
+    });
+    
+    // Actualizar el total mostrado
+    document.getElementById('precioPersonalizadoTotal').textContent = `$${total.toFixed(2)}`;
 }
 
 function renderProductos(categoriaId) {
@@ -112,15 +157,14 @@ function renderProductos(categoriaId) {
 async function seleccionarProducto(producto) {
     productoActual = producto;
     
-    // Si no es personalizable, agregar directamente
+    // Si no es personalizable, verificar stock y agregar
     if (!producto.es_personalizable) {
-        agregarAlCarrito(productoActual, [], []);
+        await agregarAlCarritoConVerificacion(productoActual, [], []);
         return;
     }
     
     if (producto.tipo_producto === 'BARRA') {
-        // Si es de barra, agregar directamente sin personalización
-        agregarAlCarrito(productoActual, [], [], parseFloat(productoActual.precio), '');
+        await agregarAlCarritoConVerificacion(productoActual, [], [], parseFloat(productoActual.precio), '');
         return;
     }
 
@@ -145,6 +189,7 @@ async function seleccionarProducto(producto) {
             insumosPrincipales = data.data.principales || [];
             insumosAdicionales = data.data.adicionales || [];
             extrasSeleccionados = [];
+            removidosSeleccionados = [];
             
             mostrarModalPersonalizacion();
         } else {
@@ -172,58 +217,59 @@ function mostrarModalPersonalizacion() {
     document.getElementById('productoId').value = productoActual.id_producto;
     document.getElementById('productoPrecioBase').value = productoActual.precio;
     
-    // Resetear arrays globales
-    window.extrasSeleccionados = [];
-    window.removidosSeleccionados = [];
+    // Inicializar precio total
+    document.getElementById('precioPersonalizadoTotal').textContent = `$${parseFloat(productoActual.precio).toFixed(2)}`;
     
-    // Mostrar insumos principales (ingredientes que se pueden quitar)
+    extrasSeleccionados = [];
+    removidosSeleccionados = [];
+    
+    // Mostrar insumos principales (con checkbox, marcados por defecto)
     const listaPrincipales = document.getElementById('listaPrincipales');
-    if (listaPrincipales) {
-        if (insumosPrincipales && insumosPrincipales.length > 0) {
-            let html = '';
-            insumosPrincipales.forEach((insumo, index) => {
-                html += `
-                    <div class="form-check border-bottom py-1">
-                        <input class="form-check-input" type="checkbox" id="principal_${index}" 
-                               value="${insumo.id_insumo}" data-nombre="${escapeHtml(insumo.nombre_insumo)}" checked
-                               onchange="togglePrincipal(this)">
-                        <label class="form-check-label" for="principal_${index}">
-                            ${escapeHtml(insumo.nombre_insumo)} <small class="text-muted">(${insumo.cantidad} ${insumo.nombre_unidad})</small>
-                        </label>
-                    </div>
-                `;
-            });
-            listaPrincipales.innerHTML = html;
-        } else {
-            listaPrincipales.innerHTML = '<div class="text-muted text-center p-2">No hay ingredientes para personalizar</div>';
-        }
+    if (insumosPrincipales.length > 0) {
+        let html = '';
+        insumosPrincipales.forEach((insumo, index) => {
+            html += `
+                <div class="form-check border-bottom py-1">
+                    <input class="form-check-input" type="checkbox" id="principal_${index}" 
+                           value="${insumo.id_insumo}" data-nombre="${escapeHtml(insumo.nombre_insumo)}" checked
+                           onchange="actualizarPrecioPersonalizado()">
+                    <label class="form-check-label" for="principal_${index}">
+                        ${escapeHtml(insumo.nombre_insumo)} <small class="text-muted">(${insumo.cantidad} ${insumo.nombre_unidad})</small>
+                    </label>
+                </div>
+            `;
+        });
+        listaPrincipales.innerHTML = html;
+    } else {
+        listaPrincipales.innerHTML = '<div class="text-muted text-center p-2">No hay ingredientes configurados</div>';
     }
     
-    // Mostrar insumos adicionales (extras con costo)
+    // Mostrar insumos adicionales (extras con checkbox sin marcar)
     const listaAdicionales = document.getElementById('listaAdicionales');
-    if (listaAdicionales) {
-        if (insumosAdicionales && insumosAdicionales.length > 0) {
-            let html = '';
-            insumosAdicionales.forEach((insumo, index) => {
-                const precioExtra = parseFloat(insumo.precio_insumo || 0);
-                html += `
-                    <div class="form-check border-bottom py-1">
-                        <input class="form-check-input" type="checkbox" id="extra_${index}" 
-                               value="${insumo.id_insumo}" data-precio="${precioExtra}"
-                               data-nombre="${escapeHtml(insumo.nombre_insumo)}"
-                               onchange="toggleExtra(this)">
-                        <label class="form-check-label d-flex justify-content-between w-100" for="extra_${index}">
-                            <span>${escapeHtml(insumo.nombre_insumo)} <small class="text-muted">(${insumo.cantidad} ${insumo.nombre_unidad})</small></span>
-                            <span class="text-warning fw-bold">${precioExtra > 0 ? '+$' + precioExtra.toFixed(2) : 'Gratis'}</span>
-                        </label>
-                    </div>
-                `;
-            });
-            listaAdicionales.innerHTML = html;
-        } else {
-            listaAdicionales.innerHTML = '<div class="text-muted text-center p-2">No hay extras disponibles</div>';
-        }
+    if (insumosAdicionales.length > 0) {
+        let html = '';
+        insumosAdicionales.forEach((insumo, index) => {
+            const precioExtra = parseFloat(insumo.precio_insumo || 0);
+            html += `
+                <div class="form-check border-bottom py-1">
+                    <input class="form-check-input" type="checkbox" id="extra_${index}" 
+                           value="${insumo.id_insumo}" data-precio="${precioExtra}"
+                           data-nombre="${escapeHtml(insumo.nombre_insumo)}"
+                           onchange="actualizarPrecioPersonalizado()">
+                    <label class="form-check-label d-flex justify-content-between w-100" for="extra_${index}">
+                        <span>${escapeHtml(insumo.nombre_insumo)} <small class="text-muted">(${insumo.cantidad} ${insumo.nombre_unidad})</small></span>
+                        <span class="text-warning fw-bold">${precioExtra > 0 ? '+$' + precioExtra.toFixed(2) : 'Gratis'}</span>
+                    </label>
+                </div>
+            `;
+        });
+        listaAdicionales.innerHTML = html;
+    } else {
+        listaAdicionales.innerHTML = '<div class="text-muted text-center p-2">No hay extras disponibles</div>';
     }
+    
+    // Inicializar precio total
+    actualizarPrecioPersonalizado();
     
     const modal = new bootstrap.Modal(document.getElementById('modalPersonalizar'));
     modal.show();
@@ -235,7 +281,6 @@ function togglePrincipal(checkbox) {
     const nombreInsumo = checkbox.dataset.nombre;
     
     if (!checkbox.checked) {
-        // Se quitó el ingrediente
         if (!window.removidosSeleccionados) window.removidosSeleccionados = [];
         if (!window.removidosSeleccionados.find(r => r.id_insumo === idInsumo)) {
             window.removidosSeleccionados.push({
@@ -244,12 +289,14 @@ function togglePrincipal(checkbox) {
             });
         }
     } else {
-        
         window.removidosSeleccionados = window.removidosSeleccionados.filter(r => r.id_insumo !== idInsumo);
     }
+    
+    // Actualizar precio al quitar/marcar ingredientes principales
+    actualizarPrecioPersonalizado();
 }
 
-
+// SOLO UNA FUNCIÓN toggleExtra (elimina la duplicada)
 function toggleExtra(checkbox) {
     const precio = parseFloat(checkbox.dataset.precio || 0);
     const idInsumo = checkbox.value;
@@ -265,68 +312,112 @@ function toggleExtra(checkbox) {
     } else {
         window.extrasSeleccionados = window.extrasSeleccionados.filter(e => e.id_insumo !== idInsumo);
     }
-}
-
-function toggleExtra(checkbox) {
-    const precio = parseFloat(checkbox.dataset.precio || 0);
-    const idInsumo = checkbox.value;
-    const nombreInsumo = checkbox.dataset.nombre;
     
-    if (checkbox.checked) {
-        extrasSeleccionados.push({
-            id_insumo: idInsumo,
-            nombre: nombreInsumo,
-            precio: precio
-        });
-    } else {
-        extrasSeleccionados = extrasSeleccionados.filter(e => e.id_insumo !== idInsumo);
-    }
+    // Actualizar precio al marcar/desmarcar extras
+    actualizarPrecioPersonalizado();
 }
 
 function confirmarPersonalizacion() {
     const modal = bootstrap.Modal.getInstance(document.getElementById('modalPersonalizar'));
     modal.hide();
     
+    // Obtener ingredientes removidos
+    removidosSeleccionados = [];
+    if (insumosPrincipales.length > 0) {
+        for (let i = 0; i < insumosPrincipales.length; i++) {
+            const checkbox = document.getElementById(`principal_${i}`);
+            if (checkbox && !checkbox.checked) {
+                removidosSeleccionados.push({
+                    id_insumo: insumosPrincipales[i].id_insumo,
+                    nombre: insumosPrincipales[i].nombre_insumo
+                });
+            }
+        }
+    }
     
-    const extras = window.extrasSeleccionados || [];
-    const removidos = window.removidosSeleccionados || [];
-    
-    // Calcular precio total con extras
-    let precioTotal = parseFloat(productoActual.precio);
-    let extrasTexto = [];
-    let sinTexto = [];
-    
-    extras.forEach(extra => {
-        precioTotal += extra.precio;
-        extrasTexto.push(extra.nombre);
+    // Obtener extras seleccionados
+    extrasSeleccionados = [];
+    const checkboxesExtras = document.querySelectorAll('#listaAdicionales .form-check-input:checked');
+    checkboxesExtras.forEach(checkbox => {
+        const precio = parseFloat(checkbox.dataset.precio) || 0;
+        extrasSeleccionados.push({
+            id_insumo: checkbox.value,
+            nombre: checkbox.dataset.nombre,
+            precio: precio
+        });
     });
     
-    removidos.forEach(removido => {
-        sinTexto.push(removido.nombre);
-    });
+    // Calcular precio final
+    const precioFinal = parseFloat(document.getElementById('precioPersonalizadoTotal').textContent.replace('$', ''));
+    const precioBase = parseFloat(document.getElementById('productoPrecioBase').value) || 0;
     
+    // Construir indicación
+    const extrasTexto = extrasSeleccionados.map(e => e.nombre);
+    const sinTexto = removidosSeleccionados.map(r => r.nombre);
     
     let indicacion = '';
     if (sinTexto.length > 0) {
-        indicacion = `Sin: ${sinTexto.join(', ')}. `;
+        indicacion += `Sin: ${sinTexto.join(', ')}. `;
     }
     if (extrasTexto.length > 0) {
         indicacion += `Extras: ${extrasTexto.join(', ')}. `;
     }
     indicacion = indicacion.trim();
     
-    console.log("Personalización:", {
-        producto: productoActual.nombre_producto,
-        precio_base: productoActual.precio,
-        precio_final: precioTotal,
-        sin: sinTexto,
-        extras: extrasTexto,
-        indicacion: indicacion
-    });
-    
-    
-    agregarAlCarrito(productoActual, extras, removidos, precioTotal, indicacion);
+    // Verificar stock antes de agregar
+    agregarAlCarritoConVerificacion(productoActual, extrasSeleccionados, removidosSeleccionados, precioFinal, indicacion);
 }
+
+
+async function agregarAlCarritoConVerificacion(producto, extras = [], removidos = [], precioPersonalizado = null, indicacion = '') {
+    // Verificar stock antes de agregar
+    try {
+        let cantidadEnCarrito = 0;
+        posCart.forEach(item => {
+            if (item.id_producto === producto.id_producto) {
+                cantidadEnCarrito += item.cantidad;
+            }
+        });
+        const cantidadAVerificar = cantidadEnCarrito + 1;
+
+        const formData = new FormData();
+        formData.append('action', 'verificar_stock');
+        formData.append('id_producto', producto.id_producto);
+        formData.append('cantidad', cantidadAVerificar);
+        
+        const res = await fetch('?page=pedidos', { method: 'POST', body: formData });
+        const data = await res.json();
+        
+        if (!data.success) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Stock insuficiente',
+                html: `
+                    ${data.message}<br><br>
+                    <strong>Stock disponible:</strong> ${data.stock_disponible} unidades<br>
+                    <strong>Porcentaje de stock:</strong> ${Number(parseFloat(data.porcentaje || 0).toFixed(2))}%
+                `,
+                confirmButtonColor: '#d33'
+            });
+            return false;
+        }
+        
+        // Si hay stock, agregar al carrito
+        agregarAlCarrito(producto, extras, removidos, precioPersonalizado, indicacion);
+        return true;
+        
+    } catch (error) {
+        console.error('Error verificando stock:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'No se pudo verificar el stock del producto',
+            confirmButtonColor: '#d33'
+        });
+        return false;
+    }
+}
+
 
 function agregarAlCarrito(producto, extras = [], removidos = [], precioPersonalizado = null, indicacion = '') {
     const index = posCart.findIndex(item => 
@@ -356,11 +447,60 @@ function agregarAlCarrito(producto, extras = [], removidos = [], precioPersonali
     renderCarrito();
 }
 
-function actualizarCantidad(index, delta) {
-    posCart[index].cantidad += delta;
-    if (posCart[index].cantidad <= 0) {
+async function actualizarCantidad(index, delta) {
+    const item = posCart[index];
+    if (!item) return;
+    
+    const nuevaCantidad = item.cantidad + delta;
+    
+    // Si es menor o igual a 0, eliminar
+    if (nuevaCantidad <= 0) {
         posCart.splice(index, 1);
+        renderCarrito();
+        return;
     }
+    
+    // Si está sumando (+), verificar stock
+    if (delta > 0) {
+        try {
+            let cantidadEnCarrito = 0;
+            posCart.forEach((cartItem, i) => {
+                if (cartItem.id_producto === item.id_producto) {
+                    cantidadEnCarrito += (i === index) ? nuevaCantidad : cartItem.cantidad;
+                }
+            });
+
+            const formData = new FormData();
+            formData.append('action', 'verificar_stock');
+            formData.append('id_producto', item.id_producto);
+            formData.append('cantidad', cantidadEnCarrito);
+            
+            const res = await fetch('?page=pedidos', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            if (!data.success) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Stock insuficiente',
+                    html: `${data.message}<br><br><strong>Stock disponible:</strong> ${data.stock_disponible} unidades`,
+                    confirmButtonColor: '#d33'
+                });
+                return;
+            }
+        } catch (error) {
+            console.error('Error verificando stock:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo verificar el stock',
+                confirmButtonColor: '#d33'
+            });
+            return;
+        }
+    }
+    
+    // Si pasa la verificación, actualizar cantidad
+    posCart[index].cantidad = nuevaCantidad;
     renderCarrito();
 }
 
@@ -368,6 +508,7 @@ function renderCarrito() {
     const container = document.getElementById('posCartItems');
     const badge = document.getElementById('posCount');
     const labelTotal = document.getElementById('posTotal');
+    const labelTotalBs = document.getElementById('posTotalBs');
     const btnCobrar = document.getElementById('btnPosCobrar');
 
     if (!container) return;
@@ -385,6 +526,7 @@ function renderCarrito() {
         `;
         if (badge) badge.innerText = '0';
         if (labelTotal) labelTotal.innerText = '$0.00';
+        if (labelTotalBs) labelTotalBs.innerText = 'Bs 0.00';
         if (btnCobrar) btnCobrar.disabled = true;
         return;
     }
@@ -402,12 +544,21 @@ function renderCarrito() {
                           </div>`;
         }
 
+        // Mostrar removidos si tiene
+        let removidosHtml = '';
+        if (item.removidos && item.removidos.length > 0) {
+            removidosHtml = `<div class="small text-danger mt-1">
+                                <i class="fas fa-ban"></i> Sin: ${item.removidos.map(r => r.nombre).join(', ')}
+                            </div>`;
+        }
+
         const div = document.createElement('div');
         div.className = 'pos-item';
         div.innerHTML = `
             <div class="flex-grow-1">
                 <div class="fw-bold text-truncate" style="max-width:180px;">${escapeHtml(item.nombre)}</div>
                 ${extrasHtml}
+                ${removidosHtml}
                 <div class="text-success fw-semibold">$${subtotal.toFixed(2)}</div>
             </div>
             <div class="pos-item__controls">
@@ -421,6 +572,15 @@ function renderCarrito() {
 
     if (badge) badge.innerText = count;
     if (labelTotal) labelTotal.innerText = `$${total.toFixed(2)}`;
+    
+    // ==============================================
+    // CALCULAR Y MOSTRAR TOTAL EN BS
+    // ==============================================
+    if (labelTotalBs) {
+        const totalBs = total * tasaCambioPos;
+        labelTotalBs.innerText = `Bs ${totalBs.toFixed(2)}`;
+    }
+    
     if (btnCobrar) btnCobrar.disabled = false;
 }
 
@@ -432,6 +592,63 @@ async function procesarCobro() {
             text: 'No hay productos en el pedido',
             confirmButtonColor: '#3085d6',
             confirmButtonText: 'Aceptar'
+        });
+        return;
+    }
+
+Swal.fire({
+        title: 'Verificando stock...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+    });
+    
+    let stockOk = true;
+    let erroresStock = [];
+    
+    // Agrupar cantidades por producto para validar correctamente
+    const totalesPorProducto = {};
+    posCart.forEach(item => {
+        if (!totalesPorProducto[item.id_producto]) {
+            totalesPorProducto[item.id_producto] = { nombre: item.nombre, cantidad: 0 };
+        }
+        totalesPorProducto[item.id_producto].cantidad += item.cantidad;
+    });
+    
+    for (const [id_producto, prodData] of Object.entries(totalesPorProducto)) {
+        try {
+            const formData = new FormData();
+            formData.append('action', 'verificar_stock');
+            formData.append('id_producto', id_producto);
+            formData.append('cantidad', prodData.cantidad);
+            
+            const res = await fetch('?page=pedidos', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            if (!data.success) {
+                stockOk = false;
+                erroresStock.push(`- ${prodData.nombre}: ${data.message}`);
+            }
+        } catch (error) {
+            console.error('Error verificando stock:', error);
+            stockOk = false;
+            erroresStock.push(`- ${prodData.nombre}: Error al verificar stock`);
+        }
+    }
+    
+    Swal.close();
+    
+    if (!stockOk) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Stock insuficiente',
+            html: `
+                <div class="text-start">
+                    <p>No se puede procesar el pedido por los siguientes problemas:</p>
+                    <ul class="mb-0">${erroresStock.map(e => `<li>${e}</li>`).join('')}</ul>
+                </div>
+            `,
+            confirmButtonColor: '#d33',
+            confirmButtonText: 'Entendido'
         });
         return;
     }
@@ -493,11 +710,14 @@ async function procesarCobro() {
 
         if (res.success) {
             Swal.fire({
-                icon: 'success',
-                title: '¡Pedido registrado!',
-                text: res.message,
-                confirmButtonColor: '#28a745'
-            }).then(() => {
+            icon: 'success',
+            title: '¡Pedido registrado!',
+            html: `
+                ${res.message}<br>
+                <strong>Número de pedido: #${res.numero_pedido || res.id_pedido}</strong>
+            `,
+            confirmButtonColor: '#28a745'
+        }).then(() => {
                 posCart = [];
                 document.getElementById('posClienteNombre').value = '';
                 document.getElementById('posMesa').value = '';

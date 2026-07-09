@@ -112,7 +112,7 @@ export async function EnviarDatos(operacion) {
   if (operacion == "suministrar") {
 
     if (Validarenvio()) {
-      confirmacion = await confirmarAccion(`Se va a suministrar un insumo`, mensajeConfirmacion, "question");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se va a suministrar un insumo`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', "suministrar");
@@ -131,7 +131,7 @@ export async function EnviarDatos(operacion) {
   if (operacion == "suministrar_lote") {
 
     if (ValidadorHelper.ValidarCampo("ID", input.id_insumo, span.id_insumo)) {
-      confirmacion = await confirmarAccion("Se eliminará un Suministrar", mensajeConfirmacion, "warning");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion("Se eliminará un Suministrar", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
@@ -201,7 +201,7 @@ export async function CrearSelectProveedores(id_insumo) {
   const modulo = "EntradaInsumo";
   const mensaje = "Seleccione un Proveedor"
   let arreglo = [];
-  datos.append("insumo", id_insumo);
+  datos.append("id_insumo", id_insumo);
   datos.append("modulo", modulo);
   datos.append("peticion", "filtrar");
 
@@ -318,7 +318,6 @@ function Validarenvio() {
 }
 
 export function LimpiarFormulario() {
-  SistemaValidacion.limpiarValidacion(EtiquetasFormulario('input'));
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');

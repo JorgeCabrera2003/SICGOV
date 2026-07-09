@@ -16,6 +16,16 @@ foreach ($menus as $menuItem) {
 <!-- Header Promocional -->
 <div class="menu-hero text-center py-5 bg-dark text-white position-relative overflow-hidden" style="background: linear-gradient(135deg, rgba(10, 43, 43, 0.9) 0%, rgba(10, 43, 43, 0.4) 100%), url('<?= BASE_URL ?>/assets/img/hero-menu-new.png') center/cover;">
     <div class="container position-relative z-1 py-4">
+        <div class="d-flex justify-content-start mb-3 d-md-none">
+            <a href="<?= BASE_URL ?>/" class="btn btn-outline-light rounded-pill btn-sm fw-bold">
+                <i class="fas fa-arrow-left me-2"></i> Volver al Inicio
+            </a>
+        </div>
+        <div class="position-absolute top-0 start-0 mt-2 d-none d-md-block">
+            <a href="<?= BASE_URL ?>/" class="btn btn-outline-light rounded-pill btn-sm fw-bold">
+                <i class="fas fa-arrow-left me-2"></i> Volver al Inicio
+            </a>
+        </div>
         <h1 class="display-4 fw-bold mb-3 font-monospace text-primary">NUESTRO MENÚ</h1>
         <p class="lead mb-0 text-light">Pide en línea y disfruta del mejor sabor.</p>
     </div>

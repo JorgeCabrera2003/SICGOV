@@ -4,7 +4,7 @@ import * as ValidadorHelper from "../Helpers/ValidadorHelper.js";
 import * as SelectHelper from "../Helpers/SelectHelper.js";
 import * as PermisoHelper from "../Helpers/PermisoHelper.js";
 
-//MODULO DE INGREDIENTES
+//MODULO DE INSUMOS
 
 //-------INICIALIZACIÖN-------
 
@@ -98,7 +98,6 @@ function manejarCambioEstado(formularioValido) {
   const accion = modal.boton.text();
 
   if (accion === "Eliminar") {
-    // Para eliminar solo validamos el ID
     const idValido = validarKeyUp(/^[A-Z0-9]{3,5}[A-Z0-9]{3}[0-9]{8}[0-9]{0,6}[0-9]{0,2}$/, input.id_insumo.val(), span.id_insumo, '');
     modal.boton.prop('disabled', !idValido);
   } else {
@@ -151,9 +150,7 @@ export async function EnviarDatos(operacion) {
 
           }
         }
-
       }
-
       peticion.append('stock_inicial', input.stock_inicial.val());
     }
 
@@ -168,7 +165,7 @@ export async function EnviarDatos(operacion) {
     }
 
     if (Validarenvio() && bool_peticion) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', accion);
@@ -190,7 +187,7 @@ export async function EnviarDatos(operacion) {
   if (operacion == "eliminar") {
 
     if (ValidadorHelper.ValidarCampo("ID", input.id_insumo, span.id_insumo)) {
-      confirmacion = await confirmarAccion("Se eliminará un Insumo", mensajeConfirmacion, "warning");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion("Se eliminará un Insumo", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
@@ -217,7 +214,6 @@ export async function EnviarDatos(operacion) {
   if (!confirmacion) {
     modal.boton.prop('disabled', false);
   }
-
   input = null;
   modal = null;
   return json;
@@ -232,15 +228,15 @@ export async function EnviarFormulario(btn_string) {
     'Actualizar': 'modificar',
     'Borrar': 'eliminar'
   }
-  const DEFAULT = null
+  const DEFAULT = null;
 
-  accion = MANEJADOR[btn_string] || DEFAULT
+  accion = MANEJADOR[btn_string] || DEFAULT;
 
   if (accion != null) {
-    respuesta = await EnviarDatos(accion)
+    respuesta = await EnviarDatos(accion);
   } else {
-    respuesta = { resultado: 0 }
-    MensajeriaHelper.GenerarMensaje("danger", 10000, "Error, acción no válida", "")
+    respuesta = { resultado: 0 };
+    MensajeriaHelper.GenerarMensaje("danger", 10000, "Error, acción no válida", "");
   }
   return respuesta;
 };
@@ -260,9 +256,9 @@ export async function CrearSelectProveedores() {
   let datos = new FormData();
   let input = EtiquetasFormulario('input');
   const endpoint = "?page=Proveedor";
-  const mensaje = "Seleccione un Proveedor"
+  const mensaje = "Seleccione un Proveedor";
   let arreglo = [];
-  datos.append("peticion", "consultar")
+  datos.append("peticion", "consultar");
 
   try {
     json = await AjaxHelper.enviaAjax(datos, endpoint);
@@ -287,14 +283,13 @@ export async function CrearSelectUnidadMedida() {
   let input = EtiquetasFormulario('input');
   const endpoint = "?page=Insumo";
   const modulo = "UnidadMedida";
-  const mensaje = "Seleccione una Unidad de Medida"
+  const mensaje = "Seleccione una Unidad de Medida";
   let arreglo = [];
   datos.append("modulo", modulo);
-  datos.append("peticion", "consultar")
+  datos.append("peticion", "consultar");
 
   try {
     json = await AjaxHelper.enviaAjax(datos, endpoint);
-
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       const arrayUnidad = json.datos.map(item => ({
@@ -315,13 +310,12 @@ export async function CrearSelectCategoria() {
   let datos = new FormData();
   let input = EtiquetasFormulario('input');
   const endpoint = "?page=CategoriaInsumo";
-  const mensaje = "Seleccione una Categoría"
+  const mensaje = "Seleccione una Categoría";
   let arreglo = [];
-  datos.append("peticion", "consultar")
+  datos.append("peticion", "consultar");
 
   try {
     json = await AjaxHelper.enviaAjax(datos, endpoint);
-
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       const arrayCategoria = json.datos.map(item => ({
@@ -541,6 +535,7 @@ async function RenderPermisoBotones(modulo = "Insumo") {
   let btn_eliminar = "";
   let btn_modificar = "";
   let btn_suministrar = "";
+  let btn_asociar = "";
   let btn_movimiento = "";
   let separadorHTML = "";
 
@@ -566,6 +561,19 @@ async function RenderPermisoBotones(modulo = "Insumo") {
       .html('<i class="fa-solid fa-down-long me-2"></i>Suministrar');
     itemSumistrar.append(linkSumistrar);
     btn_suministrar = itemSumistrar;
+    bool = true;
+  }
+
+    if (permisos['insumo']['asociar'] != undefined && permisos['insumo']['asociar'] == 1) {
+    const itemAsociar = $('<li>');
+    const linkAsociar = $('<a>')
+      .addClass('dropdown-item btn-asociar text-info')
+      .attr('href', '#')
+      .attr('data-accion', 4)
+      .attr('data-modulo', "Asociar")
+      .html('<i class="bi bi-people me-2"></i>Proveedores Asociados');
+    itemAsociar.append(linkAsociar);
+    btn_asociar = itemAsociar;
     bool = true;
   }
 
@@ -609,7 +617,7 @@ async function RenderPermisoBotones(modulo = "Insumo") {
   const menu = $('<ul>').addClass('dropdown-menu');
 
 
-  menu.append(btn_modificar, btn_suministrar, btn_movimiento, separadorHTML, btn_eliminar);
+  menu.append(btn_modificar, btn_suministrar, btn_asociar, btn_movimiento, separadorHTML, btn_eliminar);
   dropdown.append(boton, menu);
 
   if (!bool) {
@@ -717,12 +725,11 @@ export async function DataTablePrincipal(arreglo) {
       }
     ],
     order: [[1, 'asc']],
-    language: { url: idiomaTabla }
+    language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' }
   });
 }
 
 export function LimpiarFormulario() {
-  SistemaValidacion.limpiarValidacion(EtiquetasFormulario('input'));
 
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');

@@ -5,9 +5,15 @@
             <h1 class="h3 fw-bold text-primary mb-0">Reservar Mesa</h1>
         </div>
         <div class="col-md-4 text-md-end mt-3 mt-md-0">
-            <button class="btn btn-primary shadow-sm fw-bold px-4 rounded-3" id="btnNuevaReservacion">
-                <i class="bi bi-plus-lg me-2"></i>
-            </button>
+            <?php if ($datos): ?>
+                <button class="btn btn-primary shadow-sm fw-bold px-4 rounded-3" id="btnNuevaReservacion">
+                    <i class="bi bi-plus-lg me-2"></i>
+                </button>
+            <?php else: ?>
+                <a href="<?= BASE_URL ?>?page=login" class="btn btn-warning shadow-sm fw-bold px-4 rounded-3 text-dark">
+                    <i class="bi bi-lock me-2"></i> Iniciar Sesión para Reservar
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -44,8 +50,8 @@
                              <i class="bi bi-person text-dark fs-4"></i>
                         </div>
                         <div>
-                            <h6 class="mb-0 fw-bold"><?= $datos['nombre'] ?></h6>
-                            <span class="text-muted small">Confirmaremos tu cita vía SMS</span>
+                            <h6 class="mb-0 fw-bold"><?= $datos ? $datos['nombre'] : 'Invitado' ?></h6>
+                            <span class="text-muted small">Confirmaremos tu cita vía sistema</span>
                         </div>
                     </div>
 

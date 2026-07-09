@@ -128,12 +128,12 @@ function aplicarEstilosCampo($campo, $feedback, esValido, mensaje, forzar = fals
     } else {
         $campo.addClass('is-invalid').removeClass('is-valid');
         $campo[0].style.setProperty('border-color', '#dc3545', 'important');
-        
+
         // Remove green checkmark explicitly if it persists due to CSS conflicts
         if ($campo.is('select')) {
             $campo[0].style.setProperty('background-image', 'none', 'important');
         }
-        
+
         $campo[0].setCustomValidity(mensaje);
         $feedback.addClass('invalid-tooltip d-inline-block').text(mensaje);
     }
@@ -606,7 +606,7 @@ async function crearDataTable() {
                         if (menu.children().length > 0) {
                             menu.append($('<li>').html('<hr class="dropdown-divider">'));
                         }
-                        
+
                         const itemToggle = $('<li>');
                         const claseTexto = esActivo ? 'text-warning' : 'text-success';
                         const icono = esActivo ? 'fa-user-slash' : 'fa-user-check';
@@ -644,7 +644,7 @@ async function crearDataTable() {
             }
         ],
         order: [[0, 'asc']],
-        language: { url: idiomaTabla }
+        language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' }
     });
 }
 
@@ -756,3 +756,8 @@ function reconectarObservadorDOM() {
         domObserver.observe(inputCedulaEditar, opcionesObserver);
     }
 }
+
+// Exponer funciones al scope global para que los eventos inline (onclick) funcionen
+window.rellenar = rellenar;
+window.toggleEstatus = toggleEstatus;
+window.forzarCambioClave = forzarCambioClave;
