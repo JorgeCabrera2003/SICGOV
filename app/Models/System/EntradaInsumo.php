@@ -267,7 +267,7 @@ class EntradaInsumo extends Database
             try {
                 $this->LlamarConexion();
                 $this->LlamarConexion()->beginTransaction();
-                $sql = "UPDATE entrada_insumo SET estatus = 1 WHERE id_entrada = :id";
+                $sql = "UPDATE entrada_insumo SET estatus = 0 WHERE id_entrada = :id";
                 $stm = $this->LlamarConexion()->prepare($sql);
                 $stm->bindParam('id', $this->id);
                 $stm->execute();
@@ -275,7 +275,7 @@ class EntradaInsumo extends Database
                 $stm = NULL;
 
                 $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Relación de Entrada eliminado exitosamente"];
+                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Asociación con el Proveedor eliminada"];
                 $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
             } catch (\PDOException $e) {
                 Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
@@ -335,7 +335,7 @@ class EntradaInsumo extends Database
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM vw_entrada_insumo WHERE id_insumo  = :id_insumo";
+            $sql = "SELECT * FROM vw_entrada_insumo WHERE id_insumo  = :id_insumo AND estatus = 1";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':id_insumo', $this->id_insumo);
             $stm->execute();
