@@ -102,7 +102,7 @@ export async function EnviarDatos(operacion) {
 
   //Registrar y Modificar
   if (operacion == "asociar") {
-    
+
     if (validarDuplicados()) {
       confirmacion = await MensajeriaHelper.MostrarConfirmacion(`¿Guardar Configuración?`, mensajeConfirmacion, "question");
 
@@ -140,7 +140,7 @@ export async function EnviarDatos(operacion) {
     json = await AjaxHelper.enviaAjax(peticion, endpoint);
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-      if(operacion == "asociar"){
+      if (operacion == "asociar") {
         MensajeriaHelper.GenerarMensaje(json.icon, 10000, json.mensaje, null);
         RecargarModalTabla(input.insumo.attr("data-insumo"));
       } else {
@@ -467,10 +467,18 @@ export async function AgregarFilaInput() {
   json = await ConsultarProveedor(id_insumo);
 
   if (contarSelectsDisponibles() <= json.total) {
+
+    bool = true;
     if (contarSelectsDisponibles() == (json.total - 1)) {
       $("#btn-agregarProveedor").prop('disabled', true);
+      MensajeriaHelper.GenerarMensaje("info", 10000, "", "No hay más proveedores disponibles para asociar a este insumo");
+      bool = false;
     }
-    bool = true
+    if (json.total == 0) {
+      $("#btn-agregarProveedor").prop('disabled', true);
+      bool = false;
+      MensajeriaHelper.GenerarMensaje("info", 10000, "", "No hay más proveedores disponibles para asociar a este insumo");
+    }
   } else {
     $("#btn-agregarProveedor").prop('disabled', true);
   };
