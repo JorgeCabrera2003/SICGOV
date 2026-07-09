@@ -112,7 +112,7 @@ export async function EnviarDatos(operacion) {
     }
 
     if (ValidarEnvio() && bool_form) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} un Rol`, mensajeConfirmacion, "question");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} un Rol`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         permisos = CrearArregloPermisos();
@@ -137,7 +137,7 @@ export async function EnviarDatos(operacion) {
     }
 
     if (bool_eliminar) {
-      confirmacion = await confirmarAccion("Se eliminará un Rol", mensajeConfirmacion, "warning");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion("Se eliminará un Rol", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');

@@ -100,7 +100,7 @@ export async function EnviarDatos(operacion) {
       accion = "comprobar"
     }
     mensajeConfirmacion = "¿Desea realizar comprobación?";
-    confirmacion = await confirmarAccion(`Se ${str_acccion} los Módulos del Sistema`, mensajeConfirmacion, "question");
+    confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} los Módulos del Sistema`, mensajeConfirmacion, "question");
 
     if (confirmacion) {
       peticion.append('peticion', accion);
