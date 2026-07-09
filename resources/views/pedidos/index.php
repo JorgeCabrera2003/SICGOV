@@ -22,7 +22,7 @@
                 <table class="table table-hover align-middle table-pedidos" id="pedidosTable">
                     <thead class="table-light">
                         <tr>
-                            <th>Nro. Pedido</th>
+                            <th># Pedido</th> 
                             <th>Fecha</th>
                             <th>Cliente</th>
                             <th>Tipo</th>
@@ -127,6 +127,11 @@
                                 <span id="posTotal" class="text-success">$0.00</span>
                             </div>
 
+                            <div class="d-flex justify-content-between small text-muted mb-3">
+                                <span>Total Bs (tasa del día):</span>
+                                <span id="posTotalBs">Bs 0.00</span>
+                            </div>
+                            
                             <form id="posForm">
                                 <div class="mb-2">
                                     <select class="form-select form-select-sm" id="posTipoPedido" required>
@@ -198,6 +203,10 @@
                     <strong>Ingredientes:</strong> Desmarca los que no quieras.<br>
                     <strong>Extras:</strong> Tienen costo adicional y se suman al total.
                 </div>
+            </div>
+            <div class="alert alert-success py-2 mb-3 d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Total:</span>
+                <span id="precioPersonalizadoTotal" class="fw-bold fs-5">$0.00</span>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
