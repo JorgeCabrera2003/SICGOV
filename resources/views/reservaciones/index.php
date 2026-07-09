@@ -106,7 +106,7 @@
                         <i class="bi bi-trash me-2"></i>Eliminar
                     </button>
                     <button type="button" class="btn btn-cancel-custom" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-save-custom fw-bold">Guardar Cambios</button>
+                    <button type="submit" class="btn btn-save-custom fw-bold">Guardar Reservación</button>
                 </div>
             </form>
         </div>
