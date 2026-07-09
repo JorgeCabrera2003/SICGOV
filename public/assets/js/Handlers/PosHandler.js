@@ -395,7 +395,7 @@ async function agregarAlCarritoConVerificacion(producto, extras = [], removidos 
                 html: `
                     ${data.message}<br><br>
                     <strong>Stock disponible:</strong> ${data.stock_disponible} unidades<br>
-                    <strong>Porcentaje de stock:</strong> ${data.porcentaje || 0}%
+                    <strong>Porcentaje de stock:</strong> ${Number(parseFloat(data.porcentaje || 0).toFixed(2))}%
                 `,
                 confirmButtonColor: '#d33'
             });
