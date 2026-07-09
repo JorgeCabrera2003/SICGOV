@@ -60,6 +60,7 @@
         const BASE_URL = '<?php echo BASE_URL; ?>';
         const CURRENT_PAGE = '<?php echo $page ?? ''; ?>';
         const CSRF_TOKEN = '<?php echo $_SESSION['csrf_token'] ?? ''; ?>';
+        window.idiomaTabla = BASE_URL + '/assets/DataTables/espanol.json';
     </script>
 </head>
 <body class="d-flex flex-column min-vh-100">
