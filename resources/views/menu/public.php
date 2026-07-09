@@ -247,10 +247,10 @@ foreach ($menus as $menuItem) {
                     <!-- Cantidad -->
                     <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                         <span class="fw-bold">Cantidad:</span>
-                        <div class="quantity-selector">
-                            <button id="btn-qty-minus"><i class="fas fa-minus"></i></button>
-                            <input type="number" id="input-qty" value="1" min="1" readonly>
-                            <button id="btn-qty-plus"><i class="fas fa-plus"></i></button>
+                        <div class="quantity-selector d-flex align-items-center">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-qty-minus"><i class="fas fa-minus"></i></button>
+                            <input type="number" id="input-qty" class="form-control text-center mx-2" value="1" min="1" style="width: 60px;">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-qty-plus"><i class="fas fa-plus"></i></button>
                         </div>
                     </div>
                 </div>

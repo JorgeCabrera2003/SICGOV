@@ -887,8 +887,7 @@ public function verificarStockProducto($id_producto, $cantidad = 1)
                 JOIN insumo i ON p.id_insumo = i.id_insumo
                 LEFT JOIN unidad_medida up ON p.id_unidad_medida = up.id_unidad
                 LEFT JOIN unidad_medida ui ON i.id_unidad_medida = ui.id_unidad
-                WHERE p.id_producto = ? AND p.prioridad_insumo = 1
-                AND i.estatus = 1";
+                WHERE p.id_producto = ? AND i.estatus = 1";
         
         $stmt = $this->LlamarConexion()->prepare($sql);
         $stmt->execute([$id_producto]);
@@ -971,20 +970,6 @@ public function verificarStockProducto($id_producto, $cantidad = 1)
                 'stock_disponible' => $stockDisponible,
                 'porcentaje' => $porcentaje,
                 'insumo_limitante' => $insumoLimitante
-            ];
-        }
-        
-        // Verificar si el stock está por debajo del 70%
-        $porcentajeMinimo = 30; // 70% de stock mínimo requerido
-        
-        if ($porcentaje < $porcentajeMinimo) {
-            return [
-                'success' => false,
-                'message' => "No se puede preparar este producto. El stock está al $porcentaje% de su capacidad mínima. (Mínimo requerido: $porcentajeMinimo%)",
-                'stock_disponible' => $stockDisponible,
-                'porcentaje' => $porcentaje,
-                'insumo_limitante' => $insumoLimitante,
-                'porcentaje_minimo' => $porcentajeMinimo
             ];
         }
         

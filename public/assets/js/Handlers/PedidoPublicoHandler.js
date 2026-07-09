@@ -1,11 +1,26 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     let cart = JSON.parse(localStorage.getItem('gv_cart')) || [];
     let currentProduct = null;
     let qtyInput = document.getElementById('input-qty');
     const modalPersonalizar = new bootstrap.Modal(document.getElementById('modalPersonalizarPedido'));
     const modalCheckout = new bootstrap.Modal(document.getElementById('modalCheckout'));
+    let tasaCambio = 60; // Fallback
 
+    await obtenerTasaCambio();
     renderCart();
+
+    async function obtenerTasaCambio() {
+        try {
+            const response = await fetch('https://pydolarve.org/api/v1/dollar?page=bcv');
+            const data = await response.json();
+            if (data && data.monitors && data.monitors.usd) {
+                tasaCambio = data.monitors.usd.price || 60;
+                console.log('Tasa USD/VES obtenida:', tasaCambio);
+            }
+        } catch (error) {
+            console.warn('Error al obtener tasa, usando fallback:', tasaCambio);
+        }
+    }
 
     // Event Listeners para Añadir Producto
     document.querySelectorAll('.btn-add-product').forEach(btn => {
@@ -15,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.success && res.data) {
                 openCustomizationModal(res.data);
             } else {
-                alert('No se pudo cargar el producto.');
+                Swal.fire('Error', 'No se pudo cargar el producto.', 'error');
             }
         });
     });
@@ -29,26 +44,88 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.getElementById('btn-qty-plus').addEventListener('click', () => {
+    document.getElementById('btn-qty-plus').addEventListener('click', async (e) => {
+        let btn = e.currentTarget;
+        btn.disabled = true;
         let q = parseInt(qtyInput.value);
-        qtyInput.value = q + 1;
-        updateModalPrice();
+        let newQty = q + 1;
+        await validateAndSetModalQty(newQty, btn);
     });
+
+    qtyInput.addEventListener('change', async (e) => {
+        let q = parseInt(qtyInput.value) || 1;
+        if (q < 1) q = 1;
+        qtyInput.disabled = true;
+        await validateAndSetModalQty(q, qtyInput, true);
+    });
+
+    async function validateAndSetModalQty(newQty, el, isManual = false) {
+        // Verificar stock antes de permitir incrementar
+        let cantidadEnCarrito = 0;
+        cart.forEach(item => {
+            if (item.id_producto === currentProduct.id_producto) {
+                cantidadEnCarrito += item.cantidad;
+            }
+        });
+        const cantidadAVerificar = cantidadEnCarrito + newQty;
+
+        try {
+            const formData = new FormData();
+            formData.append('action', 'verificar_stock');
+            formData.append('id_producto', currentProduct.id_producto);
+            formData.append('cantidad', cantidadAVerificar);
+            
+            const res = await fetch('?page=PedidoPublico', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            if (!data.success) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stock insuficiente',
+                    text: `${data.message} (Stock disponible: ${data.stock_disponible || 0})`,
+                    confirmButtonText: 'Entendido'
+                });
+                if (isManual) {
+                    qtyInput.value = data.stock_disponible || 1; // max available
+                }
+                if (el) el.disabled = false;
+                updateModalPrice();
+                return;
+            }
+        } catch (error) {
+            console.error('Error verificando stock:', error);
+            Swal.fire('Error', 'No se pudo verificar el stock del producto.', 'error');
+            if (isManual) qtyInput.value = 1;
+            if (el) el.disabled = false;
+            updateModalPrice();
+            return;
+        }
+
+        qtyInput.value = newQty;
+        updateModalPrice();
+        if (el) el.disabled = false;
+    }
 
     // Añadir al Carrito
     document.getElementById('btn-add-to-cart').addEventListener('click', async () => {
         const btn = document.getElementById('btn-add-to-cart');
+        const originalHtml = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Añadiendo...';
         
         const added = await addToCart();
         
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-shopping-cart me-2"></i> Añadir a la Orden';
-        
         if (added) {
             modalPersonalizar.hide();
+            setTimeout(() => {
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style = '';
+            }, 300);
         }
+        
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
     });
 
     // Abrir Checkout
@@ -269,6 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             cart.forEach(item => {
                 let subtotal = item.precio_unitario * item.cantidad;
+                let subtotalBs = subtotal * tasaCambio;
                 total += subtotal;
                 totalItems += item.cantidad;
 
@@ -281,17 +359,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 html += `
-                    <div class="cart-item">
-                        <div class="cart-item-details">
-                            <h6>${item.cantidad}x ${item.nombre}</h6>
-                            <div class="cart-item-customizations">${customHtml}</div>
-                            <div class="cart-item-price">$${subtotal.toFixed(2)}</div>
+                    <div class="cart-item position-relative mb-3 border-bottom pb-2">
+                        <div class="cart-item-details w-100">
+                            <h6 class="mb-1">${item.nombre}</h6>
+                            <div class="cart-item-customizations mb-2">${customHtml}</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center bg-light rounded-pill px-2 py-1 shadow-sm border border-secondary-subtle">
+                                    <button class="btn btn-sm btn-link text-warning btn-qty-change p-0 m-0 text-decoration-none d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; border-radius: 50%;" data-cartid="${item.cart_id}" data-action="minus">
+                                        <i class="fas fa-minus-circle fs-5"></i>
+                                    </button>
+                                    <input type="number" class="form-control text-center px-1 fw-bold border-0 bg-transparent cart-qty-input text-dark" style="width: 45px; -moz-appearance: textfield; box-shadow: none;" data-cartid="${item.cart_id}" value="${item.cantidad}" min="1">
+                                    <button class="btn btn-sm btn-link text-warning btn-qty-change p-0 m-0 text-decoration-none d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; border-radius: 50%;" data-cartid="${item.cart_id}" data-action="plus">
+                                        <i class="fas fa-plus-circle fs-5"></i>
+                                    </button>
+                                </div>
+                                <div class="text-end">
+                                    <div class="text-primary fw-bold fs-5">$${subtotal.toFixed(2)}</div>
+                                    <div class="text-muted small">Bs. ${subtotalBs.toFixed(2)}</div>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <button class="btn btn-sm btn-outline-danger btn-remove-item" data-cartid="${item.cart_id}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
+                        <button class="btn btn-sm btn-outline-danger btn-remove-item position-absolute top-0 end-0 rounded-circle shadow-sm" style="padding: 4px 6px; transform: translate(25%, -25%); background: white;" data-cartid="${item.cart_id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
                     </div>
                 `;
             });
@@ -300,9 +390,10 @@ document.addEventListener('DOMContentLoaded', () => {
         cDesktop.innerHTML = cart.length === 0 ? '<div class="text-center text-muted mt-5"><i class="fas fa-cart-arrow-down fs-1 mb-3"></i><p>Tu carrito está vacío</p></div>' : html;
         cMobile.innerHTML = cDesktop.innerHTML;
         
-        let tStr = `$${total.toFixed(2)}`;
-        totalDesktop.textContent = tStr;
-        totalMobile.textContent = tStr;
+        let totalBs = total * tasaCambio;
+        let tStr = `<span class="fs-4">$${total.toFixed(2)}</span> <br><small class="text-muted" style="font-size:0.65em;">Bs. ${totalBs.toFixed(2)}</small>`;
+        totalDesktop.innerHTML = tStr;
+        totalMobile.innerHTML = tStr;
         badge.textContent = totalItems;
 
         document.querySelectorAll('.btn-remove-item').forEach(btn => {
@@ -313,6 +404,145 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderCart();
             });
         });
+
+        document.querySelectorAll('.btn-qty-change').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                let btnEl = e.currentTarget;
+                btnEl.disabled = true;
+                let cid = btnEl.getAttribute('data-cartid');
+                let action = btnEl.getAttribute('data-action');
+                await changeCartItemQuantity(cid, action, btnEl);
+            });
+        });
+
+        document.querySelectorAll('.cart-qty-input').forEach(input => {
+            input.addEventListener('change', async (e) => {
+                let inputEl = e.currentTarget;
+                inputEl.disabled = true;
+                let cid = inputEl.getAttribute('data-cartid');
+                let q = parseInt(inputEl.value) || 1;
+                if (q < 1) q = 1;
+                await setManualCartItemQuantity(cid, q, inputEl);
+            });
+        });
+    }
+
+    async function setManualCartItemQuantity(cart_id, newQty, inputEl) {
+        let itemIndex = cart.findIndex(i => i.cart_id == cart_id);
+        if (itemIndex === -1) {
+            if (inputEl) inputEl.disabled = false;
+            return;
+        }
+        
+        let item = cart[itemIndex];
+        
+        // Verificar stock de la diferencia si se está aumentando, 
+        // o mejor, mandar el total que se quiere como cantidadAVerificar.
+        let cantidadEnCarritoExcluyendoEste = 0;
+        cart.forEach(i => {
+            if (i.id_producto === item.id_producto && i.cart_id != cart_id) {
+                cantidadEnCarritoExcluyendoEste += i.cantidad;
+            }
+        });
+        const cantidadAVerificar = cantidadEnCarritoExcluyendoEste + newQty;
+
+        try {
+            const formData = new FormData();
+            formData.append('action', 'verificar_stock');
+            formData.append('id_producto', item.id_producto);
+            formData.append('cantidad', cantidadAVerificar);
+            
+            const res = await fetch('?page=PedidoPublico', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            if (!data.success) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stock insuficiente',
+                    text: `${data.message} (Stock disponible: ${data.stock_disponible || 0})`,
+                    confirmButtonText: 'Entendido'
+                });
+                // Revert or set max possible
+                let maxAllowed = (data.stock_disponible || 0) - cantidadEnCarritoExcluyendoEste;
+                if (maxAllowed < 1) {
+                    cart.splice(itemIndex, 1);
+                } else {
+                    item.cantidad = maxAllowed;
+                }
+                saveCart();
+                renderCart();
+                return;
+            }
+        } catch (error) {
+            console.error('Error verificando stock:', error);
+            Swal.fire('Error', 'No se pudo verificar el stock del producto.', 'error');
+            if (inputEl) inputEl.disabled = false;
+            renderCart(); // revert visuals
+            return;
+        }
+
+        item.cantidad = newQty;
+        saveCart();
+        renderCart();
+    }
+
+    async function changeCartItemQuantity(cart_id, action, btnEl) {
+        let itemIndex = cart.findIndex(i => i.cart_id == cart_id);
+        if (itemIndex === -1) {
+            if(btnEl) btnEl.disabled = false;
+            return;
+        }
+        
+        let item = cart[itemIndex];
+        let newQty = action === 'plus' ? item.cantidad + 1 : item.cantidad - 1;
+        
+        if (newQty < 1) {
+            cart.splice(itemIndex, 1);
+            saveCart();
+            renderCart();
+            return;
+        }
+
+        if (action === 'plus') {
+            // Check stock again
+            let cantidadEnCarrito = 0;
+            cart.forEach(i => {
+                if (i.id_producto === item.id_producto) {
+                    cantidadEnCarrito += i.cantidad;
+                }
+            });
+            const cantidadAVerificar = cantidadEnCarrito + 1;
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'verificar_stock');
+                formData.append('id_producto', item.id_producto);
+                formData.append('cantidad', cantidadAVerificar);
+                
+                const res = await fetch('?page=PedidoPublico', { method: 'POST', body: formData });
+                const data = await res.json();
+                
+                if (!data.success) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Stock insuficiente',
+                        text: `${data.message} (Stock disponible: ${data.stock_disponible || 0})`,
+                        confirmButtonText: 'Entendido'
+                    });
+                    if(btnEl) btnEl.disabled = false;
+                    return;
+                }
+            } catch (error) {
+                console.error('Error verificando stock:', error);
+                Swal.fire('Error', 'No se pudo verificar el stock del producto.', 'error');
+                if(btnEl) btnEl.disabled = false;
+                return;
+            }
+        }
+
+        item.cantidad = newQty;
+        saveCart();
+        renderCart();
     }
 
     function openCheckout() {
@@ -345,14 +575,19 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btn-submit-order').innerHTML = '<i class="fas fa-paper-plane me-2"></i> Enviar Pedido';
 
         if (res.success) {
-            alert('¡Pedido enviado exitosamente!');
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: '¡Pedido enviado exitosamente!',
+                confirmButtonText: 'Aceptar'
+            });
             cart = [];
             saveCart();
             renderCart();
             modalCheckout.hide();
             form.reset();
         } else {
-            alert(res.message || 'Error al procesar el pedido.');
+            Swal.fire('Error', res.message || 'Error al procesar el pedido.', 'error');
         }
     }
 });
