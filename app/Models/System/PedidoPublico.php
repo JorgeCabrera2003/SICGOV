@@ -60,8 +60,8 @@ class PedidoPublico
             $totalPedido = $carrito['total']; 
             $observacion = $datosCliente['observacion'] ?? 'Pedido Web';
 
-            $sqlPedido = "INSERT INTO pedido (id_pedido, cedula_cliente, cedula_empleado, tipo_pedido, total, observacion) 
-                          VALUES (?, ?, NULL, ?, ?, ?)";
+            $sqlPedido = "INSERT INTO pedido (id_pedido, numero_pedido, cedula_cliente, cedula_empleado, id_mesa, tipo_pedido, total, observacion, estado) 
+                          VALUES (?, NULL, ?, NULL, NULL, ?, ?, ?, 'PENDIENTE')";
             $this->dbBusiness->prepare($sqlPedido)->execute([
                 $idPedido,
                 $cedula,
@@ -76,7 +76,7 @@ class PedidoPublico
             $stmtDet = $this->dbBusiness->prepare($sqlDetalle);
 
             foreach ($carrito['items'] as $item) {
-                $idDetalle = 'DET' . date('YmdHis') . rand(1000, 9999);
+                $idDetalle = uniqid('DET_');
                 $indicacion = '';
                 
                 // Procesar indicaciones (ingredientes quitados, extras añadidos)

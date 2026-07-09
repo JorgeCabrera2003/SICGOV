@@ -6,8 +6,7 @@
 
 const BackupManager = (() => {
 
-    const BASE_URL = window.BASE_URL ?? '/';
-    const ENDPOINT = `${BASE_URL}?page=Backup&type=backups`;
+    const ENDPOINT = '?page=Backup&type=backups';
 
     let modalRespaldo     = null;
     let modalProgramacion = null;
