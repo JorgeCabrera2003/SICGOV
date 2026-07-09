@@ -434,6 +434,22 @@
                 </div>
                 <?php endif; ?>
 
+                <!-- Switch Admin/Público -->
+                <?php if (isset($_SESSION['user'])): ?>
+                    <?php $esVistaPublica = (isset($hideSidebar) && $hideSidebar); ?>
+                    <?php if ($esVistaPublica): ?>
+                        <a href="<?php echo BASE_URL; ?>/?page=Dashboard" class="btn btn-link text-primary text-decoration-none p-2 d-flex align-items-center gap-1" title="Ir al Panel Administrativo">
+                            <i class="bi bi-shield-lock fs-5"></i>
+                            <span class="d-none d-md-inline small fw-bold">Admin</span>
+                        </a>
+                    <?php else: ?>
+                        <a href="<?php echo BASE_URL; ?>/" class="btn btn-link text-success text-decoration-none p-2 d-flex align-items-center gap-1" title="Ir a la Vista Pública">
+                            <i class="bi bi-person-badge fs-5"></i>
+                            <span class="d-none d-md-inline small fw-bold">Público</span>
+                        </a>
+                    <?php endif; ?>
+                <?php endif; ?>
+
                 <!-- Toggle de tema -->
                 <button class="btn btn-link text-decoration-none p-2" id="theme-toggle" aria-label="Cambiar tema">
                     <i class="bi bi-moon-stars fs-5" id="theme-icon"></i>
