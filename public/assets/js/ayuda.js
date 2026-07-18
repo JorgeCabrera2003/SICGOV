@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(res => {
                 if (res.status === 'success') {
                     let extraHTML = '';
-                    const tourIds = ['gestion_reservaciones', 'formulario_reservacion', 'drag_drop_reservacion', 'solicitar_cita_publico', 'formulario_publico', 'gestion_pedidos', 'tomar_pedido_pos'];
+                    const tourIds = ['gestion_reservaciones', 'formulario_reservacion', 'drag_drop_reservacion', 'solicitar_cita_publico', 'formulario_publico', 'gestion_pedidos', 'tomar_pedido_pos', 'crear_menu'];
                     
                     if (tourIds.includes(id)) {
                         extraHTML = `
@@ -141,8 +141,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             const currentPage = window.location.search.toLowerCase();
                             const isReservacion = currentPage.includes('page=reservacion');
                             const isPedido = currentPage.includes('page=pedido');
+                            const isMenu = currentPage.includes('page=menu');
                             
-                            if (isReservacion || isPedido) {
+                            if (isReservacion || isPedido || isMenu) {
                                 const { TourHelper } = await import('./Helpers/TourHelper.js');
                                 let steps = [];
 
@@ -239,6 +240,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                             { element: '#posForm', popover: { title: 'Datos de Pago', description: 'Define si el pedido es para llevar o en mesa, selecciona el método de pago y procede a cobrar.', side: "top", align: 'start' } }
                                         ];
                                     }
+                                } else if (id === 'crear_menu') {
+                                    steps = [
+                                        { element: '#filtrosCategorias', popover: { title: 'Filtros de Categoría', description: 'Usa estos botones para filtrar rápidamente los platillos de tu menú.', side: "bottom", align: 'start' } },
+                                        { element: '#btnNuevoMenu', popover: { title: 'Nuevo Producto', description: 'Haz clic aquí para agregar un nuevo platillo o bebida a tu carta.', side: "bottom", align: 'end' } },
+                                        { element: 'a[href*="nuestro-menu"]', popover: { title: 'Menú Público', description: 'Este botón te llevará a la vista pública de tu menú, donde tus clientes verán todos los productos activos.', side: "bottom", align: 'start' } },
+                                        { element: '#galleryContainer', popover: { title: 'Galería de Menú', description: 'Aquí verás todos tus platillos. Puedes editar, desactivar o eliminar productos desde sus respectivas tarjetas.', side: "top", align: 'center' } }
+                                    ];
                                 }
 
                                 if (steps.length > 0) {
