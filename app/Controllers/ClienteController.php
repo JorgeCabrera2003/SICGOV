@@ -126,6 +126,22 @@ if (isset($_POST["peticion"])) {
             $json['response']    = ['resultado' => 200, 'existe' => false, 'mensaje' => ''];
         }
     }
+    // Fin de Verificar cédula duplicada
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     
     header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");

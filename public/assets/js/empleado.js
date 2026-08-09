@@ -112,10 +112,10 @@ const verificarCedulaDuplicada = debounce(async function (tipoCedula, numCedula)
   const $span = $('#scedula');
   const accion = etiquetasModal('principal').boton.text();
 
-  // Solo verificar en modo registrar y si la cédula es formalmente válida
-  if (accion !== 'Guardar Empleado') return;
-  if (!tipoCedula || tipoCedula === 'default') return;
-  if (!numCedula || numCedula.length < 7 || numCedula.length > 9) return;
+    // Solo verificar en modo registrar y si la cédula es formalmente válida
+    if (accion !== 'Guardar Empleado') return;
+    if (!tipoCedula || tipoCedula === 'default') return;
+    if (!numCedula || numCedula.length < 7 || numCedula.length > 9) return;
 
   const cedulaCompleta = tipoCedula + '-' + numCedula;
 
@@ -552,7 +552,18 @@ async function vistaPermiso() {
   }
   dropdown.append(boton, menu);
 
-  return dropdown.prop('outerHTML');
+    const itemEliminar = $('<li>');
+    const linkEliminar = $('<a>')
+        .addClass('dropdown-item text-danger')
+        .attr('href', '#')
+        .attr('onclick', 'eliminarEmpleadoDirecto(this)')
+        .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
+    itemEliminar.append(linkEliminar);
+
+    menu.append(itemConsultar, itemEditar, separador, itemEliminar);
+    dropdown.append(boton, menu);
+
+    return dropdown.prop('outerHTML');
 }
 
 function capaValidar() {
@@ -805,9 +816,24 @@ function rellenar(pos, accion) {
 
 // Función exclusiva para Eliminar Empleado directamente sin Modal
 async function eliminarEmpleadoDirecto(pos) {
-  const linea = $(pos).closest('tr');
-  const tabla = $('#tablaEmpleado').DataTable();
-  const datosFila = tabla.row(linea).data();
+    const linea = $(pos).closest('tr');
+    const tabla = $('#tablaEmpleado').DataTable();
+    const datosFila = tabla.row(linea).data();
+    
+    let confirmacion = await confirmarAccion(`Se eliminará al Empleado`, "¿Está seguro de realizar la acción?", "warning");
+    
+    if (confirmacion) {
+        let peticionData = new FormData();
+        peticionData.append('peticion', 'eliminar');
+        
+        let cedulaFormateada = datosFila.cedula;
+        if(cedulaFormateada && cedulaFormateada.indexOf('-') === -1 && cedulaFormateada.length > 1) {
+             cedulaFormateada = cedulaFormateada.charAt(0) + '-' + cedulaFormateada.slice(1);
+        }
+        peticionData.append('cedula', cedulaFormateada);
+        
+        try {
+            let json = await enviaAjax(peticionData);
 
   let confirmacion = await confirmarAccion(`Se eliminará al Empleado`, "¿Está seguro de realizar la acción?", "warning");
 

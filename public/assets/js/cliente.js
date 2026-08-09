@@ -511,7 +511,18 @@ async function vistaPermiso() {
   }
   dropdown.append(boton, menu);
 
-  return dropdown.prop('outerHTML');
+    const itemEliminar = $('<li>');
+    const linkEliminar = $('<a>')
+        .addClass('dropdown-item text-danger')
+        .attr('href', '#')
+        .attr('onclick', 'eliminarClienteDirecto(this)')
+        .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
+    itemEliminar.append(linkEliminar);
+
+    menu.append(itemConsultar, itemEditar, separador, itemEliminar);
+    dropdown.append(boton, menu);
+
+    return dropdown.prop('outerHTML');
 }
 
 function capaValidar() {
@@ -771,9 +782,24 @@ function rellenar(pos, accion) {
 
 // Función exclusiva para Eliminar Cliente directamente sin Modal
 async function eliminarClienteDirecto(pos) {
-  const linea = $(pos).closest('tr');
-  const tabla = $('#tablaCliente').DataTable();
-  const datosFila = tabla.row(linea).data();
+    const linea = $(pos).closest('tr');
+    const tabla = $('#tablaCliente').DataTable();
+    const datosFila = tabla.row(linea).data();
+    
+    let confirmacion = await confirmarAccion(`Se eliminará al Cliente`, "¿Está seguro de realizar la acción?", "warning");
+    
+    if (confirmacion) {
+        let peticionData = new FormData();
+        peticionData.append('peticion', 'eliminar');
+        
+        let cedulaFormateada = datosFila.cedula;
+        if(cedulaFormateada && cedulaFormateada.indexOf('-') === -1 && cedulaFormateada.length > 1) {
+             cedulaFormateada = cedulaFormateada.charAt(0) + '-' + cedulaFormateada.slice(1);
+        }
+        peticionData.append('cedula', cedulaFormateada);
+        
+        try {
+            let json = await enviaAjax(peticionData);
 
   let confirmacion = await confirmarAccion(`Se eliminará al Cliente`, "¿Está seguro de realizar la acción?", "warning");
 

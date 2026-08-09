@@ -17,7 +17,6 @@ if ($type === 'admin') {
         $categorias = $menuModel->Transaccion(['peticion' => 'categorias']) ?: [];
         $insumos = $menuModel->Transaccion(['peticion' => 'insumos']) ?: [];
         $unidades = $menuModel->Transaccion(['peticion' => 'unidades']) ?: [];
-        $permisosMenu = Helper::TraerPermisos("producto");
 
         Helper::cargarVista(
             'menu/index',
@@ -25,9 +24,7 @@ if ($type === 'admin') {
             [
                 'categorias' => $categorias,
                 'insumos' => $insumos,
-                'unidades' => $unidades,
-                'permisos' => $permisosMenu,
-                'ver' => $permisosMenu['producto']['ver']
+                'unidades' => $unidades
             ]
         );
         exit;
@@ -35,12 +32,14 @@ if ($type === 'admin') {
 
     Helper::verificarSesion();
     $objMenu = new Menu();
-    $permisosMenu = Helper::TraerPermisos("producto");
 
     if (!empty($peticion) || $isAjax) {
         
         if (ob_get_length()) ob_clean();
         header('Content-Type: application/json');
+
+        
+
 
         if ($peticion == 'guardar' || $peticion == 'registrar' || $peticion == 'modificar') {
             $accion_permiso = false;
@@ -175,16 +174,6 @@ if ($type === 'admin') {
 
 
         if ($peticion == 'eliminar') {
-            $accion_permiso = false;
-            if (isset($permisosMenu['producto']['eliminar']) && $permisosMenu['producto']['eliminar'] == 1) {
-                $accion_permiso = true;
-            }
-
-            if (!$accion_permiso) {
-                echo json_encode(['success' => false, 'message' => 'Error, No tienes permiso para eliminar un producto del menú']);
-                exit;
-            }
-
             try {
                 if (empty($_POST['id'])) {
                     echo json_encode(['success' => false, 'message' => 'ID no proporcionado']);
@@ -208,16 +197,6 @@ if ($type === 'admin') {
 
 
         if ($peticion == 'listar' || $peticion == 'listarJson') {
-            $accion_permiso = false;
-            if (isset($permisosMenu['producto']['ver']) && $permisosMenu['producto']['ver'] == 1) {
-                $accion_permiso = true;
-            }
-
-            if (!$accion_permiso) {
-                echo json_encode(['data' => []]);
-                exit;
-            }
-
             try {
                 $menus = $objMenu->Transaccion(['peticion' => 'listar']) ?: [];
                 echo json_encode(['data' => $menus]);
@@ -234,7 +213,7 @@ if ($type === 'admin') {
 
 
 } else {
-    
+    // MODO PÚBLICO
     $menuModel = new Menu();
     $menus = $menuModel->Transaccion(['peticion' => 'listar']) ?: [];
     $categorias = $menuModel->Transaccion(['peticion' => 'categorias']) ?: [];
@@ -252,14 +231,7 @@ if ($type === 'admin') {
     ];
 
     require_once BASE_PATH . '/resources/views/layout/head.php';
-    
-    $hideSidebar = true;
-    $datos = $_SESSION['user'] ?? null;
-    require_once BASE_PATH . '/resources/views/layout/menu.php';
-
+    echo '<main class="main-content flex-grow-1 ms-0 w-100" id="main-content"><div class="content-wrapper bg-body">';
     require_once BASE_PATH . '/resources/views/menu/public.php';
-
-    echo '</div></main>';
-
     require_once BASE_PATH . '/resources/views/layout/footer.php';
 }

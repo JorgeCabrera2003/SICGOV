@@ -37,7 +37,7 @@
         </div>
     </div>
     <div class="chatbot-toggle" onclick="document.getElementById('mariaChatbot').classList.toggle('active')" style="overflow: hidden; padding: 2px;">
-        <img src="<?= BASE_URL ?>/assets/img/MAR-IA.png" alt="Chatbot" style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px;">
+        <img src="<?= BASE_URL ?>/assets/img/MAR-IA.png" alt="Chatbot" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
     </div>
 </div>
 
