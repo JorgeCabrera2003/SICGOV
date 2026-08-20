@@ -420,13 +420,21 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 
 			if ($arregloInsumo['bool'] == 1) {
 				$contador = 0;
-
+				$entradaInsumoModel->setIdInsumo($_POST['id_insumo']);
 				foreach ($arregloProveedor as &$i) {
 					$contador++;
 					$proveedorModel->setDocumentoLegal($i['documento']);
 					$validarProveedor = $proveedorModel->Transaccion(["peticion" => "validar"]);
 					if ($validarProveedor['bool'] == 1) {
-						if ($i['id_entrada'] == NULL) {
+						$validarAsociacion = [];
+						$entradaInsumoModel->setDocumentoLegal($i['documento']);
+						$validarAsociacion = $entradaInsumoModel->Transaccion(["peticion" => "validar_asociacion"]);
+						if($validarAsociacion['bool'] == 1){
+							$i['id_entrada'] = $validarAsociacion['response']['registro']['id_entrada'];
+							continue;
+						}
+
+						if ($i['id_entrada'] == NULL || $i['id_entrada'] == "") {
 							$i['id_entrada'] = Helper::generarId('ENTRA', "INSUM", $contador);
 						}
 					}
