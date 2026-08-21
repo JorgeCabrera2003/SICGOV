@@ -67,9 +67,8 @@ export function RenderizarSelect(etiqueta, arreglo, mensajes) {
         $(placeholder).prop('disabled', true).prop('selected', true).attr('hidden', true);
         etiqueta.append(placeholder);
         arreglo.forEach(item => {
-            etiqueta.append(
-                new Option(item.nombre, item.valor)
-            );
+          const option = new Option(item.nombre, item.valor)
+            etiqueta.append(option);
         });
     } else {
         const noHay = new Option('Sin datos', "default");

@@ -334,6 +334,7 @@ export async function BorrarProveedor(boton) {
   const tabla = $('#tablaAsociar').DataTable();
 
   if (boton.attr("data-proveedor") == null || boton.attr("data-proveedor") == "" || boton.attr("data-proveedor") == undefined) {
+    tabla.row(linea).remove().draw(false);
   } else {
     let response = { resultado: 0 };
     let datos_tabla = tabla.row(linea).data();
