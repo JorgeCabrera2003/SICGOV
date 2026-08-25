@@ -3,6 +3,7 @@ import * as categoriaInsumo from "../Handlers/CategoriaInsumoHandler.js";
 import * as suministrarInsumo from "../Handlers/SuministrarInsumoHandler.js";
 import * as asociarProveedor from "../Handlers/AsociarProveedorHandler.js";
 import * as movimientoInsumo from "../Handlers/MovimientoInsumoHandler.js";
+import * as suministrarLote from "../Handlers/SuministrarLoteHandler.js";
 import * as AjaxHelper from "../Helpers/AjaxHelper.js";
 
 //MODULO DE INGREDIENTES
@@ -58,6 +59,14 @@ $("#btn-agregarProveedor").on("click", function () {
 
 $("#btnAsociarForm").on("click", function () {
   asociarProveedor.EnviarFormulario("Asociar")
+})
+
+$("#btnSuministrarLote").on("click", function () {
+  suministrarLote.EditarModal("suministrar");
+})
+
+$("#btn-agregarInsumo").on("click", function () {
+  suministrarLote;
 })
 
 $("#btn-CategoriaForm").on("click", async function () {
