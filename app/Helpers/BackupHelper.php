@@ -7,7 +7,7 @@ class BackupHelper
 
     private const BACKUP_DIR = BASE_PATH . '/storage/backups';
 
-    private const ALLOWED_DBS = ['goobv-sistema', 'goobv-usuarios'];
+    private const ALLOWED_DBS = ['good_vibes', 'goobv-sistema', 'goobv-usuarios'];
 
     public static function generarRespaldo(string $database, ?string $destDir = null): array
     {
@@ -55,7 +55,7 @@ class BackupHelper
 
         $errFile = tempnam(sys_get_temp_dir(), 'backup_err_');
         $command = sprintf(
-            '%s --host=%s --user=%s --password=%s --single-transaction --routines --events --set-gtid-purged=OFF -- %s > %s 2> %s',
+            '%s --host=%s --user=%s --password=%s --single-transaction --routines --events -- %s > %s 2> %s',
             $mysqldumpBin,
             escapeshellarg($host),
             escapeshellarg($user),

@@ -131,5 +131,19 @@
         "keywords": ["formulario", "datos", "hora", "fecha"],
         "modules": ["ReservacionPublico"],
         "content": "<h4>Detalles de tu Visita</h4><p>Indica la fecha, hora de llegada y hora estimada de salida para tu reservación. Una vez enviado, el sistema registrará tu solicitud y confirmaremos tu cita.</p>"
+    },
+    {
+        "id": "gestion_pedidos_tabla",
+        "title": "Navegar y Gestionar Pedidos",
+        "keywords": ["tabla", "estado", "factura", "cobrar", "pedido"],
+        "modules": ["Pedido"],
+        "content": "<h4>Tabla de Pedidos</h4><p>En esta sección podrás ver un listado general de todos los pedidos activos o históricos.</p><ul><li><strong>Nuevo Pedido:</strong> Usa el botón POS en la esquina superior para iniciar una nueva venta.</li><li><strong>Ver Detalle:</strong> Haz clic en el botón de la lupa o del ojo para ver qué productos incluye el pedido y cambiar su estado a Preparando, Listo o Entregado.</li></ul>"
+    },
+    {
+        "id": "tomar_pedido_pos",
+        "title": "Cómo Usar el POS (Punto de Venta)",
+        "keywords": ["pos", "venta", "cobro", "carrito", "agregar", "caja"],
+        "modules": ["Pedido"],
+        "content": "<h4>Punto de Venta</h4><p>El POS es donde tomas los pedidos a los clientes rápidamente.</p><ol><li><strong>Productos:</strong> A la izquierda verás tu menú. Filtra por categoría y haz clic en los productos para agregarlos al carrito.</li><li><strong>Personalización:</strong> Al seleccionar algunos productos, podrías ver opciones de ingredientes y extras.</li><li><strong>Orden Actual:</strong> A la derecha verás tu carrito con los totales en dólares y bolívares al cambio del día.</li><li><strong>Cobro:</strong> Selecciona el método de pago, el tipo de orden (para llevar o en mesa) y pulsa Procesar y Cobrar.</li></ol>"
     }
 ]

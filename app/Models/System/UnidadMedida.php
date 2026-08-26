@@ -241,11 +241,11 @@ class UnidadMedida extends Database
         }
 
         if ($this->DiccionarioMedidas($medida_valor) == "unidad" && $this->DiccionarioMedidas($medida_stock) == "unidad") {
-            $unidadValor = (int) $valor;
-            $unidadStock = (int) $stock_actual;
-
-            $resultadoBase = $this->OperacionMatematatica($unidadValor, $unidadStock, $operacion);
-            $validar = true;
+            $resultado = $this->OperacionMatematatica($stock_actual, $valor, $operacion);
+            if ($resultado < 0) {
+                throw new \Exception("El valor resultante no puede ser negativo");
+            }
+            return $resultado;
         }
 
         if ($validar) {

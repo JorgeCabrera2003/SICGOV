@@ -54,7 +54,7 @@ export function FeedbackSelect(input, span, mensaje, estado) {
     $(span).text("");
   } else {
     $(input).addClass("is-invalid");
-    $(span).addClass("invalid-toltip");
+    $(span).addClass("invalid-tooltip");
     $(span).text(mensaje);
   }
 }

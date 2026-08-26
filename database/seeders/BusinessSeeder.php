@@ -24,11 +24,11 @@ class BusinessSeeder
         $this->crearAreasMesa();
         $this->crearMetodosPago();
         $this->crearMesas();
-        $this->crearPersonasYUsuarios();
+        $this->crearPersonasYEmpleados();
         $this->crearProductosReales();
         $this->crearInsumosFalsos(20);
         $this->crearPreparaciones();
-        $this->crearClientesFalsos(15);
+        $this->crearClientesActuales();
         $this->crearProveedoresFalsos(5);
         $this->crearAsociacionProveedor(5);
     }
@@ -149,74 +149,52 @@ class BusinessSeeder
         echo "       " . ($mesaNum - 1) . " mesas creadas.\n";
     }
 
-    private function crearPersonasYUsuarios()
+    private function crearPersonasYEmpleados()
     {
-        // Crear persona para admin root
-        $sqlCheckPersona = "SELECT COUNT(*) FROM persona WHERE cedula = 'V-00000000'";
-        $personaExists = $this->db->query($sqlCheckPersona)->fetchColumn();
+        $sqlPersonas = <<<'SQL'
+INSERT IGNORE INTO `persona` (`cedula`, `documento`, `nombre`, `apellido`, `fecha_nacimiento`, `telefono`, `correo`, `direccion`, `sexo`) VALUES 
+            ('V-00000000', NULL, 'Admin', 'Principal', NULL, '04120000000', 'admin@goodvibes.com', NULL, 'M'),
+            ('V-1111111', NULL, 'Abrahan', 'Rodriguez', '2004-06-10', '0414-2233122', 'Abrahan@gmail.com', 'Barrio Union', 'M'),
+            ('V-11603703', NULL, 'Martin', 'Burgos', '1981-11-23', '+58 460 436 6488', 'mateo.banda@example.org', 'Calle Bustamante, 4, Hab. 54, Villa Miriamde Mara Edo. Bolívar, 2632', 'M'),
+            ('V-123123121', NULL, 'Josue', 'Garrido', '2001-10-07', '0416-1123312', 'negro@gmail.com', 'La Quiboreña', 'F'),
+            ('V-12345677', NULL, 'Leizer', 'Torrealba', '2002-04-01', '0416-2232332', 'Leizer@gmail.com', 'Barquisimeto', 'M'),
+            ('V-12345678', NULL, 'Jorge', 'Cabrera', '2004-02-08', '0422-2234545', 'jorge@gmail.com', 'Cabudare', 'M'),
+            ('V-16922393', NULL, 'Emma', 'Balderas', '1987-01-22', '235-5409484', 'aleix69@example.org', 'Carretera Quesada, Hab. 6, El Leyrede Mara Edo. Sucre, 8168', 'M'),
+            ('V-21017978', NULL, 'Raul', 'Contreras', '1980-10-08', '457-9944326', 'ozuna.nahia@example.org', 'Callejón Valdivia, 136, Apto 3, Valle Adrianade Mara Edo. Portuguesa, 2642', 'F'),
+            ('V-22284399', NULL, 'Mario', 'Ulloa', '1970-06-12', '283-3001817', 'elsa.irizarry@example.net', 'Avenida Sebastian, 26, Casa 1, Daniel del Tuy Edo. Falcón', 'M'),
+            ('V-25261082', NULL, 'Mireia', 'Córdova', '1992-06-25', '0426-6565656', 'xcortes@example.org', 'Avenida Hugo, Nro 1, Teresa De Mara Edo. Barinas', 'F'),
+            ('V-27095670', NULL, 'Alejandra', 'Grijalva', '1986-04-10', '+58 403-6099650', 'iduarte@example.net', 'Carretera Pablo, Casa 2, Juan del Tuy Edo. Zulia', 'F'),
+            ('V-27944092', NULL, 'Erika', 'Cruz', '1973-07-14', '252 4141086', 'marcos.ines@example.net', 'Carretera Angela, 8, Piso 78, La Domingodel Tuy Edo. Nueva Esparta', 'F'),
+            ('V-28165452', NULL, 'Santiago', 'Coello', '2001-11-08', '0414-5290172', 'santiagojcoello@gmail.com', 'La Libertad, Quibor', 'M'),
+            ('V-32858359', NULL, 'Alejandra', 'Rentería', '1977-01-29', '+58 234 197 8848', 'luna04@example.net', 'Carretera Francisco, 2, Piso 90, El Dariode Mata Edo. Sucre, 2801', 'F'),
+            ('V-33920706', NULL, 'Aleix', 'Navarro', '1990-09-29', '468-6771071', 'elsa11@example.com', 'Callejón Menéndez, 45, Nro 95, Briseño de Asis Edo. Falcón', 'M'),
+            ('V-34233516', NULL, 'Carla', 'Melgar', '1970-12-28', '+58 470-538-3337', 'ramirez.enrique@example.com', 'Calle Rodrigo, Casa 5, Valle Hector Edo. Delta Amacuro', 'F'),
+            ('V-52088190', NULL, 'Gonzalo', 'Sauceda', '1990-11-07', '+58 2075059482', 'gallego.diego@example.org', 'Carretera Asensio, 37, Nro 6, Carmen de Altagracia Edo. Trujillo, 0958', 'F'),
+            ('V-56844801', NULL, 'Mohamed', 'Piñeiro', '1994-04-06', '+58 221-2938430', 'luisa77@example.org', 'Av. Anna, Piso 4, Valle Alicia Edo. Distrito Capital, 4539', 'F'),
+            ('V-60061765', NULL, 'Eric', 'Matos', '1971-10-04', '+58 207 8701206', 'quiroz.guillem@example.net', 'Calle Laura Rosas, Piso 28, Los Hector Edo. Vargas, 3883', 'M'),
+            ('V-64132633', NULL, 'Ariadna', 'Garza', '1980-05-11', '400-745-2319', 'montez.isaac@example.org', 'Calle Ivan, 537, Casa 95, Delagarza del Valle Edo. Amazonas', 'F'),
+            ('V-68183467', NULL, 'Hugo', 'Matos', '1972-06-19', '+58 256 967 1399', 'jana77@example.com', 'Avenida Bruno Quiroz, Apto 49, Jon de Altagracia Edo. Anzoátegui', 'M'),
+            ('V-70444533', NULL, 'Dario', 'Chacón', '1982-08-12', '+58 486-749-4826', 'gabriel.llamas@example.com', 'Callejón Ledesma, 69, Nro 2, Parroquia Manuela Edo. Distrito Capital, 3995', 'M'),
+            ('V-91174347', NULL, 'Elena', 'Tijerina', '1993-01-02', '+58 4455517957', 'alberto.millan@example.net', 'Avenida Hernando, Casa 0, Los Joan Edo. Aragua', 'M'),
+            ('V-92108587', NULL, 'Blanca', 'Vásquez', '1981-10-02', '447 455 1762', 'ybeltran@example.com', 'Av. Ona Ibáñez, 7, Hab. 6, Las Marcos Edo. Yaracuy, 8123', 'F'),
+            ('V-92187658', NULL, 'Santiago', 'Cortes', '1982-04-28', '217-685-9389', 'giron.gonzalo@example.net', 'Cl. Beatriz Cervántez, 8, Nro 93, Los Aliciadel Tuy Edo. Barinas', 'M'),
+            ('V-96679533', NULL, 'Samuel', 'Roca', '1982-01-08', '426 951 8855', 'bsarabia@example.com', 'Av. Pedraza, Nro 05, Mateo de Mata Edo. Barinas, 8285', 'M')
+SQL;
+        $this->db->exec($sqlPersonas);
 
-        if (!$personaExists) {
-            $sqlPersona = "INSERT INTO persona (cedula, nombre, apellido, telefono, correo, sexo) 
-                          VALUES ('V-00000000', 'Admin', 'Principal', '04120000000', 'admin@goodvibes.com', 'M')";
-            $this->db->exec($sqlPersona);
-            echo "       Persona para Admin Root creada.\n";
-        }
-
-        // Crear persona para gerente
-        $sqlCheckGerente = "SELECT COUNT(*) FROM persona WHERE cedula = 'V-12345678'";
-        $gerenteExists = $this->db->query($sqlCheckGerente)->fetchColumn();
-
-        if (!$gerenteExists) {
-            $sqlPersona = "INSERT INTO persona (cedula, nombre, apellido, telefono, correo, sexo) 
-                          VALUES ('V-12345678', 'Gerente', 'General', '04120000001', 'gerente@goodvibes.com', 'M')";
-            $this->db->exec($sqlPersona);
-            echo "       Persona para Gerente creada.\n";
-        }
-
-        // Crear empleados con personas
-        $this->crearEmpleadosFalsos(5);
-    }
-
-    private function crearEmpleadosFalsos($cantidad)
-    {
-        $cargos = $this->db->query("SELECT id_cargo FROM cargo")->fetchAll(\PDO::FETCH_COLUMN);
-        if (empty($cargos)) {
-            $cargos = ['CARGO00120260519200547232'];
-        }
-
-        $sqlPersona = "INSERT INTO persona (cedula, nombre, apellido, fecha_nacimiento, telefono, correo, direccion, sexo) 
-                      VALUES (:cedula, :nombre, :apellido, :fecha_nac, :tel, :correo, :dir, :sexo)";
-        $sqlEmpleado = "INSERT INTO empleado (cedula, id_cargo, fecha_ingreso) VALUES (:cedula, :cargo, :fecha_ingreso)";
-
-        $stmtPersona = $this->db->prepare($sqlPersona);
-        $stmtEmpleado = $this->db->prepare($sqlEmpleado);
-
-        for ($i = 0; $i < $cantidad; $i++) {
-            $cedula = 'V-' . $this->faker->unique()->numberBetween(10000000, 99999999);
-            $fechaIngreso = $this->faker->dateTimeBetween('-2 years', 'now')->format('Y-m-d');
-
-            try {
-                $stmtPersona->execute([
-                    'cedula' => $cedula,
-                    'nombre' => $this->faker->firstName(),
-                    'apellido' => $this->faker->lastName(),
-                    'fecha_nac' => $this->faker->date('Y-m-d', '-25 years'),
-                    'tel' => $this->faker->phoneNumber(),
-                    'correo' => $this->faker->unique()->safeEmail(),
-                    'dir' => $this->faker->address(),
-                    'sexo' => $this->faker->randomElement(['M', 'F'])
-                ]);
-
-                $stmtEmpleado->execute([
-                    'cedula' => $cedula,
-                    'cargo' => $this->faker->randomElement($cargos),
-                    'fecha_ingreso' => $fechaIngreso
-                ]);
-            } catch (\Exception $e) {
-                // Ignorar duplicados
-            }
-        }
-        echo "       $cantidad empleados creados.\n";
+        $sqlEmpleados = <<<'SQL'
+INSERT IGNORE INTO `empleado` (`cedula`, `id_cargo`, `fecha_ingreso`, `estatus`) VALUES 
+            ('V-123123121', 'CARGO00420260519200547232', '2026-07-09', '1'),
+            ('V-12345677', 'CARGO00320260519200547232', '2026-07-09', '1'),
+            ('V-12345678', 'CARGO00620260519200547232', '2026-07-09', '1'),
+            ('V-25261082', 'CARGO00220260519200547232', '2024-08-18', '1'),
+            ('V-56844801', 'CARGO00220260519200547232', '2025-10-21', '1'),
+            ('V-60061765', 'CARGO00120260519200547232', '2025-04-08', '1'),
+            ('V-70444533', 'CARGO00520260519200547232', '2024-09-11', '1'),
+            ('V-91174347', 'CARGO00420260519200547232', '2026-02-25', '1')
+SQL;
+        $this->db->exec($sqlEmpleados);
+        echo "       Personas y Empleados actuales creados.\n";
     }
 
     private function crearProductosReales()
@@ -249,45 +227,45 @@ salsas tradicionales', '9.00', 'prod_6a2db6ce22e31.jpg', '1', '1', 'COCINA', '20
         $count = $this->db->query("SELECT COUNT(*) FROM preparacion")->fetchColumn();
         if ($count == 0) {
             $sql = "INSERT IGNORE INTO preparacion (`id_preparacion`, `id_producto`, `id_insumo`, `prioridad_insumo`, `cantidad`, `id_unidad_medida`, `precio_insumo`) VALUES 
-            ('PREP20260613154716442', 'PROD202606111134584244', 'INGR001220260611', '1', '1.00000000', 'MEDIAPA23220260519200547232', '0.00'),
-            ('PREP20260613154716736', 'PROD202606111134584244', 'INGR000120260611', '1', '20.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613154716442', 'PROD202606111134584244', 'INGR001220260611', '1', '1.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154716736', 'PROD202606111134584244', 'INGR000120260611', '1', '20.00000000', 'MEDIAGR23220260519200547232', '0.00'),
             ('PREP20260613154716780', 'PROD202606111134584244', 'INGR000420260611', '1', '500.00000000', 'MEDIAGR23220260519200547232', '0.00'),
             ('PREP20260613154729329', 'PROD-000420260611', 'INGR001020260611', '1', '15.00000000', 'MEDIAGR23220260519200547232', '0.00'),
-            ('PREP20260613154729356', 'PROD-000420260611', 'INGR000120260611', '1', '2.00000000', 'MEDIAPA23220260519200547232', '0.00'),
-            ('PREP20260613154729440', 'PROD-000420260611', 'INGR000620260611', '1', '2.00000000', 'MEDIAUN23220260519200547232', '0.00'),
-            ('PREP20260613154729490', 'PROD-000420260611', 'INGR001420260611', '2', '1.00000000', 'MEDIAGA23220260519200547232', '3.00'),
-            ('PREP20260613154729521', 'PROD-000420260611', 'INGR000220260611', '1', '0.50000000', 'MEDIAUN23220260519200547232', '0.00'),
-            ('PREP20260613154729560', 'PROD-000420260611', 'INGR001320260611', '1', '0.50000000', 'MEDIALL23220260519200547232', '0.00'),
+            ('PREP20260613154729356', 'PROD-000420260611', 'INGR000120260611', '1', '2.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154729440', 'PROD-000420260611', 'INGR000620260611', '1', '2.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154729490', 'PROD-000420260611', 'INGR001420260611', '2', '1.00000000', 'MEDIAGR23220260519200547232', '3.00'),
+            ('PREP20260613154729521', 'PROD-000420260611', 'INGR000220260611', '1', '0.50000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154729560', 'PROD-000420260611', 'INGR001320260611', '1', '0.50000000', 'MEDIAGR23220260519200547232', '0.00'),
             ('PREP20260613154729585', 'PROD-000420260611', 'INGR001620260611', '1', '100.00000000', 'MEDIAGR23220260519200547232', '0.00'),
-            ('PREP20260613154748115', 'PROD-000620260611', 'INGR000220260611', '1', '200.00000000', 'MEDIACA23220260519200547232', '0.00'),
-            ('PREP20260613154748511', 'PROD-000620260611', 'INGR001720260611', '1', '50.00000000', 'MEDIAML23220260519200547232', '0.00'),
-            ('PREP20260613154748803', 'PROD-000620260611', 'INGR001420260611', '1', '200.00000000', 'MEDIAML23220260519200547232', '0.00'),
-            ('PREP20260613154748828', 'PROD-000620260611', 'INGR000120260611', '1', '200.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613154748115', 'PROD-000620260611', 'INGR000220260611', '1', '200.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154748511', 'PROD-000620260611', 'INGR001720260611', '1', '50.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154748803', 'PROD-000620260611', 'INGR001420260611', '1', '200.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154748828', 'PROD-000620260611', 'INGR000120260611', '1', '200.00000000', 'MEDIAGR23220260519200547232', '0.00'),
             ('PREP20260613154748947', 'PROD-000620260611', 'INGR001620260611', '1', '100.00000000', 'MEDIAGR23220260519200547232', '0.00'),
-            ('PREP20260613154755322', 'PROD-000920260611', 'INGR000120260611', '1', '150.00000000', 'MEDIAUN23220260519200547232', '0.00'),
-            ('PREP20260613154755836', 'PROD-000920260611', 'INGR000620260611', '1', '1.00000000', 'MEDIAUN23220260519200547232', '0.00'),
+            ('PREP20260613154755322', 'PROD-000920260611', 'INGR000120260611', '1', '150.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154755836', 'PROD-000920260611', 'INGR000620260611', '1', '1.00000000', 'MEDIAGR23220260519200547232', '0.00'),
             ('PREP20260613154756746', 'PROD-000920260611', 'INGR001620260611', '1', '60.00000000', 'MEDIAGR23220260519200547232', '0.00'),
-            ('PREP20260613154756937', 'PROD-000920260611', 'INGR000220260611', '1', '150.00000000', 'MEDIAUN23220260519200547232', '0.00'),
-            ('PREP20260613154932164', 'PROD-000520260611', 'INGR001420260611', '1', '1.00000000', 'MEDIALL23220260519200547232', '0.00'),
-            ('PREP20260613154932214', 'PROD-000520260611', 'INGR001120260611', '1', '1.00000000', 'MEDIAUN23220260519200547232', '0.00'),
-            ('PREP20260613154932502', 'PROD-000520260611', 'INGR000620260611', '1', '2.00000000', 'MEDIAUN23220260519200547232', '0.00'),
-            ('PREP20260613154932542', 'PROD-000520260611', 'INGR001720260611', '2', '100.00000000', 'MEDIAML23220260519200547232', '2.00'),
-            ('PREP20260613154932667', 'PROD-000520260611', 'INGR000220260611', '1', '2.00000000', 'MEDIAPA23220260519200547232', '0.00'),
+            ('PREP20260613154756937', 'PROD-000920260611', 'INGR000220260611', '1', '150.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154932164', 'PROD-000520260611', 'INGR001420260611', '1', '1.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154932214', 'PROD-000520260611', 'INGR001120260611', '1', '1.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154932502', 'PROD-000520260611', 'INGR000620260611', '1', '2.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154932542', 'PROD-000520260611', 'INGR001720260611', '2', '100.00000000', 'MEDIAGR23220260519200547232', '2.00'),
+            ('PREP20260613154932667', 'PROD-000520260611', 'INGR000220260611', '1', '2.00000000', 'MEDIAGR23220260519200547232', '0.00'),
             ('PREP20260613154932851', 'PROD-000520260611', 'INGR001620260611', '1', '300.00000000', 'MEDIAGR23220260519200547232', '0.00'),
-            ('PREP20260613154932899', 'PROD-000520260611', 'INGR000120260611', '1', '500.00000000', 'MEDIAUN23220260519200547232', '0.00'),
-            ('PREP20260613154942352', 'PROD-000820260611', 'INGR000220260611', '1', '300.00000000', 'MEDIAUN23220260519200547232', '0.00'),
-            ('PREP20260613154942499', 'PROD-000820260611', 'INGR001420260611', '1', '100.00000000', 'MEDIAML23220260519200547232', '0.00'),
-            ('PREP20260613154942932', 'PROD-000820260611', 'INGR000620260611', '1', '1.00000000', 'MEDIAUN23220260519200547232', '0.00'),
-            ('PREP20260613155023579', 'PROD-000120260611', 'INGR001320260611', '1', '2.00000000', 'MEDIALL23220260519200547232', '0.00'),
-            ('PREP20260613155023582', 'PROD-000120260611', 'INGR000820260611', '1', '3.00000000', 'MEDIAML23220260519200547232', '0.00'),
+            ('PREP20260613154932899', 'PROD-000520260611', 'INGR000120260611', '1', '500.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154942352', 'PROD-000820260611', 'INGR000220260611', '1', '300.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154942499', 'PROD-000820260611', 'INGR001420260611', '1', '100.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613154942932', 'PROD-000820260611', 'INGR000620260611', '1', '1.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613155023579', 'PROD-000120260611', 'INGR001320260611', '1', '2.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613155023582', 'PROD-000120260611', 'INGR000820260611', '1', '3.00000000', 'MEDIAGR23220260519200547232', '0.00'),
             ('PREP20260613155433100', 'PROD-000220260611', 'INGR001620260611', '1', '50.00000000', 'MEDIAGR23220260519200547232', '0.00'),
-            ('PREP20260613155433457', 'PROD-000220260611', 'INGR001420260611', '1', '50.00000000', 'MEDIALL23220260519200547232', '0.00'),
-            ('PREP20260613155433994', 'PROD-000220260611', 'INGR000220260611', '1', '100.00000000', 'MEDIAUN23220260519200547232', '0.00'),
-            ('PREP20260613160014297', 'PROD-001020260611', 'INGR000220260611', '1', '1.00000000', 'MEDIACA23220260519200547232', '0.00'),
-            ('PREP20260613160014372', 'PROD-001020260611', 'INGR001120260611', '1', '1.00000000', 'MEDIAPA23220260519200547232', '0.00'),
-            ('PREP20260613160014381', 'PROD-001020260611', 'INGR001320260611', '1', '1.00000000', 'MEDIAML23220260519200547232', '0.00'),
-            ('PREP20260613160014512', 'PROD-001020260611', 'INGR000820260611', '1', '1.00000000', 'MEDIALL23220260519200547232', '0.00'),
-            ('PREP20260613160014590', 'PROD-001020260611', 'INGR000120260611', '1', '1.00000000', 'MEDIAUN23220260519200547232', '0.00')";
+            ('PREP20260613155433457', 'PROD-000220260611', 'INGR001420260611', '1', '50.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613155433994', 'PROD-000220260611', 'INGR000220260611', '1', '100.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613160014297', 'PROD-001020260611', 'INGR000220260611', '1', '1.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613160014372', 'PROD-001020260611', 'INGR001120260611', '1', '1.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613160014381', 'PROD-001020260611', 'INGR001320260611', '1', '1.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613160014512', 'PROD-001020260611', 'INGR000820260611', '1', '1.00000000', 'MEDIAGR23220260519200547232', '0.00'),
+            ('PREP20260613160014590', 'PROD-001020260611', 'INGR000120260611', '1', '1.00000000', 'MEDIAGR23220260519200547232', '0.00')";
             $this->db->exec($sql);
             echo "       Preparaciones reales creadas.\n";
         }
@@ -329,42 +307,30 @@ salsas tradicionales', '9.00', 'prod_6a2db6ce22e31.jpg', '1', '1', 'COCINA', '20
         echo "       insumos generados.\n";
     }
 
-    private function crearClientesFalsos($cantidad)
+    private function crearClientesActuales()
     {
-        $sqlPersona = "INSERT INTO persona 
-                (cedula, nombre, apellido, fecha_nacimiento, telefono, correo, direccion, sexo) 
-                VALUES 
-                (:cedula, :nombre, :apellido, :fecha_nac, :tel, :correo, :dir, :sexo)";
-
-        $sqlCliente = "INSERT INTO cliente (cedula, fecha_registro) VALUES (:cedula, :fecha_reg)";
-
-        $stmtPersona = $this->db->prepare($sqlPersona);
-        $stmtCliente = $this->db->prepare($sqlCliente);
-
-        for ($i = 0; $i < $cantidad; $i++) {
-            $cedula = 'V-' . $this->faker->unique()->numberBetween(10000000, 99999999);
-
-            try {
-                $stmtPersona->execute([
-                    'cedula' => $cedula,
-                    'nombre' => $this->faker->firstName(),
-                    'apellido' => $this->faker->lastName(),
-                    'fecha_nac' => $this->faker->date('Y-m-d', '-30 years'),
-                    'tel' => $this->faker->phoneNumber(),
-                    'correo' => $this->faker->unique()->safeEmail(),
-                    'dir' => $this->faker->address(),
-                    'sexo' => $this->faker->randomElement(['M', 'F'])
-                ]);
-
-                $stmtCliente->execute([
-                    'cedula' => $cedula,
-                    'fecha_reg' => $this->faker->dateTimeBetween('-2 years', 'now')->format('Y-m-d H:i:s')
-                ]);
-            } catch (\Exception $e) {
-                // Ignorar duplicados
-            }
-        }
-        echo "       $cantidad clientes generados.\n";
+        $sqlClientes = <<<'SQL'
+INSERT IGNORE INTO `cliente` (`cedula`, `fecha_registro`, `estatus`) VALUES 
+            ('V-1111111', '2026-07-09 09:54:19', '1'),
+            ('V-11603703', '2026-05-04 09:20:51', '1'),
+            ('V-16922393', '2024-10-07 17:13:55', '1'),
+            ('V-21017978', '2024-12-11 21:17:34', '1'),
+            ('V-22284399', '2025-05-16 23:01:49', '1'),
+            ('V-27095670', '2024-12-04 01:42:21', '1'),
+            ('V-27944092', '2025-02-02 22:46:43', '1'),
+            ('V-28165452', '2026-07-09 09:17:16', '1'),
+            ('V-32858359', '2025-07-07 14:55:50', '1'),
+            ('V-33920706', '2026-04-12 18:20:55', '1'),
+            ('V-34233516', '2026-03-04 02:16:42', '1'),
+            ('V-52088190', '2024-11-22 00:01:13', '1'),
+            ('V-64132633', '2026-06-11 01:50:36', '1'),
+            ('V-68183467', '2025-12-07 05:39:34', '1'),
+            ('V-92108587', '2025-02-06 07:34:49', '1'),
+            ('V-92187658', '2024-07-15 16:25:48', '1'),
+            ('V-96679533', '2025-08-24 09:59:59', '1')
+SQL;
+        $this->db->exec($sqlClientes);
+        echo "       Clientes actuales creados.\n";
     }
 
     private function crearProveedoresFalsos($cantidad)

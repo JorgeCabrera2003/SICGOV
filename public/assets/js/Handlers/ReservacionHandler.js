@@ -240,7 +240,7 @@ function prepararNuevaReservacion(info, tpInicio, tpFin, calendar) {
     }
 
     $(`${IDs.form} input, ${IDs.form} select`).prop('disabled', false);
-    $(`${IDs.form} button[type="submit"]`).show();
+    $(`${IDs.form} button[type="submit"]`).show().text('Guardar Reservación');
     $('#btnEliminar').hide();
     $(IDs.modal).modal('show');
 }
@@ -282,7 +282,7 @@ function abrirDetalleReservacion(event, props, tpInicio, tpFin, calendar) {
         $(`${IDs.form} button[type="submit"]`).hide();
         $('.modal-title').text('Detalle de mi Cita');
     } else {
-        $(`${IDs.form} button[type="submit"]`).toggle(esEditable);
+        $(`${IDs.form} button[type="submit"]`).toggle(esEditable).text('Actualizar Reservación');
         $('#btnEliminar').toggle(esEditable);
         $('.modal-title').text('Gestionar Reservación');
     }
