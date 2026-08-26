@@ -3,7 +3,7 @@
     ========================================== -->
 
 <div class="modal fade" id="modalSuministrarLote" tabindex="-1" aria-labelledby="modalSuministrarLoteLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered ">
+    <div class="modal-dialog modal-xl modal-dialog-centered ">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-warning-subtle border-bottom-0">
                 <h5 class="modal-title fw-bold" id="modalSuministrarLoteLabel">
@@ -32,11 +32,11 @@
                                             style="width:100%">
                                             <thead class="table-light">
                                                 <tr>
-                                                    <th scope="col">Insumo</th>
-                                                    <th scope="col">Unidad de Medida</th>
-                                                    <th scope="col">Cantidad</th>
-                                                    <th scope="col">Proveedor</th>
-                                                    <th scope="col"></th>
+                                                    <th scope="col-md-3">Insumo</th>
+                                                    <th scope="col-md-3">Unidad de Medida</th>
+                                                    <th scope="col-md-2">Cantidad</th>
+                                                    <th scope="col-md-3">Proveedor</th>
+                                                    <th scope="col-md-1"></th>
                                                 </tr>
                                             </thead>
                                             <tbody>

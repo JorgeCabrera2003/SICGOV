@@ -156,51 +156,6 @@ export async function EnviarFormulario(btn_string) {
 };
 
 //CAPA DE VALIDACIÓN
-
-export async function CargarModalTabla(parametros) {
-  const endpoint = "?page=Insumo"
-  let modal = EtiquetasModal("SuministrarLote");
-  let input = EtiquetasFormulario("input");
-  let respuesta = { resultado: 0 };
-  let datos = new FormData();
-  let nombre_insumo = parametros.nombre_insumo;
-
-  datos.append("modulo", "EntradaInsumo");
-  datos.append("peticion", "filtrar")
-  datos.append("id_insumo", parametros.id_insumo);
-  input.insumo.val(null);
-  input.insumo.attr("data-insumo", null);
-
-  respuesta = await AjaxHelper.enviaAjax(datos, endpoint);
-
-  if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
-    DataTable(respuesta.datos);
-    input.insumo.val(nombre_insumo);
-    input.insumo.attr("data-insumo", parametros.id_insumo);
-    modal.modal.modal("show");
-  }
-}
-
-export async function RecargarModalTabla(id_insumo) {
-  const endpoint = "?page=Insumo"
-  let input = EtiquetasFormulario("input");
-  let respuesta = { resultado: 0 };
-  let datos = new FormData();
-
-  datos.append("modulo", "EntradaInsumo");
-  datos.append("peticion", "filtrar")
-  datos.append("id_insumo", id_insumo);
-  input.insumo.attr("data-insumo", null);
-
-  respuesta = await AjaxHelper.enviaAjax(datos, endpoint);
-
-  if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
-    DataTable(respuesta.datos);
-    input.insumo.attr("data-insumo", id_insumo);
-
-  }
-}
-
 export function CapaValidar() {
   KeyPressSuministrarLote();
   KeyUpSuministrarLote();
@@ -334,12 +289,29 @@ export async function DesbloquearBotonAgregar() {
   $("#btn-agregarProveedor").prop('disabled', false);
 }
 
-async function RenderizarSelectProveedor(id_insumo) {
-  let json = null;
+async function RenderizarSelectProveedor() {
   let div = $('<div>').addClass('d-flex align-items-center ga-2');
   let input = $('<select>').addClass('form-select select-proveedor');
   let span = $('<div>').addClass('form-label span-select_proveedor');
+  const mensaje = "Seleccione un Proveedor";
 
+  try {
+
+    div.append(input, span);
+    let objeto = {
+      select: $(input),
+      div: div
+    }
+    let referencia = objeto;
+    return referencia;
+  } catch (error) {
+    console.log(error);
+    arreglo = [];
+  }
+}
+
+async function LlenarSelectProveedor(id_insumo, input) {
+  let json = null;
 
   const mensaje = "Seleccione un Proveedor";
   let arreglo = [];
@@ -407,89 +379,26 @@ export async function CrearSelectInsumos() {
   }
 }
 
-export async function CrearSelectInsumos() {
-  let json = { resultado: 0 };
-  let datos = new FormData();
-  let div = $('<div>').addClass('d-flex align-items-center ga-2');
-  let input = $('<select>').addClass('form-select select-insumo');
-  let span = $('<div>').addClass('form-label span-insumo');
-
-  const endpoint = "?page=Insumo";
-  const modulo = "Insumo";
-  const mensaje = "Seleccione un Insumo";
-  let arreglo = [];
-  datos.append("modulo", modulo);
-  datos.append("peticion", "consultar");
-
-  try {
-    json = await AjaxHelper.enviaAjax(datos, endpoint);
-
-    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-      const arrayInsumo = json.datos.map(item => ({
-        nombre: item.nombre_insumo,
-        valor: item.id_insumo
-      }));
-      SelectHelper.RenderizarSelect(input, arrayInsumo, mensaje);
-    };
-    div.append(input, span);
-    let objeto = {
-      select: $(input),
-      div: div
-    }
-    let referencia = objeto;
-    return referencia;
-
-  } catch (error) {
-    console.log(error);
-    arreglo = [];
-  }
-}
-
-
 export async function CrearSelectUnidadMedida(id) {
   let json = { resultado: 0 };
   let datos = new FormData();
   let div = $('<div>').addClass('d-flex align-items-center ga-2');
-  let input = $('<select>').addClass('form-select select-insumo');
-  let span = $('<div>').addClass('form-label span-insumo');
+  let input = $('<select>').addClass('form-select select-unidad_medida');
+  let span = $('<div>').addClass('form-label span-unidad_medida');
 
-  const endpoint = "?page=Insumo";
-  const modulo = "UnidadMedida";
-  const mensaje = "Seleccione una Unidad de Medida";
-  let arreglo = [];
-  datos.append("modulo", modulo);
-  datos.append("id_unidad", id);
-  datos.append("peticion", "filtrar");
-
-  try {
-    json = await AjaxHelper.enviaAjax(datos, endpoint);
-
-    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-      const arrayUnidad = json.datos.map(item => ({
-        nombre: item.abreviatura,
-        valor: item.id_unidad
-      }));
-      SelectHelper.RenderizarSelect(input.unidad_medida, arrayUnidad, mensaje);
-    };
-    div.append(input, span);
-    let objeto = {
-      select: $(input),
-      div: div
-    }
-    let referencia = objeto;
-    return referencia;
-
-  } catch (error) {
-    console.log(error);
-    arreglo = [];
+  div.append(input, span);
+  let objeto = {
+    select: $(input),
+    div: div
   }
+  let referencia = objeto;
+  return referencia;
+
 }
 
-export async function LlenarSelectUnidadMedida(id, input, span) {
+export async function LlenarSelectUnidadMedida(id, input) {
   let json = { resultado: 0 };
   let datos = new FormData();
-  let input = $(input).addClass('form-select select-insumo');
-  let span = $(span).addClass('form-label span-insumo');
 
   const endpoint = "?page=Insumo";
   const modulo = "UnidadMedida";
@@ -518,73 +427,35 @@ export async function LlenarSelectUnidadMedida(id, input, span) {
 
 export async function CrearInputCantidad() {
   let div = $('<div>').addClass('d-flex align-items-center ga-2');
-  let input = $('<input>').addClass('form-input input-cantidad');
-  input.attr("type", "number")
+  let input = $('<input>').addClass('form-control input-cantidad').attr("type", "number");
   let span = $('<div>').addClass('form-label span-insumo');
 
-    div.append(input, span);
-    return div.prop('outerHTML');
+  div.append(input, span);
+  return div;
 }
 
-export async function DataTable(arreglo) {
+export async function DataTable() {
   if ($.fn.DataTable.isDataTable('#tablaSuministrarLote')) {
     $('#tablaSuministrarLote').DataTable().destroy();
   }
 
   $('#tablaSuministrarLote').DataTable({
     processing: true,
-    data: arreglo,
     columns: [
       {
-        data: 'insumo',
-        render: function (data, type, row) {
-          if (data) {
-            return row.insumo;
-          }
-          return null;
-        }
-
+        data: 'insumo'
       },
       {
-        data: 'unidad_medida',
-        render: function (data, type, row) {
-          if (data) {
-            return row.unidad_medida;
-          }
-          return null;
-        }
-
+        data: 'unidad_medida'
       },
       {
-        data: 'cantidad',
-        render: function (data, type, row) {
-          if (data) {
-            return row.cantidad;
-          }
-          return CrearInputCantidad();
-        }
-
+        data: 'cantidad'
       },
       {
-        data: 'proveedor',
-        render: function (data, type, row) {
-          if (data) {
-            return row.proveedor;
-          }
-          return null;
-        }
-
+        data: 'proveedor'
       },
-      
-
       {
-        data: 'boton',
-        render: function (data, type, row) {
-          if (data) {
-            return data;
-          }
-          return RenderBotonEliminar(row.id_entrada);
-        }
+        data: 'boton'
       }
     ],
     order: [[1, 'asc']],
@@ -598,39 +469,27 @@ export async function AgregarFilaInput() {
   let divInsumo = { resultado: 0 };
   let divProveedor = { resultado: 0 };
   let divUnidad = { resultado: 0 };
+  let divCantidad = { resultado: 0 };
   let bool = false;
-  let id_insumo = inputTexto.insumo.attr("data-insumo")
   let tabla = $('#tablaSuministrarLote').DataTable();
-  json = await ConsultarProveedor(id_insumo);
 
-  if (contarSelectsDisponibles() <= json.total) {
-
-    bool = true;
-    if (contarSelectsDisponibles() == (json.total)) {
-      $("#btn-agregarProveedor").prop('disabled', true);
-      MensajeriaHelper.GenerarMensaje("info", 10000, "", "No hay más proveedores disponibles para asociar a este insumo");
-      bool = false;
-    }
-    if (json.total == 0) {
-      $("#btn-agregarProveedor").prop('disabled', true);
-      bool = false;
-      MensajeriaHelper.GenerarMensaje("info", 10000, "", "No hay más proveedores disponibles para asociar a este insumo");
-    }
-  } else {
-    $("#btn-agregarProveedor").prop('disabled', true);
-  };
-
+  bool = true;
   if (bool) {
-    divProveedor = await RenderizarSelect(id_insumo);
+    divProveedor = await RenderizarSelectProveedor();
+    divInsumo = await CrearSelectInsumos();
+    divUnidad = await CrearSelectUnidadMedida();
+    divCantidad = await CrearInputCantidad();
     let boton = await RenderBotonEliminar("");
 
-    console.log(selectProveedor);
+    console.log(divProveedor, divUnidad, divCantidad, divInsumo, boton);
 
     tabla.row.add({
-      proveedor: selectProveedor.div.prop("outerHTML"),
+      insumo: divInsumo.div.prop("outerHTML"),
+      unidad_medida: divUnidad.div.prop("outerHTML"),
+      cantidad: divCantidad.prop("outerHTML"),
+      proveedor: divProveedor.div.prop("outerHTML"),
       boton: boton
     }).draw(false);
-    selectProveedor.select.val("default");
   }
   json = null;
 }

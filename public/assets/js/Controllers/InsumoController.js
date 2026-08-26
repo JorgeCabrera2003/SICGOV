@@ -188,3 +188,8 @@ $(document).on('click', '.btn-asociar', function () {
 $(document).on('click', '.btn-eliminar-proveedor', function () {
   asociarProveedor.BorrarProveedor($(this));
 })
+
+$(document).on('click', '#btn-agregarInsumo', async function (){
+  await suministrarLote.DataTable();
+  suministrarLote.AgregarFilaInput();
+})
