@@ -289,9 +289,25 @@ export async function DesbloquearBotonAgregar() {
   $("#btn-agregarProveedor").prop('disabled', false);
 }
 
+export async function BuscarDatos($fila) {
+
+  let inputs = {
+    insumo: $fila.val(),
+    unidad: $fila.find('.select-unidad_medida').val(),
+    cantidad: $fila.find('.input-cantidad').val(),
+    proveedor: $fila.find('.select-proveedor').val()
+  };
+
+  await LlenarSelectUnidadMedida($fila.find('.select-insumo').val(), $($fila.find('.select-unidad_medida')));
+  await LlenarSelectProveedor($fila.find('.select-insumo').val(), $($fila.find('.select-proveedor')));
+
+  $($fila.find('.select-unidad_medida')).prop('disabled', false);
+  $($fila.find('.select-proveedor')).prop('disabled', false);
+}
+
 async function RenderizarSelectProveedor() {
   let div = $('<div>').addClass('d-flex align-items-center ga-2');
-  let input = $('<select>').addClass('form-select select-proveedor');
+  let input = $('<select>').addClass('form-select select-proveedor').prop('disabled', true);
   let span = $('<div>').addClass('form-label span-select_proveedor');
   const mensaje = "Seleccione un Proveedor";
 
@@ -312,28 +328,26 @@ async function RenderizarSelectProveedor() {
 
 async function LlenarSelectProveedor(id_insumo, input) {
   let json = null;
+  let datos = new FormData();
+  const endpoint = "?page=Insumo";
+  const modulo = "EntradaInsumo";
+  const mensaje = "Seleccione un Proveedor"
+  datos.append("id_insumo", id_insumo);
+  datos.append("modulo", modulo);
+  datos.append("peticion", "filtrar");
 
-  const mensaje = "Seleccione un Proveedor";
-  let arreglo = [];
 
   try {
-    json = await ConsultarProveedor(id_insumo);
+    json = await AjaxHelper.enviaAjax(datos, endpoint);
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
 
       const array = json.datos.map(item => ({
-        nombre: item.nombre,
+        nombre: item.proveedor,
         valor: item.documento_legal
       }));
       SelectHelper.RenderizarSelect(input, array, mensaje);
       ;
-      div.append(input, span);
-      let objeto = {
-        select: $(input),
-        div: div
-      }
-      let referencia = objeto;
-      return referencia;
     }
   } catch (error) {
     console.log(error);
@@ -341,7 +355,7 @@ async function LlenarSelectProveedor(id_insumo, input) {
   }
 }
 
-export async function CrearSelectInsumos() {
+async function CrearSelectInsumos() {
   let json = { resultado: 0 };
   let datos = new FormData();
   let div = $('<div>').addClass('d-flex align-items-center ga-2');
@@ -379,11 +393,9 @@ export async function CrearSelectInsumos() {
   }
 }
 
-export async function CrearSelectUnidadMedida(id) {
-  let json = { resultado: 0 };
-  let datos = new FormData();
+async function CrearSelectUnidadMedida() {
   let div = $('<div>').addClass('d-flex align-items-center ga-2');
-  let input = $('<select>').addClass('form-select select-unidad_medida');
+  let input = $('<select>').addClass('form-select select-unidad_medida').prop('disabled', true);
   let span = $('<div>').addClass('form-label span-unidad_medida');
 
   div.append(input, span);
@@ -396,7 +408,7 @@ export async function CrearSelectUnidadMedida(id) {
 
 }
 
-export async function LlenarSelectUnidadMedida(id, input) {
+async function LlenarSelectUnidadMedida(id, input) {
   let json = { resultado: 0 };
   let datos = new FormData();
 
@@ -405,18 +417,18 @@ export async function LlenarSelectUnidadMedida(id, input) {
   const mensaje = "Seleccione una Unidad de Medida";
   let arreglo = [];
   datos.append("modulo", modulo);
-  datos.append("id_unidad", id);
-  datos.append("peticion", "filtrar");
+  datos.append("id_insumo", id);
+  datos.append("peticion", "buscar_medida_insumo");
 
   try {
     json = await AjaxHelper.enviaAjax(datos, endpoint);
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       const arrayUnidad = json.datos.map(item => ({
-        nombre: item.abreviatura,
+        nombre: item.nombre+" - "+item.abreviatura,
         valor: item.id_unidad
       }));
-      SelectHelper.RenderizarSelect(input.unidad_medida, arrayUnidad, mensaje);
+      SelectHelper.RenderizarSelect(input, arrayUnidad, mensaje);
     };
 
   } catch (error) {
@@ -425,9 +437,9 @@ export async function LlenarSelectUnidadMedida(id, input) {
   }
 }
 
-export async function CrearInputCantidad() {
+async function CrearInputCantidad() {
   let div = $('<div>').addClass('d-flex align-items-center ga-2');
-  let input = $('<input>').addClass('form-control input-cantidad').attr("type", "number");
+  let input = $('<input>').addClass('form-control input-cantidad').attr("type", "number").prop('disabled', true);
   let span = $('<div>').addClass('form-label span-insumo');
 
   div.append(input, span);
@@ -491,6 +503,7 @@ export async function AgregarFilaInput() {
       boton: boton
     }).draw(false);
   }
+  divInsumo.select.find('option[value="default"]').prop('selected', true).val("default")
   json = null;
 }
 

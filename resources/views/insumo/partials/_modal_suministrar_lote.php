@@ -32,11 +32,11 @@
                                             style="width:100%">
                                             <thead class="table-light">
                                                 <tr>
-                                                    <th scope="col-md-3">Insumo</th>
-                                                    <th scope="col-md-3">Unidad de Medida</th>
-                                                    <th scope="col-md-2">Cantidad</th>
-                                                    <th scope="col-md-3">Proveedor</th>
-                                                    <th scope="col-md-1"></th>
+                                                    <th scope="col-3">Insumo</th>
+                                                    <th scope="col-3">Unidad de Medida</th>
+                                                    <th scope="col-2">Cantidad</th>
+                                                    <th scope="col-3">Proveedor</th>
+                                                    <th scope="col-1"></th>
                                                 </tr>
                                             </thead>
                                             <tbody>

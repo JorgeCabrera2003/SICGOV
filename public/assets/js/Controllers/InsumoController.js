@@ -91,6 +91,12 @@ $('#tablaAsociar').on('change', '.select-proveedor', function () {
   asociarProveedor.validarDuplicados();
 });
 
+$('#tablaSuministrarLote').on('change', '.select-insumo', function () {
+  let $fila = $(this).closest('tr');
+  suministrarLote.BuscarDatos($fila);
+});
+
+
 async function crearDataTable(controlador = "insumos") {
   const MODULOS = {
     'insumos': 'Insumo',
