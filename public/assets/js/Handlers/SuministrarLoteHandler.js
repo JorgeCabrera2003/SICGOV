@@ -103,7 +103,7 @@ export async function EnviarDatos(operacion, datosTabla = null) {
   //Registrar y Modificar
   if (operacion == "suministrar") {
 
-    if (true) {
+    if (validarDuplicados()) {
       confirmacion = await MensajeriaHelper.MostrarConfirmacion(`¿Suministrar este Lote?`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
@@ -162,22 +162,62 @@ export function CapaValidar() {
 }
 
 function KeyPressSuministrarLote() {
-  let input = EtiquetasFormulario("input");
-  let span = EtiquetasFormulario("span");
+    $('#tablaSuministrarLote').on("keypress", '.input-cantidad', function (e) { ValidadorHelper.ValidarTecla("NumeroDecimal", e); });
 }
 
 function KeyUpSuministrarLote() {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
 
-  $(input.proveedor).on("change", function () {
-
-    if ($(this).val() == "default") {
-      SelectHelper.FeedbackSelect($(this), span.proveedor, "Debe seleccionar a un Proveedor", 0)
+$('#tablaSuministrarLote').on('change', '.select-proveedor_lote', function() {
+    let $select = $(this);
+    let $fila = $select.closest('tr'); // Obtener la fila
+    
+    // Buscar el span dentro de la misma fila
+    let $span = $fila.find('.span-proveedor_lote');
+    
+    if ($select.val() === "default" || $select.val() === "") {
+      SelectHelper.FeedbackSelect($select, $span, "Debe seleccionar a un Proveedor", 0);
     } else {
-      SelectHelper.FeedbackSelect($(this), span.proveedor, "", 1)
+      SelectHelper.FeedbackSelect($select, $span, "", 1);
     }
-  })
+  });
+
+  $('#tablaSuministrarLote').on('change', '.select-insumo', function() {
+    let $select = $(this);
+    let $fila = $select.closest('tr'); // Obtener la fila
+    
+    // Buscar el span dentro de la misma fila
+    let $span = $fila.find('.span-insumo');
+    
+    if ($select.val() === "default" || $select.val() === "") {
+      SelectHelper.FeedbackSelect($select, $span, "Debe seleccionar a un Insumo", 0);
+    } else {
+      SelectHelper.FeedbackSelect($select, $span, "", 1);
+    }
+  });
+
+  $('#tablaSuministrarLote').on('change', '.select-unidad_medida', function() {
+    let $select = $(this);
+    let $fila = $select.closest('tr'); // Obtener la fila
+    
+    // Buscar el span dentro de la misma fila
+    let $span = $fila.find('.span-unidad_medida');
+    
+    if ($select.val() === "default" || $select.val() === "") {
+      SelectHelper.FeedbackSelect($select, $span, "Debe seleccionar a una Unidad de Medida", 0);
+    } else {
+      SelectHelper.FeedbackSelect($select, $span, "", 1);
+    }
+  });
+
+  $('#tablaSuministrarLote').on('blur', '.input-cantidad', function() {
+    let $input = $(this);
+    let $fila = $input.closest('tr'); // Obtener la fila
+    let $span = $fila.find('.span-cantidad');
+    ValidadorHelper.FormatoNumeroDecimal($(this));
+  });
+
 }
 
 export function validarDuplicados() {
@@ -191,25 +231,35 @@ export function validarDuplicados() {
         let insumo = $fila.find('.select-insumo').val();
         let proveedor = $fila.find('.select-proveedor_lote').val();
         let cantidad = $fila.find('.input-cantidad').val();
-        
+        let unidad_medida = $fila.find('.select-unidad_medida').val();
         // Validar campos obligatorios
         let erroresFila = [];
         
         if (!insumo || insumo === 'default' || insumo === '') {
             erroresFila.push('Insumo no seleccionado');
             $fila.find('.select-insumo').addClass('is-invalid');
+            $fila.find('.span-insumo').addClass('invalid-tooltip').text("Debe seleccionar un Insumo");
             todosValidos = false;
         }
         
+        if (!unidad_medida || unidad_medida === 'default' || unidad_medida === '') {
+            erroresFila.push('Unidad de Medida no seleccionado');
+            $fila.find('.select-unidad_medida').addClass('is-invalid');
+            $fila.find('.span-unidad_medida').addClass('invalid-tooltip').text("Debe seleccionar una Unidad de Medida");
+            todosValidos = false;
+        }
+
         if (!proveedor || proveedor === 'default' || proveedor === '') {
             erroresFila.push('Proveedor no seleccionado');
             $fila.find('.select-proveedor_lote').addClass('is-invalid');
+            $fila.find('.span-select_proveedor_lote').addClass('invalid-tooltip').text("Debe seleccionar un Proveedor");
             todosValidos = false;
         }
         
         if (!cantidad || cantidad <= 0) {
             erroresFila.push('Cantidad inválida');
             $fila.find('.input-cantidad').addClass('is-invalid');
+            $fila.find('.span-cantidad').addClass('invalid-tooltip').text("El campo no puede estar vacío o estar en 0");
             todosValidos = false;
         }
         
@@ -247,7 +297,7 @@ export function validarDuplicados() {
                 $fila.find('.select-insumo').addClass('is-invalid');
                 $fila.find('.select-proveedor_lote').addClass('is-invalid');
                 
-                let $span = $fila.find('.span-error');
+                let $span = $fila.find('.span-insumo');
                 $span.text(`Combinación duplicada (${items.length} filas con mismo insumo y proveedor)`);
                 $span.addClass('invalid-tooltip');
                 
@@ -257,9 +307,16 @@ export function validarDuplicados() {
             // Marcar como válido
             items.forEach(function(item) {
                 let $fila = item.fila;
-                $fila.find('.select-insumo').addClass('is-valid');
-                $fila.find('.select-proveedor_lote').addClass('is-valid');
-                $fila.find('.input-cantidad').addClass('is-valid');
+
+                $fila.find('.span-insumo').removeClass('invalid-tooltip').text("");
+                $fila.find('.span-unidad_medida').removeClass('invalid-tooltip').text("");
+                $fila.find('.span-select_proveedor_lote').removeClass('invalid-tooltip').text("");
+                $fila.find('.span-cantidad').removeClass('invalid-tooltip').text("");
+
+                $fila.find('.select-insumo').addClass('is-valid').removeClass('is-invalid');
+                $fila.find('.select-proveedor_lote').addClass('is-valid').removeClass('is-invalid');
+                $fila.find('.select-unidad_medida').addClass('is-valid').removeClass('is-invalid');
+                $fila.find('.input-cantidad').addClass('is-valid').removeClass('is-invalid');
             });
         }
     });
@@ -346,10 +403,11 @@ function RenderBotonEliminar(id) {
 export async function BuscarDatos($fila) {
   await LlenarSelectUnidadMedida($fila.find('.select-insumo').val(), $($fila.find('.select-unidad_medida')));
   await LlenarSelectProveedor($fila.find('.select-insumo').val(), $($fila.find('.select-proveedor_lote')));
-
+  
   $($fila.find('.select-unidad_medida')).prop('disabled', false);
   $($fila.find('.select-proveedor_lote')).prop('disabled', false);
   $($fila.find('.input-cantidad')).prop('disabled', false).val(0);
+  CapaValidar();
 }
 
 async function RenderizarSelectProveedor() {
@@ -487,7 +545,7 @@ async function LlenarSelectUnidadMedida(id, input) {
 async function CrearInputCantidad() {
   let div = $('<div>').addClass('d-flex align-items-center ga-2');
   let input = $('<input>').addClass('form-control input-cantidad').attr("type", "number").prop('disabled', true);
-  let span = $('<div>').addClass('form-label span-insumo');
+  let span = $('<div>').addClass('form-label span-cantidad');
 
   div.append(input, span);
   return div;

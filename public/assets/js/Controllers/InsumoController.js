@@ -75,10 +75,6 @@ $("#btnSuministrarLote").on("click", async function () {
   suministrarLote.EditarModal("suministrar");
 })
 
-$("#btn-agregarInsumo").on("click", function () {
-  suministrarLote;
-})
-
 $("#btn-CategoriaForm").on("click", async function () {
   let respuesta = null;
   respuesta = await categoriaInsumo.EnviarFormulario($(this));
@@ -207,4 +203,5 @@ $(document).on('click', '.btn-eliminar-proveedor', function () {
 
 $(document).on('click', '#btn-agregarInsumo', async function () {
   suministrarLote.AgregarFilaInput();
+  suministrarLote.CapaValidar()
 })
