@@ -1,5 +1,5 @@
 <!-- ==========================================
-    MODAL DE SUMINISTRAR INSUMO - Reutilizable
+    MODAL DE SUMINISTRAR LOTE - Reutilizable
     ========================================== -->
 
 <div class="modal fade" id="modalSuministrarLote" tabindex="-1" aria-labelledby="modalSuministrarLoteLabel" aria-hidden="true">

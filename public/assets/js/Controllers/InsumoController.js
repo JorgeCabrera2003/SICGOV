@@ -34,6 +34,15 @@ $("#btnSuministrarInsumoForm").on("click", async function () {
   };
 });
 
+$("#btnSuministrarLoteForm").on("click", async function () {
+  let respuesta = null;
+  respuesta = await suministrarLote.EnviarFormulario($(this).text());
+  if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
+    await crearDataTable("insumos");
+  };
+});
+
+
 $("#btnNuevoInsumo").on("click", function () {
   insumo.LimpiarFormulario();
   insumo.EditarModal("registrar");
@@ -61,7 +70,8 @@ $("#btnAsociarForm").on("click", function () {
   asociarProveedor.EnviarFormulario("Asociar")
 })
 
-$("#btnSuministrarLote").on("click", function () {
+$("#btnSuministrarLote").on("click", async function () {
+  await suministrarLote.DataTable();
   suministrarLote.EditarModal("suministrar");
 })
 
@@ -195,7 +205,6 @@ $(document).on('click', '.btn-eliminar-proveedor', function () {
   asociarProveedor.BorrarProveedor($(this));
 })
 
-$(document).on('click', '#btn-agregarInsumo', async function (){
-  await suministrarLote.DataTable();
+$(document).on('click', '#btn-agregarInsumo', async function () {
   suministrarLote.AgregarFilaInput();
 })

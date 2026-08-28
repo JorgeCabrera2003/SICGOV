@@ -103,25 +103,25 @@ export async function EnviarDatos(operacion, datosTabla = null) {
   //Registrar y Modificar
   if (operacion == "suministrar") {
 
-    if (validarDuplicados()) {
+    if (true) {
       confirmacion = await MensajeriaHelper.MostrarConfirmacion(`¿Suministrar este Lote?`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
-        let datos = CrearArregloProveedor();
+        let datos = CrearArregloLote();
         peticion.append('peticion', "suministrar_lote");
         peticion.append('lote_insumos', JSON.stringify(datos));
-        peticion.append('id_insumo', input.insumo.attr("data-insumo"));
         btn_formulario = true;
+        console.log(datos);
       }
     } else {
       btn_formulario = false;
       MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.")
     }
-  } //Fin del SuministrarLote
+  } //Fin del Suministrar Lote
 
   if (btn_formulario) {
     modal.boton.prop('disabled', true);
-    json = await AjaxHelper.enviaAjax(peticion, endpoint);
+    //json = await AjaxHelper.enviaAjax(peticion, endpoint);
     modal.boton.prop('disabled', false);
   }
 
@@ -145,12 +145,12 @@ export async function EnviarFormulario(btn_string) {
   const DEFAULT = null
 
   accion = MANEJADOR[btn_string] || DEFAULT
-
+  accion = "suministrar";
   if (accion != null) {
     respuesta = await EnviarDatos(accion)
   } else {
     respuesta = { resultado: 0 }
-    MensajeriaHelper.GenerarMensaje("danger", 10000, "Error, acción no válida", "")
+    MensajeriaHelper.GenerarMensaje("error", 10000, "Error, acción no válida", "")
   }
   return respuesta;
 };
@@ -177,70 +177,133 @@ function KeyUpSuministrarLote() {
     } else {
       SelectHelper.FeedbackSelect($(this), span.proveedor, "", 1)
     }
-
   })
-
 }
 
 export function validarDuplicados() {
-  let valores = {};
-  let todosValidos = true;
+    let filasValidas = {};
+    let todosValidos = true;
+    let errores = [];
 
-  $('#tablaSuministrarLote .select-proveedor').each(function () {
-    let $select = $(this);
-    let valor = $select.val();
+    // PRIMERO: Recorrer todas las filas
+    $('#tablaSuministrarLote tbody tr').each(function() {
+        let $fila = $(this);
+        let insumo = $fila.find('.select-insumo').val();
+        let proveedor = $fila.find('.select-proveedor_lote').val();
+        let cantidad = $fila.find('.input-cantidad').val();
+        
+        // Validar campos obligatorios
+        let erroresFila = [];
+        
+        if (!insumo || insumo === 'default' || insumo === '') {
+            erroresFila.push('Insumo no seleccionado');
+            $fila.find('.select-insumo').addClass('is-invalid');
+            todosValidos = false;
+        }
+        
+        if (!proveedor || proveedor === 'default' || proveedor === '') {
+            erroresFila.push('Proveedor no seleccionado');
+            $fila.find('.select-proveedor_lote').addClass('is-invalid');
+            todosValidos = false;
+        }
+        
+        if (!cantidad || cantidad <= 0) {
+            erroresFila.push('Cantidad inválida');
+            $fila.find('.input-cantidad').addClass('is-invalid');
+            todosValidos = false;
+        }
+        
+        // Si la fila tiene errores, no la procesamos para duplicados
+        if (erroresFila.length > 0) {
+            errores.push({
+                fila: $fila.index() + 1,
+                errores: erroresFila
+            });
+            return;
+        }
+        
+        // Crear clave única: insumo + proveedor
+        let clave = insumo + '|' + proveedor;
+        
+        if (!filasValidas[clave]) {
+            filasValidas[clave] = [];
+        }
+        filasValidas[clave].push({
+            fila: $fila,
+            insumo: insumo,
+            proveedor: proveedor,
+            cantidad: cantidad
+        });
+    });
 
-    // Solo considerar valores válidos (no default)
-    if (valor && valor !== 'default' && valor !== '') {
-      if (!valores[valor]) {
-        valores[valor] = [];
-      }
-      valores[valor].push($select);
-    }
-  });
+    // SEGUNDO: Verificar duplicados
+    Object.keys(filasValidas).forEach(function(clave) {
+        let items = filasValidas[clave];
+        
+        if (items.length > 1) {
+            // Marcar todas las filas con esta combinación como duplicadas
+            items.forEach(function(item, index) {
+                let $fila = item.fila;
+                $fila.find('.select-insumo').addClass('is-invalid');
+                $fila.find('.select-proveedor_lote').addClass('is-invalid');
+                
+                let $span = $fila.find('.span-error');
+                $span.text(`Combinación duplicada (${items.length} filas con mismo insumo y proveedor)`);
+                $span.addClass('invalid-tooltip');
+                
+                todosValidos = false;
+            });
+        } else {
+            // Marcar como válido
+            items.forEach(function(item) {
+                let $fila = item.fila;
+                $fila.find('.select-insumo').addClass('is-valid');
+                $fila.find('.select-proveedor_lote').addClass('is-valid');
+                $fila.find('.input-cantidad').addClass('is-valid');
+            });
+        }
+    });
 
-  $('#tablaSuministrarLote .select-proveedor').each(function () {
-    let $select = $(this);
-    let $span = $select.closest('div').find('.span-select_proveedor');
-    let valor = $select.val();
-
-    // Limpiar clases y mensajes anteriores
-    $select.removeClass('is-valid is-invalid');
-
-    // Si no tiene valor o es default
-    if (!valor || valor === 'default' || valor === '') {
-      $select.addClass('is-invalid');
-      $span.text('Seleccione un proveedor');
-      $span.addClass('invalid-tooltip');
-      todosValidos = false;
-      return;
-    }
-
-    // Verificar si es duplicado
-    if (valores[valor] && valores[valor].length > 1) {
-      // ESTE select es duplicado
-      $select.addClass('is-invalid');
-      $span.text('Proveedor duplicado');
-      $span.addClass('invalid-feedback invalid-tooltip');
-      todosValidos = false;
+    // TERCERO: Actualizar UI
+    if (todosValidos) {
+        $('#btn-guardar').prop('disabled', false);
+        $('#mensaje-error').hide();
+        $('#mensaje-exito').show().text('Todos los datos son válidos');
     } else {
-      // Es válido
-      $select.addClass('is-valid');
-      $span.text('');
-      $span.removeClass('invalid-feedback invalid-tooltip');
+        $('#btn-guardar').prop('disabled', true);
+        $('#mensaje-error').show();
+        $('#mensaje-error').text(`Errores encontrados: ${errores.length} filas con problemas`);
+        $('#mensaje-exito').hide();
     }
-  });
 
-  if (todosValidos) {
-    $('#btn-guardar').prop('disabled', false);
-    $('#mensaje-error').hide();
-  } else {
-    $('#btn-guardar').prop('disabled', true);
-    $('#mensaje-error').show();
-    $('#mensaje-error').text('Corrige los errores marcados en rojo');
-  }
+    return todosValidos;
+}
 
-  return todosValidos;
+function CrearArregloLote() {
+    let datos = [];
+    
+    // Recorrer cada fila de la tabla
+    $('#tablaSuministrarLote tbody tr').each(function() {
+        let $fila = $(this);
+        
+        // Obtener valores de cada campo
+        let insumo = $fila.find('.select-insumo').val();
+        let unidad = $fila.find('.select-unidad_medida').val();
+        let cantidad = $fila.find('.input-cantidad').val();
+        let proveedor = $fila.find('.select-proveedor_lote').val();
+        
+        // Solo agregar si tiene datos válidos
+        if (insumo && insumo !== 'default' && proveedor && proveedor !== '') {
+            datos.push({
+                insumo: insumo,
+                unidad_medida: unidad,
+                cantidad: cantidad,
+                proveedor: proveedor,
+            });
+        }
+    });
+    
+    return datos;
 }
 
 function RenderBotonEliminar(id) {
@@ -252,7 +315,7 @@ function RenderBotonEliminar(id) {
   return div.prop('outerHTML');
 }
 
-export async function BorrarFila(boton) {
+/*export async function BorrarFila(boton) {
   let json = { resultado: 0 };
   let inputTexto = EtiquetasFormulario("input");
   let id_insumo = inputTexto.insumo.attr("data-insumo")
@@ -278,37 +341,21 @@ export async function BorrarFila(boton) {
   if (contarSelectsDisponibles() < json.total) {
     $("#btn-agregarProveedor").prop('disabled', false);
   }
-}
-
-function contarSelectsDisponibles() {
-  var totalSelects = $('.select-proveedor').length
-  return totalSelects;
-}
-
-export async function DesbloquearBotonAgregar() {
-  $("#btn-agregarProveedor").prop('disabled', false);
-}
+}*/
 
 export async function BuscarDatos($fila) {
-
-  let inputs = {
-    insumo: $fila.val(),
-    unidad: $fila.find('.select-unidad_medida').val(),
-    cantidad: $fila.find('.input-cantidad').val(),
-    proveedor: $fila.find('.select-proveedor').val()
-  };
-
   await LlenarSelectUnidadMedida($fila.find('.select-insumo').val(), $($fila.find('.select-unidad_medida')));
-  await LlenarSelectProveedor($fila.find('.select-insumo').val(), $($fila.find('.select-proveedor')));
+  await LlenarSelectProveedor($fila.find('.select-insumo').val(), $($fila.find('.select-proveedor_lote')));
 
   $($fila.find('.select-unidad_medida')).prop('disabled', false);
-  $($fila.find('.select-proveedor')).prop('disabled', false);
+  $($fila.find('.select-proveedor_lote')).prop('disabled', false);
+  $($fila.find('.input-cantidad')).prop('disabled', false).val(0);
 }
 
 async function RenderizarSelectProveedor() {
   let div = $('<div>').addClass('d-flex align-items-center ga-2');
-  let input = $('<select>').addClass('form-select select-proveedor').prop('disabled', true);
-  let span = $('<div>').addClass('form-label span-select_proveedor');
+  let input = $('<select>').addClass('form-select select-proveedor_lote').prop('disabled', true);
+  let span = $('<div>').addClass('form-label span-select_proveedor_lote');
   const mensaje = "Seleccione un Proveedor";
 
   try {
@@ -344,7 +391,7 @@ async function LlenarSelectProveedor(id_insumo, input) {
 
       const array = json.datos.map(item => ({
         nombre: item.proveedor,
-        valor: item.documento_legal
+        valor: item.id_entrada
       }));
       SelectHelper.RenderizarSelect(input, array, mensaje);
       ;
@@ -447,12 +494,14 @@ async function CrearInputCantidad() {
 }
 
 export async function DataTable() {
+  let arreglo = [];
   if ($.fn.DataTable.isDataTable('#tablaSuministrarLote')) {
     $('#tablaSuministrarLote').DataTable().destroy();
   }
 
   $('#tablaSuministrarLote').DataTable({
     processing: true,
+    data: arreglo,
     columns: [
       {
         data: 'insumo'
@@ -492,9 +541,7 @@ export async function AgregarFilaInput() {
     divUnidad = await CrearSelectUnidadMedida();
     divCantidad = await CrearInputCantidad();
     let boton = await RenderBotonEliminar("");
-
-    console.log(divProveedor, divUnidad, divCantidad, divInsumo, boton);
-
+    
     tabla.row.add({
       insumo: divInsumo.div.prop("outerHTML"),
       unidad_medida: divUnidad.div.prop("outerHTML"),
@@ -503,7 +550,6 @@ export async function AgregarFilaInput() {
       boton: boton
     }).draw(false);
   }
-  divInsumo.select.find('option[value="default"]').prop('selected', true).val("default")
   json = null;
 }
 
