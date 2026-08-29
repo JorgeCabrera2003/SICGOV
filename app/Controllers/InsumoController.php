@@ -414,58 +414,63 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 		}
 
 		//Suministrar Lote
-		if ($_POST["peticion"] == "suministrar") {
+		if ($_POST["peticion"] == "suministrar_lote") {
 			$arregloInsumo = [];
 			$arregloUnidad = [];
 			$arregloProveedor = [];
 
-			$loteInsumos = Helper::ConvertirJson(json_decode($_POST['insumos']));
+			$loteInsumos = Helper::ConvertirJson(json_decode($_POST['lote_insumos']));
 
-			$insumoModel->setId($_POST['id_insumo']);
-			$arregloInsumo = $insumoModel->Transaccion(["peticion" => "validar"]);
+			var_dump($loteInsumos);
+			foreach ($loteInsumos as $insumo) {
+				$stock_actualido = 0;
+				$insumoModel->setId($insumo['insumo']);
+				$arregloInsumo = $insumoModel->Transaccion(["peticion" => "validar"]);
 
-			$unidadMedidaModel->setId($_POST['id_unidad']);
-			$arregloUnidad = $unidadMedidaModel->Transaccion(["peticion" => "validar"]);
+				$unidadMedidaModel->setId($insumo['unidad_medida']);
+				$arregloUnidad = $unidadMedidaModel->Transaccion(["peticion" => "validar"]);
 
-			$proveedorModel->setDocumentoLegal($_POST['documento']);
-			$arregloProveedor = $proveedorModel->Transaccion(["peticion" => "validar"]);
+				$entradaInsumoModel->setId($insumo['proveedor']);
+				$arregloProveedor = $entradaInsumoModel->Transaccion(["peticion" => "validar"]);
 
-			if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1 && $arregloUnidad['bool'] == 1) {
+				if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1 && $arregloProveedor['bool'] == 1) {
 
-				$stock_actualido = $unidadMedidaModel->TablaConversion(
-					$_POST['stock'],
-					$arregloInsumo['response']['registro']['stock_actual'],
-					$arregloUnidad['response']['registro']['abreviatura'],
-					$arregloInsumo['response']['registro']['abreviatura'],
-					"sumar"
-				);
-				$responseInsumo = ["estado" => 0];
-				$insumoModel->setStockActual($stock_actualido);
-				$responseInsumo = $insumoModel->Transaccion(['peticion' => 'actualizar_stock']);
-
-
-				if ($responseInsumo['estado'] == 1) {
-					$id = Helper::generarId("DETAL");
-					$detalleEntradaModel->setId($id);
-					$detalleEntradaModel->setIdEntrada($_POST['id_entrada']);
-					$detalleEntradaModel->setIdUnidad($_POST['id_unidad']);
-					$detalleEntradaModel->setCantidad($_POST['stock']);
-					$detalleEntradaModel->setDescripcion(
-						"Se ingresarón " . $_POST['stock'] . $arregloUnidad['response']['registro']['abreviatura'] . ". Quedando con una cantidad de: " . $stock_actualido . $arregloInsumo['response']['registro']['abreviatura']
+					$stock_actualido = $unidadMedidaModel->TablaConversion(
+						$insumo['cantidad'],
+						$arregloInsumo['response']['registro']['stock_actual'],
+						$arregloUnidad['response']['registro']['abreviatura'],
+						$arregloInsumo['response']['registro']['abreviatura'],
+						"sumar"
 					);
+					$responseInsumo = ["estado" => 0];
+					$insumoModel->setStockActual($stock_actualido);
+					//$responseInsumo = $insumoModel->Transaccion(['peticion' => 'actualizar_stock']);
+					$responseInsumo['estado'] == 10;
 
-					$json = $detalleEntradaModel->Transaccion(['peticion' => 'registrar']);
-					$json['response']['mensaje'] = 'Insumo suministrado exitosamente';
-					$msg = "(" . $_SESSION['user']['cedula'] . "), realizó ingreso del insumo: " . $arregloInsumo['response']['registro']['nombre_insumo'] . " con " . $_POST['stock'] . "" . $arregloUnidad['response']['registro']['abreviatura'];
-					Helper::Bitacora("SUMINISTRAR", 'INSUMO', $msg);
+					if ($responseInsumo['estado'] == 1) {
+						$id = Helper::generarId("DETAL");
+						$detalleEntradaModel->setId($id);
+						$detalleEntradaModel->setIdEntrada($insumo['proveedor']);
+						$detalleEntradaModel->setIdUnidad($insumo['unidad_medida']);
+						$detalleEntradaModel->setCantidad($insumo['cantidad']);
+						$detalleEntradaModel->setDescripcion(
+							"Se ingresarón " . $insumo['cantidad'] . $arregloUnidad['response']['registro']['abreviatura'] . ". Quedando con una cantidad de: " . $stock_actualido . $arregloInsumo['response']['registro']['abreviatura']
+						);
+
+						$json = $detalleEntradaModel->Transaccion(['peticion' => 'registrar']);
+						$json['response']['mensaje'] = 'Insumo suministrado exitosamente';
+						$msg = "(" . $_SESSION['user']['cedula'] . "), realizó ingreso del insumo: " . $arregloInsumo['response']['registro']['nombre_insumo'] . " con " . $_POST['stock'] . "" . $arregloUnidad['response']['registro']['abreviatura'];
+						Helper::Bitacora("SUMINISTRAR", 'INSUMO', $msg);
+					} else {
+						$json = $responseInsumo;
+					}
+
 				} else {
-					$json = $responseInsumo;
+					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+					$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
+					$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
 				}
-
-			} else {
-				$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
-				$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
-				$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
+				var_dump($stock_actualido);
 			}
 		}
 
