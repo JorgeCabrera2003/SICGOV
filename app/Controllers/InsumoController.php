@@ -418,10 +418,11 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 			$arregloInsumo = [];
 			$arregloUnidad = [];
 			$arregloProveedor = [];
+			$estadoTransaccion = false;
 
 			$loteInsumos = Helper::ConvertirJson(json_decode($_POST['lote_insumos']));
 
-			var_dump($loteInsumos);
+			$contador = 0;
 			foreach ($loteInsumos as $insumo) {
 				$stock_actualido = 0;
 				$insumoModel->setId($insumo['insumo']);
@@ -444,11 +445,13 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 					);
 					$responseInsumo = ["estado" => 0];
 					$insumoModel->setStockActual($stock_actualido);
-					//$responseInsumo = $insumoModel->Transaccion(['peticion' => 'actualizar_stock']);
-					$responseInsumo['estado'] == 10;
+					$responseInsumo = $insumoModel->Transaccion(['peticion' => 'actualizar_stock']);
 
 					if ($responseInsumo['estado'] == 1) {
-						$id = Helper::generarId("DETAL");
+						$contador++;
+						$estadoTransaccion = true;
+
+						$id = Helper::generarId("DETAL", $insumo['proveedor'], $contador);
 						$detalleEntradaModel->setId($id);
 						$detalleEntradaModel->setIdEntrada($insumo['proveedor']);
 						$detalleEntradaModel->setIdUnidad($insumo['unidad_medida']);
@@ -458,11 +461,19 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 						);
 
 						$json = $detalleEntradaModel->Transaccion(['peticion' => 'registrar']);
-						$json['response']['mensaje'] = 'Insumo suministrado exitosamente';
-						$msg = "(" . $_SESSION['user']['cedula'] . "), realizó ingreso del insumo: " . $arregloInsumo['response']['registro']['nombre_insumo'] . " con " . $_POST['stock'] . "" . $arregloUnidad['response']['registro']['abreviatura'];
-						Helper::Bitacora("SUMINISTRAR", 'INSUMO', $msg);
+						$json['response']['mensaje'] = 'Insumos suministrados exitosamente';
+						$msg = "(" . $_SESSION['user']['cedula'] . "), realizó ingreso del insumo: " . $arregloInsumo['response']['registro']['nombre_insumo'] . " con " . $insumo['cantidad'] . "" . $arregloUnidad['response']['registro']['abreviatura'];
+						Helper::Bitacora("SUMINISTRAR LOTE", 'INSUMO', $msg);
 					} else {
 						$json = $responseInsumo;
+					}
+
+					if ($estadoTransaccion) {
+						$json['response']['mensaje'] = 'Insumos suministrados exitosamente';
+						$json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+					} else {
+						$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+						$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
 					}
 
 				} else {
@@ -470,7 +481,6 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 					$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
 					$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
 				}
-				var_dump($stock_actualido);
 			}
 		}
 

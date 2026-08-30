@@ -103,19 +103,23 @@ export async function EnviarDatos(operacion, datosTabla = null) {
   //Registrar y Modificar
   if (operacion == "suministrar") {
 
-    if (validarDuplicados()) {
-      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`¿Suministrar este Lote?`, mensajeConfirmacion, "question");
+    if (ValidarTablaVacia()) {
+      if (validarDuplicados()) {
+        confirmacion = await MensajeriaHelper.MostrarConfirmacion(`¿Suministrar este Lote?`, mensajeConfirmacion, "question");
 
-      if (confirmacion) {
-        let datos = CrearArregloLote();
-        peticion.append('peticion', "suministrar_lote");
-        peticion.append('lote_insumos', JSON.stringify(datos));
-        btn_formulario = true;
-        console.log(datos);
+        if (confirmacion) {
+          let datos = CrearArregloLote();
+          peticion.append('peticion', "suministrar_lote");
+          peticion.append('lote_insumos', JSON.stringify(datos));
+          btn_formulario = true;
+          console.log(datos);
+        }
+      } else {
+        btn_formulario = false;
+        MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.")
       }
     } else {
-      btn_formulario = false;
-      MensajeriaHelper.GenerarMensaje("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.")
+      MensajeriaHelper.GenerarMensaje("error", 10000, "Error", "No hay nada en la lista de insumos")
     }
   } //Fin del Suministrar Lote
 
@@ -334,6 +338,17 @@ export function validarDuplicados() {
   }
 
   return todosValidos;
+}
+
+function ValidarTablaVacia() {
+  let table = $('#tablaSuministrarLote').DataTable();
+  let data = table.data();
+
+  if (data.length === 0) {
+    return false;
+  }
+
+  return true;
 }
 
 function CrearArregloLote() {
