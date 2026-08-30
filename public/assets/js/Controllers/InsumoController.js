@@ -75,6 +75,11 @@ $("#btnSuministrarLote").on("click", async function () {
   suministrarLote.EditarModal("suministrar");
 })
 
+$(document).on("click", ".btn-eliminar-insumo_lote", async function () {
+  await suministrarLote.BorrarFila(this);
+})
+
+
 $("#btn-CategoriaForm").on("click", async function () {
   let respuesta = null;
   respuesta = await categoriaInsumo.EnviarFormulario($(this));

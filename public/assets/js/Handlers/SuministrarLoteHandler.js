@@ -225,7 +225,19 @@ function KeyUpSuministrarLote() {
     let $input = $(this);
     let $fila = $input.closest('tr'); // Obtener la fila
     let $span = $fila.find('.span-cantidad');
-    ValidadorHelper.FormatoNumeroDecimal($(this));
+
+    if ($fila.find('.select-unidad_medida').val() != null && $fila.find('.select-unidad_medida').val() != "default") {
+      if ($fila.find('.select-unidad_medida').val() == "MEDIAUN23220260519200547232") {
+        ValidadorHelper.FormatoNumeroEntero($(this))
+        ValidadorHelper.ValidarCampo("NumeroEntero", $input, $span);
+      } else {
+        ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+        ValidadorHelper.ValidarCampo("NumeroDecimal", $input, $span);
+      }
+    } else {
+      ValidadorHelper.FormatoNumeroDecimal($(this), "medida");
+      ValidadorHelper.ValidarCampo("NumeroDecimal", $input, $span);
+    }
   });
 
 }
@@ -280,6 +292,18 @@ export function validarDuplicados() {
         errores: erroresFila
       });
       return;
+    }
+
+    if (unidad_medida == "MEDIAUN23220260519200547232") {
+       ValidadorHelper.FormatoNumeroEntero($fila.find('.input-cantidad'));
+      if (!ValidadorHelper.ValidarCampo("NumeroEntero", $fila.find('.input-cantidad'), $fila.find('.span-cantidad'))) {
+        todosValidos = false;
+      }
+    } else {
+      ValidadorHelper.FormatoNumeroDecimal($fila.find('.input-cantidad'), "medida");
+      if (!ValidadorHelper.ValidarCampo("NumeroDecimal", $fila.find('.input-cantidad'), $fila.find('.span-cantidad'))) {
+        todosValidos = false;
+      };
     }
 
     // Crear clave única: insumo + proveedor
@@ -386,7 +410,7 @@ function CrearArregloLote() {
 
 function RenderBotonEliminar(id) {
 
-  const boton = $('<button>').addClass('btn btn-danger btn-eliminar-insumo:lote').html('<i class="fas fa-trash"></i>');
+  const boton = $('<button>').addClass('btn btn-danger btn-eliminar-insumo_lote').html('<i class="fas fa-trash"></i>');
   const div = $('<div>').addClass('d-flex align-items-center ga-2');
   div.append(boton);
 
@@ -394,12 +418,9 @@ function RenderBotonEliminar(id) {
 }
 
 export async function BorrarFila(boton) {
-  let inputTexto = EtiquetasFormulario("input");
-
   const linea = $(boton).closest('tr');
   const tabla = $('#tablaSuministrarLote').DataTable();
   tabla.row(linea).remove().draw(false);
-
 }
 
 export async function BuscarDatos($fila) {
