@@ -424,62 +424,68 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 
 			$contador = 0;
 			foreach ($loteInsumos as $insumo) {
-				$stock_actualido = 0;
-				$insumoModel->setId($insumo['insumo']);
-				$arregloInsumo = $insumoModel->Transaccion(["peticion" => "validar"]);
+				if (isset($insumo['insumo']) && isset($insumo['unidad_medida']) && isset($insumo['proveedor']) && isset($insumo['cantidad'])) {
 
-				$unidadMedidaModel->setId($insumo['unidad_medida']);
-				$arregloUnidad = $unidadMedidaModel->Transaccion(["peticion" => "validar"]);
+					$stock_actualido = 0;
+					$insumoModel->setId($insumo['insumo']);
+					$arregloInsumo = $insumoModel->Transaccion(["peticion" => "validar"]);
 
-				$entradaInsumoModel->setId($insumo['proveedor']);
-				$arregloProveedor = $entradaInsumoModel->Transaccion(["peticion" => "validar"]);
+					$unidadMedidaModel->setId($insumo['unidad_medida']);
+					$arregloUnidad = $unidadMedidaModel->Transaccion(["peticion" => "validar"]);
 
-				if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1 && $arregloProveedor['bool'] == 1) {
+					$entradaInsumoModel->setId($insumo['proveedor']);
+					$arregloProveedor = $entradaInsumoModel->Transaccion(["peticion" => "validar"]);
 
-					$stock_actualido = $unidadMedidaModel->TablaConversion(
-						$insumo['cantidad'],
-						$arregloInsumo['response']['registro']['stock_actual'],
-						$arregloUnidad['response']['registro']['abreviatura'],
-						$arregloInsumo['response']['registro']['abreviatura'],
-						"sumar"
-					);
-					$responseInsumo = ["estado" => 0];
-					$insumoModel->setStockActual($stock_actualido);
-					$responseInsumo = $insumoModel->Transaccion(['peticion' => 'actualizar_stock']);
+					if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1 && $arregloProveedor['bool'] == 1) {
 
-					if ($responseInsumo['estado'] == 1) {
-						$contador++;
-						$estadoTransaccion = true;
-
-						$id = Helper::generarId("DETAL", $insumo['proveedor'], $contador);
-						$detalleEntradaModel->setId($id);
-						$detalleEntradaModel->setIdEntrada($insumo['proveedor']);
-						$detalleEntradaModel->setIdUnidad($insumo['unidad_medida']);
-						$detalleEntradaModel->setCantidad($insumo['cantidad']);
-						$detalleEntradaModel->setDescripcion(
-							"Se ingresarón " . $insumo['cantidad'] . $arregloUnidad['response']['registro']['abreviatura'] . ". Quedando con una cantidad de: " . $stock_actualido . $arregloInsumo['response']['registro']['abreviatura']
+						$stock_actualido = $unidadMedidaModel->TablaConversion(
+							$insumo['cantidad'],
+							$arregloInsumo['response']['registro']['stock_actual'],
+							$arregloUnidad['response']['registro']['abreviatura'],
+							$arregloInsumo['response']['registro']['abreviatura'],
+							"sumar"
 						);
+						$responseInsumo = ["estado" => 0];
+						$insumoModel->setStockActual($stock_actualido);
+						$responseInsumo = $insumoModel->Transaccion(['peticion' => 'actualizar_stock']);
 
-						$json = $detalleEntradaModel->Transaccion(['peticion' => 'registrar']);
-						$json['response']['mensaje'] = 'Insumos suministrados exitosamente';
-						$msg = "(" . $_SESSION['user']['cedula'] . "), realizó ingreso del insumo: " . $arregloInsumo['response']['registro']['nombre_insumo'] . " con " . $insumo['cantidad'] . "" . $arregloUnidad['response']['registro']['abreviatura'];
-						Helper::Bitacora("SUMINISTRAR LOTE", 'INSUMO', $msg);
-					} else {
-						$json = $responseInsumo;
-					}
+						if ($responseInsumo['estado'] == 1) {
+							$contador++;
+							$estadoTransaccion = true;
 
-					if ($estadoTransaccion) {
-						$json['response']['mensaje'] = 'Insumos suministrados exitosamente';
-						$json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+							$id = Helper::generarId("DETAL", $insumo['proveedor'], $contador);
+							$detalleEntradaModel->setId($id);
+							$detalleEntradaModel->setIdEntrada($insumo['proveedor']);
+							$detalleEntradaModel->setIdUnidad($insumo['unidad_medida']);
+							$detalleEntradaModel->setCantidad($insumo['cantidad']);
+							$detalleEntradaModel->setDescripcion(
+								"Se ingresarón " . $insumo['cantidad'] . $arregloUnidad['response']['registro']['abreviatura'] . ". Quedando con una cantidad de: " . $stock_actualido . $arregloInsumo['response']['registro']['abreviatura']
+							);
+
+							$json = $detalleEntradaModel->Transaccion(['peticion' => 'registrar']);
+							$json['response']['mensaje'] = 'Insumos suministrados exitosamente';
+							$msg = "(" . $_SESSION['user']['cedula'] . "), realizó ingreso del insumo: " . $arregloInsumo['response']['registro']['nombre_insumo'] . " con " . $insumo['cantidad'] . "" . $arregloUnidad['response']['registro']['abreviatura'];
+							Helper::Bitacora("SUMINISTRAR LOTE", 'INSUMO', $msg);
+						} else {
+							$json = $responseInsumo;
+						}
+
+						if ($estadoTransaccion) {
+							$json['response']['mensaje'] = 'Insumos suministrados exitosamente';
+							$json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+						} else {
+							$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+							$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
+						}
+
 					} else {
 						$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 						$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
+						$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
 					}
-
 				} else {
 					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 					$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
-					$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
 				}
 			}
 		}

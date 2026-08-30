@@ -126,6 +126,12 @@ export async function EnviarDatos(operacion, datosTabla = null) {
   if (btn_formulario) {
     modal.boton.prop('disabled', true);
     json = await AjaxHelper.enviaAjax(peticion, endpoint);
+
+    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
+      modal.modal.modal("hide");
+      MensajeriaHelper.GenerarMensaje(json.icon, 10000, json.mensaje, null);
+    }
+
     modal.boton.prop('disabled', false);
   }
 
