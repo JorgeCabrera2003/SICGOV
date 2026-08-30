@@ -117,7 +117,7 @@ class Pedido
             $insumosDescontados = false;
             
             // 1. Si pasa a PREPARACION y no se habían descontado
-            if ($estado === 'PREPARANDO' && $estadoActual !== 'PREPARACION') {
+            if ($estado === 'PREPARANDO' && $estadoActual !== 'PREPARANDO') {
                 error_log("Entrando a PREPARACION - Verificando si requiere preparación");
                 $requierePreparacion = $this->pedidoRequierePreparacion($id_pedido);
                 
@@ -135,29 +135,23 @@ class Pedido
                 }
             }
             
-            // 2. Si pasa a ENTREGADO y no se descontaron antes (por si saltaron PREPARACION)
-            if ($estado === 'ENTREGADO' && !$insumosDescontados && $estadoActual !== 'ENTREGADO') {
-                error_log("Entrando a ENTREGADO - Verificando si requiere preparación");
-                $requierePreparacion = $this->pedidoRequierePreparacion($id_pedido);
+            // 2. Si pasa a LISTO o ENTREGADO y venía de PENDIENTE o CONFIRMADO (saltó PREPARACION o no requiere preparación)
+            if (in_array($estado, ['LISTO', 'ENTREGADO']) && !$insumosDescontados && in_array($estadoActual, ['PENDIENTE', 'CONFIRMADO'])) {
+                error_log("Entrando a $estado desde $estadoActual - Descontando insumos");
+                $resultado = $this->descontarInsumosPedido($id_pedido);
                 
-                if ($requierePreparacion) {
-                    // Verificar si ya se descontaron (consultar si hay un registro de descuento)
-                    // Por ahora, descontar directamente
-                    error_log("Pedido con productos de cocina - Descontando insumos al entregar");
-                    $resultado = $this->descontarInsumosPedido($id_pedido);
-                    
-                    if (!$resultado['success']) {
-                        $this->dbBusiness->rollBack();
-                        return ['success' => false, 'message' => $resultado['message']];
-                    }
+                if (!$resultado['success']) {
+                    $this->dbBusiness->rollBack();
+                    return ['success' => false, 'message' => $resultado['message']];
                 }
+                $insumosDescontados = true;
             }
             
             // ==============================================
             // RESTAURAR INSUMOS (si se cancela)
             // ==============================================
-            // Si el pedido se cancela y estaba en PREPARACION o ENTREGADO, restaurar insumos
-            if ($estado === 'CANCELADO' && in_array($estadoActual, ['PREPARANDO', 'ENTREGADO'])) {
+            // Si el pedido se cancela y estaba en PREPARANDO, LISTO o ENTREGADO, restaurar insumos
+            if ($estado === 'CANCELADO' && in_array($estadoActual, ['PREPARANDO', 'LISTO', 'ENTREGADO'])) {
                 error_log("Cancelando pedido - Restaurando insumos");
                 $this->restaurarInsumosPedido($id_pedido);
             }
@@ -223,6 +217,7 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
         $cedulaEmpleado = $_SESSION['user']['cedula'] ?? null;
         
         if (!$cedulaEmpleado) {
+            $this->dbBusiness->rollBack();
             return [
                 'success' => false,
                 'message' => '❌ No se pudo identificar al empleado. Inicia sesión nuevamente.'
@@ -264,6 +259,7 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
             $stmt->execute([$cedulaEmpleado]);
             
             if ($stmt->rowCount() === 0) {
+                $this->dbBusiness->rollBack();
                 return [
                     'success' => false,
                     'message' => '❌ <strong>No tienes permisos para registrar pedidos</strong><br><br>
@@ -351,8 +347,8 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
         // ==============================================
         // 4. DETALLES DEL PEDIDO (CON INDICACION)
         // ==============================================
-        $sqlDetalle = "INSERT INTO detalle_pedido (id_detalle, id_pedido, id_producto, cantidad, precio_unitario, indicacion) 
-                       VALUES (?, ?, ?, ?, ?, ?)";
+        $sqlDetalle = "INSERT INTO detalle_pedido (id_detalle, id_pedido, id_producto, cantidad, precio_unitario, indicacion, extras, removidos) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmtDet = $this->dbBusiness->prepare($sqlDetalle);
 
         $hayProductosCocina = false;
@@ -361,25 +357,34 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
             $idDetalle = 'DET' . date('YmdHis') . rand(1000, 9999);
             
             $indicacion = '';
+            $extrasJson = null;
+            $removidosJson = null;
+            
             if (!empty($item['indicacion'])) {
                 $indicacion = $item['indicacion'];
             } elseif (!empty($item['extras']) && is_array($item['extras'])) {
                 $extrasNombres = array_column($item['extras'], 'nombre');
+                $extrasIds = array_column($item['extras'], 'id_insumo');
                 if (!empty($extrasNombres)) {
                     $indicacion = 'Extras: ' . implode(', ', $extrasNombres);
+                    $extrasJson = json_encode($extrasIds);
                 }
             } elseif (!empty($item['addedAdicionales']) && is_array($item['addedAdicionales'])) {
-                $extrasNombres = array_column($item['addedAdicionales'], 'nombre');
+                $extrasNombres = array_column($item['addedAdicionales'], 'nombre_insumo');
+                $extrasIds = array_column($item['addedAdicionales'], 'id_insumo');
                 if (!empty($extrasNombres)) {
                     $indicacion = 'Extras: ' . implode(', ', $extrasNombres);
+                    $extrasJson = json_encode($extrasIds);
                 }
             }
             
             if (!empty($item['removedPrincipales']) && is_array($item['removedPrincipales'])) {
                 $removidosNombres = array_column($item['removedPrincipales'], 'nombre_insumo');
+                $removidosIds = array_column($item['removedPrincipales'], 'id_insumo');
                 if (!empty($removidosNombres)) {
                     if ($indicacion) $indicacion .= ' | ';
                     $indicacion .= 'Sin: ' . implode(', ', $removidosNombres);
+                    $removidosJson = json_encode($removidosIds);
                 }
             }
             
@@ -395,7 +400,9 @@ private function crearPedidoPOS($datosCliente, $carrito, $datosPago)
                 $item['id_producto'],
                 $item['cantidad'],
                 $item['precio_unitario'],
-                $indicacion
+                $indicacion,
+                $extrasJson,
+                $removidosJson
             ]);
 
             if (!empty($item['tipo_producto']) && $item['tipo_producto'] === 'COCINA') {
@@ -499,9 +506,9 @@ private function descontarInsumosPedido($id_pedido)
         
         $unidadMedida = new \App\Models\System\UnidadMedida();
 
-        // Obtener todos los productos del pedido con sus detalles
-        $sql = "SELECT dp.id_producto, dp.cantidad, dp.indicacion,
-                       p.id_preparacion, p.id_insumo, p.cantidad as cantidad_insumo,
+        // Obtener todos los productos del pedido con sus detalles (insumos base y extras)
+        $sql = "SELECT dp.id_producto, dp.cantidad, dp.indicacion, dp.extras, dp.removidos,
+                       p.id_preparacion, p.id_insumo, p.cantidad as cantidad_insumo, p.prioridad_insumo,
                        i.stock_actual, i.nombre_insumo,
                        up.abreviatura as abrev_req,
                        ui.abreviatura as abrev_stock
@@ -511,7 +518,7 @@ private function descontarInsumosPedido($id_pedido)
                 JOIN insumo i ON p.id_insumo = i.id_insumo
                 LEFT JOIN unidad_medida up ON p.id_unidad_medida = up.id_unidad
                 LEFT JOIN unidad_medida ui ON i.id_unidad_medida = ui.id_unidad
-                WHERE dp.id_pedido = ? AND p.prioridad_insumo = 1";
+                WHERE dp.id_pedido = ? AND p.prioridad_insumo IN (1, 2)";
         
         $stmt = $this->dbBusiness->prepare($sql);
         $stmt->execute([$id_pedido]);
@@ -520,37 +527,27 @@ private function descontarInsumosPedido($id_pedido)
         error_log("Insumos encontrados: " . count($insumos));
         
         if (empty($insumos)) {
-            error_log("No hay insumos para descontar (prioridad=1)");
-            
-            // Si no hay insumos con prioridad=1, intentar con todos los insumos
-            $sql2 = "SELECT dp.id_producto, dp.cantidad,
-                            p.id_insumo, p.cantidad as cantidad_insumo,
-                            i.stock_actual, i.nombre_insumo,
-                            up.abreviatura as abrev_req,
-                            ui.abreviatura as abrev_stock
-                     FROM detalle_pedido dp
-                     JOIN producto pr ON dp.id_producto = pr.id_producto
-                     JOIN preparacion p ON pr.id_producto = p.id_producto
-                     JOIN insumo i ON p.id_insumo = i.id_insumo
-                     LEFT JOIN unidad_medida up ON p.id_unidad_medida = up.id_unidad
-                     LEFT JOIN unidad_medida ui ON i.id_unidad_medida = ui.id_unidad
-                     WHERE dp.id_pedido = ?";
-            
-            $stmt2 = $this->dbBusiness->prepare($sql2);
-            $stmt2->execute([$id_pedido]);
-            $insumos = $stmt2->fetchAll(PDO::FETCH_ASSOC);
-            
-            error_log("Insumos encontrados (sin filtro): " . count($insumos));
-            
-            if (empty($insumos)) {
-                return ['success' => true, 'message' => 'No hay insumos para descontar'];
-            }
+            return ['success' => true, 'message' => 'No hay insumos para descontar'];
         }
         
-        $insumosAprocesar = [];
-
-        // Verificar stock suficiente
+        $insumosAgrupados = [];
+        
+        // Agrupar y convertir cantidades
         foreach ($insumos as $item) {
+            $prioridad = $item['prioridad_insumo'];
+            $extras = !empty($item['extras']) ? json_decode($item['extras'], true) : [];
+            $removidos = !empty($item['removidos']) ? json_decode($item['removidos'], true) : [];
+            
+            // Si es base (1) pero fue removido, lo saltamos
+            if ($prioridad == 1 && in_array($item['id_insumo'], $removidos)) {
+                continue;
+            }
+            
+            // Si es extra (2) y NO fue añadido, lo saltamos
+            if ($prioridad == 2 && !in_array($item['id_insumo'], $extras)) {
+                continue;
+            }
+
             $reqTotal = $item['cantidad'] * $item['cantidad_insumo'];
             $abrevReq = strtolower($item['abrev_req'] ?? 'u');
             $abrevStock = strtolower($item['abrev_stock'] ?? 'u');
@@ -558,23 +555,38 @@ private function descontarInsumosPedido($id_pedido)
             try {
                 $reqEnUnidadStock = $unidadMedida->TablaConversion($reqTotal, 0, $abrevReq, $abrevStock, 'sumar');
             } catch (\Exception $e) {
-                return ['success' => false, 'message' => "Error de conversión para {$item['nombre_insumo']}: " . $e->getMessage()];
+                error_log("Error de conversión para {$item['nombre_insumo']}: " . $e->getMessage());
+                // Fallback de emergencia: si configuraron mal la receta (ej: u vs kg), descontamos la cantidad cruda
+                $reqEnUnidadStock = $reqTotal;
             }
-
-            error_log("Insumo: {$item['nombre_insumo']}, Stock actual: {$item['stock_actual']}, Necesario (en {$abrevStock}): $reqEnUnidadStock");
             
-            if ($item['stock_actual'] < $reqEnUnidadStock) {
+            $id = $item['id_insumo'];
+            if (!isset($insumosAgrupados[$id])) {
+                $insumosAgrupados[$id] = [
+                    'id_insumo' => $id,
+                    'nombre_insumo' => $item['nombre_insumo'],
+                    'stock_actual' => $item['stock_actual'],
+                    'cantidad_descontar' => 0,
+                    'abrev_stock' => $abrevStock
+                ];
+            }
+            $insumosAgrupados[$id]['cantidad_descontar'] += $reqEnUnidadStock;
+        }
+
+        $insumosAprocesar = [];
+
+        // Verificar stock suficiente
+        foreach ($insumosAgrupados as $item) {
+            error_log("Insumo: {$item['nombre_insumo']}, Stock actual: {$item['stock_actual']}, Necesario Total (en {$item['abrev_stock']}): {$item['cantidad_descontar']}");
+            
+            if ($item['stock_actual'] < $item['cantidad_descontar']) {
                 return [
                     'success' => false, 
                     'message' => "Stock insuficiente para el insumo: {$item['nombre_insumo']}"
                 ];
             }
 
-            $insumosAprocesar[] = [
-                'id_insumo' => $item['id_insumo'],
-                'cantidad_descontar' => $reqEnUnidadStock,
-                'nombre_insumo' => $item['nombre_insumo']
-            ];
+            $insumosAprocesar[] = $item;
         }
         
         // Descontar insumos
@@ -602,8 +614,8 @@ private function restaurarInsumosPedido($id_pedido)
     try {
         $unidadMedida = new \App\Models\System\UnidadMedida();
 
-        $sql = "SELECT dp.id_producto, dp.cantidad,
-                       p.id_insumo, p.cantidad as cantidad_insumo,
+        $sql = "SELECT dp.id_producto, dp.cantidad, dp.extras, dp.removidos,
+                       p.id_preparacion, p.id_insumo, p.cantidad as cantidad_insumo, p.prioridad_insumo,
                        up.abreviatura as abrev_req,
                        ui.abreviatura as abrev_stock
                 FROM detalle_pedido dp
@@ -612,7 +624,7 @@ private function restaurarInsumosPedido($id_pedido)
                 JOIN insumo i ON p.id_insumo = i.id_insumo
                 LEFT JOIN unidad_medida up ON p.id_unidad_medida = up.id_unidad
                 LEFT JOIN unidad_medida ui ON i.id_unidad_medida = ui.id_unidad
-                WHERE dp.id_pedido = ? AND p.prioridad_insumo = 1";
+                WHERE dp.id_pedido = ? AND p.prioridad_insumo IN (1, 2)";
         
         $stmt = $this->dbBusiness->prepare($sql);
         $stmt->execute([$id_pedido]);
@@ -625,17 +637,43 @@ private function restaurarInsumosPedido($id_pedido)
         $sqlUpdate = "UPDATE insumo SET stock_actual = stock_actual + ? WHERE id_insumo = ?";
         $stmtUpdate = $this->dbBusiness->prepare($sqlUpdate);
         
+        $insumosAgrupados = [];
         foreach ($insumos as $item) {
+            $prioridad = $item['prioridad_insumo'];
+            $extras = !empty($item['extras']) ? json_decode($item['extras'], true) : [];
+            $removidos = !empty($item['removidos']) ? json_decode($item['removidos'], true) : [];
+            
+            // Si es base (1) pero fue removido, lo saltamos
+            if ($prioridad == 1 && in_array($item['id_insumo'], $removidos)) {
+                continue;
+            }
+            
+            // Si es extra (2) y NO fue añadido, lo saltamos
+            if ($prioridad == 2 && !in_array($item['id_insumo'], $extras)) {
+                continue;
+            }
+
             $reqTotal = $item['cantidad'] * $item['cantidad_insumo'];
             $abrevReq = strtolower($item['abrev_req'] ?? 'u');
             $abrevStock = strtolower($item['abrev_stock'] ?? 'u');
 
             try {
                 $stockARestaurar = $unidadMedida->TablaConversion($reqTotal, 0, $abrevReq, $abrevStock, 'sumar');
-                $stmtUpdate->execute([$stockARestaurar, $item['id_insumo']]);
             } catch (\Exception $e) {
-                error_log("Error al restaurar insumo {$item['id_insumo']}: " . $e->getMessage());
+                error_log("Error al convertir insumo {$item['id_insumo']}: " . $e->getMessage());
+                // Fallback de emergencia
+                $stockARestaurar = $reqTotal;
             }
+            
+            $id = $item['id_insumo'];
+            if (!isset($insumosAgrupados[$id])) {
+                $insumosAgrupados[$id] = 0;
+            }
+            $insumosAgrupados[$id] += $stockARestaurar;
+        }
+
+        foreach ($insumosAgrupados as $id_insumo => $stockARestaurar) {
+            $stmtUpdate->execute([$stockARestaurar, $id_insumo]);
         }
         
         return ['success' => true, 'message' => 'Insumos restaurados correctamente'];
