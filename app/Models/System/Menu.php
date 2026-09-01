@@ -204,32 +204,11 @@ class Menu extends Database
 //#########################################################################################
 
 
-    public function validarCategoria($id_categoria)
-    {
-        $stmt = $this->LlamarConexion()->prepare("SELECT id_categoria FROM categoria_producto WHERE id_categoria = ?");
-        $stmt->execute([$id_categoria]);
-        $isValid = $stmt->rowCount() > 0;
-        $this->DestruirConexion();
-        return $isValid;
-    }
 
-    public function validarUnidadMedida($id_unidad)
-    {
-        $stmt = $this->LlamarConexion()->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
-        $stmt->execute([$id_unidad]);
-        $isValid = $stmt->rowCount() > 0;
-        $this->DestruirConexion();
-        return $isValid;
-    }
 
-    public function validarInsumo($id_insumo)
-    {
-        $stmt = $this->LlamarConexion()->prepare("SELECT id_insumo FROM insumo WHERE id_insumo = ? AND estatus = 1");
-        $stmt->execute([$id_insumo]);
-        $isValid = $stmt->rowCount() > 0;
-        $this->DestruirConexion();
-        return $isValid;
-    }
+
+
+    
 
 
 
@@ -887,8 +866,7 @@ public function verificarStockProducto($id_producto, $cantidad = 1)
                 JOIN insumo i ON p.id_insumo = i.id_insumo
                 LEFT JOIN unidad_medida up ON p.id_unidad_medida = up.id_unidad
                 LEFT JOIN unidad_medida ui ON i.id_unidad_medida = ui.id_unidad
-                WHERE p.id_producto = ? AND p.prioridad_insumo = 1
-                AND i.estatus = 1";
+                WHERE p.id_producto = ? AND i.estatus = 1 AND p.prioridad_insumo = 1";
         
         $stmt = $this->LlamarConexion()->prepare($sql);
         $stmt->execute([$id_producto]);
@@ -912,37 +890,48 @@ public function verificarStockProducto($id_producto, $cantidad = 1)
         
         $unidadMedida = new \App\Models\System\UnidadMedida();
 
+        $insumosAgrupados = [];
         foreach ($insumos as $insumo) {
             if ($insumo['cantidad_requerida'] > 0) {
                 $abrevReq = $insumo['abrev_req'] ?? 'U';
                 $abrevStock = $insumo['abrev_stock'] ?? 'U';
                 
                 try {
-                    // Convertir la cantidad requerida a la unidad del stock sumándole 0 al stock base ficticio
                     $reqEnUnidadStock = $unidadMedida->TablaConversion($insumo['cantidad_requerida'], 0, $abrevReq, $abrevStock, 'sumar');
                 } catch (\Exception $e) {
                     error_log("Error de conversión en verificarStockProducto: " . $e->getMessage());
                     $reqEnUnidadStock = $insumo['cantidad_requerida'];
                 }
                 
-                // Evitar división por cero
-                if ($reqEnUnidadStock > 0) {
-                    $unidades = floor($insumo['stock_actual'] / $reqEnUnidadStock);
-                } else {
-                    $unidades = 999;
+                $id = $insumo['id_insumo'];
+                if (!isset($insumosAgrupados[$id])) {
+                    $insumosAgrupados[$id] = [
+                        'nombre_insumo' => $insumo['nombre_insumo'],
+                        'stock_actual' => $insumo['stock_actual'],
+                        'cantidad_requerida' => 0
+                    ];
                 }
+                $insumosAgrupados[$id]['cantidad_requerida'] += $reqEnUnidadStock;
+            }
+        }
 
-                $insumosStock[] = [
-                    'nombre' => $insumo['nombre_insumo'],
-                    'stock_actual' => $insumo['stock_actual'],
-                    'requerido' => $insumo['cantidad_requerida'],
-                    'unidades_posibles' => $unidades
-                ];
-                
-                if ($unidades < $unidadesPosibles) {
-                    $unidadesPosibles = $unidades;
-                    $insumoLimitante = $insumo['nombre_insumo'];
-                }
+        foreach ($insumosAgrupados as $insumo) {
+            if ($insumo['cantidad_requerida'] > 0) {
+                $unidades = floor($insumo['stock_actual'] / $insumo['cantidad_requerida']);
+            } else {
+                $unidades = 999;
+            }
+
+            $insumosStock[] = [
+                'nombre' => $insumo['nombre_insumo'],
+                'stock_actual' => $insumo['stock_actual'],
+                'requerido' => $insumo['cantidad_requerida'],
+                'unidades_posibles' => $unidades
+            ];
+            
+            if ($unidades < $unidadesPosibles) {
+                $unidadesPosibles = $unidades;
+                $insumoLimitante = $insumo['nombre_insumo'];
             }
         }
         
@@ -971,20 +960,6 @@ public function verificarStockProducto($id_producto, $cantidad = 1)
                 'stock_disponible' => $stockDisponible,
                 'porcentaje' => $porcentaje,
                 'insumo_limitante' => $insumoLimitante
-            ];
-        }
-        
-        // Verificar si el stock está por debajo del 70%
-        $porcentajeMinimo = 30; // 70% de stock mínimo requerido
-        
-        if ($porcentaje < $porcentajeMinimo) {
-            return [
-                'success' => false,
-                'message' => "No se puede preparar este producto. El stock está al $porcentaje% de su capacidad mínima. (Mínimo requerido: $porcentajeMinimo%)",
-                'stock_disponible' => $stockDisponible,
-                'porcentaje' => $porcentaje,
-                'insumo_limitante' => $insumoLimitante,
-                'porcentaje_minimo' => $porcentajeMinimo
             ];
         }
         

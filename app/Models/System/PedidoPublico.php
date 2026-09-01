@@ -60,8 +60,8 @@ class PedidoPublico
             $totalPedido = $carrito['total']; 
             $observacion = $datosCliente['observacion'] ?? 'Pedido Web';
 
-            $sqlPedido = "INSERT INTO pedido (id_pedido, cedula_cliente, cedula_empleado, tipo_pedido, total, observacion) 
-                          VALUES (?, ?, NULL, ?, ?, ?)";
+            $sqlPedido = "INSERT INTO pedido (id_pedido, numero_pedido, cedula_cliente, cedula_empleado, id_mesa, tipo_pedido, total, observacion, estado) 
+                          VALUES (?, NULL, ?, NULL, NULL, ?, ?, ?, 'PENDIENTE')";
             $this->dbBusiness->prepare($sqlPedido)->execute([
                 $idPedido,
                 $cedula,
@@ -71,22 +71,28 @@ class PedidoPublico
             ]);
 
             // 3. Crear Detalle de Pedido
-            $sqlDetalle = "INSERT INTO detalle_pedido (id_detalle, id_pedido, id_producto, cantidad, precio_unitario, indicacion) 
-                           VALUES (?, ?, ?, ?, ?, ?)";
+            $sqlDetalle = "INSERT INTO detalle_pedido (id_detalle, id_pedido, id_producto, cantidad, precio_unitario, indicacion, extras, removidos) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmtDet = $this->dbBusiness->prepare($sqlDetalle);
 
             foreach ($carrito['items'] as $item) {
-                $idDetalle = 'DET' . date('YmdHis') . rand(1000, 9999);
+                $idDetalle = uniqid('DET_');
                 $indicacion = '';
+                $extrasJson = null;
+                $removidosJson = null;
                 
                 // Procesar indicaciones (ingredientes quitados, extras añadidos)
                 if (!empty($item['removedPrincipales'])) {
                     $nombresRemovidos = array_column($item['removedPrincipales'], 'nombre_insumo');
+                    $idsRemovidos = array_column($item['removedPrincipales'], 'id_insumo');
                     $indicacion .= "Sin: " . implode(", ", $nombresRemovidos) . ". ";
+                    $removidosJson = json_encode($idsRemovidos);
                 }
                 if (!empty($item['addedAdicionales'])) {
                     $nombresExtras = array_column($item['addedAdicionales'], 'nombre_insumo');
+                    $idsExtras = array_column($item['addedAdicionales'], 'id_insumo');
                     $indicacion .= "Extras: " . implode(", ", $nombresExtras) . ". ";
+                    $extrasJson = json_encode($idsExtras);
                 }
 
                 $stmtDet->execute([
@@ -95,7 +101,9 @@ class PedidoPublico
                     $item['id_producto'],
                     $item['cantidad'],
                     $item['precio_unitario'], // Precio unitario con extras
-                    $indicacion
+                    $indicacion,
+                    $extrasJson,
+                    $removidosJson
                 ]);
             }
 

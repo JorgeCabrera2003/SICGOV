@@ -22,9 +22,17 @@ if ($action === 'search') {
 
     if (empty($query)) {
         if (!empty($_REQUEST['module'])) {
-            $module = $_REQUEST['module'];
+            $module = strtolower(trim($_REQUEST['module']));
             $filtered = array_filter($topics, function($t) use ($module) {
-                return isset($t['modules']) && in_array($module, $t['modules']);
+                if (isset($t['modules'])) {
+                    foreach ($t['modules'] as $m) {
+                        $m_lower = strtolower($m);
+                        if ($m_lower === $module || $m_lower . 's' === $module || $m_lower === $module . 's') {
+                            return true;
+                        }
+                    }
+                }
+                return false;
             });
             // Si el módulo no tiene ayudas, devolvemos todo por defecto
             $results = !empty($filtered) ? array_values($filtered) : $topics;

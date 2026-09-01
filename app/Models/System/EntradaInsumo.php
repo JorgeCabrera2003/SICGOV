@@ -98,6 +98,7 @@ class EntradaInsumo extends Database
                 'filtrar' => $this->FiltrarEntradaInsumo(),
                 'asociar_proveedores' => $this->AsociarProveedores($peticion['proveedores']),
                 'validar' => $this->ValidarEntradaInsumo(),
+                'validar_asociacion' => $this->ValidarAsociacion(),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
@@ -177,7 +178,6 @@ class EntradaInsumo extends Database
     private function AsociarProveedores($proveedores)
     {
         $dato = [];
-        $validacion = [];
         $validar_registros = true;
 
         foreach ($proveedores as $i) {
@@ -189,15 +189,12 @@ class EntradaInsumo extends Database
 
             $this->setId($i['id_entrada']);
             $this->setDocumentoLegal($i['documento']);
-            $validacion = $this->ValidarEntradaInsumo();
-            if ($validacion['bool'] == 1) {
-                $validar_registros = false;
-            }
         }
         if ($validar_registros) {
             try {
                 $sql = "INSERT INTO entrada_insumo(id_entrada, id_insumo, documento_proveedor) 
-                VALUES (:id, :id_insumo, :documento_legal)";
+                VALUES (:id, :id_insumo, :documento_legal)
+                ON DUPLICATE KEY UPDATE estatus = 1";
 
                 $this->LlamarConexion();
                 $this->LlamarConexion()->beginTransaction();
@@ -267,7 +264,7 @@ class EntradaInsumo extends Database
             try {
                 $this->LlamarConexion();
                 $this->LlamarConexion()->beginTransaction();
-                $sql = "UPDATE entrada_insumo SET estatus = 1 WHERE id_entrada = :id";
+                $sql = "UPDATE entrada_insumo SET estatus = 0 WHERE id_entrada = :id";
                 $stm = $this->LlamarConexion()->prepare($sql);
                 $stm->bindParam('id', $this->id);
                 $stm->execute();
@@ -275,7 +272,7 @@ class EntradaInsumo extends Database
                 $stm = NULL;
 
                 $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Relación de Entrada eliminado exitosamente"];
+                $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Asociación con el Proveedor eliminada"];
                 $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
             } catch (\PDOException $e) {
                 Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
@@ -328,6 +325,43 @@ class EntradaInsumo extends Database
         return $dato;
     }
 
+
+        private function ValidarAsociacion()
+    {
+        $dato = [];
+        $arreglo = [];
+        try {
+            $this->LlamarConexion();
+            $this->LlamarConexion()->beginTransaction();
+            $sql = "SELECT * FROM entrada_insumo WHERE (id_insumo = :id_insumo AND documento_proveedor = :documento_proveedor)";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->bindParam(':id_insumo', $this->id_insumo);
+            $stm->bindParam(':documento_proveedor', $this->documento_legal);
+            $stm->execute();
+            if ($stm->rowCount() > 0) {
+                $arreglo = $stm->fetch(PDO::FETCH_ASSOC);
+                $dato['bool'] = 1;
+            } else {
+                $dato['bool'] = 0;
+            }
+            $this->LlamarConexion()->commit();
+            $stm = NULL;
+
+            $dato['estado'] = 1;
+            $dato['response'] = ['resultado' => 200, 'registro' => $arreglo];
+            $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            $dato['bool'] = -1;
+            $dato['estado'] = -1;
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor", 'registro' => []];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+
     private function FiltrarEntradaInsumo()
     {
         $dato = [];
@@ -335,7 +369,7 @@ class EntradaInsumo extends Database
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM vw_entrada_insumo WHERE id_insumo  = :id_insumo";
+            $sql = "SELECT * FROM vw_entrada_insumo WHERE id_insumo  = :id_insumo AND estatus = 1";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':id_insumo', $this->id_insumo);
             $stm->execute();
