@@ -259,8 +259,60 @@ class UnidadMedida extends Database
         } else {
             throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock);
         }
+        if ($resultado < 0) {
+            throw new \Exception("El valor resultante no puede ser negativo");
+        }
 
+        return $resultado;
+    }
 
+        public function ConvertirUnidades(float $stock_actual, string $medida_original, string $medida_entrante)
+    {
+        $resultado = 0;
+        $medida_original = strtolower($medida_original);
+        $medida_entrante = strtolower($medida_entrante);
+
+        $resultadoBase = 0;
+
+        $validar = false;
+
+        if ($this->DiccionarioMedidas($medida_original) == "masa" && $this->DiccionarioMedidas($medida_entrante) == "masa") {
+            $unidadStock = new Mass($stock_actual, $medida_original);
+
+            $valorStock = (int) round($unidadStock->toUnit('g'));
+
+            $resultadoBase = new Mass($valorStock, $medida_entrante);
+            $validar = true;
+        }
+
+        if ($this->DiccionarioMedidas($medida_original) == "volumen" && $this->DiccionarioMedidas($medida_entrante) == "volumen") {
+            $unidadValor = new Volume($stock_actual, $medida_original);
+            
+            $valorEntrante = (int) round($unidadValor->toUnit('ml'));
+
+            $resultadoBase = new Volume($valorEntrante, $medida_entrante);
+            $validar = true;
+        }
+
+        if ($this->DiccionarioMedidas($medida_original) == "unidad" && $this->DiccionarioMedidas($medida_entrante) == "unidad") {
+            $resultado = $stock_actual;
+            if ($resultado < 0) {
+                throw new \Exception("El valor resultante no puede ser negativo");
+            }
+            return $resultado;
+        }
+
+        if ($validar) {
+
+        if($medida_entrante != "u"){
+            $resultado = $resultadoBase->toUnit($medida_entrante);
+        } else {
+            $resultado = $resultadoBase;
+        }
+
+        } else {
+            throw new \Exception("Conversión no válida: " . $medida_original . " y " . $medida_entrante);
+        }
         if ($resultado < 0) {
             throw new \Exception("El valor resultante no puede ser negativo");
         }
