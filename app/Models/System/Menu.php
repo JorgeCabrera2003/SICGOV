@@ -204,32 +204,11 @@ class Menu extends Database
 //#########################################################################################
 
 
-    public function validarCategoria($id_categoria)
-    {
-        $stmt = $this->LlamarConexion()->prepare("SELECT id_categoria FROM categoria_producto WHERE id_categoria = ?");
-        $stmt->execute([$id_categoria]);
-        $isValid = $stmt->rowCount() > 0;
-        $this->DestruirConexion();
-        return $isValid;
-    }
 
-    public function validarUnidadMedida($id_unidad)
-    {
-        $stmt = $this->LlamarConexion()->prepare("SELECT id_unidad FROM unidad_medida WHERE id_unidad = ?");
-        $stmt->execute([$id_unidad]);
-        $isValid = $stmt->rowCount() > 0;
-        $this->DestruirConexion();
-        return $isValid;
-    }
 
-    public function validarInsumo($id_insumo)
-    {
-        $stmt = $this->LlamarConexion()->prepare("SELECT id_insumo FROM insumo WHERE id_insumo = ? AND estatus = 1");
-        $stmt->execute([$id_insumo]);
-        $isValid = $stmt->rowCount() > 0;
-        $this->DestruirConexion();
-        return $isValid;
-    }
+
+
+    
 
 
 

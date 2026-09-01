@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(res => {
                 if (res.status === 'success') {
                     let extraHTML = '';
-                    const tourIds = ['gestion_reservaciones', 'formulario_reservacion', 'drag_drop_reservacion', 'solicitar_cita_publico', 'formulario_publico', 'gestion_pedidos', 'tomar_pedido_pos'];
+                    const tourIds = ['gestion_reservaciones', 'formulario_reservacion', 'drag_drop_reservacion', 'solicitar_cita_publico', 'formulario_publico', 'gestion_pedidos', 'tomar_pedido_pos', 'crear_menu', 'gestion_clientes', 'formulario_cliente', 'formulario_producto_menu', 'gestion_personal', 'formulario_empleado', 'seguridad_usuarios', 'formulario_usuario', 'crear_categoria', 'formulario_categoria'];
                     
                     if (tourIds.includes(id)) {
                         extraHTML = `
@@ -141,8 +141,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             const currentPage = window.location.search.toLowerCase();
                             const isReservacion = currentPage.includes('page=reservacion');
                             const isPedido = currentPage.includes('page=pedido');
+                            const isMenu = currentPage.includes('page=menu');
+                            const isCliente = currentPage.includes('page=cliente');
+                            const isEmpleado = currentPage.includes('page=empleado');
+                            const isUsuario = currentPage.includes('page=usuario');
+                            const isCategoria = currentPage.includes('page=categoria') && !currentPage.includes('insumo');
                             
-                            if (isReservacion || isPedido) {
+                            if (isReservacion || isPedido || isMenu || isCliente || isEmpleado || isUsuario || isCategoria) {
                                 const { TourHelper } = await import('./Helpers/TourHelper.js');
                                 let steps = [];
 
@@ -237,6 +242,116 @@ document.addEventListener('DOMContentLoaded', function() {
                                             { element: '#posProductos', popover: { title: 'Catálogo de Productos', description: 'Haz clic en cualquier producto para agregarlo inmediatamente a tu orden actual.', side: "right", align: 'start' } },
                                             { element: '.pos-ticket', popover: { title: 'Orden Actual', description: 'Aquí verás el resumen de los productos seleccionados, el total calculado en $ y Bs.', side: "left", align: 'start' } },
                                             { element: '#posForm', popover: { title: 'Datos de Pago', description: 'Define si el pedido es para llevar o en mesa, selecciona el método de pago y procede a cobrar.', side: "top", align: 'start' } }
+                                        ];
+                                    }
+                                } else if (id === 'crear_menu') {
+                                    steps = [
+                                        { element: '#filtrosCategorias', popover: { title: 'Filtros de Categoría', description: 'Usa estos botones para filtrar rápidamente los platillos de tu menú.', side: "bottom", align: 'start' } },
+                                        { element: '#btnNuevoMenu', popover: { title: 'Nuevo Producto', description: 'Haz clic aquí para agregar un nuevo platillo o bebida a tu carta.', side: "bottom", align: 'end' } },
+                                        { element: 'a[href*="nuestro-menu"]', popover: { title: 'Menú Público', description: 'Este botón te llevará a la vista pública de tu menú, donde tus clientes verán todos los productos activos.', side: "bottom", align: 'start' } },
+                                        { element: '#galleryContainer', popover: { title: 'Galería de Menú', description: 'Aquí verás todos tus platillos. Puedes editar, desactivar o eliminar productos desde sus respectivas tarjetas.', side: "top", align: 'center' } }
+                                    ];
+                                } else if (id === 'gestion_clientes') {
+                                    steps = [
+                                        { element: '#btnNuevoCliente', popover: { title: 'Nuevo Cliente', description: 'Presiona este botón para registrar un nuevo cliente en el sistema.', side: "bottom", align: 'end' } },
+                                        { element: '#tablaCliente', popover: { title: 'Registro de Clientes', description: 'Aquí aparecerá la lista de todos tus clientes registrados. Puedes consultar su información, editarla o eliminarlos usando los botones de acción.', side: "top", align: 'center' } }
+                                    ];
+                                } else if (id === 'formulario_cliente') {
+                                    const modalEl = document.getElementById('modalCliente');
+                                    if (modalEl) {
+                                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                                        document.getElementById('formCliente').reset();
+                                        modal.show();
+                                        
+                                        await new Promise(r => setTimeout(r, 400));
+                                        
+                                        steps = [
+                                            { element: '#formCliente .row.g-3.mb-3:nth-of-type(1)', popover: { title: 'Identificación y Nacimiento', description: 'Ingresa la cédula con su prefijo y la fecha de nacimiento del cliente.', side: "bottom", align: 'start' } },
+                                            { element: '#formCliente .row.g-3.mb-3:nth-of-type(2)', popover: { title: 'Datos Personales', description: 'Escribe el nombre y apellido completos del cliente.', side: "bottom", align: 'start' } },
+                                            { element: '#formCliente .row.g-3.mb-3:nth-of-type(3)', popover: { title: 'Contacto y Sexo', description: 'El teléfono es opcional, pero útil. Asegúrate de seleccionar el sexo.', side: "bottom", align: 'start' } },
+                                            { element: '#formCliente .row.g-3.mb-3:nth-of-type(4)', popover: { title: 'Correo y Dirección', description: 'Información adicional como correo electrónico y dirección física.', side: "top", align: 'start' } },
+                                            { element: '#btnClienteForm', popover: { title: 'Guardar Registro', description: 'Presiona este botón para guardar el nuevo cliente en el sistema.', side: "top", align: 'end' } }
+                                        ];
+                                    }
+                                } else if (id === 'formulario_producto_menu') {
+                                    const modalEl = document.getElementById('modalMenu');
+                                    if (modalEl) {
+                                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                                        document.getElementById('formMenu').reset();
+                                        modal.show();
+                                        
+                                        await new Promise(r => setTimeout(r, 400));
+                                        
+                                        steps = [
+                                            { element: '#formMenu .col-lg-5', popover: { title: 'Datos Requeridos', description: 'Aquí debes establecer la información visual y comercial: nombre, categoría, precio y una foto del producto.', side: "right", align: 'start' } },
+                                            { element: '#formMenu .col-lg-7', popover: { title: 'Receta e Insumos', description: 'De este lado podrás agregar todos los ingredientes necesarios que componen el plato.', side: "left", align: 'start' } },
+                                            { element: '.select-insumo-input', popover: { title: 'Buscador de Insumos', description: 'Escribe el nombre del ingrediente que necesitas y agrégalo a la receta.', side: "bottom", align: 'start' } },
+                                            { element: '#recetaTabs', popover: { title: 'Separación Lógica', description: 'Agrega los ingredientes que conforman el plato base en "Principales". Todo lo extra que el cliente pueda pedir va en "Adicionales".', side: "bottom", align: 'center' } },
+                                            { element: '#btnGuardarMenu', popover: { title: 'Guardar Producto', description: 'Una vez todo esté configurado correctamente, presiona guardar.', side: "top", align: 'end' } }
+                                        ];
+                                    }
+                                } else if (id === 'gestion_personal') {
+                                    steps = [
+                                        { element: '#btnNuevoEmpleado', popover: { title: 'Nuevo Empleado', description: 'Presiona este botón para registrar un nuevo miembro del personal en el sistema.', side: "bottom", align: 'end' } },
+                                        { element: '#tablaEmpleado', popover: { title: 'Registro de Empleados', description: 'Aquí aparecerá la lista de todos tus empleados. Puedes consultar su información, editarla o eliminarlos usando los botones de acción.', side: "top", align: 'center' } }
+                                    ];
+                                } else if (id === 'formulario_empleado') {
+                                    const modalEl = document.getElementById('modalEmpleado');
+                                    if (modalEl) {
+                                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                                        document.getElementById('formEmpleado').reset();
+                                        modal.show();
+                                        
+                                        await new Promise(r => setTimeout(r, 400));
+                                        
+                                        steps = [
+                                            { element: '#formEmpleado .row.g-3.mb-3:nth-of-type(1)', popover: { title: 'Identificación y Nacimiento', description: 'Ingresa la cédula con su prefijo y la fecha de nacimiento del empleado.', side: "bottom", align: 'start' } },
+                                            { element: '#formEmpleado .row.g-3.mb-3:nth-of-type(2)', popover: { title: 'Datos Personales', description: 'Escribe el nombre y apellido completos del empleado.', side: "bottom", align: 'start' } },
+                                            { element: '#formEmpleado .row.g-3.mb-3:nth-of-type(3)', popover: { title: 'Cargo y Sexo', description: 'Asigna el rol que cumplirá este empleado y selecciona su sexo.', side: "bottom", align: 'start' } },
+                                            { element: '#formEmpleado .row.g-3.mb-3:nth-of-type(4)', popover: { title: 'Contacto', description: 'Información de contacto telefónico y correo electrónico.', side: "top", align: 'start' } },
+                                            { element: '#formEmpleado .row.g-3.mb-3:nth-of-type(5)', popover: { title: 'Dirección', description: 'Dirección de residencia del empleado.', side: "top", align: 'start' } },
+                                            { element: '#btnEmpleadoForm', popover: { title: 'Guardar Registro', description: 'Presiona este botón para guardar el nuevo empleado en el sistema.', side: "top", align: 'end' } }
+                                        ];
+                                    }
+                                } else if (id === 'seguridad_usuarios') {
+                                    steps = [
+                                        { element: '#btn-nuevo', popover: { title: 'Nuevo Usuario', description: 'Haz clic aquí para otorgar acceso al sistema a un empleado.', side: "bottom", align: 'end' } },
+                                        { element: '#tabla-usuario', popover: { title: 'Lista de Usuarios', description: 'Aquí verás todos los usuarios activos y podrás modificar sus accesos o desactivarlos.', side: "top", align: 'center' } }
+                                    ];
+                                } else if (id === 'formulario_usuario') {
+                                    const modalEl = document.getElementById('modalUsuario');
+                                    if (modalEl) {
+                                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                                        document.getElementById('formUsuario').reset();
+                                        modal.show();
+                                        
+                                        await new Promise(r => setTimeout(r, 400));
+                                        
+                                        steps = [
+                                            { element: '#grupo-seleccion-empleado', popover: { title: 'Seleccionar Empleado', description: 'Elige de la lista al empleado al cual le crearás las credenciales.', side: "bottom", align: 'start' } },
+                                            { element: '#username', popover: { title: 'Nombre de Usuario', description: 'Crea el nombre que usará para ingresar (ej. jperez).', side: "bottom", align: 'start' } },
+                                            { element: '#rol', popover: { title: 'Rol del Sistema', description: 'Asigna qué puede hacer este usuario. Dependiendo del rol, tendrá acceso a más o menos módulos.', side: "bottom", align: 'start' } },
+                                            { element: '#clave', popover: { title: 'Contraseñas', description: 'Asigna una contraseña segura. El siguiente campo es para confirmarla.', side: "top", align: 'start' } },
+                                            { element: '#btnUsuarioForm', popover: { title: 'Guardar Usuario', description: 'Una vez completado, guarda el registro para activar el acceso.', side: "top", align: 'end' } }
+                                        ];
+                                    }
+                                } else if (id === 'crear_categoria') {
+                                    steps = [
+                                        { element: '#btnNuevaCategoria', popover: { title: 'Nueva Categoría', description: 'Haz clic aquí para agregar una nueva clasificación al menú.', side: "bottom", align: 'end' } },
+                                        { element: '#tablaCategoria', popover: { title: 'Lista de Categorías', description: 'Aquí verás todas las categorías registradas. Puedes editar sus nombres o eliminarlas si ya no son necesarias.', side: "top", align: 'center' } }
+                                    ];
+                                } else if (id === 'formulario_categoria') {
+                                    const modalEl = document.getElementById('modalCategoria');
+                                    if (modalEl) {
+                                        const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                                        document.getElementById('formCategoria').reset();
+                                        modal.show();
+                                        
+                                        await new Promise(r => setTimeout(r, 400));
+                                        
+                                        steps = [
+                                            { element: '#nombre_categoria', popover: { title: 'Nombre de la Categoría', description: 'Escribe el nombre con el que quieres agrupar tus productos (ej. Postres, Bebidas).', side: "bottom", align: 'start' } },
+                                            { element: '#btnGuardarCategoria', popover: { title: 'Guardar', description: 'Guarda los cambios para que la categoría esté disponible al crear productos.', side: "top", align: 'end' } }
                                         ];
                                     }
                                 }
