@@ -13,8 +13,6 @@ namespace App\Models\System;
 use App\Core\Database;
 use App\Helpers\Helper;
 use APP\Helpers\RegexHelper;
-use PhpUnitsOfMeasure\PhysicalQuantity\Volume;
-use PhpUnitsOfMeasure\PhysicalQuantity\Mass;
 use PDO;
 
 class UnidadMedida extends Database
@@ -203,45 +201,43 @@ class UnidadMedida extends Database
         return $dato;
     }
 
+    private function factorMasaGramos($medida) {
+        return match($medida) {
+            'g', 'gr' => 1,
+            'kg' => 1000,
+            'oz' => 28.3495,
+            'lb' => 453.592,
+            default => 1
+        };
+    }
+
+    private function factorVolumenMililitros($medida) {
+        return match($medida) {
+            'ml' => 1,
+            'l' => 1000,
+            default => 1
+        };
+    }
+
     public function TablaConversion(float $valor, float $stock_actual, string $medida_valor, string $medida_stock, string $operacion)
     {
-        $resultado = 0;
         $medida_valor = strtolower($medida_valor);
         $medida_stock = strtolower($medida_stock);
 
-        $resultadoBase = 0;
+        $tipo_valor = $this->DiccionarioMedidas($medida_valor);
+        $tipo_stock = $this->DiccionarioMedidas($medida_stock);
 
-        $valorStock = 0;
-        $valorEntrante = 0;
-
-        $validar = false;
-
-        if ($this->DiccionarioMedidas($medida_valor) == "masa" && $this->DiccionarioMedidas($medida_stock) == "masa") {
-
-            $unidadValor = new Mass($valor, $medida_valor);
-            $unidadStock = new Mass($stock_actual, $medida_stock);
-
-            $valorStock = (int) round($unidadStock->toUnit('g'));
-            $valorEntrante = (int) round($unidadValor->toUnit('g'));
-
-            $resultadoBase = new Mass($this->OperacionMatematatica($valorEntrante, $valorStock, $operacion), 'g');
-            $validar = true;
+        if ($tipo_valor != $tipo_stock) {
+            throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock . " son incompatibles.");
         }
 
-        if ($this->DiccionarioMedidas($medida_valor) == "volumen" && $this->DiccionarioMedidas($medida_stock) == "volumen") {
-            $unidadValor = new Volume($valor, $medida_valor);
-            $unidadStock = new Volume($stock_actual, $medida_stock);
-
+        if ($tipo_valor == "masa") {
+            $valor_g = $valor * $this->factorMasaGramos($medida_valor);
+            $stock_g = $stock_actual * $this->factorMasaGramos($medida_stock);
             
-            $valorEntrante  = (int) round($unidadValor->toUnit('ml'));
-            $valorStock = (int) round($unidadStock->toUnit('ml'));
-
-            $resultadoBase = new Volume($this->OperacionMatematatica($valorEntrante, $valorStock, $operacion), 'ml');
-            $validar = true;
-        }
-
-        if ($this->DiccionarioMedidas($medida_valor) == "unidad" && $this->DiccionarioMedidas($medida_stock) == "unidad") {
-            $resultado = $this->OperacionMatematatica($stock_actual, $valor, $operacion);
+            $resultado_g = $this->OperacionMatematatica($valor_g, $stock_g, $operacion);
+            $resultado = $resultado_g / $this->factorMasaGramos($medida_stock);
+            
             if ($resultado < 0) {
                 throw new \Exception("El valor resultante no puede ser negativo");
             }
@@ -316,8 +312,8 @@ class UnidadMedida extends Database
         if ($resultado < 0) {
             throw new \Exception("El valor resultante no puede ser negativo");
         }
-
-        return $resultado;
+        
+        throw new \Exception("Tipo de medida desconocido");
     }
 
     private function OperacionMatematatica($valor, $stock, $operacion)
