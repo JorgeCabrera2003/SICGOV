@@ -3,6 +3,7 @@ import * as categoriaInsumo from "../Handlers/CategoriaInsumoHandler.js";
 import * as suministrarInsumo from "../Handlers/SuministrarInsumoHandler.js";
 import * as asociarProveedor from "../Handlers/AsociarProveedorHandler.js";
 import * as movimientoInsumo from "../Handlers/MovimientoInsumoHandler.js";
+import * as suministrarLote from "../Handlers/SuministrarLoteHandler.js";
 import * as AjaxHelper from "../Helpers/AjaxHelper.js";
 
 //MODULO DE INGREDIENTES
@@ -33,6 +34,15 @@ $("#btnSuministrarInsumoForm").on("click", async function () {
   };
 });
 
+$("#btnSuministrarLoteForm").on("click", async function () {
+  let respuesta = null;
+  respuesta = await suministrarLote.EnviarFormulario($(this).text());
+  if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
+    await crearDataTable("insumos");
+  };
+});
+
+
 $("#btnNuevoInsumo").on("click", function () {
   insumo.LimpiarFormulario();
   insumo.EditarModal("registrar");
@@ -60,6 +70,16 @@ $("#btnAsociarForm").on("click", function () {
   asociarProveedor.EnviarFormulario("Asociar")
 })
 
+$("#btnSuministrarLote").on("click", async function () {
+  await suministrarLote.DataTable();
+  suministrarLote.EditarModal("suministrar");
+})
+
+$(document).on("click", ".btn-eliminar-insumo_lote", async function () {
+  await suministrarLote.BorrarFila(this);
+})
+
+
 $("#btn-CategoriaForm").on("click", async function () {
   let respuesta = null;
   respuesta = await categoriaInsumo.EnviarFormulario($(this));
@@ -81,6 +101,12 @@ function iniciarValidaciones() {
 $('#tablaAsociar').on('change', '.select-proveedor', function () {
   asociarProveedor.validarDuplicados();
 });
+
+$('#tablaSuministrarLote').on('change', '.select-insumo', function () {
+  let $fila = $(this).closest('tr');
+  suministrarLote.BuscarDatos($fila);
+});
+
 
 async function crearDataTable(controlador = "insumos") {
   const MODULOS = {
@@ -178,4 +204,9 @@ $(document).on('click', '.btn-asociar', function () {
 
 $(document).on('click', '.btn-eliminar-proveedor', function () {
   asociarProveedor.BorrarProveedor($(this));
+})
+
+$(document).on('click', '#btn-agregarInsumo', async function () {
+  suministrarLote.AgregarFilaInput();
+  suministrarLote.CapaValidar()
 })

@@ -340,6 +340,13 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "UnidadMedida") {
 			$json = $unidadMedidaModel->Transaccion(['peticion' => $_POST["peticion"]]);
 		}
 
+		//Buscar Unidad de Medida con Insumo
+		if ($_POST["peticion"] == "buscar_medida_insumo") {
+			$insumoModel->setId($_POST["id_insumo"]);
+			$arregloInsumo = $insumoModel->Transaccion(["peticion" => "validar"]);
+			$unidadMedidaModel->setId($arregloInsumo['response']['registro']['id_unidad_medida']);
+			$json = $unidadMedidaModel->Transaccion(['peticion' => "filtrar"]);
+		}
 		//Enviar respuesta al navegador usando un encabezado HTTP
 		header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
 		echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
@@ -406,6 +413,83 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 			}
 		}
 
+		//Suministrar Lote
+		if ($_POST["peticion"] == "suministrar_lote") {
+			$arregloInsumo = [];
+			$arregloUnidad = [];
+			$arregloProveedor = [];
+			$estadoTransaccion = false;
+
+			$loteInsumos = Helper::ConvertirJson(json_decode($_POST['lote_insumos']));
+
+			$contador = 0;
+			foreach ($loteInsumos as $insumo) {
+				if (isset($insumo['insumo']) && isset($insumo['unidad_medida']) && isset($insumo['proveedor']) && isset($insumo['cantidad'])) {
+
+					$stock_actualido = 0;
+					$insumoModel->setId($insumo['insumo']);
+					$arregloInsumo = $insumoModel->Transaccion(["peticion" => "validar"]);
+
+					$unidadMedidaModel->setId($insumo['unidad_medida']);
+					$arregloUnidad = $unidadMedidaModel->Transaccion(["peticion" => "validar"]);
+
+					$entradaInsumoModel->setId($insumo['proveedor']);
+					$arregloProveedor = $entradaInsumoModel->Transaccion(["peticion" => "validar"]);
+
+					if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1 && $arregloProveedor['bool'] == 1) {
+
+						$stock_actualido = $unidadMedidaModel->TablaConversion(
+							$insumo['cantidad'],
+							$arregloInsumo['response']['registro']['stock_actual'],
+							$arregloUnidad['response']['registro']['abreviatura'],
+							$arregloInsumo['response']['registro']['abreviatura'],
+							"sumar"
+						);
+						$responseInsumo = ["estado" => 0];
+						$insumoModel->setStockActual($stock_actualido);
+						$responseInsumo = $insumoModel->Transaccion(['peticion' => 'actualizar_stock']);
+
+						if ($responseInsumo['estado'] == 1) {
+							$contador++;
+							$estadoTransaccion = true;
+
+							$id = Helper::generarId("DETAL", $insumo['proveedor'], $contador);
+							$detalleEntradaModel->setId($id);
+							$detalleEntradaModel->setIdEntrada($insumo['proveedor']);
+							$detalleEntradaModel->setIdUnidad($insumo['unidad_medida']);
+							$detalleEntradaModel->setCantidad($insumo['cantidad']);
+							$detalleEntradaModel->setDescripcion(
+								"Se ingresarón " . $insumo['cantidad'] . $arregloUnidad['response']['registro']['abreviatura'] . ". Quedando con una cantidad de: " . $stock_actualido . $arregloInsumo['response']['registro']['abreviatura']
+							);
+
+							$json = $detalleEntradaModel->Transaccion(['peticion' => 'registrar']);
+							$json['response']['mensaje'] = 'Insumos suministrados exitosamente';
+							$msg = "(" . $_SESSION['user']['cedula'] . "), realizó ingreso del insumo: " . $arregloInsumo['response']['registro']['nombre_insumo'] . " con " . $insumo['cantidad'] . "" . $arregloUnidad['response']['registro']['abreviatura'];
+							Helper::Bitacora("SUMINISTRAR LOTE", 'INSUMO', $msg);
+						} else {
+							$json = $responseInsumo;
+						}
+
+						if ($estadoTransaccion) {
+							$json['response']['mensaje'] = 'Insumos suministrados exitosamente';
+							$json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+						} else {
+							$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+							$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
+						}
+
+					} else {
+						$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+						$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
+						$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
+					}
+				} else {
+					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+					$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
+				}
+			}
+		}
+
 		if ($_POST["peticion"] == "asociar_proveedor") {
 			$arregloInsumo = [];
 			$validarProveedor = [];
@@ -420,19 +504,27 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 
 			if ($arregloInsumo['bool'] == 1) {
 				$contador = 0;
-
+				$entradaInsumoModel->setIdInsumo($_POST['id_insumo']);
 				foreach ($arregloProveedor as &$i) {
 					$contador++;
 					$proveedorModel->setDocumentoLegal($i['documento']);
 					$validarProveedor = $proveedorModel->Transaccion(["peticion" => "validar"]);
 					if ($validarProveedor['bool'] == 1) {
-						if ($i['id_entrada'] == NULL) {
+						$validarAsociacion = [];
+						$entradaInsumoModel->setDocumentoLegal($i['documento']);
+						$validarAsociacion = $entradaInsumoModel->Transaccion(["peticion" => "validar_asociacion"]);
+						if ($validarAsociacion['bool'] == 1) {
+							$i['id_entrada'] = $validarAsociacion['response']['registro']['id_entrada'];
+							continue;
+						}
+
+						if ($i['id_entrada'] == NULL || $i['id_entrada'] == "") {
 							$i['id_entrada'] = Helper::generarId('ENTRA', "INSUM", $contador);
 						}
 					}
 				}
 				$entradaInsumoModel->setIdInsumo($_POST['id_insumo']);
-				$response = $entradaInsumoModel->Transaccion(['peticion' => "asociar_proveedores", 'proveedores' => $arregloProveedor]); 
+				$response = $entradaInsumoModel->Transaccion(['peticion' => "asociar_proveedores", 'proveedores' => $arregloProveedor]);
 
 				if ($response['estado'] == 1) {
 
@@ -452,18 +544,18 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 
 		if ($_POST["peticion"] == "eliminar") {
 
-				$entradaInsumoModel->setId($_POST['id_entrada']);
-				$response = $entradaInsumoModel->Transaccion(['peticion' => "eliminar"]); 
+			$entradaInsumoModel->setId($_POST['id_entrada']);
+			$response = $entradaInsumoModel->Transaccion(['peticion' => "eliminar"]);
 
-				if ($response['estado'] == 1) {
+			if ($response['estado'] == 1) {
 
-					$msg = "(" . $_SESSION['user']['cedula'] . "), Asociación eliminada";
-					$json = $response;
-					Helper::Bitacora("ELIMINAR ASOCIACIÓN DEL PROVEEDOR", 'INSUMO', $msg);
-				} else {
-					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
-					$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no válidos'];
-				} 
+				$msg = "(" . $_SESSION['user']['cedula'] . "), Asociación eliminada";
+				$json = $response;
+				Helper::Bitacora("ELIMINAR ASOCIACIÓN DEL PROVEEDOR", 'INSUMO', $msg);
+			} else {
+				$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+				$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no válidos'];
+			}
 		}
 
 		//Enviar respuesta al navegador usando un encabezado HTTP
