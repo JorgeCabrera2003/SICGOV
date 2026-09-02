@@ -424,7 +424,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 
 			if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1) {
 
-				$stock_actualido = $unidadMedidaModel->TablaConversion(
+				$stock_actualido = $unidadMedidaModel->CalcularValor(
 					$_POST['stock'],
 					$arregloInsumo['response']['registro']['stock_actual'],
 					$arregloUnidad['response']['registro']['abreviatura'],
@@ -486,7 +486,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 
 					if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1 && $arregloProveedor['bool'] == 1) {
 
-						$stock_actualido = $unidadMedidaModel->TablaConversion(
+						$stock_actualido = $unidadMedidaModel->CalcularValor(
 							$insumo['cantidad'],
 							$arregloInsumo['response']['registro']['stock_actual'],
 							$arregloUnidad['response']['registro']['abreviatura'],
