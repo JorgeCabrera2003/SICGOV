@@ -13,6 +13,8 @@ namespace App\Models\System;
 use App\Core\Database;
 use App\Helpers\Helper;
 use APP\Helpers\RegexHelper;
+use PhpUnitsOfMeasure\PhysicalQuantity\Volume;
+use PhpUnitsOfMeasure\PhysicalQuantity\Mass;
 use PDO;
 
 class UnidadMedida extends Database
@@ -227,6 +229,8 @@ class UnidadMedida extends Database
         $tipo_valor = $this->DiccionarioMedidas($medida_valor);
         $tipo_stock = $this->DiccionarioMedidas($medida_stock);
 
+        $validar = false;
+
         if ($tipo_valor != $tipo_stock) {
             throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock . " son incompatibles.");
         }
@@ -244,25 +248,136 @@ class UnidadMedida extends Database
             return $resultado;
         }
 
-        if ($tipo_valor == "volumen") {
-            $valor_ml = $valor * $this->factorVolumenMililitros($medida_valor);
-            $stock_ml = $stock_actual * $this->factorVolumenMililitros($medida_stock);
+        if ($validar) {
+
+        if($medida_stock != "u"){
+            $resultado = $resultadoBase->toUnit($medida_stock);
+        } else {
+            $resultado = $resultadoBase;
+        }
+
+        } else {
+            throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock);
+        }
+        if ($resultado < 0) {
+            throw new \Exception("El valor resultante no puede ser negativo");
+        }
+
+        return $resultado;
+    }
+
+    public function CalcularValor(float $valor, float $stock_actual, string $medida_valor, string $medida_stock, string $operacion)
+    {
+        $resultado = 0;
+        $medida_valor = strtolower($medida_valor);
+        $medida_stock = strtolower($medida_stock);
+
+        $resultadoBase = 0;
+
+        $valorStock = 0;
+        $valorEntrante = 0;
+
+        $validar = false;
+
+        if ($this->DiccionarioMedidas($medida_valor) == "masa" && $this->DiccionarioMedidas($medida_stock) == "masa") {
+
+            $unidadValor = new Mass($valor, $medida_valor);
+            $unidadStock = new Mass($stock_actual, $medida_stock);
+
+            $valorStock = (int) round($unidadStock->toUnit('g'));
+            $valorEntrante = (int) round($unidadValor->toUnit('g'));
+
+            $resultadoBase = new Mass($this->OperacionMatematatica($valorEntrante, $valorStock, $operacion), 'g');
+            $validar = true;
+        }
+
+        if ($this->DiccionarioMedidas($medida_valor) == "volumen" && $this->DiccionarioMedidas($medida_stock) == "volumen") {
+            $unidadValor = new Volume($valor, $medida_valor);
+            $unidadStock = new Volume($stock_actual, $medida_stock);
+
             
-            $resultado_ml = $this->OperacionMatematatica($valor_ml, $stock_ml, $operacion);
-            $resultado = $resultado_ml / $this->factorVolumenMililitros($medida_stock);
-            
+            $valorEntrante  = (int) round($unidadValor->toUnit('ml'));
+            $valorStock = (int) round($unidadStock->toUnit('ml'));
+
+            $resultadoBase = new Volume($this->OperacionMatematatica($valorEntrante, $valorStock, $operacion), 'ml');
+            $validar = true;
+        }
+
+        if ($this->DiccionarioMedidas($medida_valor) == "unidad" && $this->DiccionarioMedidas($medida_stock) == "unidad") {
+            $resultado = $this->OperacionMatematatica($stock_actual, $valor, $operacion);
             if ($resultado < 0) {
                 throw new \Exception("El valor resultante no puede ser negativo");
             }
             return $resultado;
         }
 
-        if ($tipo_valor == "unidad") {
-            $resultado = $this->OperacionMatematatica($valor, $stock_actual, $operacion);
+        if ($validar) {
+
+        if($medida_stock != "u"){
+            $resultado = $resultadoBase->toUnit($medida_stock);
+        } else {
+            $resultado = $resultadoBase;
+        }
+
+        } else {
+            throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock);
+        }
+        if ($resultado < 0) {
+            throw new \Exception("El valor resultante no puede ser negativo");
+        }
+
+        return $resultado;
+    }
+
+        public function ConvertirUnidades(float $stock_actual, string $medida_original, string $medida_entrante)
+    {
+        $resultado = 0;
+        $medida_original = strtolower($medida_original);
+        $medida_entrante = strtolower($medida_entrante);
+
+        $resultadoBase = 0;
+
+        $validar = false;
+
+        if ($this->DiccionarioMedidas($medida_original) == "masa" && $this->DiccionarioMedidas($medida_entrante) == "masa") {
+            $unidadStock = new Mass($stock_actual, $medida_original);
+
+            $valorStock = (int) round($unidadStock->toUnit('g'));
+
+            $resultadoBase = new Mass($valorStock, $medida_entrante);
+            $validar = true;
+        }
+
+        if ($this->DiccionarioMedidas($medida_original) == "volumen" && $this->DiccionarioMedidas($medida_entrante) == "volumen") {
+            $unidadValor = new Volume($stock_actual, $medida_original);
+            
+            $valorEntrante = (int) round($unidadValor->toUnit('ml'));
+
+            $resultadoBase = new Volume($valorEntrante, $medida_entrante);
+            $validar = true;
+        }
+
+        if ($this->DiccionarioMedidas($medida_original) == "unidad" && $this->DiccionarioMedidas($medida_entrante) == "unidad") {
+            $resultado = $stock_actual;
             if ($resultado < 0) {
                 throw new \Exception("El valor resultante no puede ser negativo");
             }
             return $resultado;
+        }
+
+        if ($validar) {
+
+        if($medida_entrante != "u"){
+            $resultado = $resultadoBase->toUnit($medida_entrante);
+        } else {
+            $resultado = $resultadoBase;
+        }
+
+        } else {
+            throw new \Exception("Conversión no válida: " . $medida_original . " y " . $medida_entrante);
+        }
+        if ($resultado < 0) {
+            throw new \Exception("El valor resultante no puede ser negativo");
         }
         
         throw new \Exception("Tipo de medida desconocido");
