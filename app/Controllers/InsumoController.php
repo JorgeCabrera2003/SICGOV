@@ -205,9 +205,57 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 				$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 				$json['response'] = ['resultado' => 400, 'mensaje' => $exception->getMessage()];
 			}
-
 		}
 		//Fin del Eliminar
+
+		//Suministrar
+		if ($_POST["peticion"] == "recalcular_stock") {
+			$arregloInsumo = [];
+			$arregloUnidad = [];
+
+			$insumoModel->setId($_POST['id_insumo']);
+			$arregloInsumo = $insumoModel->Transaccion(["peticion" => "validar"]);
+
+			$unidadMedidaModel->setId($_POST['id_unidad']);
+			$arregloUnidad = $unidadMedidaModel->Transaccion(["peticion" => "validar"]);
+
+			if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1) {
+
+				$stock_actualido = $unidadMedidaModel->ConvertirUnidades(
+					$arregloInsumo['response']['registro']['stock_actual'],
+					$arregloInsumo['response']['registro']['abreviatura'],
+					$arregloUnidad['response']['registro']['abreviatura'],
+				);
+				$responseInsumo = ["estado" => 0];
+				$insumoModel->setStockActual($stock_actualido);
+				$responseInsumo = $insumoModel->Transaccion(['peticion' => 'actualizar_stock']);
+
+
+				if ($responseInsumo['estado'] == 1) {
+					$id = Helper::generarId("DETAL");
+					$detalleEntradaModel->setId($id);
+					$detalleEntradaModel->setIdEntrada($_POST['id_entrada']);
+					$detalleEntradaModel->setIdUnidad($_POST['id_unidad']);
+					$detalleEntradaModel->setCantidad($_POST['stock']);
+					$detalleEntradaModel->setDescripcion(
+						"Se ingresarón " . $_POST['stock'] . $arregloUnidad['response']['registro']['abreviatura'] . ". Quedando con una cantidad de: " . $stock_actualido . $arregloInsumo['response']['registro']['abreviatura']
+					);
+
+					$json = $detalleEntradaModel->Transaccion(['peticion' => 'registrar']);
+					$json['response']['mensaje'] = 'Insumo suministrado exitosamente';
+					$msg = "(" . $_SESSION['user']['cedula'] . "), realizó ingreso del insumo: " . $arregloInsumo['response']['registro']['nombre_insumo'] . " con " . $_POST['stock'] . "" . $arregloUnidad['response']['registro']['abreviatura'];
+					Helper::Bitacora("SUMINISTRAR", 'INSUMO', $msg);
+				} else {
+					$json = $responseInsumo;
+				}
+
+			} else {
+				$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+				$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
+				$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
+			}
+		}
+
 
 		//Enviar respuesta al navegador usando un encabezado HTTP
 		header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
@@ -376,7 +424,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 
 			if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1) {
 
-				$stock_actualido = $unidadMedidaModel->TablaConversion(
+				$stock_actualido = $unidadMedidaModel->CalcularValor(
 					$_POST['stock'],
 					$arregloInsumo['response']['registro']['stock_actual'],
 					$arregloUnidad['response']['registro']['abreviatura'],
@@ -438,7 +486,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 
 					if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1 && $arregloProveedor['bool'] == 1) {
 
-						$stock_actualido = $unidadMedidaModel->TablaConversion(
+						$stock_actualido = $unidadMedidaModel->CalcularValor(
 							$insumo['cantidad'],
 							$arregloInsumo['response']['registro']['stock_actual'],
 							$arregloUnidad['response']['registro']['abreviatura'],
