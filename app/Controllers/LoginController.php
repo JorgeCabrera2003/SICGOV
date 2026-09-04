@@ -13,7 +13,7 @@ if ($type === 'index') {
         }
 
         if (isset($_SESSION['user'])) {
-            $targetPage = (isset($_SESSION['user']['rol']) && strtoupper(trim($_SESSION['user']['rol'])) === 'CLIENTE') ? 'Reservacion&type=publico' : 'Dashboard';
+            $targetPage = (isset($_SESSION['user']['rol']) && strtoupper(trim($_SESSION['user']['rol'])) === 'CLIENTE') ? 'Home&type=publico' : 'Dashboard';
             header("Location: " . rtrim(BASE_URL, '/') . "/?page=" . $targetPage);
             exit();
         }
@@ -89,7 +89,7 @@ if ($type === 'index') {
                                     $_SESSION['user']['estatus_clave'] = 1;
 
                                     unset($_SESSION['error_register']);
-                                    $targetPage = (isset($_SESSION['user']['rol']) && strtoupper(trim($_SESSION['user']['rol'])) === 'CLIENTE') ? 'Reservacion&type=publico' : 'Dashboard';
+                                    $targetPage = (isset($_SESSION['user']['rol']) && strtoupper(trim($_SESSION['user']['rol'])) === 'CLIENTE') ? 'Home&type=publico' : 'Dashboard';
                                     header('Location: ' . rtrim(BASE_URL, '/') . '/?page=' . $targetPage);
                                     exit();
                                 }
@@ -155,7 +155,7 @@ if ($type === 'index') {
                         \App\Helpers\Helper::Bitacora('ACCESO', 'SEGURIDAD', 'Inicio de sesión exitoso', null, null, $cedula);
 
                         unset($_SESSION['error_login']);
-                        $targetPage = (isset($_SESSION['user']['rol']) && strtoupper(trim($_SESSION['user']['rol'])) === 'CLIENTE') ? 'Reservacion&type=publico' : 'Dashboard';
+                        $targetPage = (isset($_SESSION['user']['rol']) && strtoupper(trim($_SESSION['user']['rol'])) === 'CLIENTE') ? 'Home&type=publico' : 'Dashboard';
                         header('Location: ' . rtrim(BASE_URL, '/') . '/?page=' . $targetPage);
                         exit();
                     } else {
