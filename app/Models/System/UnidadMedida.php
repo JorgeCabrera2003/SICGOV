@@ -203,7 +203,70 @@ class UnidadMedida extends Database
         return $dato;
     }
 
+    private function factorMasaGramos($medida) {
+        return match($medida) {
+            'g', 'gr' => 1,
+            'kg' => 1000,
+            'oz' => 28.3495,
+            'lb' => 453.592,
+            default => 1
+        };
+    }
+
+    private function factorVolumenMililitros($medida) {
+        return match($medida) {
+            'ml' => 1,
+            'l' => 1000,
+            default => 1
+        };
+    }
+
     public function TablaConversion(float $valor, float $stock_actual, string $medida_valor, string $medida_stock, string $operacion)
+    {
+        $medida_valor = strtolower($medida_valor);
+        $medida_stock = strtolower($medida_stock);
+
+        $tipo_valor = $this->DiccionarioMedidas($medida_valor);
+        $tipo_stock = $this->DiccionarioMedidas($medida_stock);
+
+        $validar = false;
+
+        if ($tipo_valor != $tipo_stock) {
+            throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock . " son incompatibles.");
+        }
+
+        if ($tipo_valor == "masa") {
+            $valor_g = $valor * $this->factorMasaGramos($medida_valor);
+            $stock_g = $stock_actual * $this->factorMasaGramos($medida_stock);
+            
+            $resultado_g = $this->OperacionMatematatica($valor_g, $stock_g, $operacion);
+            $resultado = $resultado_g / $this->factorMasaGramos($medida_stock);
+            
+            if ($resultado < 0) {
+                throw new \Exception("El valor resultante no puede ser negativo");
+            }
+            return $resultado;
+        }
+
+        if ($validar) {
+
+        if($medida_stock != "u"){
+            $resultado = $resultadoBase->toUnit($medida_stock);
+        } else {
+            $resultado = $resultadoBase;
+        }
+
+        } else {
+            throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock);
+        }
+        if ($resultado < 0) {
+            throw new \Exception("El valor resultante no puede ser negativo");
+        }
+
+        return $resultado;
+    }
+
+    public function CalcularValor(float $valor, float $stock_actual, string $medida_valor, string $medida_stock, string $operacion)
     {
         $resultado = 0;
         $medida_valor = strtolower($medida_valor);
@@ -259,13 +322,65 @@ class UnidadMedida extends Database
         } else {
             throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock);
         }
-
-
         if ($resultado < 0) {
             throw new \Exception("El valor resultante no puede ser negativo");
         }
 
         return $resultado;
+    }
+
+        public function ConvertirUnidades(float $stock_actual, string $medida_original, string $medida_entrante)
+    {
+        $resultado = 0;
+        $medida_original = strtolower($medida_original);
+        $medida_entrante = strtolower($medida_entrante);
+
+        $resultadoBase = 0;
+
+        $validar = false;
+
+        if ($this->DiccionarioMedidas($medida_original) == "masa" && $this->DiccionarioMedidas($medida_entrante) == "masa") {
+            $unidadStock = new Mass($stock_actual, $medida_original);
+
+            $valorStock = (int) round($unidadStock->toUnit('g'));
+
+            $resultadoBase = new Mass($valorStock, $medida_entrante);
+            $validar = true;
+        }
+
+        if ($this->DiccionarioMedidas($medida_original) == "volumen" && $this->DiccionarioMedidas($medida_entrante) == "volumen") {
+            $unidadValor = new Volume($stock_actual, $medida_original);
+            
+            $valorEntrante = (int) round($unidadValor->toUnit('ml'));
+
+            $resultadoBase = new Volume($valorEntrante, $medida_entrante);
+            $validar = true;
+        }
+
+        if ($this->DiccionarioMedidas($medida_original) == "unidad" && $this->DiccionarioMedidas($medida_entrante) == "unidad") {
+            $resultado = $stock_actual;
+            if ($resultado < 0) {
+                throw new \Exception("El valor resultante no puede ser negativo");
+            }
+            return $resultado;
+        }
+
+        if ($validar) {
+
+        if($medida_entrante != "u"){
+            $resultado = $resultadoBase->toUnit($medida_entrante);
+        } else {
+            $resultado = $resultadoBase;
+        }
+
+        } else {
+            throw new \Exception("Conversión no válida: " . $medida_original . " y " . $medida_entrante);
+        }
+        if ($resultado < 0) {
+            throw new \Exception("El valor resultante no puede ser negativo");
+        }
+        
+        throw new \Exception("Tipo de medida desconocido");
     }
 
     private function OperacionMatematatica($valor, $stock, $operacion)

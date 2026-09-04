@@ -18,11 +18,12 @@ class SecuritySeeder
 
         if ($count == 0) {
             echo "       Roles no encontrados, insertando...\n";
-            $sqlRoles = "INSERT INTO rol (id_rol, nombre_rol, estatus) VALUES 
-                ('ADMIN00120251001', 'ADMINISTRADOR', 1),
-                ('GEREN00520251001', 'GERENTE', 1),
-                ('ROLS74320260602130629743', 'Cliente', 1),
-                ('ROLS71920260602140652719', 'SuperUsuario', 1)";
+            $sqlRoles = "INSERT IGNORE INTO `rol` (`id_rol`, `nombre_rol`, `estatus`) VALUES 
+                ('ADMIN00120251001', 'ADMINISTRADOR', '1'),
+                ('GEREN00520251001', 'GERENTE', '1'),
+                ('ROLS5171202607091004255171', 'Cajero', '1'),
+                ('ROLS71920260602140652719', 'SuperUsuario', '1'),
+                ('ROLS74320260602130629743', 'Cliente', '1')";
             $this->db->exec($sqlRoles);
             echo "       Roles base creados.\n";
         }
@@ -63,42 +64,15 @@ class SecuritySeeder
             echo "       Módulos base creados.\n";
         }
 
-        // Crear usuario admin si no existe
-        $sqlCheck = "SELECT COUNT(*) FROM usuario WHERE cedula = 'V-00000000'";
-        $userExists = $this->db->query($sqlCheck)->fetchColumn();
-
-        if (!$userExists) {
-            $sqlAdmin = "INSERT INTO usuario
-                        (cedula, id_rol, username, clave, tema, estatus)
-                        VALUES 
-                        ('V-00000000', 'ROLS71920260602140652719', 'admin_root', :clave, 'light', 1)";
-            try {
-                $stmt = $this->db->prepare($sqlAdmin);
-                $stmt->execute(['clave' => $hash]);
-                echo "       Usuario Admin Root creado.\n";
-            } catch (\PDOException $e) {
-                echo "       Error al crear admin: " . $e->getMessage() . "\n";
-            }
-        } else {
-            echo "       El usuario admin ya existe.\n";
-        }
-
-        // Crear usuario gerente de ejemplo
-        $sqlCheckGerente = "SELECT COUNT(*) FROM usuario WHERE cedula = 'V-12345678'";
-        $gerenteExists = $this->db->query($sqlCheckGerente)->fetchColumn();
-
-        if (!$gerenteExists) {
-            $sqlGerente = "INSERT INTO usuario
-                        (cedula, id_rol, username, clave, tema, estatus)
-                        VALUES 
-                        ('V-12345678', 'GEREN00520251001', 'gerente', :clave, 'light', 1)";
-            try {
-                $stmt = $this->db->prepare($sqlGerente);
-                $stmt->execute(['clave' => $hash]);
-                echo "       Usuario Gerente de ejemplo creado (cedula: V-12345678).\n";
-            } catch (\PDOException $e) {
-                echo "       Aviso: No se pudo crear usuario gerente: " . $e->getMessage() . "\n";
-            }
-        }
+        // Insertar Usuarios Reales
+        $sqlUsuarios = <<<'SQL'
+INSERT IGNORE INTO `usuario` (`cedula`, `id_rol`, `username`, `clave`, `tema`, `ultimo_acceso`, `fecha_registro`, `estatus`, `estatus_clave`, `token_recuperacion`, `fecha_expiracion_token`) VALUES 
+            ('V-00000000', 'ROLS71920260602140652719', 'admin_root', '$2y$10$kQ4Pztytm9/sb.G1pI8gv.jTwCg5l9EBDUzEilJ8LtPNc9/12YDcW', 'light', NULL, '2026-07-09 00:56:09', '1', '1', NULL, NULL),
+            ('V-12345677', 'ROLS5171202607091004255171', 'Leizer', '$2y$10$Mo/sm7QBLzf38QuJeDPWhunT5.t8LICYWgQnmq7r1s4RfUYcx/HbG', 'light', NULL, '2026-07-09 10:07:30', '1', '1', NULL, NULL),
+            ('V-12345678', 'GEREN00520251001', 'Jorge', '$2y$10$ImrLiTTTVgrSlE0SNUcvv.Ms36SMxvbdJrwh6Ymd9u/BEbaq5.Sv.', 'light', NULL, '2026-07-09 00:56:09', '1', '1', NULL, NULL),
+            ('V-28165452', 'ROLS74320260602130629743', 'San', '$2y$10$o2gsVbGaLAM21Jh0vrsGx.Q6BEFyBFJC4BXQhHiWiJ3p3/ooc7ria', 'light', NULL, '2026-07-09 09:17:16', '1', '1', NULL, NULL)
+SQL;
+        $this->db->exec($sqlUsuarios);
+        echo "       Usuarios base insertados.\n";
     }
 }

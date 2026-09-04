@@ -1,4 +1,7 @@
 import * as AjaxHelper from "../Helpers/AjaxHelper.js";
+import { formatearFecha } from "../Helpers/FormatHelper.js";
+import { SistemaValidacion } from "../Helpers/ValidationHelper.js";
+import { mensajes } from "../Helpers/UIHelper.js";
 
 const ENDPOINT = BASE_URL + '?page=asistencia';
 let currentAsistenciaRow = null;
@@ -150,7 +153,7 @@ export function renderDataTable(arreglo) {
     responsive: true,
     autoWidth: false,
     order: [[0, 'desc']],
-    language: { url: idiomaTabla }
+    language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' }
   });
 }
 

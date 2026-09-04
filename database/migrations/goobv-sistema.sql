@@ -344,6 +344,8 @@ CREATE TABLE `detalle_pedido` (
   `cantidad` int(11) NOT NULL CHECK (`cantidad` > 0),
   `precio_unitario` decimal(10,2) NOT NULL,
   `indicacion` varchar(255) DEFAULT NULL COMMENT 'Ej: Sin cebolla, bien cocido',
+  `extras` json DEFAULT NULL COMMENT 'IDs de insumos añadidos como extras',
+  `removidos` json DEFAULT NULL COMMENT 'IDs de insumos removidos',
   PRIMARY KEY (`id_detalle`),
   KEY `fk_det_ped` (`id_pedido`),
   KEY `fk_det_prod` (`id_producto`),

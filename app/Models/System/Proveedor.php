@@ -286,15 +286,22 @@ class Proveedor extends Database
             $this->LlamarConexion()->beginTransaction();
 
             // Proveedores que NO están asociados (incluyendo los que están en estatus 0)
-            $sql = "SELECT p.*
-                FROM proveedor p LEFT JOIN entrada_insumo ei 
+            $sql = "SELECT p.*, 
+                       ei.id_entrada, 
+                       ei.estatus as estatus_asociacion,
+                       CASE 
+                           WHEN ei.id_entrada IS NULL THEN 'nuevo'
+                           WHEN ei.estatus = 0 THEN 'reactivar'
+                           ELSE 'activo'
+                       END as tipo_asociacion
+                FROM proveedor p 
+                LEFT JOIN entrada_insumo ei 
                     ON p.documento_legal = ei.documento_proveedor 
-                    AND ei.id_insumo = :id_insumo 
-                    AND ei.estatus = 1
-                WHERE ei.documento_proveedor IS NULL
-                AND p.estatus = 1
+                    AND ei.id_insumo = :id_insumo
+                WHERE p.estatus = 1
+                  AND (ei.id_entrada IS NULL OR ei.estatus = 0)
                 ORDER BY p.nombre ASC";
-
+                
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':id_insumo', $id_insumo);
             $stm->execute();

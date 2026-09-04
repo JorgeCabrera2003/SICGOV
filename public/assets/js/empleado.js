@@ -1,4 +1,5 @@
-import { mensajes, confirmarAccion, buscarSelect } from './Helpers/UIHelper.js';
+import { confirmarAccion, buscarSelect } from './Helpers/UIHelper.js';
+import { GenerarMensaje } from './Helpers/MensajeriaHelper.js';
 import { SistemaValidacion } from './Helpers/ValidationHelper.js';
 import { debounce } from './Helpers/MiscHelper.js';
 import { capitalizarTexto, formatearFecha } from './Helpers/FormatHelper.js';
@@ -433,7 +434,7 @@ async function enviarDatos(operacion) {
       }
     } else {
       btn_formulario = false;
-      mensajes("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.");
+      GenerarMensaje("error", 10000, "Error de Validación", "Por favor corrija los errores en el formulario antes de enviar.");
     }
   } //Fin del Registrar y Modificar
 
@@ -450,18 +451,19 @@ async function enviarDatos(operacion) {
       }
     } else {
       btn_formulario = false;
-      mensajes("error", 10000, "Error de Validación", "La cédula no es válida.");
+      GenerarMensaje("error", 10000, "Error de Validación", "La cédula no es válida.");
     }
   }//Fin del Eliminar
 
   if (btn_formulario) {
     modal.boton.prop('disabled', true);
-    json = await enviaAjax(peticion);
+    let json = await enviaAjax(peticion);
 
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       modal.modal.modal("hide");
       crearDataTable();
-      mensajes(json.icon, 10000, json.mensaje, null);
+      let titulo = (json.icon === 'error') ? 'Error' : 'Éxito';
+      GenerarMensaje(json.icon, 10000, titulo, json.mensaje);
     }
     modal.boton.prop('disabled', false);
   }
@@ -826,12 +828,12 @@ async function eliminarEmpleadoDirecto(pos) {
 
       if (json.resultado >= 200 && json.resultado < 300) {
         crearDataTable();
-        mensajes("success", 3000, "Éxito", json.mensaje);
+        GenerarMensaje("success", 3000, "Éxito", json.mensaje);
       } else {
-        mensajes("error", 5000, "Error", json.mensaje || "Ocurrió un error inesperado.");
+        GenerarMensaje("error", 5000, "Error", json.mensaje || "Ocurrió un error inesperado.");
       }
     } catch (error) {
-      mensajes("error", 5000, "Error", "Error de comunicación con el servidor.");
+      GenerarMensaje("error", 5000, "Error", "Error de comunicación con el servidor.");
     }
   }
 }

@@ -4,6 +4,9 @@ namespace App\Controllers;
 
 use App\Helpers\Helper;
 use App\Models\System\Menu;
+use App\Models\System\CategoriaProducto;
+use App\Models\System\Insumo;
+use App\Models\System\UnidadMedida;
 
 $type = $_REQUEST['type'] ?? 'admin';
 $peticion = $_POST['peticion'] ?? $_POST['action'] ?? $_GET['action'] ?? '';
@@ -59,9 +62,12 @@ if ($type === 'admin') {
             }
 
             try {
+                $objInsumo = new Insumo();
+                $objUnidad = new UnidadMedida();
                 
                 $id_categoria = $_POST['id_categoria'] ?? null;
-                if (!empty($id_categoria) && !$objMenu->validarCategoria($id_categoria)) {
+                $objCategoria = new CategoriaProducto();
+                if (!empty($id_categoria) && !$objCategoria->validarCategoria($id_categoria)) {
                     throw new Exception("La categoría seleccionada no existe en la base de datos.");
                 }
 
@@ -69,11 +75,19 @@ if ($type === 'admin') {
                 $insumos_principales = is_string($insumos_principales_json) ? json_decode($insumos_principales_json, true) : $insumos_principales_json;
                 if (!empty($insumos_principales) && is_array($insumos_principales)) {
                     foreach ($insumos_principales as $ing) {
-                        if (!empty($ing['id']) && !$objMenu->validarInsumo($ing['id'])) {
-                            throw new Exception("El insumo principal seleccionado no existe o está inactivo.");
+                        if (!empty($ing['id'])) {
+                            $objInsumo->setId($ing['id']);
+                            $validacion = $objInsumo->Transaccion(["peticion" => "validar"]);
+                            if (!isset($validacion['bool']) || $validacion['bool'] != 1 || (isset($validacion['response']['registro']['estatus']) && $validacion['response']['registro']['estatus'] != 1)) {
+                                throw new Exception("El insumo principal seleccionado no existe o está inactivo.");
+                            }
                         }
-                        if (!empty($ing['unidad']) && !$objMenu->validarUnidadMedida($ing['unidad'])) {
-                            throw new Exception("La unidad de medida seleccionada para el insumo no existe en la base de datos.");
+                        if (!empty($ing['unidad'])) {
+                            $objUnidad->setId($ing['unidad']);
+                            $validacionUnidad = $objUnidad->Transaccion(["peticion" => "validar"]);
+                            if (!isset($validacionUnidad['bool']) || $validacionUnidad['bool'] != 1) {
+                                throw new Exception("La unidad de medida seleccionada para el insumo no existe en la base de datos.");
+                            }
                         }
                     }
                 }
@@ -82,11 +96,19 @@ if ($type === 'admin') {
                 $insumos_adicionales = is_string($insumos_adicionales_json) ? json_decode($insumos_adicionales_json, true) : $insumos_adicionales_json;
                 if (!empty($insumos_adicionales) && is_array($insumos_adicionales)) {
                     foreach ($insumos_adicionales as $ing) {
-                        if (!empty($ing['id']) && !$objMenu->validarInsumo($ing['id'])) {
-                            throw new Exception("El insumo adicional seleccionado no existe o está inactivo.");
+                        if (!empty($ing['id'])) {
+                            $objInsumo->setId($ing['id']);
+                            $validacion = $objInsumo->Transaccion(["peticion" => "validar"]);
+                            if (!isset($validacion['bool']) || $validacion['bool'] != 1 || (isset($validacion['response']['registro']['estatus']) && $validacion['response']['registro']['estatus'] != 1)) {
+                                throw new Exception("El insumo adicional seleccionado no existe o está inactivo.");
+                            }
                         }
-                        if (!empty($ing['unidad']) && !$objMenu->validarUnidadMedida($ing['unidad'])) {
-                            throw new Exception("La unidad de medida seleccionada para el insumo adicional no existe en la base de datos.");
+                        if (!empty($ing['unidad'])) {
+                            $objUnidad->setId($ing['unidad']);
+                            $validacionUnidad = $objUnidad->Transaccion(["peticion" => "validar"]);
+                            if (!isset($validacionUnidad['bool']) || $validacionUnidad['bool'] != 1) {
+                                throw new Exception("La unidad de medida seleccionada para el insumo adicional no existe en la base de datos.");
+                            }
                         }
                     }
                 }

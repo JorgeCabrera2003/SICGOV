@@ -73,7 +73,14 @@ class CategoriaProducto extends Database
 
 
 
-    
+    public function validarCategoria($id_categoria)
+    {
+        $stmt = $this->LlamarConexion('business')->prepare("SELECT id_categoria FROM categoria_producto WHERE id_categoria = ?");
+        $stmt->execute([$id_categoria]);
+        $isValid = $stmt->rowCount() > 0;
+        $this->DestruirConexion();
+        return $isValid;
+    }
 
 //#########################################################################################
 

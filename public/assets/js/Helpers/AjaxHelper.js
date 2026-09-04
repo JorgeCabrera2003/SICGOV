@@ -71,3 +71,8 @@ export function registrarEntrada() {
   peticion.append('peticion', 'entrada');
   enviaAjax(peticion);
 }
+
+// Compatibilidad: exponer como función global para scripts que la llaman directamente
+if (typeof window !== 'undefined') {
+  window.registrarEntrada = registrarEntrada;
+}

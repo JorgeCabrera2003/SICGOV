@@ -43,7 +43,7 @@ async function crearDataTable(controlador = "") {
   peticion.append("peticion", "consultar");
 
   try {
-    json = await AjaxHelper.enviaAjax(peticion);
+    json = await AjaxHelper.enviaAjax(peticion, '?page=TipoPermiso');
     arreglo = json.datos;
   } catch (error) {
     arreglo = [];
