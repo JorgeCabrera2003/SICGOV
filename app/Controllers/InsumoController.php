@@ -281,20 +281,20 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 			$unidadMedidaModel->setId($_POST['id_unidad']);
 			$arregloUnidad = $unidadMedidaModel->Transaccion(["peticion" => "validar"]);
 
-			if ($_POST["unidad_medida"] != $validarInsumo['response']['registro']['id_unidad_medida']) {
+			if ($_POST["id_unidad"] != $arregloInsumo['response']['registro']['id_unidad_medida']) {
 				if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1) {
 
 					$valores_previos = [
 						"stock_actual" => $arregloInsumo['response']['registro']['stock_actual'],
 						"stock_minimo" => $arregloInsumo['response']['registro']['stock_minimo'],
 						"stock_maximo" => $arregloInsumo['response']['registro']['stock_maximo'],
-						"nombre_medida" => $arregloUnidad['response']['registro']['unidad_medida'],
+						"nombre_medida" => $arregloInsumo['response']['registro']['unidad_medida'],
 						"abreviatura" => $arregloInsumo['response']['registro']['abreviatura']
 					];
 
-					$stock_actualido = $_POSWT['stock_actual'];
-					$stock_minimo = $_POSWT['stock_minimo'];
-					$stock_maximo = $_POSWT['stock_maximo'];
+					$stock_actualido = $arregloInsumo['response']['registro']['stock_actual'];
+					$stock_minimo = $_POST['stock_minimo'];
+					$stock_maximo = $_POST['stock_maximo'];
 
 					$stock_minimo = $unidadMedidaModel->ConvertirUnidades(
 						$arregloInsumo['response']['registro']['stock_minimo'],
@@ -311,8 +311,8 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 
 						$stock_maximo = $unidadMedidaModel->ConvertirUnidades(
 							$stock_maximo,
-							$validarInsumo['response']['registro']['abreviatura'],
-							$validarUnidadMedida['response']['registro']['abreviatura']
+							$arregloInsumo['response']['registro']['abreviatura'],
+							$arregloUnidad['response']['registro']['abreviatura']
 						);
 
 						$valores_nuevos = [
