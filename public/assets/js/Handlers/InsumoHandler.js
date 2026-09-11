@@ -191,11 +191,13 @@ export async function EnviarDatos(operacion) {
         verificarStock = await AjaxHelper.enviaAjax(verificar)
         if (verificarStock !== 'undefined' && verificarStock.verificar_valor) {
 
-          await alertCambioMedida(verificarStock);
-          return;
+          confirmacion = await alertCambioMedida(verificarStock);
+        } else {
+          confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
         }
+      } else {
+        confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
       }
-      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         peticion.append('peticion', accion);
@@ -894,22 +896,26 @@ async function alertCambioMedida(datos = null) {
   $divCard.append($divTable);
   $section.append($divCard);
 
+  let resultado = false;
 
-  return Swal.fire({
+  await Swal.fire({
     title: 'Al Cambiar la Unidad de Medida los valores serán los siguientes',
     html: $section.prop('outerHTML'),
     showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
     confirmButtonText: 'Aceptar',
     cancelButtonText: 'Cancelar',
     focusConfirm: false,
-    preConfirm: () => {
-      const area = $('#areaDestino').val();
-      if (!area) {
-        Swal.showValidationMessage('Debe seleccionar un área de destino');
-        return false;
-      }
-      const tecnico = $('#tecnicoDestino').val() || null;
-      return { area_destino: area, tecnico_destino: tecnico };
+  }).then((result) => {
+    if (result.isConfirmed) {
+      console.log("Confirmado");
+      resultado = true;
+    } else {
+      console.log("Negado");
+      resultado = false;
     }
   })
+
+  return resultado;
 }

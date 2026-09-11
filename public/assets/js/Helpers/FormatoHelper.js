@@ -2,7 +2,7 @@ import * as MensajeriaHelper from "./MensajeriaHelper.js";
 
 export function FormatearDecimalMedida(valor) {
         let valor = $(etiqueta).val();
-    let cantidad_decimales = 0,
+    let cantidad_decimales = 0;
 
     if(formato == "medida"){
         cantidad_decimales = 3;
