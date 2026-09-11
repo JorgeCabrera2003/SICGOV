@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Helpers\Helper;
+use App\Helpers\RegexHelper;
 use App\Models\System\CategoriaInsumo;
 use App\Models\System\UnidadMedida;
 use App\Models\System\Proveedor;
@@ -119,10 +120,11 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 
 									$stock_maximo = $_POST["stock_maximo"];
 									$stock_minimo = $_POST["stock_minimo"];
-									$stock_actual = $validarInsumo['response']['registro']['stock_actual'];
+
 
 									if ($_POST["peticion"] == "modificar") {
 										$boolModificarMedida = false;
+										$stock_actual = $validarInsumo['response']['registro']['stock_actual'];
 										if ($validacion) {
 											if ($_POST["unidad_medida"] != $validarInsumo['response']['registro']['id_unidad_medida']) {
 
@@ -284,10 +286,11 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 			if ($_POST["id_unidad"] != $arregloInsumo['response']['registro']['id_unidad_medida']) {
 				if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1) {
 
+
 					$valores_previos = [
-						"stock_actual" => $arregloInsumo['response']['registro']['stock_actual'],
-						"stock_minimo" => $arregloInsumo['response']['registro']['stock_minimo'],
-						"stock_maximo" => $arregloInsumo['response']['registro']['stock_maximo'],
+						"stock_actual" => RegexHelper::FormatoDecimal($arregloInsumo['response']['registro']['stock_actual']),
+						"stock_minimo" => RegexHelper::FormatoDecimal($arregloInsumo['response']['registro']['stock_minimo']),
+						"stock_maximo" => RegexHelper::FormatoDecimal($arregloInsumo['response']['registro']['stock_maximo']),
 						"nombre_medida" => $arregloInsumo['response']['registro']['unidad_medida'],
 						"abreviatura" => $arregloInsumo['response']['registro']['abreviatura']
 					];

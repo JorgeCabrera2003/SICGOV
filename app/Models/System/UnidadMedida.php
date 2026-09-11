@@ -316,7 +316,7 @@ class UnidadMedida extends Database
         if ($validar) {
 
             if ($medida_stock != "u") {
-                $resultado = $resultadoBase->toUnit($medida_stock);
+                $resultado = RegexHelper::FormatoDecimal($resultadoBase->toUnit($medida_stock));
             } else {
                 $resultado = $resultadoBase;
             }
@@ -362,7 +362,7 @@ class UnidadMedida extends Database
         if ($validar) {
 
             if ($medida_entrante != "u") {
-                $resultado = $resultadoBase->toUnit($medida_entrante);
+                $resultado = RegexHelper::FormatoDecimal($resultadoBase->toUnit($medida_entrante));
             } else {
                 $resultado = $resultadoBase;
             }
