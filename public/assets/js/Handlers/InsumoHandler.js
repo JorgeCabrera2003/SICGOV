@@ -175,7 +175,29 @@ export async function EnviarDatos(operacion) {
     }
 
     if (Validarenvio() && bool_peticion) {
-      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
+
+      if (operacion == "modificar") {
+        let verificarStock = null;
+        let verificar = new FormData();
+
+        verificar.append("modulo", "Insumo");
+        verificar.append('peticion', "recalcular_stock");
+        verificar.append('nombre', input.nombre.val());
+        verificar.append('id_insumo', input.id_insumo.val());
+        verificar.append('id_unidad', input.unidad_medida.val());
+        verificar.append('stock_maximo', stock_maximo);
+        verificar.append('stock_minimo', input.stock_minimo.val());
+
+        verificarStock = await AjaxHelper.enviaAjax(verificar)
+        if (verificarStock !== 'undefined' && verificarStock.verificar_valor) {
+
+          confirmacion = await alertCambioMedida(verificarStock);
+        } else {
+          confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
+        }
+      } else {
+        confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} un Insumo`, mensajeConfirmacion, "question");
+      }
 
       if (confirmacion) {
         peticion.append('peticion', accion);
@@ -786,3 +808,114 @@ export async function EditarFormInsumo(datos, accion) {
   modal.boton.prop('disabled', false);
   EditarModal(accion);
 };
+
+async function alertCambioMedida(datos = null) {
+
+  let stockAUnidad = "Ninguno";
+  let stockNUnidad = "Ninguno";
+
+  let stockAMinimo = "Ninguno";
+  let stockNMinimo = "Ninguno";
+
+  let stockAMaximo = "Ninguno";
+  let stockNMaximo = "Ninguno";
+
+  let stockAActual = "Ninguno";
+  let stockNActual = "Ninguno";
+
+  if (datos != null) {
+
+
+    stockAUnidad = datos.valores_previos.nombre_medida;
+    stockNUnidad = datos.valores_nuevos.nombre_medida;
+
+    stockAActual = ValidadorHelper.FormatearNumeroSinCeros(datos.valores_previos.stock_actual);
+    stockNActual = ValidadorHelper.FormatearNumeroSinCeros(datos.valores_nuevos.stock_actual);
+
+    stockAMinimo = ValidadorHelper.FormatearNumeroSinCeros(datos.valores_previos.stock_minimo);
+    stockNMinimo = ValidadorHelper.FormatearNumeroSinCeros(datos.valores_nuevos.stock_minimo);
+
+    if (datos.valores_previos.stock_maximo != null) {
+      stockAMaximo = ValidadorHelper.FormatearNumeroSinCeros(datos.valores_previos.stock_maximo);
+    }
+
+    if (datos.valores_nuevos.stock_maximo != null) {
+      stockNMaximo = ValidadorHelper.FormatearNumeroSinCeros(datos.valores_nuevos.stock_maximo);
+    }
+  }
+
+  let $section = $('<section>').addClass('card shadow-sm border-0');
+  let $divCard = $('<div>').addClass('card-body');
+  let $divTable = $('<div>').addClass('table-responsive');
+  let $table = $('<table>').addClass('table table-hover align-middle');
+  let $thead = $('<thead>').addClass('table-light');
+  let $trHead = $('<tr>');
+  let $thEsquina = $('<th>');
+  let $thDatosActuales = $('<th>').text("Datos Actuales");
+  let $thDatosNuevos = $('<th>').text("Datos Nuevos");
+  $trHead.append($thEsquina, $thDatosActuales, $thDatosNuevos);
+  $thead.append($trHead);
+  let $tbody = $('<tbody>');
+
+  // --- Fila 1: Medida ---
+  let $trMedida = $('<tr>');
+  let $tdMedidaNombre = $('<td>').text("Unidad de Medida").addClass("fw-bold");
+  let $tdMedidaActual = $('<td>').text(stockAUnidad);
+  let $tdMedidaNueva = $('<td>').text(stockNUnidad);
+  $trMedida.append($tdMedidaNombre, $tdMedidaActual, $tdMedidaNueva);
+  $tbody.append($trMedida);
+
+  // --- Fila 2: Stock Actual ---
+  let $trStockActual = $('<tr>');
+  let $tdStockActualNombre = $('<td>').text("Stock Actual").addClass("fw-bold");
+  let $tdStockActual = $('<td>').text(stockAActual);
+  let $tdStockActualNuevo = $('<td>').text(stockNActual);
+  // Aquí va el input con la unidad de medida equivalente
+  $trStockActual.append($tdStockActualNombre, $tdStockActual, $tdStockActualNuevo);
+  $tbody.append($trStockActual);
+
+  // --- Fila 3: Stock Mínimo ---
+  let $trStockMinimo = $('<tr>');
+  let $tdStockMinimoNombre = $('<td>').text("Stock Mínimo").addClass("fw-bold");
+  let $tdStockMinimo = $('<td>').text(stockAMinimo);
+  let $tdStockMinimoNuevo = $('<td>').text(stockNMinimo);
+  $trStockMinimo.append($tdStockMinimoNombre, $tdStockMinimo, $tdStockMinimoNuevo);
+  $tbody.append($trStockMinimo);
+
+  // --- Fila 4: Stock Máximo ---
+  let $trStockMaximo = $('<tr>');
+  let $tdStockMaximoNombre = $('<td>').text("Stock Máximo").addClass("fw-bold");
+  let $tdStockMaximo = $('<td>').text(stockAMaximo);
+  let $tdStockMaximoNuevo = $('<td>').text(stockNMaximo);
+  $trStockMaximo.append($tdStockMaximoNombre, $tdStockMaximo, $tdStockMaximoNuevo);
+  $tbody.append($trStockMaximo);
+
+  $table.append($thead, $tbody);
+
+  $divTable.append($table);
+  $divCard.append($divTable);
+  $section.append($divCard);
+
+  let resultado = false;
+
+  await Swal.fire({
+    title: 'Al Cambiar la Unidad de Medida los valores serán los siguientes',
+    html: $section.prop('outerHTML'),
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Aceptar',
+    cancelButtonText: 'Cancelar',
+    focusConfirm: false,
+  }).then((result) => {
+    if (result.isConfirmed) {
+      console.log("Confirmado");
+      resultado = true;
+    } else {
+      console.log("Negado");
+      resultado = false;
+    }
+  })
+
+  return resultado;
+}
