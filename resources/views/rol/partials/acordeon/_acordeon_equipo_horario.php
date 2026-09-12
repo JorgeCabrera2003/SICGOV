@@ -38,6 +38,20 @@
                                     <label class="form-check-label" for="asistencia-ver">Ver</label>
                                 </div>
                             </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="agregar_observacion" id="asistencia-agregar_observacion">
+                                    <label class="form-check-label" for="asistencia-agregar_observacion">Agregar observaciones</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="eliminar_observacion" id="asistencia-eliminar_observacion">
+                                    <label class="form-check-label" for="asistencia-eliminar_observacion">Eliminar observaciones</label>
+                                </div>
+                            </div>
                         </div>
                     </fieldset>
                 </div>
@@ -209,6 +223,13 @@
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
                                         type="checkbox" role="switch" value="eliminar" id="permiso_laboral-eliminar">
                                     <label class="form-check-label" for="permiso_laboral-eliminar">Eliminar</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="aprobar_rechazar" id="permiso_laboral-aprobar_rechazar">
+                                    <label class="form-check-label" for="permiso_laboral-aprobar_rechazar">Aprobar / Rechazar</label>
                                 </div>
                             </div>
                         </div>

@@ -174,7 +174,7 @@ CREATE TABLE `asistencia` (
   `fecha` date NOT NULL,
   `hora` time NOT NULL,
   `estado` enum('A_TIEMPO','TARDE','FALTA') DEFAULT 'A_TIEMPO',
-  `observacion` varchar(255) DEFAULT NULL,
+  `observacion` TEXT DEFAULT NULL,
   PRIMARY KEY (`id_asistencia`),
   KEY `fk_asis_emp` (`cedula_empleado`),
   CONSTRAINT `fk_asis_emp` FOREIGN KEY (`cedula_empleado`) REFERENCES `empleado` (`cedula`) ON DELETE CASCADE

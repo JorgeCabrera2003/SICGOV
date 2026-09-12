@@ -117,7 +117,7 @@ export async function EnviarFormulario(btn_string) {
     'Borrar': 'eliminar'
   };
 
-  const accion = MANEJADOR[btn_string] || null;
+  const accion = MANEJADOR[String(btn_string).trim()] || null;
   if (accion !== null) {
     return await EnviarDatos(accion);
   }
@@ -449,6 +449,10 @@ export async function DataTablePrincipal(arreglo) {
 
   // Construye HTML de botones igual que en proveedores (dropdown)
   function botonesAccion(modulo = 'Promocion') {
+    const puedeModificar = $('#tablaPromocion').attr('data-puede-modificar') === '1';
+    const puedeEliminar = $('#tablaPromocion').attr('data-puede-eliminar') === '1';
+    if (!puedeModificar && !puedeEliminar) return '';
+
     const dropdown = $('<div>').addClass('dropdown');
     const boton = $('<button>').addClass('btn btn-sm btn-light border dropdown-toggle')
       .attr('type', 'button')
@@ -476,7 +480,13 @@ export async function DataTablePrincipal(arreglo) {
       .html('<i class="fas fa-trash me-2"></i>Eliminar');
     itemEliminar.append(linkEliminar);
 
-    menu.append(itemEditar, separador, itemEliminar);
+    if (puedeModificar && puedeEliminar) {
+      menu.append(itemEditar, separador, itemEliminar);
+    } else if (puedeModificar) {
+      menu.append(itemEditar);
+    } else {
+      menu.append(itemEliminar);
+    }
     dropdown.append(boton, menu);
 
     return dropdown.prop('outerHTML');

@@ -11,6 +11,10 @@ Helper::verificarSesion();
 
 $promocionModel = new Promocion();
 $productoModel = new Producto();
+$permisosPromocion = Helper::TraerPermisos('promocion');
+$tienePermisoPromocion = static function (string $accion) use ($permisosPromocion): bool {
+    return ($permisosPromocion['promocion'][$accion] ?? 0) == 1;
+};
 $productos = $productoModel->Transaccion(['peticion' => 'listar']) ?: [];
 
 if (isset($_POST["peticion"])) {
@@ -24,7 +28,7 @@ if (isset($_POST["peticion"])) {
     //Registrar y Modificar
     if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
 
-        $accion_permiso = true;
+        $accion_permiso = $tienePermisoPromocion($_POST["peticion"]);
 
         if ($accion_permiso) {
             $bool_formulario = true;
@@ -81,6 +85,11 @@ if (isset($_POST["peticion"])) {
                 $json = $promocionModel->Transaccion(['peticion' => $_POST["peticion"]]);
                 if (isset($json['estado']) && $json['estado'] == 1) {
                     $msg = "(" . $_SESSION['user']['cedula'] . "), Se " . ($str_mensaje ?? '') . " una promoción: " . $promocionModel->getNombre();
+                    Helper::Bitacora(
+                        $_POST["peticion"] == "registrar" ? 'REGISTRAR' : 'MODIFICAR',
+                        'PROMOCION',
+                        $msg
+                    );
                 } else {
                     $msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " una promoción";
                 }
@@ -97,12 +106,17 @@ if (isset($_POST["peticion"])) {
 
     //Consultar
     if ($_POST["peticion"] == "consultar") {
-        $json = $promocionModel->Transaccion(['peticion' => $_POST["peticion"]]);
+        if ($tienePermisoPromocion('ver')) {
+            $json = $promocionModel->Transaccion(['peticion' => $_POST["peticion"]]);
+        } else {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para consultar promociones', 'datos' => []];
+        }
     }
 
     //Eliminar
     if ($_POST["peticion"] == "eliminar") {
-        $accion_permiso = true;
+        $accion_permiso = $tienePermisoPromocion('eliminar');
 
         if ($accion_permiso) {
             $bool_formulario = true;
@@ -112,6 +126,9 @@ if (isset($_POST["peticion"])) {
                 if ($bool_formulario) {
                     $promocionModel->setIdPromocion($_POST["id_promocion"] ?? '');
                     $json = $promocionModel->Transaccion(['peticion' => $_POST["peticion"]]);
+                    if (isset($json['estado']) && $json['estado'] == 1) {
+                        Helper::Bitacora('ELIMINAR', 'PROMOCION', "Se eliminó la promoción ID: " . ($_POST["id_promocion"] ?? ''));
+                    }
                 }
             } catch (Exception $exception) {
                 $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
@@ -130,8 +147,17 @@ if (isset($_POST["peticion"])) {
     exit;
 }
 
+if (!$tienePermisoPromocion('ver')) {
+    header('Location: ' . BASE_URL . '?page=Dashboard');
+    exit;
+}
+
 Helper::cargarVista(
     'promocion/index',
     'Promociones - Good Vibes',
-    compact('productos')
+    [
+        'productos' => $productos,
+        'ver' => $permisosPromocion['promocion']['ver'] ?? 0,
+        'permisosPromocion' => $permisosPromocion
+    ]
 );

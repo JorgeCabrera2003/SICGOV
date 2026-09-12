@@ -1,9 +1,9 @@
-import { confirmarAccion, buscarSelect } from './Helpers/UIHelper.js';
-import { GenerarMensaje } from './Helpers/MensajeriaHelper.js';
-import { SistemaValidacion } from './Helpers/ValidationHelper.js';
-import { debounce } from './Helpers/MiscHelper.js';
-import { capitalizarTexto, formatearFecha } from './Helpers/FormatHelper.js';
-import { enviaAjax, registrarEntrada } from './Helpers/AjaxHelper.js';
+import { confirmarAccion, buscarSelect } from '../Helpers/UIHelper.js';
+import { GenerarMensaje } from '../Helpers/MensajeriaHelper.js';
+import { SistemaValidacion } from '../Helpers/ValidationHelper.js';
+import { debounce } from '../Helpers/MiscHelper.js';
+import { capitalizarTexto, formatearFecha } from '../Helpers/FormatHelper.js';
+import { enviaAjax, registrarEntrada } from '../Helpers/AjaxHelper.js';
 
 //MODULO DE EmpleadoS
 
@@ -553,19 +553,7 @@ async function vistaPermiso() {
     menu.append(separador, itemEliminar);
   }
   dropdown.append(boton, menu);
-
-    const itemEliminar = $('<li>');
-    const linkEliminar = $('<a>')
-        .addClass('dropdown-item text-danger')
-        .attr('href', '#')
-        .attr('onclick', 'eliminarEmpleadoDirecto(this)')
-        .html('<i class="fa-solid fa-trash me-2"></i>Eliminar');
-    itemEliminar.append(linkEliminar);
-
-    menu.append(itemConsultar, itemEditar, separador, itemEliminar);
-    dropdown.append(boton, menu);
-
-    return dropdown.prop('outerHTML');
+  return dropdown.prop('outerHTML');
 }
 
 function capaValidar() {
@@ -695,8 +683,12 @@ async function crearDataTable() {
           return data;
         }
       },
-      { data: 'nombre' },
-      { data: 'apellido' },
+      {
+        data: null,
+        render: function (data) {
+          return [data.nombre, data.apellido].filter(Boolean).join(' ');
+        }
+      },
       { data: 'cargo', defaultContent: 'No asignado' },
       {
         data: 'fecha_nacimiento',
@@ -818,49 +810,36 @@ function rellenar(pos, accion) {
 
 // Función exclusiva para Eliminar Empleado directamente sin Modal
 async function eliminarEmpleadoDirecto(pos) {
-    const linea = $(pos).closest('tr');
-    const tabla = $('#tablaEmpleado').DataTable();
-    const datosFila = tabla.row(linea).data();
-    
-    let confirmacion = await confirmarAccion(`Se eliminará al Empleado`, "¿Está seguro de realizar la acción?", "warning");
-    
-    if (confirmacion) {
-        let peticionData = new FormData();
-        peticionData.append('peticion', 'eliminar');
-        
-        let cedulaFormateada = datosFila.cedula;
-        if(cedulaFormateada && cedulaFormateada.indexOf('-') === -1 && cedulaFormateada.length > 1) {
-             cedulaFormateada = cedulaFormateada.charAt(0) + '-' + cedulaFormateada.slice(1);
-        }
-        peticionData.append('cedula', cedulaFormateada);
-        
-        try {
-            let json = await enviaAjax(peticionData);
+  const linea = $(pos).closest('tr');
+  const tabla = $('#tablaEmpleado').DataTable();
+  const datosFila = tabla.row(linea).data();
+  const confirmacion = await confirmarAccion(
+    'Se eliminará al Empleado',
+    '¿Está seguro de realizar la acción?',
+    'warning'
+  );
 
-  let confirmacion = await confirmarAccion(`Se eliminará al Empleado`, "¿Está seguro de realizar la acción?", "warning");
+  if (!confirmacion) return;
 
-  if (confirmacion) {
-    let peticionData = new FormData();
-    peticionData.append('peticion', 'eliminar');
+  const peticionData = new FormData();
+  peticionData.append('peticion', 'eliminar');
 
-    let cedulaFormateada = datosFila.cedula;
-    if (cedulaFormateada && cedulaFormateada.indexOf('-') === -1 && cedulaFormateada.length > 1) {
-      cedulaFormateada = cedulaFormateada.charAt(0) + '-' + cedulaFormateada.slice(1);
+  let cedulaFormateada = datosFila.cedula;
+  if (cedulaFormateada && cedulaFormateada.indexOf('-') === -1 && cedulaFormateada.length > 1) {
+    cedulaFormateada = cedulaFormateada.charAt(0) + '-' + cedulaFormateada.slice(1);
+  }
+  peticionData.append('cedula', cedulaFormateada);
+
+  try {
+    const json = await enviaAjax(peticionData);
+    if (json.resultado >= 200 && json.resultado < 300) {
+      crearDataTable();
+      GenerarMensaje('success', 3000, 'Éxito', json.mensaje);
+    } else {
+      GenerarMensaje('error', 5000, 'Error', json.mensaje || 'Ocurrió un error inesperado.');
     }
-    peticionData.append('cedula', cedulaFormateada);
-
-    try {
-      let json = await enviaAjax(peticionData);
-
-      if (json.resultado >= 200 && json.resultado < 300) {
-        crearDataTable();
-        GenerarMensaje("success", 3000, "Éxito", json.mensaje);
-      } else {
-        GenerarMensaje("error", 5000, "Error", json.mensaje || "Ocurrió un error inesperado.");
-      }
-    } catch (error) {
-      GenerarMensaje("error", 5000, "Error", "Error de comunicación con el servidor.");
-    }
+  } catch (error) {
+    GenerarMensaje('error', 5000, 'Error', 'Error de comunicación con el servidor.');
   }
 }
 

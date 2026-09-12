@@ -441,6 +441,11 @@ export function CapaValidar() {
 // ==========================================
 
 function RenderBotonesAccion() {
+  const puedeEliminar = (typeof permisosHorarioDB !== 'undefined')
+    && permisosHorarioDB.horario
+    && permisosHorarioDB.horario.eliminar == 1;
+  if (!puedeEliminar) return '';
+
   const dropdown = $('<div>').addClass('dropdown');
   const boton = $('<button>').addClass('btn btn-sm btn-light border dropdown-toggle')
     .attr('type', 'button').attr('data-bs-toggle', 'dropdown')

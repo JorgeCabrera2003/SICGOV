@@ -8,6 +8,9 @@ use App\Models\System\Empleado;
 
 Helper::verificarSesion();
 $permisosEmpleado = Helper::TraerPermisos("empleado");
+$tienePermisoEmpleado = static function (string $accion) use ($permisosEmpleado): bool {
+    return ($permisosEmpleado['empleado'][$accion] ?? 0) == 1;
+};
 
 $empleadoModel = new Empleado();
 
@@ -30,7 +33,7 @@ if (isset($_POST["peticion"])) {
 
     
     if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar" || $_POST["peticion"] == "eliminar") {
-        $accion_permiso = true; 
+        $accion_permiso = $tienePermisoEmpleado($_POST["peticion"]);
 
         if ($accion_permiso) {
             try {
@@ -77,10 +80,7 @@ if (isset($_POST["peticion"])) {
 
   
     if ($_POST["peticion"] == "consultar") {
-        $accion_permiso = false;
-        if (isset($permisosEmpleado['empleado']['ver']) && $permisosEmpleado['empleado']['ver'] == 1) {
-            $accion_permiso = true;
-        }
+        $accion_permiso = $tienePermisoEmpleado('ver');
         
         if ($accion_permiso) {
             $json = $empleadoModel->Transaccion(['peticion' => $_POST["peticion"]]);
@@ -99,6 +99,10 @@ if (isset($_POST["peticion"])) {
 
     
     if ($_POST["peticion"] == "verificar_cedula") {
+        if (!$tienePermisoEmpleado('ver')) {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'existe' => false, 'mensaje' => 'No tienes permiso para consultar empleados'];
+        } else {
         $cedula = trim($_POST["cedula"] ?? '');
         if (!empty($cedula)) {
             try {
@@ -112,6 +116,7 @@ if (isset($_POST["peticion"])) {
         } else {
             $json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
             $json['response']    = ['resultado' => 200, 'existe' => false, 'mensaje' => ''];
+        }
         }
     }
 
@@ -132,10 +137,18 @@ if (isset($_POST["peticion"])) {
     exit;
 }
 
+if (!$tienePermisoEmpleado('ver')) {
+    header('Location: ' . BASE_URL . '?page=Dashboard');
+    exit;
+}
+
 
 
 Helper::cargarVista(
     'empleado/index',
     'Empleados - Good Vibes',
-    ['ver' => $permisosEmpleado['empleado']['ver']]
+    [
+        'ver' => $permisosEmpleado['empleado']['ver'] ?? 0,
+        'permisosEmpleado' => $permisosEmpleado
+    ]
 );

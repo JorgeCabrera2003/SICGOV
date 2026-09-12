@@ -71,7 +71,8 @@ export async function CargarSelects() {
 export async function EnviarFormulario(etiqueta) {
   const e = Etiquetas();
   const accionMap = { 'Solicitar': 'registrar', 'Actualizar': 'modificar', 'Eliminar': 'eliminar' };
-  const accion = accionMap[etiqueta.text()];
+  const textoBoton = typeof etiqueta === 'string' ? etiqueta : etiqueta.text();
+  const accion = accionMap[String(textoBoton).trim()];
   if (!accion) return { resultado: 0 };
 
   const pet = new FormData();
@@ -153,17 +154,29 @@ export async function DataTablePermisos(arreglo) {
           return `${inicio} / ${fin}`;
         } },
       { data: null, render: function(){
+          const puedeModificar = $('#tablaPermisoLaboral').attr('data-puede-modificar') === '1';
+          const puedeAprobarRechazar = $('#tablaPermisoLaboral').attr('data-puede-aprobar-rechazar') === '1';
+          const puedeEliminar = $('#tablaPermisoLaboral').attr('data-puede-eliminar') === '1';
+          const acciones = [];
+
+          if (puedeModificar) {
+            acciones.push('<li><a class="dropdown-item btn-editar text-primary" href="#" data-accion="0"><i class="fas fa-edit me-2"></i>Editar</a></li>');
+          }
+          if (puedeAprobarRechazar) {
+            acciones.push('<li><a class="dropdown-item btn-aprobar text-success" href="#" data-accion="aprobar"><i class="fas fa-check me-2"></i>Aprobar</a></li>');
+            acciones.push('<li><a class="dropdown-item btn-rechazar text-danger" href="#" data-accion="rechazar"><i class="fas fa-times me-2"></i>Rechazar</a></li>');
+          }
+          if (puedeEliminar) {
+            acciones.push('<li><a class="dropdown-item btn-eliminar text-danger" href="#" data-accion="1"><i class="fas fa-trash me-2"></i>Eliminar</a></li>');
+          }
+          if (acciones.length === 0) return '';
+
           return '<div class="dropdown">' +
             '<button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">' +
               '<i class="fas fa-ellipsis-v me-3"></i>Acciones' +
             '</button>' +
             '<ul class="dropdown-menu">' +
-              '<li><a class="dropdown-item btn-editar text-primary" href="#" data-accion="0"><i class="fas fa-edit me-2"></i>Editar</a></li>' +
-              '<li><hr class="dropdown-divider"></li>' +
-              '<li><a class="dropdown-item btn-aprobar text-success" href="#" data-accion="aprobar"><i class="fas fa-check me-2"></i>Aprobar</a></li>' +
-              '<li><a class="dropdown-item btn-rechazar text-danger" href="#" data-accion="rechazar"><i class="fas fa-times me-2"></i>Rechazar</a></li>' +
-              '<li><hr class="dropdown-divider"></li>' +
-              '<li><a class="dropdown-item btn-eliminar text-danger" href="#" data-accion="1"><i class="fas fa-trash me-2"></i>Eliminar</a></li>' +
+              acciones.join('<li><hr class="dropdown-divider"></li>') +
             '</ul>' +
           '</div>';
         } }

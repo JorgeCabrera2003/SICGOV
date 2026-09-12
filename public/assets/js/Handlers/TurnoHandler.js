@@ -155,7 +155,7 @@ export async function EnviarFormulario(btn_string) {
   };
   const DEFAULT = null;
 
-  accion = MANEJADOR[btn_string] || DEFAULT;
+  accion = MANEJADOR[String(btn_string).trim()] || DEFAULT;
 
   if (accion != null) {
     respuesta = await EnviarDatos(accion);
@@ -253,6 +253,8 @@ function formatearHora12(hora24) {
 }
 
 function RenderBotonesAccion() {
+  const puedeModificar = $('#tablaTurno').attr('data-puede-modificar') === '1';
+  const puedeEliminar = $('#tablaTurno').attr('data-puede-eliminar') === '1';
   const dropdown = $('<div>').addClass('dropdown');
   const boton = $('<button>').addClass('btn btn-sm btn-light border dropdown-toggle')
     .attr('type', 'button')
@@ -262,25 +264,39 @@ function RenderBotonesAccion() {
   const menu = $('<ul>').addClass('dropdown-menu');
 
   const itemEditar = $('<li>');
-  const linkEditar = $('<a>')
-    .addClass('dropdown-item btn-editar text-primary')
-    .attr('href', '#')
-    .attr('data-accion', 0)
-    .html('<i class="fas fa-edit me-2"></i>Editar');
-  itemEditar.append(linkEditar);
+  if (puedeModificar) {
+    const linkEditar = $('<a>')
+      .addClass('dropdown-item btn-editar text-primary')
+      .attr('href', '#')
+      .attr('data-accion', 0)
+      .html('<i class="fas fa-edit me-2"></i>Editar');
+    itemEditar.append(linkEditar);
+  }
 
   const itemEliminar = $('<li>');
-  const linkEliminar = $('<a>')
-    .addClass('dropdown-item btn-eliminar text-danger')
-    .attr('href', '#')
-    .attr('data-accion', 1)
-    .html('<i class="fas fa-trash me-2"></i>Eliminar');
-  itemEliminar.append(linkEliminar);
+  if (puedeEliminar) {
+    const linkEliminar = $('<a>')
+      .addClass('dropdown-item btn-eliminar text-danger')
+      .attr('href', '#')
+      .attr('data-accion', 1)
+      .html('<i class="fas fa-trash me-2"></i>Eliminar');
+    itemEliminar.append(linkEliminar);
+  }
 
   const separador = $('<li>').html('<hr class="dropdown-divider">');
 
-  menu.append(itemEditar, separador, itemEliminar);
+  if (puedeModificar && puedeEliminar) {
+    menu.append(itemEditar, separador, itemEliminar);
+  } else if (puedeModificar) {
+    menu.append(itemEditar);
+  } else if (puedeEliminar) {
+    menu.append(itemEliminar);
+  }
   dropdown.append(boton, menu);
+
+  if (!puedeModificar && !puedeEliminar) {
+    return '';
+  }
 
   return dropdown.prop('outerHTML');
 }

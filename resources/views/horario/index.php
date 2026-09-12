@@ -16,12 +16,16 @@
             Gestión de Horarios
         </h1>
         <div class="btn-group" role="group">
-            <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoHorario">
-                <i class="fas fa-plus me-2"></i>Asignar Turno
-            </button>
-            <button class="btn btn-outline-warning text-dark fw-semibold" id="btnGestionarTurnos">
-                <i class="fas fa-clock me-2"></i>Turnos
-            </button>
+            <?php if (($permisosHorario['horario']['registrar'] ?? 0) == 1): ?>
+                <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoHorario">
+                    <i class="fas fa-plus me-2"></i>Asignar Turno
+                </button>
+            <?php endif; ?>
+            <?php if (($permisosTurno['turno']['ver'] ?? 0) == 1): ?>
+                <button class="btn btn-outline-warning text-dark fw-semibold" id="btnGestionarTurnos">
+                    <i class="fas fa-clock me-2"></i>Turnos
+                </button>
+            <?php endif; ?>
         </div>
     </header>
 
@@ -73,6 +77,11 @@ include_once 'partials/_modal_turno_lista.php';
 include_once 'partials/_modal_horario_empleado.php';
 include_once $basePath . '/resources/views/turno/partials/_modal_turno.php';
 ?>
+
+<script>
+    const permisosHorarioDB = <?= json_encode($permisosHorario ?? []) ?>;
+    const permisosTurnoDB = <?= json_encode($permisosTurno ?? []) ?>;
+</script>
 
 <!-- CSS y JS de FullCalendar -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">

@@ -9,7 +9,10 @@ use Exception;
 Helper::verificarSesion();
 
 $cargoModel = new Cargo();
-$permisosCargo = Helper::TraerPermisos();
+$permisosCargo = Helper::TraerPermisos('cargo');
+$tienePermisoCargo = static function (string $accion) use ($permisosCargo): bool {
+	return ($permisosCargo['cargo'][$accion] ?? 0) == 1;
+};
 
 if (isset($_POST["peticion"])) {
 
@@ -52,6 +55,11 @@ if (isset($_POST["peticion"])) {
 				$json = $cargoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 				if ($json['estado'] == 1) {
 					$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " una nuevo cargo con ID:" . $cargoModel->getId();
+					Helper::Bitacora(
+						$_POST["peticion"] == "registrar" ? 'REGISTRAR' : 'MODIFICAR',
+						'CARGO',
+						$msg
+					);
 				} else {
 					$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un cargo";
 				}
@@ -69,7 +77,12 @@ if (isset($_POST["peticion"])) {
 	//Fin del Registrar o Modificar
 //Consultar
 	if ($_POST["peticion"] == "consultar") {
-		$json = $cargoModel->Transaccion(['peticion' => $_POST["peticion"]]);
+		if ($tienePermisoCargo('ver')) {
+			$json = $cargoModel->Transaccion(['peticion' => $_POST["peticion"]]);
+		} else {
+			$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+			$json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para consultar cargos', 'datos' => []];
+		}
 	}
 	//Fin del Consultar 
 //Eliminar
@@ -111,8 +124,17 @@ if (isset($_POST["peticion"])) {
 	echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
 	exit;
 } //Fin de Operaciones
+
+if (!$tienePermisoCargo('ver')) {
+	header('Location: ' . BASE_URL . '?page=Dashboard');
+	exit;
+}
+
 Helper::cargarVista(
 	'cargo/index',
 	'Cargos - Good Vibes',
-	['ver' => $permisosCargo['cargo']['ver']]
+	[
+		'ver' => $permisosCargo['cargo']['ver'] ?? 0,
+		'permisosCargo' => $permisosCargo
+	]
 );
