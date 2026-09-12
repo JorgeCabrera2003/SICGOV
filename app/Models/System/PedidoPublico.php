@@ -77,7 +77,7 @@ class PedidoPublico
 
             foreach ($carrito['items'] as $item) {
                 $idDetalle = uniqid('DET_');
-                $indicacion = '';
+                $indicacion = !empty($item['indicacion']) ? $item['indicacion'] . '. ' : '';
                 $extrasJson = null;
                 $removidosJson = null;
                 
@@ -93,6 +93,10 @@ class PedidoPublico
                     $idsExtras = array_column($item['addedAdicionales'], 'id_insumo');
                     $indicacion .= "Extras: " . implode(", ", $nombresExtras) . ". ";
                     $extrasJson = json_encode($idsExtras);
+                }
+                
+                if (empty($indicacion)) {
+                    $indicacion = null;
                 }
 
                 $stmtDet->execute([
@@ -135,8 +139,13 @@ class PedidoPublico
 
             $this->dbBusiness->commit();
             $this->dbSecurity->commit();
+            
+            $sqlNumero = "SELECT numero_pedido FROM pedido WHERE id_pedido = ?";
+            $stmtNumero = $this->dbBusiness->prepare($sqlNumero);
+            $stmtNumero->execute([$idPedido]);
+            $numeroPedido = $stmtNumero->fetch(PDO::FETCH_ASSOC)['numero_pedido'];
 
-            return ['success' => true, 'message' => 'Pedido registrado exitosamente.', 'id_pedido' => $idPedido];
+            return ['success' => true, 'message' => 'Pedido registrado exitosamente.', 'id_pedido' => $idPedido, 'numero_pedido' => $numeroPedido];
 
         } catch (Exception $e) {
             $this->dbBusiness->rollBack();
