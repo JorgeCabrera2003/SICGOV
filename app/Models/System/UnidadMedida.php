@@ -203,8 +203,9 @@ class UnidadMedida extends Database
         return $dato;
     }
 
-    private function factorMasaGramos($medida) {
-        return match($medida) {
+    private function factorMasaGramos($medida)
+    {
+        return match ($medida) {
             'g', 'gr' => 1,
             'kg' => 1000,
             'oz' => 28.3495,
@@ -213,8 +214,9 @@ class UnidadMedida extends Database
         };
     }
 
-    private function factorVolumenMililitros($medida) {
-        return match($medida) {
+    private function factorVolumenMililitros($medida)
+    {
+        return match ($medida) {
             'ml' => 1,
             'l' => 1000,
             default => 1
@@ -238,10 +240,10 @@ class UnidadMedida extends Database
         if ($tipo_valor == "masa") {
             $valor_g = $valor * $this->factorMasaGramos($medida_valor);
             $stock_g = $stock_actual * $this->factorMasaGramos($medida_stock);
-            
+
             $resultado_g = $this->OperacionMatematatica($valor_g, $stock_g, $operacion);
             $resultado = $resultado_g / $this->factorMasaGramos($medida_stock);
-            
+
             if ($resultado < 0) {
                 throw new \Exception("El valor resultante no puede ser negativo");
             }
@@ -250,11 +252,11 @@ class UnidadMedida extends Database
 
         if ($validar) {
 
-        if($medida_stock != "u"){
-            $resultado = $resultadoBase->toUnit($medida_stock);
-        } else {
-            $resultado = $resultadoBase;
-        }
+            if ($medida_stock != "u") {
+                $resultado = $resultadoBase->toUnit($medida_stock);
+            } else {
+                $resultado = $resultadoBase;
+            }
 
         } else {
             throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock);
@@ -295,8 +297,8 @@ class UnidadMedida extends Database
             $unidadValor = new Volume($valor, $medida_valor);
             $unidadStock = new Volume($stock_actual, $medida_stock);
 
-            
-            $valorEntrante  = (int) round($unidadValor->toUnit('ml'));
+
+            $valorEntrante = (int) round($unidadValor->toUnit('ml'));
             $valorStock = (int) round($unidadStock->toUnit('ml'));
 
             $resultadoBase = new Volume($this->OperacionMatematatica($valorEntrante, $valorStock, $operacion), 'ml');
@@ -313,11 +315,11 @@ class UnidadMedida extends Database
 
         if ($validar) {
 
-        if($medida_stock != "u"){
-            $resultado = $resultadoBase->toUnit($medida_stock);
-        } else {
-            $resultado = $resultadoBase;
-        }
+            if ($medida_stock != "u") {
+                $resultado = RegexHelper::FormatoDecimal($resultadoBase->toUnit($medida_stock));
+            } else {
+                $resultado = $resultadoBase;
+            }
 
         } else {
             throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock);
@@ -329,7 +331,7 @@ class UnidadMedida extends Database
         return $resultado;
     }
 
-        public function ConvertirUnidades(float $stock_actual, string $medida_original, string $medida_entrante)
+    public function ConvertirUnidades(float $stock_actual, string $medida_original, string $medida_entrante)
     {
         $resultado = 0;
         $medida_original = strtolower($medida_original);
@@ -340,20 +342,12 @@ class UnidadMedida extends Database
         $validar = false;
 
         if ($this->DiccionarioMedidas($medida_original) == "masa" && $this->DiccionarioMedidas($medida_entrante) == "masa") {
-            $unidadStock = new Mass($stock_actual, $medida_original);
-
-            $valorStock = (int) round($unidadStock->toUnit('g'));
-
-            $resultadoBase = new Mass($valorStock, $medida_entrante);
+            $resultadoBase = new Mass($stock_actual, $medida_original);
             $validar = true;
         }
 
         if ($this->DiccionarioMedidas($medida_original) == "volumen" && $this->DiccionarioMedidas($medida_entrante) == "volumen") {
-            $unidadValor = new Volume($stock_actual, $medida_original);
-            
-            $valorEntrante = (int) round($unidadValor->toUnit('ml'));
-
-            $resultadoBase = new Volume($valorEntrante, $medida_entrante);
+            $resultadoBase = new Volume($stock_actual, $medida_original);
             $validar = true;
         }
 
@@ -367,20 +361,19 @@ class UnidadMedida extends Database
 
         if ($validar) {
 
-        if($medida_entrante != "u"){
-            $resultado = $resultadoBase->toUnit($medida_entrante);
-        } else {
-            $resultado = $resultadoBase;
-        }
+            if ($medida_entrante != "u") {
+                $resultado = RegexHelper::FormatoDecimal($resultadoBase->toUnit($medida_entrante));
+            } else {
+                $resultado = $resultadoBase;
+            }
 
+            return $resultado;
         } else {
             throw new \Exception("Conversión no válida: " . $medida_original . " y " . $medida_entrante);
         }
         if ($resultado < 0) {
             throw new \Exception("El valor resultante no puede ser negativo");
         }
-        
-        throw new \Exception("Tipo de medida desconocido");
     }
 
     private function OperacionMatematatica($valor, $stock, $operacion)

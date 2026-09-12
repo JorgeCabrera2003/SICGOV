@@ -191,7 +191,7 @@ export function FormatoNumeroDecimal(etiqueta, formato = null) {
     let parteDecimal = partes[1];
 
     // Formatear parte entera con separador de miles
-    parteEntera = parseInt(parteEntera, 10).toLocaleString('es-ES');
+    parteEntera = Math.floor(parseFloat(parteEntera));
 
     let final = parteEntera + '.' + parteDecimal;
 

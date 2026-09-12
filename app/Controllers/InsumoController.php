@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Helpers\Helper;
+use App\Helpers\RegexHelper;
 use App\Models\System\CategoriaInsumo;
 use App\Models\System\UnidadMedida;
 use App\Models\System\Proveedor;
@@ -79,6 +80,8 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 								$boolModificar = $validarProveedor['bool'];
 							}
 
+							$validacion = false;
+
 							if ($boolModificar == 1) {
 
 								if ($_POST["peticion"] == "registrar") {
@@ -86,60 +89,121 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 									$str_mensaje = "registró";
 									$str_accion = "REGISTRAR";
 									$insumoModel->setStockActual($_POST["stock_inicial"]);
+									$insumoModel->setId($id);
+									$validacion = $insumoModel->Transaccion(['peticion' => "validar"]);
+
+									if ($validacion['bool'] == 0) {
+										$validarInsumo = true;
+									} else {
+										$json['response'] = ['resultado' => 409, 'mensaje' => "Ups, intente de nuevo más tarde"];
+										$json['HTTP_STATUS'] = ['codigo' => 409, 'mensaje' => "Registro duplicado"];
+									}
 								}
 
 								if ($_POST["peticion"] == "modificar") {
 									$id = $_POST["id_insumo"];
 									$str_mensaje = "modificó";
 									$str_accion = "MODIFICAR";
+									$insumoModel->setId($id);
+
+									$validarInsumo = $insumoModel->Transaccion(['peticion' => "validar"]);
+
+									if ($validarInsumo['bool'] == 1) {
+										$validacion = true;
+									} else {
+										$json['response'] = ['resultado' => 404, 'mensaje' => "Registro no encontrado"];
+										$json['HTTP_STATUS'] = ['codigo' => 404, 'mensaje' => "Registro no encontrado"];
+									}
 								}
 
-								$insumoModel->setId($id);
-								$insumoModel->setNombre($_POST["nombre"]);
-								$insumoModel->setPrecioUnitario($_POST["costo_unitario"]);
-								$insumoModel->setIdUnidadMedida($_POST["unidad_medida"]);
-								$insumoModel->setIdCategoria($_POST["id_categoria"]);
-								$insumoModel->setStockMaximo($_POST["stock_maximo"]);
-								$insumoModel->setStockMinimo($_POST["stock_minimo"]);
-								$responseInsumo = $insumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
-								$json = $responseInsumo;
-								if ($responseInsumo['estado'] == 1) {
-									$json['HTTP_STATUS'] = ['codigo' => 201, 'icon' => '', 'mensaje' => 'Insumo registrado exitosamente'];
-									if ($_POST["peticion"] == "registrar") {
-										$id_entrada = Helper::generarId("ENTRA");
-										$entradaInsumoModel->setId($id_entrada);
-										$entradaInsumoModel->setIdInsumo($insumoModel->getId());
-										$entradaInsumoModel->setDocumentoLegal($_POST['id_proveedor']);
-										$responseEntrada = $entradaInsumoModel->Transaccion(['peticion' => "registrar"]);
+								if ($validacion) {
 
-										if ($responseEntrada['estado'] == 1) {
-											$id_detalle = Helper::generarId("DETAL");
-											$detalleEntradaModel->setId($id_detalle);
-											$detalleEntradaModel->setIdUnidad($_POST["unidad_medida"]);
-											$detalleEntradaModel->setIdEntrada($entradaInsumoModel->getId());
-											$detalleEntradaModel->setDescripcion("Ingresado por primera vez con una cantidad de: " . $_POST["stock_inicial"] . "" . $validarUnidadMedida['response']['registro']['abreviatura']);
-											$detalleEntradaModel->setCantidad($_POST["stock_inicial"]);
-											$responseDetalle = $detalleEntradaModel->Transaccion(['peticion' => "registrar"]);
+									$stock_maximo = $_POST["stock_maximo"];
+									$stock_minimo = $_POST["stock_minimo"];
 
-											if ($responseDetalle['estado'] == 1) {
-												$json['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => 'Insumo registrado exitosamente'];
-												$json['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => 'Insumo registrado exitosamente'];
 
+									if ($_POST["peticion"] == "modificar") {
+										$boolModificarMedida = false;
+										$stock_actual = $validarInsumo['response']['registro']['stock_actual'];
+										if ($validacion) {
+											if ($_POST["unidad_medida"] != $validarInsumo['response']['registro']['id_unidad_medida']) {
+
+												$stock_actual = $unidadMedidaModel->ConvertirUnidades(
+													$stock_actual,
+													$validarInsumo['response']['registro']['abreviatura'],
+													$validarUnidadMedida['response']['registro']['abreviatura']
+												);
+
+												$stock_minimo = $unidadMedidaModel->ConvertirUnidades(
+													$stock_minimo,
+													$validarInsumo['response']['registro']['abreviatura'],
+													$validarUnidadMedida['response']['registro']['abreviatura']
+												);
+
+												if ($stock_maximo > 0 || $stock_maximo != NULL) {
+													$stock_maximo = $unidadMedidaModel->ConvertirUnidades(
+														$stock_maximo,
+														$validarInsumo['response']['registro']['abreviatura'],
+														$validarUnidadMedida['response']['registro']['abreviatura']
+													);
+												}
+											}
+											$boolModificarMedida = true;
+										}
+									}
+
+									$insumoModel->setNombre($_POST["nombre"]);
+									$insumoModel->setPrecioUnitario($_POST["costo_unitario"]);
+									$insumoModel->setIdUnidadMedida($_POST["unidad_medida"]);
+									$insumoModel->setIdCategoria($_POST["id_categoria"]);
+									$insumoModel->setStockMaximo($stock_maximo);
+									$insumoModel->setStockMinimo($stock_minimo);
+									$responseInsumo = $insumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
+									$json = $responseInsumo;
+									if ($responseInsumo['estado'] == 1) {
+										$json['HTTP_STATUS'] = ['codigo' => 201, 'icon' => '', 'mensaje' => 'Insumo registrado exitosamente'];
+										if ($_POST["peticion"] == "registrar") {
+											$id_entrada = Helper::generarId("ENTRA");
+											$entradaInsumoModel->setId($id_entrada);
+											$entradaInsumoModel->setIdInsumo($insumoModel->getId());
+											$entradaInsumoModel->setDocumentoLegal($_POST['id_proveedor']);
+											$responseEntrada = $entradaInsumoModel->Transaccion(['peticion' => "registrar"]);
+
+											if ($responseEntrada['estado'] == 1) {
+												$id_detalle = Helper::generarId("DETAL");
+												$detalleEntradaModel->setId($id_detalle);
+												$detalleEntradaModel->setIdUnidad($_POST["unidad_medida"]);
+												$detalleEntradaModel->setIdEntrada($entradaInsumoModel->getId());
+												$detalleEntradaModel->setDescripcion("Ingresado por primera vez con una cantidad de: " . $_POST["stock_inicial"] . "" . $validarUnidadMedida['response']['registro']['abreviatura']);
+												$detalleEntradaModel->setCantidad($_POST["stock_inicial"]);
+												$responseDetalle = $detalleEntradaModel->Transaccion(['peticion' => "registrar"]);
+
+												if ($responseDetalle['estado'] == 1) {
+													$json['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => 'Insumo registrado exitosamente'];
+													$json['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => 'Insumo registrado exitosamente'];
+
+												} else {
+													$json['response'] = ['resultado' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
+													$json['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
+												}
 											} else {
 												$json['response'] = ['resultado' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
 												$json['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
 											}
-										} else {
-											$json['response'] = ['resultado' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
-											$json['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
 										}
+
+										if ($_POST["peticion"] == "modificar" && $boolModificarMedida) {
+											$insumoModel->setStockActual($stock_actual);
+											$insumoModel->Transaccion(['peticion' => 'actualizar_stock']);
+										}
+
+										$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un insumo con ID:" . $insumoModel->getId();
+										Helper::Bitacora($str_accion, 'INSUMO', $msg);
+									} else {
+										$json['response'] = ['resultado' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
+										$json['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
+										$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un insumo";
 									}
-									$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " un insumo con ID:" . $insumoModel->getId();
-									Helper::Bitacora($str_accion, 'INSUMO', $msg);
-								} else {
-									$json['response'] = ['resultado' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
-									$json['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Ups, intente de nuevo más tarde'];
-									$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un insumo";
 								}
 							} else {
 								$json['response'] = ['resultado' => 404, 'mensaje' => 'No existe Proveedor'];
@@ -208,7 +272,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 		}
 		//Fin del Eliminar
 
-		//Suministrar
+		//Recalcular Stock
 		if ($_POST["peticion"] == "recalcular_stock") {
 			$arregloInsumo = [];
 			$arregloUnidad = [];
@@ -219,41 +283,62 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Insumo") {
 			$unidadMedidaModel->setId($_POST['id_unidad']);
 			$arregloUnidad = $unidadMedidaModel->Transaccion(["peticion" => "validar"]);
 
-			if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1) {
-
-				$stock_actualido = $unidadMedidaModel->ConvertirUnidades(
-					$arregloInsumo['response']['registro']['stock_actual'],
-					$arregloInsumo['response']['registro']['abreviatura'],
-					$arregloUnidad['response']['registro']['abreviatura'],
-				);
-				$responseInsumo = ["estado" => 0];
-				$insumoModel->setStockActual($stock_actualido);
-				$responseInsumo = $insumoModel->Transaccion(['peticion' => 'actualizar_stock']);
+			if ($_POST["id_unidad"] != $arregloInsumo['response']['registro']['id_unidad_medida']) {
+				if ($arregloInsumo['bool'] == 1 && $arregloUnidad['bool'] == 1) {
 
 
-				if ($responseInsumo['estado'] == 1) {
-					$id = Helper::generarId("DETAL");
-					$detalleEntradaModel->setId($id);
-					$detalleEntradaModel->setIdEntrada($_POST['id_entrada']);
-					$detalleEntradaModel->setIdUnidad($_POST['id_unidad']);
-					$detalleEntradaModel->setCantidad($_POST['stock']);
-					$detalleEntradaModel->setDescripcion(
-						"Se ingresarón " . $_POST['stock'] . $arregloUnidad['response']['registro']['abreviatura'] . ". Quedando con una cantidad de: " . $stock_actualido . $arregloInsumo['response']['registro']['abreviatura']
+					$valores_previos = [
+						"stock_actual" => RegexHelper::FormatoDecimal($arregloInsumo['response']['registro']['stock_actual']),
+						"stock_minimo" => RegexHelper::FormatoDecimal($arregloInsumo['response']['registro']['stock_minimo']),
+						"stock_maximo" => RegexHelper::FormatoDecimal($arregloInsumo['response']['registro']['stock_maximo']),
+						"nombre_medida" => $arregloInsumo['response']['registro']['unidad_medida'],
+						"abreviatura" => $arregloInsumo['response']['registro']['abreviatura']
+					];
+
+					$stock_actualido = $arregloInsumo['response']['registro']['stock_actual'];
+					$stock_minimo = $_POST['stock_minimo'];
+					$stock_maximo = $_POST['stock_maximo'];
+
+					$stock_minimo = $unidadMedidaModel->ConvertirUnidades(
+						$arregloInsumo['response']['registro']['stock_minimo'],
+						$arregloInsumo['response']['registro']['abreviatura'],
+						$arregloUnidad['response']['registro']['abreviatura']
+					);
+					$stock_actualido = $unidadMedidaModel->ConvertirUnidades(
+						$arregloInsumo['response']['registro']['stock_actual'],
+						$arregloInsumo['response']['registro']['abreviatura'],
+						$arregloUnidad['response']['registro']['abreviatura']
 					);
 
-					$json = $detalleEntradaModel->Transaccion(['peticion' => 'registrar']);
-					$json['response']['mensaje'] = 'Insumo suministrado exitosamente';
-					$msg = "(" . $_SESSION['user']['cedula'] . "), realizó ingreso del insumo: " . $arregloInsumo['response']['registro']['nombre_insumo'] . " con " . $_POST['stock'] . "" . $arregloUnidad['response']['registro']['abreviatura'];
-					Helper::Bitacora("SUMINISTRAR", 'INSUMO', $msg);
-				} else {
-					$json = $responseInsumo;
-				}
+					if ($stock_maximo > 0 || $stock_maximo != NULL) {
 
+						$stock_maximo = $unidadMedidaModel->ConvertirUnidades(
+							$stock_maximo,
+							$arregloInsumo['response']['registro']['abreviatura'],
+							$arregloUnidad['response']['registro']['abreviatura']
+						);
+
+						$valores_nuevos = [
+							"stock_actual" => $stock_actualido,
+							"stock_minimo" => $stock_minimo,
+							"stock_maximo" => $stock_maximo,
+							"nombre_medida" => $arregloUnidad['response']['registro']['nombre'],
+							"abreviatura" => $arregloUnidad['response']['registro']['abreviatura']
+						];
+						$json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+						$json['response'] = ['resultado' => 200, 'mensaje' => 'OK', 'verificar_valor' => true];
+						$json['response']['valores_previos'] = $valores_previos;
+						$json['response']['valores_nuevos'] = $valores_nuevos;
+					}
+				} else {
+					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+					$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
+				}
 			} else {
-				$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
-				$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
-				$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
+				$json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+				$json['response'] = ['resultado' => 200, 'mensaje' => 'OK', 'verificar_valor' => false];
 			}
+
 		}
 
 
