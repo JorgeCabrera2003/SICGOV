@@ -40,18 +40,21 @@ if (isset($_POST["peticion"])) {
 				if ($_POST["peticion"] == "registrar") {
 					$id = Helper::generarId("INGR");
 					$str_mensaje = "registró";
+					$str_accion = "REGISTRAR";
 				}
 
 				if ($_POST["peticion"] == "modificar") {
 					$id = $_POST["id_categoria"];
 					$str_mensaje = "modificó";
+					$str_accion = "MODIFICAR";
 				}
 
 				$categoriaInsumoModel->setId($id);
 				$categoriaInsumoModel->setNombre($_POST["nombre"]);
 				$json = $categoriaInsumoModel->Transaccion(['peticion' => $_POST["peticion"]]);
 				if ($json['estado'] == 1) {
-					$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " una nueva categoria insumo con ID:" . $categoriaInsumoModel->getId();
+					$msg = "(" . $_SESSION['user']['cedula'] . "), Se " . $str_mensaje . " una categoria insumo con ID:" . $categoriaInsumoModel->getId();
+					Helper::Bitacora($str_accion, 'CATEGORÍA DE INGREDIENTE', $msg);
 				} else {
 					$msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " un insumo";
 				}
@@ -92,7 +95,7 @@ if (isset($_POST["peticion"])) {
 				} else {
 					$msg = "Error al eliminar una categoría de insumo";
 				}
-				Helper::Bitacora('ELIMINAR', 'INGREDIENTE/CATEGORÍA DE INGREDIENTE', $msg);
+				Helper::Bitacora('ELIMINAR', 'CATEGORÍA DE INGREDIENTE', $msg);
 			} catch (Exception $exception) {
 				$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 				$json['response'] = ['resultado' => 400, 'mensaje' => $exception->getMessage()];
@@ -113,5 +116,6 @@ if (isset($_POST["peticion"])) {
 } //Fin de Operaciones
 Helper::cargarVista(
 	'categoria_insumo/index',
-	'Categorías de Insumos - Good Vibes'
+	'Categorías de Insumos - Good Vibes',
+	['ver' => $permisosCategoriaInsumo['categoria_insumo']['ver']]
 );

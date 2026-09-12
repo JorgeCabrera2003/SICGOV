@@ -13,6 +13,7 @@ $type = $_REQUEST['type'] ?? 'index';
 if ($type === 'index') {
 
         Helper::verificarSesion();
+        $permisosUsuario = Helper::TraerPermisos("usuario");
 
         $usuarioModel = new Usuario();
 
@@ -35,8 +36,14 @@ if ($type === 'index') {
 
 
 
-            // ── PETICIÓN: CONSULTAR ─────────────────────────────
+            // PETICIÓN: CONSULTAR 
             if ($_POST["peticion"] == "consultar") {
+                if (!isset($permisosUsuario['usuario']['ver']) || $permisosUsuario['usuario']['ver'] != 1) {
+                    header("HTTP/1.1 403 Acción no autorizada");
+                    echo json_encode(['resultado' => 403, 'datos' => []]);
+                    exit;
+                }
+                
                 $json = $usuarioModel->Transaccion(['peticion' => 'consultar']);
                 header("HTTP/1.1 " . ($json['HTTP_STATUS']['codigo'] ?? 200) . " " . ($json['HTTP_STATUS']['mensaje'] ?? "OK"));
                 echo json_encode($json['response'] ?? []);
@@ -45,7 +52,7 @@ if ($type === 'index') {
 
 
 
-            // ── PETICIÓN: EMPLEADOS SIN USUARIO ────────────────
+            // PETICIÓN: EMPLEADOS SIN USUARIO 
             if ($_POST["peticion"] == "empleados-sin-usuario") {
                 $json = $usuarioModel->Transaccion(['peticion' => 'empleados-sin-usuario']);
                 header("HTTP/1.1 " . ($json['HTTP_STATUS']['codigo'] ?? 200) . " " . ($json['HTTP_STATUS']['mensaje'] ?? "OK"));
@@ -55,7 +62,7 @@ if ($type === 'index') {
 
 
 
-            // ── PETICIÓN: ROLES ACTIVOS ──────────────────────────
+            // PETICIÓN: ROLES ACTIVOS
             if ($_POST["peticion"] == "roles-activos") {
                 $rolModel = new Rol();
                 $rolesResult = $rolModel->Transaccion(['peticion' => 'consultar']);
@@ -66,14 +73,28 @@ if ($type === 'index') {
 
 
 
-            // ── PETICIÓN: REGISTRAR Y MODIFICAR ──────────────────
+            // PETICIÓN: REGISTRAR Y MODIFICAR
             if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
+                $accion_permiso = false;
+                
+                if ($_POST["peticion"] == "registrar" && isset($permisosUsuario['usuario']['registrar']) && $permisosUsuario['usuario']['registrar'] == 1) {
+                    $accion_permiso = true;
+                } elseif ($_POST["peticion"] == "modificar" && isset($permisosUsuario['usuario']['modificar']) && $permisosUsuario['usuario']['modificar'] == 1) {
+                    $accion_permiso = true;
+                }
+
+                if (!$accion_permiso) {
+                    header("HTTP/1.1 403 Acción no autorizada");
+                    echo json_encode(['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para realizar esta acción']);
+                    exit;
+                }
+                
                 $bool_formulario = true;
                 $peticion = $_POST["peticion"];
 
 
 
-                // 1. Cédula validation format
+                
                 if (!isset($_POST["cedula"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'Cedula') == 0) {
                     $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Cédula no válida'];
                     $bool_formulario = false;
@@ -136,18 +157,7 @@ if ($type === 'index') {
                         $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El rol es obligatorio.'];
                         $bool_formulario = false;
                     } else {
-                        
-                        $rolModel = new Rol();
-                        $rolesResult = $rolModel->Transaccion(['peticion' => 'consultar']);
-                        $validRoles = [];
-                        if (isset($rolesResult['response']['datos']) && is_array($rolesResult['response']['datos'])) {
-                            foreach ($rolesResult['response']['datos'] as $r) {
-                                if (isset($r['id_rol'])) {
-                                    $validRoles[] = (string)$r['id_rol'];
-                                }
-                            }
-                        }
-                        if (!in_array((string)$_POST["rol"], $validRoles, true)) {
+                        if (!$usuarioModel->validarRol($_POST["rol"])) {
                             $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => '¡Modificación detectada! El rol seleccionado no es válido o está inactivo.'];
                             $bool_formulario = false;
                         }
@@ -197,6 +207,12 @@ if ($type === 'index') {
 
             // ── PETICIÓN: FORZAR CAMBIO DE CLAVE ───────────────
             if ($_POST["peticion"] == "forzar-clave") {
+                if (!isset($permisosUsuario['usuario']['modificar']) || $permisosUsuario['usuario']['modificar'] != 1) {
+                    header("HTTP/1.1 403 Acción no autorizada");
+                    echo json_encode(['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para modificar a un usuario']);
+                    exit;
+                }
+
                 $bool_formulario = true;
 
                 if (!isset($_POST["cedula"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'Cedula') == 0) {
@@ -218,6 +234,21 @@ if ($type === 'index') {
 
             // ── PETICIÓN: TOGGLE ESTATUS (ACTIVAR/INACTIVAR) ───
             if ($_POST["peticion"] == "toggle-estatus") {
+                $accion_permiso = false;
+                $estatus_peticion = $_POST["estatus"] ?? '';
+                
+                if ($estatus_peticion == '1' && isset($permisosUsuario['usuario']['modificar']) && $permisosUsuario['usuario']['modificar'] == 1) {
+                    $accion_permiso = true;
+                } elseif ($estatus_peticion == '0' && isset($permisosUsuario['usuario']['eliminar']) && $permisosUsuario['usuario']['eliminar'] == 1) {
+                    $accion_permiso = true;
+                }
+
+                if (!$accion_permiso) {
+                    header("HTTP/1.1 403 Acción no autorizada");
+                    echo json_encode(['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para esta acción']);
+                    exit;
+                }
+
                 $bool_formulario = true;
 
                 if (!isset($_POST["cedula"]) || RegexHelper::ValidarFormatos($_POST["cedula"], 'Cedula') == 0) {
@@ -253,6 +284,7 @@ if ($type === 'index') {
 
         Helper::cargarVista(
             'usuario/index',
-            'Usuarios - Good Vibes'
+            'Usuarios - Good Vibes',
+            ['ver' => $permisosUsuario['usuario']['ver']]
         );
 }

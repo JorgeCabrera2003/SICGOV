@@ -340,7 +340,7 @@ export async function DataTableCategoria(arreglo) {
       }
     ],
     order: [[1, 'asc']],
-    language: { url: idiomaTabla }
+    language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' }
   });
   return true;
 }

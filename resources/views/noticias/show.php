@@ -72,7 +72,7 @@
                 </article>
 
                 <div class="text-center mt-5">
-                    <a href="<?= BASE_URL ?>?page=noticias" class="btn btn-outline-primary btn-lg rounded-pill px-4 shadow-sm">
+                    <a href="<?= BASE_URL ?>?page=Noticia&type=publico" class="btn btn-outline-primary btn-lg rounded-pill px-4 shadow-sm">
                         <i class="fas fa-arrow-left me-2"></i>Volver a Noticias
                     </a>
                 </div>

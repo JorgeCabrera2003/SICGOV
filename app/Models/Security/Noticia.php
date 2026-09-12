@@ -33,7 +33,7 @@ class Noticia extends Database
         $this->imagenes = [];
     }
 
-    public function LlamarConexion($nombreBD = 'security', PDO &$pdo = NULL)
+    public function LlamarConexion($nombreBD = 'security', ?PDO &$pdo = NULL)
     {
         return parent::LlamarConexion($nombreBD, $pdo);
     }

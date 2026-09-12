@@ -118,7 +118,14 @@ async function registrarAsistenciaPublica() {
     peticion.append('tipo_doc', $(SELECTOR.tipoDoc).val());
     peticion.append('cedula_empleado', $(SELECTOR.cedula).val().trim());
     peticion.append('tipo_marcacion', $(SELECTOR.tipoMarcacion).val());
-    peticion.append('observacion', $(SELECTOR.observacion).val().trim());
+    // El campo 'observacion' puede no estar presente en la vista pública.
+    let observacion = '';
+    const $obsEl = $(SELECTOR.observacion);
+    if ($obsEl.length) {
+        const v = $obsEl.val();
+        observacion = (v !== undefined && v !== null) ? String(v).trim() : '';
+    }
+    peticion.append('observacion', observacion);
 
     const json = await AjaxHelper.enviaAjax(peticion, ENDPOINT);
 

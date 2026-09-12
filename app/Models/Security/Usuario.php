@@ -35,10 +35,19 @@ class Usuario extends \App\Models\System\Persona
 
 
 
-    
     public function setIdRol(string $id_rol)
     {
         $this->id_rol = $id_rol;
+    }
+
+    public function validarRol($id_rol)
+    {
+        $this->LlamarConexion("security");
+        $stm = $this->LlamarConexion()->prepare("SELECT id_rol FROM rol WHERE id_rol = :id_rol AND estatus = 1 LIMIT 1");
+        $stm->execute([':id_rol' => $id_rol]);
+        $isValid = $stm->rowCount() > 0;
+        $this->DestruirConexion();
+        return $isValid;
     }
 
     public function setUsername(string $username)

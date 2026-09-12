@@ -1,0 +1,245 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   backup.css — Estilos del módulo Centro de Respaldos (SICGOV)
+   Bootstrap 5.3 como base; estos estilos lo extienden, nunca lo reemplazan.
+══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Variables locales del módulo ─────────────────────────────────────── */
+:root {
+    --backup-accent:        #0d6efd;
+    --backup-accent-hover:  #0b5ed7;
+    --backup-success:       #198754;
+    --backup-card-bg:       var(--bs-body-bg, #fff);
+    --backup-card-border:   rgba(0, 0, 0, .08);
+    --backup-card-shadow:   0 4px 24px rgba(13, 110, 253, .07),
+                            0 1px 4px  rgba(0, 0, 0, .05);
+    --backup-header-bg:     rgba(13, 110, 253, .04);
+    --backup-radius:        .875rem;
+    --backup-cron-bg:       #1e1e2e;
+    --backup-cron-color:    #cdd6f4;
+}
+
+[data-bs-theme="dark"],
+.dark-theme {
+    --backup-card-bg:       #1e1e2e;
+    --backup-card-border:   rgba(255, 255, 255, .07);
+    --backup-card-shadow:   0 4px 24px rgba(0, 0, 0, .3);
+    --backup-header-bg:     rgba(255, 255, 255, .04);
+    --backup-cron-bg:       #111;
+}
+
+/* ── Encabezado del módulo ────────────────────────────────────────────── */
+.backup-module {
+    max-width: 1400px;
+}
+
+.backup-header {
+    border-left: 4px solid var(--backup-accent);
+    padding-left: 1.25rem;
+}
+
+.backup-icon-hero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, #0d6efd22 0%, #0d6efd11 100%);
+    color: var(--backup-accent);
+    font-size: 1.75rem;
+    flex-shrink: 0;
+}
+
+.backup-title {
+    font-size: clamp(1.35rem, 3vw, 1.75rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+}
+
+/* ── Tarjetas (cards) ─────────────────────────────────────────────────── */
+.backup-card {
+    border-radius: var(--backup-radius);
+    border: 1px solid var(--backup-card-border);
+    background-color: var(--backup-card-bg);
+    box-shadow: var(--backup-card-shadow);
+    overflow: hidden;
+    transition: box-shadow .25s ease, transform .2s ease;
+}
+
+.backup-card:hover {
+    box-shadow: 0 8px 32px rgba(13, 110, 253, .13),
+                0 2px 8px rgba(0, 0, 0, .07);
+    transform: translateY(-1px);
+}
+
+/* ── Cabeceras de card ────────────────────────────────────────────────── */
+.backup-card-header {
+    padding: .85rem 1.25rem;
+    font-weight: 600;
+    font-size: .92rem;
+    background: var(--backup-header-bg);
+    border-bottom: 1px solid var(--backup-card-border);
+    color: var(--backup-accent);
+    letter-spacing: .01em;
+}
+
+.backup-card-header--auto {
+    color: var(--backup-success);
+}
+
+/* ── Card específica: Respaldo Manual ────────────────────────────────── */
+.backup-card--manual {
+    border-top: 3px solid var(--backup-accent);
+}
+
+.backup-card--auto {
+    border-top: 3px solid var(--backup-success);
+}
+
+/* ── Select de base de datos ──────────────────────────────────────────── */
+.backup-select {
+    border-radius: .6rem;
+    border-color: var(--backup-card-border);
+    font-size: .95rem;
+    transition: border-color .2s, box-shadow .2s;
+}
+
+.backup-select:focus {
+    border-color: var(--backup-accent);
+    box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .18);
+}
+
+/* ── Botón de generación ──────────────────────────────────────────────── */
+.backup-btn-generate {
+    border-radius: .65rem;
+    font-weight: 600;
+    letter-spacing: .01em;
+    padding: .75rem 1.5rem;
+    background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+    border-color: transparent;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, .35);
+    transition: all .25s ease;
+}
+
+.backup-btn-generate:hover:not(:disabled) {
+    background: linear-gradient(135deg, #0b5ed7, #0a58ca);
+    box-shadow: 0 6px 18px rgba(13, 110, 253, .45);
+    transform: translateY(-1px);
+}
+
+.backup-btn-generate:disabled {
+    opacity: .7;
+    cursor: not-allowed;
+}
+
+/* ── Lista de información (respaldo automático) ───────────────────────── */
+.backup-info-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .55rem 0;
+    border-bottom: 1px dashed var(--backup-card-border);
+    flex-wrap: wrap;
+    gap: .35rem;
+}
+
+.backup-info-list li:last-child {
+    border-bottom: none;
+}
+
+.backup-info-label {
+    font-size: .875rem;
+    font-weight: 500;
+    color: var(--bs-secondary-color, #6c757d);
+    white-space: nowrap;
+}
+
+/* ── Caja de crontab ──────────────────────────────────────────────────── */
+.backup-cron-box {
+    background: var(--backup-cron-bg);
+    border-radius: .65rem;
+    padding: .75rem 1rem;
+    position: relative;
+}
+
+.backup-cron-label {
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: #7f849c;
+    margin-bottom: .35rem;
+}
+
+.backup-cron-code {
+    display: block;
+    color: var(--backup-cron-color);
+    font-size: .78rem;
+    word-break: break-all;
+    line-height: 1.6;
+    background: transparent;
+    padding: 0;
+}
+
+/* ── Tabla de historial de respaldos ─────────────────────────────────── */
+.backup-table-head th {
+    font-size: .80rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--bs-secondary-color, #6c757d);
+    padding: .8rem 1rem;
+    background: var(--backup-header-bg);
+    border-bottom: 1px solid var(--backup-card-border);
+    white-space: nowrap;
+}
+
+.backup-table tbody tr {
+    transition: background .15s ease;
+}
+
+.backup-table tbody tr:hover {
+    background: rgba(13, 110, 253, .04);
+}
+
+.backup-table td {
+    padding: .8rem 1rem;
+    vertical-align: middle;
+    font-size: .875rem;
+    border-bottom: 1px solid var(--backup-card-border);
+}
+
+.backup-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* ── Footer del card ──────────────────────────────────────────────────── */
+.backup-card-footer {
+    background: var(--backup-header-bg);
+    border-top: 1px solid var(--backup-card-border);
+    padding: .75rem 1.25rem;
+    font-size: .80rem;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+@media (max-width: 991.98px) {
+    .backup-header {
+        padding-left: .85rem;
+    }
+
+    .backup-icon-hero {
+        width: 2.75rem;
+        height: 2.75rem;
+        font-size: 1.35rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .backup-info-list li {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .backup-cron-code {
+        font-size: .70rem;
+    }
+}

@@ -7,7 +7,7 @@ import * as AjaxHelper from "../Helpers/AjaxHelper.js"
 
 $(document).ready(function () {
   crearDataTable();
-  registrarEntrada();
+  AjaxHelper.registrarEntrada();
   iniciarValidaciones();
 });
 

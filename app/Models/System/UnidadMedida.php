@@ -12,6 +12,9 @@ namespace App\Models\System;
 
 use App\Core\Database;
 use App\Helpers\Helper;
+use APP\Helpers\RegexHelper;
+use PhpUnitsOfMeasure\PhysicalQuantity\Volume;
+use PhpUnitsOfMeasure\PhysicalQuantity\Mass;
 use PDO;
 
 class UnidadMedida extends Database
@@ -34,39 +37,13 @@ class UnidadMedida extends Database
     }
 
     // Getters y Setters
-
-    //SETTERS
-    public function setId(string $id)
+    public function setId($id)
     {
+        if (RegexHelper::ValidarFormatos($id, 'ID') == 0) {
+            throw new \Exception("El ID no cumple con el formato permitido.");
+        }
         $this->id = $id;
     }
-
-    public function setNombre(string $nombre)
-    {
-        $this->nombre = $nombre;
-    }
-
-    public function setAbreviatura(string $abreviatura)
-    {
-        $this->abreviatura = $abreviatura;
-    }
-
-    public function setFactorConversion(float $factorConversion)
-    {
-        $this->factor_conversion = $factorConversion;
-    }
-
-    public function setTipo(string $tipo)
-    {
-        $this->tipo = $tipo;
-    }
-    public function setUnidadBase(int $unidadBase)
-    {
-        $this->unidad_base = $unidadBase;
-    }
-
-    //FIN SETTERS
-
     //GETTERS
     public function getId()
     {
@@ -109,6 +86,8 @@ class UnidadMedida extends Database
             $response = match ($peticion['peticion']) {
                 'consultar' => $this->ConsultarUnidadMedida(),
                 'validar' => $this->ValidarUnidadMedida(),
+                'filtrar' => $this->FiltrarUnidadMedida(),
+
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
@@ -185,4 +164,247 @@ class UnidadMedida extends Database
         $this->DestruirConexion();
         return $dato;
     }
+
+    private function FiltrarUnidadMedida()
+    {
+        $dato = [];
+        $arreglo = [];
+        $datosBD = [];
+        try {
+            $arreglo = $this->ValidarUnidadMedida();
+            if ($arreglo['bool'] == 1) {
+                $this->LlamarConexion();
+                $this->LlamarConexion()->beginTransaction();
+                $sql = "SELECT * FROM unidad_medida WHERE tipo = :tipo ORDER BY tipo ASC";
+                $stm = $this->LlamarConexion()->prepare($sql);
+                $stm->bindParam(":tipo", $arreglo['response']['registro']['tipo']);
+                $stm->execute();
+                if ($stm->rowCount() > 0) {
+                    $datosBD = $stm->fetchAll(PDO::FETCH_ASSOC);
+                }
+                $this->LlamarConexion()->commit();
+                $stm = NULL;
+
+                $dato['estado'] = 1;
+                $dato['response'] = ['resultado' => 200, 'mensaje' => "OK", 'datos' => $datosBD];
+                $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
+            } else {
+
+            }
+
+        } catch (\PDOException $e) {
+            $this->LlamarConexion()->rollBack();
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
+            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => "Ups, intente de nuevo más tarde", 'datos' => []];
+            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
+        }
+        $this->DestruirConexion();
+        return $dato;
+    }
+
+    private function factorMasaGramos($medida)
+    {
+        return match ($medida) {
+            'g', 'gr' => 1,
+            'kg' => 1000,
+            'oz' => 28.3495,
+            'lb' => 453.592,
+            default => 1
+        };
+    }
+
+    private function factorVolumenMililitros($medida)
+    {
+        return match ($medida) {
+            'ml' => 1,
+            'l' => 1000,
+            default => 1
+        };
+    }
+
+    public function TablaConversion(float $valor, float $stock_actual, string $medida_valor, string $medida_stock, string $operacion)
+    {
+        $medida_valor = strtolower($medida_valor);
+        $medida_stock = strtolower($medida_stock);
+
+        $tipo_valor = $this->DiccionarioMedidas($medida_valor);
+        $tipo_stock = $this->DiccionarioMedidas($medida_stock);
+
+        $validar = false;
+
+        if ($tipo_valor != $tipo_stock) {
+            throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock . " son incompatibles.");
+        }
+
+        if ($tipo_valor == "masa") {
+            $valor_g = $valor * $this->factorMasaGramos($medida_valor);
+            $stock_g = $stock_actual * $this->factorMasaGramos($medida_stock);
+
+            $resultado_g = $this->OperacionMatematatica($valor_g, $stock_g, $operacion);
+            $resultado = $resultado_g / $this->factorMasaGramos($medida_stock);
+
+            if ($resultado < 0) {
+                throw new \Exception("El valor resultante no puede ser negativo");
+            }
+            return $resultado;
+        }
+
+        if ($validar) {
+
+            if ($medida_stock != "u") {
+                $resultado = $resultadoBase->toUnit($medida_stock);
+            } else {
+                $resultado = $resultadoBase;
+            }
+
+        } else {
+            throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock);
+        }
+        if ($resultado < 0) {
+            throw new \Exception("El valor resultante no puede ser negativo");
+        }
+
+        return $resultado;
+    }
+
+    public function CalcularValor(float $valor, float $stock_actual, string $medida_valor, string $medida_stock, string $operacion)
+    {
+        $resultado = 0;
+        $medida_valor = strtolower($medida_valor);
+        $medida_stock = strtolower($medida_stock);
+
+        $resultadoBase = 0;
+
+        $valorStock = 0;
+        $valorEntrante = 0;
+
+        $validar = false;
+
+        if ($this->DiccionarioMedidas($medida_valor) == "masa" && $this->DiccionarioMedidas($medida_stock) == "masa") {
+
+            $unidadValor = new Mass($valor, $medida_valor);
+            $unidadStock = new Mass($stock_actual, $medida_stock);
+
+            $valorStock = (int) round($unidadStock->toUnit('g'));
+            $valorEntrante = (int) round($unidadValor->toUnit('g'));
+
+            $resultadoBase = new Mass($this->OperacionMatematatica($valorEntrante, $valorStock, $operacion), 'g');
+            $validar = true;
+        }
+
+        if ($this->DiccionarioMedidas($medida_valor) == "volumen" && $this->DiccionarioMedidas($medida_stock) == "volumen") {
+            $unidadValor = new Volume($valor, $medida_valor);
+            $unidadStock = new Volume($stock_actual, $medida_stock);
+
+
+            $valorEntrante = (int) round($unidadValor->toUnit('ml'));
+            $valorStock = (int) round($unidadStock->toUnit('ml'));
+
+            $resultadoBase = new Volume($this->OperacionMatematatica($valorEntrante, $valorStock, $operacion), 'ml');
+            $validar = true;
+        }
+
+        if ($this->DiccionarioMedidas($medida_valor) == "unidad" && $this->DiccionarioMedidas($medida_stock) == "unidad") {
+            $resultado = $this->OperacionMatematatica($stock_actual, $valor, $operacion);
+            if ($resultado < 0) {
+                throw new \Exception("El valor resultante no puede ser negativo");
+            }
+            return $resultado;
+        }
+
+        if ($validar) {
+
+            if ($medida_stock != "u") {
+                $resultado = RegexHelper::FormatoDecimal($resultadoBase->toUnit($medida_stock));
+            } else {
+                $resultado = $resultadoBase;
+            }
+
+        } else {
+            throw new \Exception("Conversión no válida: " . $medida_valor . " y " . $medida_stock);
+        }
+        if ($resultado < 0) {
+            throw new \Exception("El valor resultante no puede ser negativo");
+        }
+
+        return $resultado;
+    }
+
+    public function ConvertirUnidades(float $stock_actual, string $medida_original, string $medida_entrante)
+    {
+        $resultado = 0;
+        $medida_original = strtolower($medida_original);
+        $medida_entrante = strtolower($medida_entrante);
+
+        $resultadoBase = 0;
+
+        $validar = false;
+
+        if ($this->DiccionarioMedidas($medida_original) == "masa" && $this->DiccionarioMedidas($medida_entrante) == "masa") {
+            $resultadoBase = new Mass($stock_actual, $medida_original);
+            $validar = true;
+        }
+
+        if ($this->DiccionarioMedidas($medida_original) == "volumen" && $this->DiccionarioMedidas($medida_entrante) == "volumen") {
+            $resultadoBase = new Volume($stock_actual, $medida_original);
+            $validar = true;
+        }
+
+        if ($this->DiccionarioMedidas($medida_original) == "unidad" && $this->DiccionarioMedidas($medida_entrante) == "unidad") {
+            $resultado = $stock_actual;
+            if ($resultado < 0) {
+                throw new \Exception("El valor resultante no puede ser negativo");
+            }
+            return $resultado;
+        }
+
+        if ($validar) {
+
+            if ($medida_entrante != "u") {
+                $resultado = RegexHelper::FormatoDecimal($resultadoBase->toUnit($medida_entrante));
+            } else {
+                $resultado = $resultadoBase;
+            }
+
+            return $resultado;
+        } else {
+            throw new \Exception("Conversión no válida: " . $medida_original . " y " . $medida_entrante);
+        }
+        if ($resultado < 0) {
+            throw new \Exception("El valor resultante no puede ser negativo");
+        }
+    }
+
+    private function OperacionMatematatica($valor, $stock, $operacion)
+    {
+
+        $resultado = match ($operacion) {
+            'sumar' => $stock + $valor,
+            'restar' => $stock - $valor,
+            default => throw new \Exception("Operación no válida")
+        };
+
+        return $resultado;
+    }
+
+    private function DiccionarioMedidas($medida)
+    {
+        $resultado = NULL;
+
+        $resultado = match ($medida) {
+            'kg', 'gr', 'g', 'oz', 'lb' => "masa",
+            'ml', 'l' => "volumen",
+            'u', 'un' => "unidad",
+            default => 'error'
+        };
+
+        if ($resultado == "error") {
+            throw new \Exception("Unidad de Medida no válida: " . $medida);
+        }
+
+        return $resultado;
+    }
+
 }
+

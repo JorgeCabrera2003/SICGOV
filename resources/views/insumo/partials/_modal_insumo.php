@@ -66,7 +66,7 @@
                         </div>
                     </div>
 
-                    <div class="row g-3 mb-3 justify-content-center">
+                    <div class="row g-3 mb-3 justify-content-center" id="fila-stock-inicial">
                         <div class="col-md-6 position-relative">
                             <label for="id_proveedor" class="form-label fw-semibold">
                                 Proveedor<span class="text-danger"></span>
@@ -76,7 +76,7 @@
                             </select>
                             <div class="form-label" id="sid_proveedor"></div>
                         </div>
-                        <div class="col-md-6 position-relative" id="fila-stock-inicial">
+                        <div class="col-md-6 position-relative">
                             <label for="stock_inicial" class="form-label fw-semibold">
                                 Stock Inicial <span class="text-danger">*</span>
                             </label>

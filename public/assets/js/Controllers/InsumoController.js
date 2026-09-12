@@ -1,6 +1,10 @@
-import * as insumo from "../Handlers/InsumoHandler.js"
-import * as categoriaInsumo from "../Handlers/CategoriaInsumoHandler.js"
-import * as AjaxHelper from "../Helpers/AjaxHelper.js"
+import * as insumo from "../Handlers/InsumoHandler.js";
+import * as categoriaInsumo from "../Handlers/CategoriaInsumoHandler.js";
+import * as suministrarInsumo from "../Handlers/SuministrarInsumoHandler.js";
+import * as asociarProveedor from "../Handlers/AsociarProveedorHandler.js";
+import * as movimientoInsumo from "../Handlers/MovimientoInsumoHandler.js";
+import * as suministrarLote from "../Handlers/SuministrarLoteHandler.js";
+import * as AjaxHelper from "../Helpers/AjaxHelper.js";
 
 //MODULO DE INGREDIENTES
 
@@ -8,7 +12,7 @@ import * as AjaxHelper from "../Helpers/AjaxHelper.js"
 
 $(document).ready(function () {
   crearDataTable();
-  registrarEntrada();
+  AjaxHelper.registrarEntrada();
   iniciarValidaciones();
 });
 
@@ -21,6 +25,23 @@ $("#btnInsumoForm").on("click", async function () {
     await crearDataTable("insumos");
   };
 });
+
+$("#btnSuministrarInsumoForm").on("click", async function () {
+  let respuesta = null;
+  respuesta = await suministrarInsumo.EnviarFormulario($(this).text());
+  if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
+    await crearDataTable("insumos");
+  };
+});
+
+$("#btnSuministrarLoteForm").on("click", async function () {
+  let respuesta = null;
+  respuesta = await suministrarLote.EnviarFormulario($(this).text());
+  if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
+    await crearDataTable("insumos");
+  };
+});
+
 
 $("#btnNuevoInsumo").on("click", function () {
   insumo.LimpiarFormulario();
@@ -41,10 +62,27 @@ $("#btn-CategoriaCancel").on("click", function () {
   categoriaInsumo.CancelarFormulario();
 })
 
+$("#btn-agregarProveedor").on("click", function () {
+  asociarProveedor.AgregarFilaInput();
+})
+
+$("#btnAsociarForm").on("click", function () {
+  asociarProveedor.EnviarFormulario("Asociar")
+})
+
+$("#btnSuministrarLote").on("click", async function () {
+  await suministrarLote.DataTable();
+  suministrarLote.EditarModal("suministrar");
+})
+
+$(document).on("click", ".btn-eliminar-insumo_lote", async function () {
+  await suministrarLote.BorrarFila(this);
+})
+
+
 $("#btn-CategoriaForm").on("click", async function () {
   let respuesta = null;
   respuesta = await categoriaInsumo.EnviarFormulario($(this));
-  console.log(respuesta);
 
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
     await crearDataTable("categoria-insumo");
@@ -57,7 +95,18 @@ function iniciarValidaciones() {
   insumo.CapaValidar();
   categoriaInsumo.KeyPressCategoria();
   categoriaInsumo.KeyUpCategoria();
+  suministrarInsumo.CapaValidar();
 }
+
+$('#tablaAsociar').on('change', '.select-proveedor', function () {
+  asociarProveedor.validarDuplicados();
+});
+
+$('#tablaSuministrarLote').on('change', '.select-insumo', function () {
+  let $fila = $(this).closest('tr');
+  suministrarLote.BuscarDatos($fila);
+});
+
 
 async function crearDataTable(controlador = "insumos") {
   const MODULOS = {
@@ -89,8 +138,6 @@ async function crearDataTable(controlador = "insumos") {
     if (controlador === "categoria-insumo") {
       categoriaInsumo.DataTableCategoria(arreglo);
     }
-  } else {
-    console.log("falso");
   }
 }
 
@@ -99,6 +146,7 @@ async function rellenar(pos, accion, modulo = "Insumo") {
   const linea = $(pos).closest('tr');
   const tabla = $('#tabla' + modulo).DataTable();
   const datosFila = tabla.row(linea).data();
+  let abrirModalInsumo = true;
 
   if (accion == 0) {
     str_accion = "modificar";
@@ -108,7 +156,22 @@ async function rellenar(pos, accion, modulo = "Insumo") {
     str_accion = "eliminar";
   }
 
-  if (modulo == "Insumo") {
+  if (accion == 2) {
+    abrirModalInsumo = false;
+    suministrarInsumo.EditarFormSuministrar(datosFila);
+  }
+
+  if (accion == 3) {
+    abrirModalInsumo = false;
+    movimientoInsumo.CargarModalTabla(datosFila);
+  }
+
+  if (accion == 4) {
+    abrirModalInsumo = false;
+    asociarProveedor.CargarModalTabla(datosFila);
+  }
+
+  if (modulo == "Insumo" && abrirModalInsumo) {
     await insumo.EditarFormInsumo(datosFila, str_accion)
   }
 
@@ -119,9 +182,31 @@ async function rellenar(pos, accion, modulo = "Insumo") {
 }
 
 $(document).on('click', '.btn-editar', function () {
-  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
+  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"));
 })
 
 $(document).on('click', '.btn-eliminar', function () {
-  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"))
+  rellenar($(this), $(this).attr("data-accion"), $(this).attr("data-modulo"));
+})
+
+$(document).on('click', '.btn-suministrar', function () {
+  rellenar($(this), $(this).attr("data-accion"), "Insumo");
+})
+
+$(document).on('click', '.btn-movimiento', function () {
+  rellenar($(this), $(this).attr("data-accion"), "Insumo");
+})
+
+$(document).on('click', '.btn-asociar', function () {
+  rellenar($(this), $(this).attr("data-accion"), "Insumo");
+  asociarProveedor.DesbloquearBotonAgregar();
+})
+
+$(document).on('click', '.btn-eliminar-proveedor', function () {
+  asociarProveedor.BorrarProveedor($(this));
+})
+
+$(document).on('click', '#btn-agregarInsumo', async function () {
+  suministrarLote.AgregarFilaInput();
+  suministrarLote.CapaValidar()
 })

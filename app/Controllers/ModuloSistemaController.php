@@ -9,6 +9,8 @@ use App\Models\Security\ModuloSistema;
 Helper::verificarSesion();
 
 $moduloSistemaModel = new ModuloSistema();
+$permisosModulo = Helper::TraerPermisos("modulo_sistema");
+
 $json['datos_nuevos'] = NULL;
 $json['datos_anteriores'] = NULL;
 if (isset($_POST["peticion"])) {
@@ -25,14 +27,34 @@ if (isset($_POST["peticion"])) {
 	//Fin del Consultar
 //Comprobar
 	if ($_POST["peticion"] == "comprobar") {
-		$json = $moduloSistemaModel->Transaccion(['peticion' => $_POST["peticion"]]);
+		$accion_permiso = false;
+		if (isset($permisosModulo['modulo_sistema']['comprobar']) && $permisosModulo['modulo_sistema']['comprobar'] == 1) {
+			$accion_permiso = true;
+		}
+		if ($accion_permiso) {
+			$json = $moduloSistemaModel->Transaccion(['peticion' => $_POST["peticion"]]);
+		} else {
+			$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
+			$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' los módulos del sistema'];
+			$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
+		}
 	}
 	//Fin del Comprobar
-	//Comprobar
+	//Reetablecer
 	if ($_POST["peticion"] == "reestablecer") {
-		$json = $moduloSistemaModel->Transaccion(['peticion' => $_POST["peticion"]]);
+		$accion_permiso = false;
+		if (isset($permisosModulo['modulo_sistema']['cargar']) && $permisosModulo['modulo_sistema']['cargar'] == 1) {
+			$accion_permiso = true;
+		}
+		if ($accion_permiso) {
+			$json = $moduloSistemaModel->Transaccion(['peticion' => $_POST["peticion"]]);
+		} else {
+			$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
+			$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' los módulos del sistema'];
+			$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
+		}
 	}
-	//Fin del Comprobar 
+	//Fin del Reetablecer 
 
 	//Enviar respuesta al navegador usando un encabezado HTTP
 
@@ -43,5 +65,6 @@ if (isset($_POST["peticion"])) {
 
 Helper::cargarVista(
 	'modulo_sistema/index',
-	'Modulos del Sistema - Good Vibes'
+	'Modulos del Sistema - Good Vibes',
+	['ver' => $permisosModulo['modulo_sistema']['ver']]
 );

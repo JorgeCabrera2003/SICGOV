@@ -1,4 +1,7 @@
 import * as AjaxHelper from "../Helpers/AjaxHelper.js";
+import { formatearFecha } from "../Helpers/FormatHelper.js";
+import { SistemaValidacion } from "../Helpers/ValidationHelper.js";
+import { mensajes } from "../Helpers/UIHelper.js";
 
 const ENDPOINT = BASE_URL + '?page=asistencia';
 let currentAsistenciaRow = null;
@@ -119,7 +122,18 @@ export function renderDataTable(arreglo) {
         className: 'text-center',
         render: function (data, type) {
           if (type === 'display' || type === 'filter') {
-            const text = data || '';
+            // Mostrar un resumen de las observaciones activas
+            let observaciones = [];
+            try {
+              const parsed = JSON.parse(data);
+              if (Array.isArray(parsed)) {
+                observaciones = parsed.filter(obs => !obs.eliminada).map(obs => obs.texto);
+              }
+            } catch (e) {
+              // Si no es JSON, mostrar el texto plano
+              observaciones = [data];
+            }
+            const text = observaciones.join('\n');
             const safeText = $('<div>').text(text).html();
             return `<div style="white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; max-width: 340px;">${safeText}</div>`;
           }
@@ -130,6 +144,20 @@ export function renderDataTable(arreglo) {
         data: null,
         className: 'text-center',
         render: function (data, type, row) {
+          const puedeAgregar = $('#tablaAsistencia').attr('data-puede-agregar-observacion') === '1';
+          const puedeEliminar = $('#tablaAsistencia').attr('data-puede-eliminar-observacion') === '1';
+          if (!puedeAgregar && !puedeEliminar) {
+            return '';
+          }
+
+          const botonGestionar = puedeAgregar
+            ? `<button type="button" class="dropdown-item btn-observacion text-primary" data-id="${row.id_asistencia}">
+                    <i class="fa-solid fa-pen-to-square me-2"></i>Gestionar Observaciones
+                  </button>`
+            : `<button type="button" class="dropdown-item btn-observacion text-primary" data-id="${row.id_asistencia}">
+                    <i class="fa-solid fa-eye me-2"></i>Ver Observaciones
+                  </button>`;
+
           return `
             <div class="dropdown">
               <button class="btn btn-sm bg-body text-body border dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -137,9 +165,7 @@ export function renderDataTable(arreglo) {
               </button>
               <ul class="dropdown-menu dropdown-menu-end">
                 <li>
-                  <button type="button" class="dropdown-item btn-observacion text-primary" data-id="${row.id_asistencia}">
-                    <i class="fa-solid fa-pen-to-square me-2"></i>Gestionar Observaciones
-                  </button>
+                  ${botonGestionar}
                 </li>
               </ul>
             </div>
@@ -150,7 +176,7 @@ export function renderDataTable(arreglo) {
     responsive: true,
     autoWidth: false,
     order: [[0, 'desc']],
-    language: { url: idiomaTabla }
+    language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' }
   });
 }
 
@@ -194,10 +220,11 @@ function bindModalEvents() {
     await submitObservacion();
   });
 
+  // Delegación de eventos para eliminar observaciones
   $('#observacionActual').on('click', '.btn-eliminar-observacion', async function () {
-    const index = parseInt($(this).data('index'), 10);
-    if (isNaN(index) || index < 0) {
-      return mensajes('error', 5000, 'Índice de observación inválido.');
+    const idObservacion = $(this).data('id');
+    if (!idObservacion) {
+      return mensajes('error', 5000, 'ID de observación inválido.');
     }
 
     const confirmacion = await Swal.fire({
@@ -211,7 +238,7 @@ function bindModalEvents() {
     });
 
     if (confirmacion.isConfirmed) {
-      await eliminarObservacion(index);
+      await eliminarObservacion(idObservacion);
     }
   });
 }
@@ -225,6 +252,8 @@ function bindDatatableActions() {
 export function openObservacionModal(button) {
   const table = $('#tablaAsistencia').DataTable();
   const row = table.row($(button).closest('tr')).data();
+  const puedeAgregar = $('#modalObservacion').attr('data-puede-agregar') === '1';
+  const puedeEliminar = $('#modalObservacion').attr('data-puede-eliminar') === '1';
 
   if (!row || !row.id_asistencia) {
     return mensajes('error', 5000, 'No se encontró la asistencia seleccionada.');
@@ -234,11 +263,47 @@ export function openObservacionModal(button) {
   const estado = formatoEstado(row.estado);
   const tipo = formatoTipoMarcacion(row.tipo_marcacion);
 
-  $('#observacionEmpleado').text(row.primer_nombre ? `${row.primer_nombre} ${row.primer_apellido || ''}`.trim() : row.cedula_empleado);
-  $('#observacionFechaHora').text(`${formatearFecha(row.fecha)} ${formatearHora(row.hora)}`);
+  // Decodificar observaciones
+  let observaciones = [];
+  try {
+    const parsed = JSON.parse(row.observacion);
+    if (Array.isArray(parsed)) {
+      observaciones = parsed;
+    }
+  } catch (e) {
+    // Si no es JSON, mostrar como una sola observación
+    if (row.observacion) {
+      observaciones = [{
+        id: 'OBS-LEGACY',
+        texto: row.observacion,
+        autor: 'Sistema',
+        fecha: row.fecha + ' ' + row.hora,
+        eliminada: false
+      }];
+    }
+  }
+
+  // Formatear la cédula para mostrar
+  const cedula = row.cedula_empleado || '';
+  const formattedCedula = cedula.length > 1 ? cedula.charAt(0) + '-' + cedula.slice(1) : cedula;
+  
+  // Construir nombre completo con cédula
+  const nombreCompleto = row.primer_nombre ? `${row.primer_nombre} ${row.primer_apellido || ''}`.trim() : 'Empleado';
+  const nombreConCedula = `${nombreCompleto} (${formattedCedula})`;
+
+  // Formatear fecha y hora correctamente
+  const fechaFormateada = formatearFecha(row.fecha);
+  const horaFormateada = formatearHora(row.hora);
+
+  $('#observacionEmpleado').text(nombreConCedula);
+  $('#observacionFechaHora').text(`${fechaFormateada} ${horaFormateada}`);
   $('#observacionTipo').text(tipo.label);
   $('#observacionEstado').html(`<span class="badge rounded-pill ${estado.style}">${estado.label}</span>`);
-  renderObservacionesPrevias(row.observacion);
+  
+  // Pasar el array completo de observaciones
+  renderObservacionesPrevias(observaciones);
+  $('#observacionInput').closest('.row').toggleClass('d-none', !puedeAgregar);
+  $('#btnAgregarObservacion').toggleClass('d-none', !puedeAgregar);
   $('#observacionInput').val('').focus();
   $('#modalObservacion').modal('show');
 }
@@ -262,8 +327,11 @@ async function submitObservacion() {
   const json = await AjaxHelper.enviaAjax(peticion, ENDPOINT);
 
   if (json && json.resultado === 200) {
-    currentAsistenciaRow.observacion = json.datos.observacion;
-    renderObservacionesPrevias(currentAsistenciaRow.observacion);
+    // Actualizar el row con las nuevas observaciones
+    if (json.datos && Array.isArray(json.datos.observaciones)) {
+      currentAsistenciaRow.observacion = JSON.stringify(json.datos.observaciones);
+    }
+    renderObservacionesPrevias(json.datos.observaciones);
     $('#observacionInput').val('').focus();
     mensajes('success', 4000, json.mensaje || 'Observación agregada correctamente');
     actualizarFilaActual();
@@ -274,7 +342,7 @@ async function submitObservacion() {
   return json;
 }
 
-async function eliminarObservacion(index) {
+async function eliminarObservacion(idObservacion) {
   if (!currentAsistenciaRow || !currentAsistenciaRow.id_asistencia) {
     return mensajes('error', 5000, 'No se encontró la asistencia seleccionada.');
   }
@@ -282,13 +350,15 @@ async function eliminarObservacion(index) {
   const peticion = new FormData();
   peticion.append('peticion', 'eliminar_observacion');
   peticion.append('id_asistencia', currentAsistenciaRow.id_asistencia);
-  peticion.append('indice', index);
+  peticion.append('id_observacion', idObservacion);
 
   const json = await AjaxHelper.enviaAjax(peticion, ENDPOINT);
 
   if (json && json.resultado === 200) {
-    currentAsistenciaRow.observacion = json.datos.observacion;
-    renderObservacionesPrevias(currentAsistenciaRow.observacion);
+    if (json.datos && Array.isArray(json.datos.observaciones)) {
+      currentAsistenciaRow.observacion = JSON.stringify(json.datos.observaciones);
+    }
+    renderObservacionesPrevias(json.datos.observaciones);
     mensajes('success', 4000, json.mensaje || 'Observación eliminada correctamente');
     actualizarFilaActual();
   } else {
@@ -312,33 +382,74 @@ function actualizarFilaActual() {
 
 function renderObservacionesPrevias(observaciones) {
   const $container = $('#observacionActual');
-  const lines = observaciones ? observaciones.split(/\r\n|\r|\n/) : [];
-  const filtered = lines
-    .map(line => line.trim())
-    .filter(line => line !== '')
-    .map(line => line.startsWith('- ') ? line.substring(2) : line);
+  
+  // Filtrar observaciones no eliminadas
+  const activas = Array.isArray(observaciones) 
+    ? observaciones.filter(obs => !obs.eliminada) 
+    : [];
 
-  if (filtered.length === 0) {
-    $container.text('Sin observaciones previas.');
+  if (activas.length === 0) {
+    $container.html('<div class="text-muted">Sin observaciones previas.</div>');
     return;
   }
 
   const $list = $('<ul>').addClass('list-group list-group-flush mb-0');
 
-  filtered.forEach((line, index) => {
-    const $item = $('<li>').addClass('list-group-item d-flex justify-content-between align-items-center py-2 px-3');
-    const $text = $('<span>').addClass('text-body').text(line);
-    const $button = $('<button>')
-      .attr('type', 'button')
-      .addClass('btn btn-sm btn-outline-danger btn-eliminar-observacion')
-      .attr('data-index', index)
-      .html('<i class="fas fa-trash-alt"></i>');
+  activas.forEach((obs) => {
+    const $item = $('<li>').addClass('list-group-item d-flex justify-content-between align-items-start py-2 px-3');
+    
+    const $content = $('<div>').addClass('flex-grow-1 me-2');
+    
+    // Mostrar el texto con el guion y en negrita
+    const $text = $('<div>').addClass('text-body fw-semibold').text(`- ${obs.texto || ''}`);
+    
+    // Obtener el nombre del autor desde el empleado si es posible
+    let autorNombre = obs.autor || 'Sistema';
+    // Si el autor es una cédula, intentar obtener el nombre (esto podría mejorarse con una consulta)
+    // Por ahora mostramos la cédula formateada
+    if (autorNombre !== 'Sistema') {
+      const autorFormateado = autorNombre.length > 1 ? autorNombre.charAt(0) + '-' + autorNombre.slice(1) : autorNombre;
+      autorNombre = autorFormateado;
+    }
+    
+    const $meta = $('<small>').addClass('text-muted d-block').html(
+      `Autor: ${autorNombre} - Fecha: ${formatDateTime(obs.fecha)}`
+    );
+    $content.append($text, $meta);
 
-    $item.append($text, $button);
+    if ($('#modalObservacion').attr('data-puede-eliminar') === '1') {
+      const $button = $('<button>')
+        .attr('type', 'button')
+        .addClass('btn btn-sm btn-outline-danger btn-eliminar-observacion flex-shrink-0')
+        .attr('data-id', obs.id)
+        .html('<i class="fas fa-trash-alt"></i>');
+
+      $item.append($content, $button);
+    } else {
+      $item.append($content);
+    }
     $list.append($item);
   });
 
   $container.empty().append($list);
+}
+
+function formatDateTime(dateTimeStr) {
+  if (!dateTimeStr) return '';
+  try {
+    const date = new Date(dateTimeStr);
+    if (isNaN(date.getTime())) return dateTimeStr;
+    return date.toLocaleString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (e) {
+    return dateTimeStr;
+  }
 }
 
 function validarTipoDoc() {

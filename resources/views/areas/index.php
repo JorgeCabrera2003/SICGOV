@@ -23,7 +23,7 @@
                     <thead class="table-light">
                         <tr>
                             <th scope="col">Nombre</th>
-                            <th scope="col">Descripción</th>
+
                             <th scope="col">Estatus</th>
                             <th scope="col">Acciones</th>
                         </tr>
@@ -66,15 +66,7 @@
                         <div class="invalid-feedback">Ingrese un nombre válido (3-60 caracteres)</div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="descripcion" class="form-label fw-semibold">
-                            <i class="fas fa-align-left me-1"></i> Descripción
-                        </label>
-                        <textarea class="form-control" id="descripcion" name="descripcion" 
-                                  rows="3" maxlength="200"></textarea>
-                        <div class="invalid-feedback">La descripción no puede exceder los 200 caracteres</div>
-                        <small class="text-muted">Máximo 200 caracteres (opcional)</small>
-                    </div>
+
 
                     <div class="mb-3">
                         <label for="estatus" class="form-label fw-semibold">

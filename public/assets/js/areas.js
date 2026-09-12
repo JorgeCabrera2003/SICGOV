@@ -1,3 +1,5 @@
+import { enviaAjax } from './Helpers/AjaxHelper.js';
+
 // ============================================
 // MÓDULO DE ÁREAS - GOOD VIBES
 // ============================================
@@ -159,7 +161,6 @@ if (typeof window.areasScriptLoaded === 'undefined') {
                     language: { url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json' },
                     columns: [
                         { data: 'nombre', defaultContent: 'N/A' },
-                        { data: 'descripcion', defaultContent: 'Sin descripción' },
                         {
                             data: 'estatus',
                             defaultContent: '0',
@@ -180,7 +181,6 @@ if (typeof window.areasScriptLoaded === 'undefined') {
                                         <button class="btn btn-outline-primary btn-editar" 
                                                 data-id="${data.id_area || ''}"
                                                 data-nombre="${data.nombre || ''}"
-                                                data-descripcion="${data.descripcion || ''}"
                                                 data-estatus="${data.estatus || ''}"
                                                 title="Editar">
                                             <i class="fas fa-edit"></i>
@@ -273,18 +273,16 @@ if (typeof window.areasScriptLoaded === 'undefined') {
             // Obtener los datos directamente del botón
             const idArea = $(this).data('id');
             const nombre = $(this).data('nombre');
-            const descripcion = $(this).data('descripcion');
             const estatus = $(this).data('estatus');
             
             console.log("Editando área con datos del botón:", {
-                idArea, nombre, descripcion, estatus
+                idArea, nombre, estatus
             });
             
             // Guardar referencia del área en edición
             areaEnEdicion = {
                 id_area: idArea,
                 nombre: nombre,
-                descripcion: descripcion,
                 estatus: estatus
             };
             
@@ -292,7 +290,6 @@ if (typeof window.areasScriptLoaded === 'undefined') {
             $('#peticion').val('modificar');
             $('#id_area').val(idArea);
             $('#nombre').val(nombre);
-            $('#descripcion').val(descripcion || '');
             $('#estatus').prop('checked', estatus == 1);
             $('#modalTitle').text('Editar Área');
             

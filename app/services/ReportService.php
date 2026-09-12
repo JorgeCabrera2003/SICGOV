@@ -87,7 +87,21 @@ class ReportService
      */
     public function getOutput(): string
     {
+        if (!file_exists($this->templatePath)) {
+            throw new Exception("Error Crítico: Plantilla de reporte no encontrada.");
+        }
+
+        ob_start();
+        $info = $this->info;
+        $columns = $this->columns;
+        $data = $this->data;
+        require $this->templatePath;
+        $html = ob_get_clean();
+
+        $this->dompdf->loadHtml($html);
+        $this->dompdf->setPaper($this->paperSize, $this->orientation);
         $this->dompdf->render();
+        
         return $this->dompdf->output();
     }
 }

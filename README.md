@@ -59,6 +59,21 @@
 
 ---
 
+## 📦 Librerías y Dependencias (Front-End)
+Todas estas librerías han sido descargadas y se sirven localmente desde `public/assets/lib/` para mejorar el rendimiento y asegurar la independencia de conexión externa, a excepción de Google reCAPTCHA.
+
+| Librería | Versión | Licencia | Enlace Oficial | Propósito en SICGOV |
+|----------|---------|----------|----------------|---------------------|
+| **jQuery** | 3.7.1 | MIT | [jquery.com](https://jquery.com/) | Manipulación del DOM y base para otras librerías. |
+| **Bootstrap** | 5.3.2 | MIT | [getbootstrap.com](https://getbootstrap.com/) | Framework UI base, componentes interactivos y sistema de grillas. |
+| **DataTables** | 1.13.6 | MIT | [datatables.net](https://datatables.net/) | Renderizado y filtrado avanzado de tablas dinámicas. |
+| **Select2** | 4.1.0-rc.0 | MIT | [select2.org](https://select2.org/) | Selectores personalizables con búsqueda. |
+| **SweetAlert2** | 11 | MIT | [sweetalert2.github.io](https://sweetalert2.github.io/) | Alertas y modales interactivos. |
+| **Chart.js** | 4.4 | MIT | [chartjs.org](https://www.chartjs.org/) | Creación de gráficos estadísticos. |
+| **Driver.js** | 1.3.1 | MIT | [driverjs.com](https://driverjs.com/) | Motor de tutoriales paso a paso (Tours). |
+
+---
+
 ## 📁 Estructura del Proyecto
 
 ```

@@ -2,6 +2,7 @@ import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js";
 import * as AjaxHelper from "../Helpers/AjaxHelper.js";
 import * as ValidadorHelper from "../Helpers/ValidadorHelper.js";
 import * as SelectHelper from "../Helpers/SelectHelper.js";
+import * as PermisoHelper from "../Helpers/PermisoHelper.js";
 
 //MODULO DE PROVEEDORES
 
@@ -111,7 +112,7 @@ export async function EnviarDatos(operacion) {
     }
 
     if (ValidarEnvio() && bool_form) {
-      confirmacion = await confirmarAccion(`Se ${str_acccion} un Rol`, mensajeConfirmacion, "question");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion(`Se ${str_acccion} un Rol`, mensajeConfirmacion, "question");
 
       if (confirmacion) {
         permisos = CrearArregloPermisos();
@@ -136,7 +137,7 @@ export async function EnviarDatos(operacion) {
     }
 
     if (bool_eliminar) {
-      confirmacion = await confirmarAccion("Se eliminará un Rol", mensajeConfirmacion, "warning");
+      confirmacion = await MensajeriaHelper.MostrarConfirmacion("Se eliminará un Rol", mensajeConfirmacion, "warning");
 
       if (confirmacion) {
         peticion.append('peticion', 'eliminar');
@@ -276,6 +277,42 @@ export async function MarcarCheckBox() {
 }
 
 async function RenderPermisoBotones(modulo = "Rol") {
+  const permisos = await PermisoHelper.LlamarPermiso("rol");
+  let bool = false;
+  let btn_eliminar = "";
+  let btn_modificar = "";
+  let separadorHTML = "";
+
+  if (permisos['rol']['modificar'] != undefined && permisos['rol']['modificar'] == 1) {
+    const itemEditar = $('<li>');
+    const linkEditar = $('<a>')
+      .addClass('dropdown-item btn-editar text-primary')
+      .attr('href', '#')
+      .attr('data-accion', 0)
+      .attr('data-modulo', modulo)
+      .html('<i class="fas fa-edit me-2"></i>Editar');
+    itemEditar.append(linkEditar);
+    btn_modificar = itemEditar;
+    bool = true;
+  }
+
+  if (permisos['rol']['eliminar'] != undefined && permisos['rol']['modificar'] == 1) {
+    const itemEliminar = $('<li>');
+    const linkEliminar = $('<a>')
+      .addClass('dropdown-item btn-eliminar text-danger')
+      .attr('href', '#')
+      .attr('data-accion', 1)
+      .attr('data-modulo', modulo)
+      .html('<i class="fas fa-trash me-2" me-2"></i>Eliminar');
+    itemEliminar.append(linkEliminar);
+    btn_eliminar = itemEliminar;
+    bool = true;
+  }
+
+  if (btn_modificar != "" && btn_eliminar != "") {
+    const separador = $('<li>').html('<hr class="dropdown-divider">');
+    separadorHTML = separador;
+  }
 
   const dropdown = $('<div>').addClass('dropdown');
   const boton = $('<button>').addClass('btn btn-sm btn-light border dropdown-toggle')
@@ -284,30 +321,15 @@ async function RenderPermisoBotones(modulo = "Rol") {
     .html('<i class="fas fa-ellipsis-v me-3"></i>Acciones');
 
   const menu = $('<ul>').addClass('dropdown-menu');
-  const separador = $('<li>').html('<hr class="dropdown-divider">');
 
-  const itemEditar = $('<li>');
-  const linkEditar = $('<a>')
-    .addClass('dropdown-item btn-editar text-primary')
-    .attr('href', '#')
-    .attr('data-accion', 'modificar')
-    .attr('data-modulo', modulo)
-    .html('<i class="fas fa-edit me-2"></i>Editar');
-  itemEditar.append(linkEditar);
 
-  const itemEliminar = $('<li>');
-  const linkEliminar = $('<a>')
-    .addClass('dropdown-item btn-eliminar text-danger')
-    .attr('href', '#')
-    .attr('data-accion', 'eliminar')
-    .attr('data-modulo', modulo)
-    .html('<i class="fas fa-trash me-2" me-2"></i>Eliminar');
-  itemEliminar.append(linkEliminar);
-
-  menu.append(itemEditar, separador, itemEliminar);
+  menu.append(btn_modificar, separadorHTML, btn_eliminar);
   dropdown.append(boton, menu);
 
-  console.log(dropdown)
+  if (!bool) {
+    dropdown.empty(); //Destruye la Etiqueta por si no hay botones que renderizar
+  }
+
   return dropdown.prop('outerHTML');
 }
 
@@ -432,7 +454,7 @@ export async function DataTablePrincipal(arreglo) {
       }
     ],
     order: [[1, 'asc']],
-    language: { url: idiomaTabla }
+    language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' }
   });
 }
 

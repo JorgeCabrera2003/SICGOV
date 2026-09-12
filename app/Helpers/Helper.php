@@ -218,8 +218,13 @@ class Helper
 
     public static function cargarVista($vistaPath, $titulo = 'Good Vibes', $vars = [])
     {
+        if(isset($vars['ver']) && $vars['ver'] != 1){
+            header("Location: ?page=Dashboard");
+        }
+
         self::verificarSesion();
-        $permisos = self::TraerPermisos();
+        $permisosGlobales = self::TraerPermisos();
+        $permisos = $permisosGlobales;
 
         $varsVista = self::getVarsVista($titulo);
         $vars = array_merge($varsVista, $vars);
@@ -359,4 +364,15 @@ class Helper
             return 'Hace ' . $diferencia->i . ' minuto' . ($diferencia->i > 1 ? 's' : '');
         return 'Hace unos instantes';
     }
+
+    /**
+ * Limpia decimales redundantes de un número
+ * Ej: 1.00000000 → 1, 1.50000000 → 1.5, 0.00000000 → 0
+ */
+public static function limpiarDecimales($numero)
+{
+    if ($numero === null || $numero === '') return '0';
+    return rtrim(rtrim((string)$numero, '0'), '.');
+}
+
 }

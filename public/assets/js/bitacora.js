@@ -1,3 +1,5 @@
+import { enviaAjax } from './Helpers/AjaxHelper.js';
+
 /**
  * Dependencias: jQuery, DataTables, SweetAlert2
  * @version 2.2.0 - Estandarizado con enviaAjax y DOM jQuery puros

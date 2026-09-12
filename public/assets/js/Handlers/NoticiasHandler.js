@@ -39,7 +39,7 @@ export async function CargarNoticias() {
     peticion.append('peticion', 'consultar');
     
     try {
-        const json = await AjaxHelper.enviaAjax(peticion, '?page=noticias-admin');
+        const json = await AjaxHelper.enviaAjax(peticion, '?page=Noticia');
         if (json && json.resultado === 200) {
             DataTablePrincipal(json.datos);
         } else {
@@ -218,7 +218,7 @@ export async function EnviarFormulario() {
     const fd = new FormData($('#formNoticia')[0]);
     
     try {
-        const res = await AjaxHelper.enviaAjax(fd, '?page=noticias-admin');
+        const res = await AjaxHelper.enviaAjax(fd, '?page=Noticia');
         if (res && res.resultado === 200) {
             MensajeriaHelper.GenerarMensaje('success', 3000, 'Éxito', res.mensaje);
             modales.noticia.modal('hide');
@@ -241,7 +241,7 @@ export async function EditarFormNoticia(datosFila) {
     fd.append('peticion', 'validar');
     fd.append('id_noticia', id);
 
-    const res = await AjaxHelper.enviaAjax(fd, '?page=noticias-admin');
+    const res = await AjaxHelper.enviaAjax(fd, '?page=Noticia');
     if (res && res.resultado === 200) {
         const d = res.registro;
         LimpiarFormulario();
@@ -279,7 +279,7 @@ export async function EliminarNoticia(id) {
         fd.append('peticion', 'eliminar');
         fd.append('id_noticia', id);
 
-        const res = await AjaxHelper.enviaAjax(fd, '?page=noticias-admin');
+        const res = await AjaxHelper.enviaAjax(fd, '?page=Noticia');
         if (res && res.resultado === 200) {
             MensajeriaHelper.GenerarMensaje('success', 3000, 'Eliminado', res.mensaje);
             await CargarNoticias();
@@ -290,7 +290,7 @@ export async function EliminarNoticia(id) {
 }
 
 export function VerNoticiaPublica(id) {
-    window.open(BASE_URL + '?page=noticias-detalle&id=' + id, '_blank');
+    window.open(BASE_URL + '?page=Noticia&type=detalle&id=' + id, '_blank');
 }
 
 export function RenderCurrentImages(imagenes) {
@@ -348,7 +348,7 @@ export async function EliminarImagen(id) {
         fd.append('peticion', 'eliminar_imagen');
         fd.append('id_imagen', id);
 
-        const res = await AjaxHelper.enviaAjax(fd, '?page=noticias-admin');
+        const res = await AjaxHelper.enviaAjax(fd, '?page=Noticia');
         if (res && res.resultado === 200) {
             const inputs = GetEtiquetas("inputs");
             await ReloadImages(inputs.id_noticia.val());
@@ -362,7 +362,7 @@ export async function MarcarPrincipal(id) {
     fd.append('peticion', 'marcar_principal');
     fd.append('id_imagen', id);
 
-    const res = await AjaxHelper.enviaAjax(fd, '?page=noticias-admin');
+    const res = await AjaxHelper.enviaAjax(fd, '?page=Noticia');
     if (res && res.resultado === 200) {
         const inputs = GetEtiquetas("inputs");
         await ReloadImages(inputs.id_noticia.val());
@@ -375,7 +375,7 @@ export async function ReloadImages(id) {
     fd.append('peticion', 'validar');
     fd.append('id_noticia', id);
 
-    const res = await AjaxHelper.enviaAjax(fd, '?page=noticias-admin');
+    const res = await AjaxHelper.enviaAjax(fd, '?page=Noticia');
     if (res && res.resultado === 200) {
         RenderCurrentImages(res.registro.imagenes);
     }

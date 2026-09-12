@@ -141,7 +141,7 @@
                                             <h6 class="mb-0 fw-semibold">Productos seleccionados</h6>
                                             <small class="text-muted" id="contadorProductosSeleccionados">0 productos</small>
                                         </div>
-                                        <div class="list-group list-group-flush" id="productosSeleccionadosLista" style="max-height: 180px; overflow:auto;">
+                                        <div class="list-group list-group-flush" id="productosSeleccionadosLista" style="max-height: 320px; overflow:auto;">
                                             <div class="list-group-item bg-light text-center text-muted">No hay productos seleccionados</div>
                                         </div>
                                         <div class="form-label text-danger mt-2" id="sproducto"></div>

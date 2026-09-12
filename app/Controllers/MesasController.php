@@ -121,7 +121,7 @@ Helper::verificarSesion();
                     $json = $mesaModel->Transaccion(['peticion' => 'cambiar_estado', 'estado' => $_POST["estado"]]);
                     
                     if ($json['estado'] == 1) {
-                        Helper::Bitacora('CAMBIAR_ESTADO', 'MESAS', "Se cambió el estado de la mesa {$_POST['id_mesa']} a {$_POST['estado']}");
+                        Helper::Bitacora('CAMBIO ESTADO', 'MESAS', "Se cambió el estado de la mesa {$_POST['id_mesa']} a {$_POST['estado']}");
                     }
                 } catch (\Exception $e) {
                     $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Error al cambiar estado'];
@@ -143,7 +143,7 @@ Helper::verificarSesion();
                     
                     if ($json['estado'] == 1) {
                         $estatus_texto = $_POST["estatus"] == 1 ? 'activó' : 'desactivó';
-                        Helper::Bitacora('CAMBIAR_ESTATUS', 'MESAS', "Se {$estatus_texto} la mesa {$_POST['id_mesa']}");
+                        Helper::Bitacora('CAMBIO ESTATUS', 'MESAS', "Se {$estatus_texto} la mesa {$_POST['id_mesa']}");
                     }
                 } catch (\Exception $e) {
                     $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Error al cambiar estatus'];

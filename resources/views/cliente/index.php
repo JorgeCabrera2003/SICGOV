@@ -11,9 +11,11 @@
             Gestión de Clientes
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de cliente">
+            <?php if (isset($permisos['cliente']['registrar']) && $permisos['cliente']['registrar'] == 1) { ?>
             <button class="btn btn-primary fw-semibold" id="btnNuevoCliente">
                 <i class="fas fa-plus me-2"></i>Nuevo Cliente
             </button>
+            <?php } ?>
         </div>
     </header>
 
@@ -46,4 +48,7 @@
 <?php include 'partials/_modal_consultar_cliente.php'; ?>
 
 <!-- Recursos específicos de la página -->
+<script>
+    const permisosDB = <?= isset($permisos) ? json_encode($permisos) : 'null' ?>;
+</script>
 

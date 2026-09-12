@@ -96,22 +96,13 @@ class Media
 
         foreach ($resProd as $p) {
             $vinculaciones[] = [
-                'tipo' => 'PRODUCTO',
-                'id' => $p['id_producto'],
+                'tipo'   => 'PRODUCTO',
+                'id'     => $p['id_producto'],
                 'nombre' => $p['nombre_producto'],
-                'origen' => 'Tabla Producto (Principal)'
+                'origen' => 'Tabla Producto',
             ];
         }
 
-        foreach ($resProd as $p) {
-            $vinculaciones[] = [
-                'tipo' => 'PRODUCTO',
-                'id' => $p['id_producto'],
-                'nombre' => $p['nombre_producto'],
-                'origen' => 'Tabla Producto (Principal)'
-            ];
-        }
-        
         return $vinculaciones;
     }
 

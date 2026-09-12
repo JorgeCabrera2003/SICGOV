@@ -59,10 +59,9 @@ database/*.sql
 # ---------------------------
 # Archivos subidos por usuarios
 # ---------------------------
-public/assets/img/productos/*
+# public/assets/img/productos/*
 public/assets/img/empleados/*
 public/assets/img/uploads/*
-!public/assets/img/productos/.gitkeep
 !public/assets/img/empleados/.gitkeep
 !public/assets/img/uploads/.gitkeep
 public/assets/img/temp/

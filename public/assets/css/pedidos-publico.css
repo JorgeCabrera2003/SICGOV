@@ -5,7 +5,7 @@
     --primary-color: var(--bs-primary, #ff6b6b);
 }
 
-body[data-bs-theme="dark"] {
+html.dark, body[data-bs-theme="dark"] {
     --cart-bg: #1e1e1e;
     --cart-text: #f8f9fa;
     --cart-border: #333;

@@ -9,6 +9,12 @@ use Exception;
 Helper::verificarSesion();
 
 $tipoPermisoModel = new TipoPermiso();
+$permisosTipoPermiso = Helper::TraerPermisos("tipo_permiso");
+$tienePermisoTipoPermiso = static function (string $accion) use ($permisosTipoPermiso): bool {
+	return ($permisosTipoPermiso['tipo_permiso'][$accion] ?? 0) == 1;
+};
+
+
 if (isset($_POST["peticion"])) {
 
 	//Entrada
@@ -19,7 +25,16 @@ if (isset($_POST["peticion"])) {
 
 	//Registrar y Modificar
 	if ($_POST["peticion"] == "registrar" || $_POST["peticion"] == "modificar") {
-		$accion_permiso = true;
+		$accion_permiso = false;
+		$accion_bitacora = strtoupper($_POST["peticion"]);
+
+		if (isset($permisosTipoPermiso['tipo_permiso']['registrar']) && $permisosTipoPermiso['tipo_permiso']['registrar'] == 1 && $_POST["peticion"] == "registrar") {
+			$accion_permiso = true;
+		}
+
+		if (isset($permisosTipoPermiso['tipo_permiso']['modificar']) && $permisosTipoPermiso['tipo_permiso']['modificar'] == 1 && $_POST["peticion"] == "modificar") {
+			$accion_permiso = true;
+		}
 
 		//Validaciones
 		if ($accion_permiso) {
@@ -63,12 +78,21 @@ if (isset($_POST["peticion"])) {
 	//Fin del Registrar o Modificar
 //Consultar
 	if ($_POST["peticion"] == "consultar") {
-		$json = $tipoPermisoModel->Transaccion(['peticion' => $_POST["peticion"]]);
+		if ($tienePermisoTipoPermiso('ver')) {
+			$json = $tipoPermisoModel->Transaccion(['peticion' => $_POST["peticion"]]);
+		} else {
+			$json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+			$json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para consultar tipos de permisos', 'datos' => []];
+		}
 	}
 	//Fin del Consultar 
 //Eliminar
 	if ($_POST["peticion"] == "eliminar") {
-		$accion_permiso = true;
+		$accion_permiso = false;
+
+		if (isset($permisosTipoPermiso['tipo_permiso']['eliminar']) && $permisosTipoPermiso['tipo_permiso']['eliminar'] == 1 && $_POST["peticion"] == "eliminar") {
+			$accion_permiso = true;
+		}
 
 		if ($accion_permiso) {
 			$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
@@ -101,7 +125,17 @@ if (isset($_POST["peticion"])) {
 	echo json_encode($json['response']); //Conversión del Arreglo a un formato JSON
 	exit;
 } //Fin de Operaciones
+
+if (!$tienePermisoTipoPermiso('ver')) {
+	header('Location: ' . BASE_URL . '?page=Dashboard');
+	exit;
+}
+
 Helper::cargarVista(
 	'tipo_permiso/index',
-	'Tipos de Permisos - Good Vibes'
+	'Tipos de Permisos - Good Vibes',
+	[
+		'ver' => $permisosTipoPermiso['tipo_permiso']['ver'] ?? 0,
+		'permisosTipoPermiso' => $permisosTipoPermiso
+	]
 );

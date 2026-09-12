@@ -20,9 +20,11 @@
         </h1>
 
         <div class="btn-group" role="group" aria-label="Acciones de asistencia">
-            <button class="btn btn-warning text-dark fw-semibold" id="btnMarcarAsistencia">
-                <i class="fas fa-plus me-2"></i>Marcar Asistencia
-            </button>
+            <?php if (($permisosAsistencia['asistencia']['registrar'] ?? 0) == 1): ?>
+                <button class="btn btn-warning text-dark fw-semibold" id="btnMarcarAsistencia">
+                    <i class="fas fa-plus me-2"></i>Marcar Asistencia
+                </button>
+            <?php endif; ?>
             <a href="<?= BASE_URL ?>?page=asistencia-publica" target="_blank" class="btn btn-outline-warning text-dark fw-semibold shadow-sm">
                 <i class="fas fa-external-link-alt me-2"></i>Ver Página Pública
             </a>
@@ -32,12 +34,14 @@
 
     <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
         <div class="btn-group" role="group" aria-label="Filtros de asistencia">
-            <button type="button" class="btn btn-warning text-dark fw-semibold" id="btnHistorial">
-                <i class="fas fa-history me-2"></i>Histórico
-            </button>
-            <button type="button" class="btn btn-outline-warning" id="btnAsistenciaHoy">
-                <i class="fas fa-calendar-day me-2"></i>Asistencia Hoy
-            </button>
+            <?php if (($permisosAsistencia['asistencia']['ver'] ?? 0) == 1): ?>
+                <button type="button" class="btn btn-outline-warning" id="btnHistorial">
+                    <i class="fas fa-history me-2"></i>Histórico
+                </button>
+                <button type="button" class="btn btn-warning text-dark fw-semibold" id="btnAsistenciaHoy">
+                    <i class="fas fa-calendar-day me-2"></i>Asistencia Hoy
+                </button>
+            <?php endif; ?>
         </div>
         <div class="text-muted small">
             <i class="far fa-calendar-alt me-2 text-primary"></i><?= $hoy ?>
@@ -70,7 +74,11 @@
 
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover align-middle" id="tablaAsistencia" style="width:100%">
+                <table class="table table-hover align-middle" id="tablaAsistencia"
+                    data-puede-registrar="<?= (($permisosAsistencia['asistencia']['registrar'] ?? 0) == 1) ? '1' : '0' ?>"
+                    data-puede-agregar-observacion="<?= (($permisosAsistencia['asistencia']['agregar_observacion'] ?? 0) == 1) ? '1' : '0' ?>"
+                    data-puede-eliminar-observacion="<?= (($permisosAsistencia['asistencia']['eliminar_observacion'] ?? 0) == 1) ? '1' : '0' ?>"
+                    style="width:100%">
                     <thead class="table-light">
                         <tr>
                             <th scope="col">Fecha</th>

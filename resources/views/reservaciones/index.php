@@ -5,34 +5,16 @@
             <h1 class="h3 fw-bold text-primary mb-0">
                 <i class="bi bi-calendar-check me-2"></i>Agenda de Reservaciones
             </h1>
-            <p class="text-muted small mb-0">Gestiona las citas y disponibilidad de mesas en tiempo real.</p>
         </div>
         <div class="col-md-6 text-md-end mt-3 mt-md-0">
-            <button class="btn btn-primary shadow-sm fw-bold px-4 rounded-3" data-bs-toggle="modal" data-bs-target="#modalReservacion">
-                <i class="bi bi-plus-lg me-2"></i>Nueva Reservación
+            <?php if (isset($permisosReservacion['reservacion']['registrar']) && $permisosReservacion['reservacion']['registrar'] == 1): ?>
+            <button class="btn btn-primary shadow-sm fw-bold px-4 rounded-3" id="btnNuevaReservacion">
+                <i class="bi bi-plus-lg me-2"></i> Nueva Reservación
             </button>
+            <?php endif; ?>
         </div>
     </div>
 
-    <!-- Filtros y Leyenda -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-3">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                <div class="d-flex align-items-center gap-3">
-                    <span class="small fw-bold text-uppercase opacity-75">Estados:</span>
-                    <div class="d-flex gap-2">
-                        <span class="badge rounded-pill status-badge-pendiente">Pendiente</span>
-                        <span class="badge rounded-pill status-badge-confirmada">Confirmada</span>
-                        <span class="badge rounded-pill status-badge-completada">Completada</span>
-                        <span class="badge rounded-pill status-badge-cancelada">Cancelada</span>
-                    </div>
-                </div>
-                <div class="text-muted small">
-                    <i class="bi bi-info-circle me-1"></i>Puedes arrastrar las reservaciones para cambiar de horario.
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Calendario Principal -->
     <div class="card border-0 shadow-sm">
@@ -79,7 +61,7 @@
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label class="form-label small fw-bold text-uppercase">Fecha</label>
-                            <input type="date" class="form-control bg-light" name="fecha" id="fecha" required>
+                            <input type="text" class="form-control bg-light" name="fecha" id="fecha" required>
                             <div id="sfecha"></div>
                         </div>
                         <div class="col-md-4 mb-3">
@@ -124,7 +106,7 @@
                         <i class="bi bi-trash me-2"></i>Eliminar
                     </button>
                     <button type="button" class="btn btn-cancel-custom" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-save-custom fw-bold">Guardar Cambios</button>
+                    <button type="submit" class="btn btn-save-custom fw-bold">Guardar Reservación</button>
                 </div>
             </form>
         </div>

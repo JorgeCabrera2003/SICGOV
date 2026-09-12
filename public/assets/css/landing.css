@@ -1,0 +1,405 @@
+/* ==========================================
+   LANDING PAGE (GOOD VIBES)
+   Estilos inspirados en diseño moderno, manteniendo
+   la paleta de colores del sistema.
+========================================== */
+
+:root {
+    --brand-orange: #FA9E3B;
+    --brand-dark-orange: #F15A29;
+    --brand-teal: #6CB4B4;
+    --brand-green: #4CB85B;
+    --brand-dark-teal: #0A2B2B;
+    
+    /* Overrides globales para la landing pública */
+    --color-acento: var(--brand-orange);
+    --color-sidebar: var(--brand-dark-teal); /* Reemplaza el texto oscuro por dark teal */
+    --bg-principal: #FCFCFA; /* Fondo claro crema/gris muy suave */
+    --color-border: rgba(108, 180, 180, 0.2);
+    
+    /* Sobrescribiendo variables de Bootstrap */
+    --bs-dark: var(--brand-orange);
+    --bs-dark-rgb: 250, 158, 59;
+    --bs-primary: var(--brand-orange);
+    --bs-primary-rgb: 250, 158, 59;
+}
+
+/* ==========================================
+   Botones y Elementos Activos Públicos
+   Heredando el color Naranja de la Marca
+========================================== */
+.btn-primary {
+    background-color: var(--brand-orange) !important;
+    border-color: var(--brand-orange) !important;
+    color: #FFF !important;
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    background-color: var(--brand-dark-orange) !important;
+    border-color: var(--brand-dark-orange) !important;
+    color: #FFF !important;
+}
+
+.btn-outline-primary {
+    color: var(--brand-orange) !important;
+    border-color: var(--brand-orange) !important;
+}
+
+.btn-outline-primary:hover, .btn-outline-primary:active, .btn-outline-primary:focus {
+    background-color: var(--brand-orange) !important;
+    color: #FFF !important;
+}
+
+.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+    background-color: var(--brand-orange) !important;
+    color: #FFF !important;
+}
+
+
+/* Hero Section */
+.hero-section {
+    position: relative;
+    padding: 120px 0;
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-principal);
+    overflow: hidden;
+    margin-top: -80px; /* Para que quede debajo del menú transparente si es necesario */
+}
+
+.hero-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.hero-background::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(10, 43, 43, 0.9) 0%, rgba(10, 43, 43, 0.4) 100%);
+    z-index: 1;
+}
+
+.hero-background img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-title {
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #ffffff;
+    margin-bottom: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+}
+
+.hero-title span {
+    color: var(--color-acento);
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin-bottom: 2.5rem;
+    max-width: 600px;
+    line-height: 1.6;
+}
+
+.hero-cta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* CTAs Principales */
+.btn-cta {
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-cta-primary {
+    background-color: var(--color-acento);
+    color: #FFFFFF !important;
+    border: 2px solid var(--color-acento);
+    box-shadow: 0 10px 20px rgba(250, 158, 59, 0.3);
+}
+
+.btn-cta-primary:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 25px rgba(250, 158, 59, 0.4);
+    background-color: var(--brand-dark-orange);
+    border-color: var(--brand-dark-orange);
+}
+
+.btn-cta-outline {
+    background-color: transparent;
+    color: #ffffff !important;
+    border: 2px solid #ffffff;
+}
+
+.btn-cta-outline:hover {
+    background-color: #ffffff;
+    color: var(--brand-dark-teal) !important;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(255, 255, 255, 0.2);
+}
+
+/* Features Section */
+.features-section {
+    padding: 80px 0;
+    background-color: var(--bg-tarjetas);
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--color-sidebar);
+    text-transform: uppercase;
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.section-title span {
+    color: var(--color-acento);
+}
+
+.feature-card {
+    background: var(--bg-principal);
+    border-radius: 1.5rem;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    transition: all 0.4s ease;
+    border: 1px solid var(--color-border);
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    border-color: var(--color-acento);
+}
+
+.feature-icon {
+    width: 80px;
+    height: 80px;
+    background-color: var(--brand-orange);
+    color: #FFF !important;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin: 0 auto 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.feature-card h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--color-sidebar);
+}
+
+.feature-card p {
+    color: var(--color-sidebar);
+    opacity: 0.7;
+    margin-bottom: 0;
+}
+
+/* Banner Intermedio (Ej: Fresh Ingredients) */
+.banner-section {
+    position: relative;
+    padding: 100px 0;
+    background-color: var(--brand-dark-teal);
+    color: #FFFFFF;
+    overflow: hidden;
+}
+
+.banner-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.3;
+}
+
+.banner-background img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.banner-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.banner-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+}
+
+/* Tarjetas de Vistas Públicas (Navegación) */
+.views-section {
+    padding: 80px 0;
+    background-color: var(--bg-principal);
+}
+
+.view-card {
+    display: block;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    text-decoration: none;
+    position: relative;
+    transition: all 0.4s ease;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.view-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to top, rgba(10, 43, 43, 0.9), transparent);
+    z-index: 1;
+}
+
+.view-img {
+    height: 300px;
+    background-color: var(--color-sidebar);
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.6s ease;
+}
+
+.view-card:hover .view-img {
+    transform: scale(1.08);
+}
+
+.view-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 2rem;
+    z-index: 2;
+}
+
+.view-title {
+    color: var(--color-acento);
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+.view-desc {
+    color: #fff;
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    .hero-section {
+        padding: 80px 0;
+    }
+    .section-title {
+        font-size: 2rem;
+    }
+    .banner-title {
+        font-size: 2.5rem;
+    }
+}
+
+/* Tema Naranja Personalizado para Footer */
+footer.bg-dark {
+    background-color: var(--brand-orange) !important;
+    border-top: 5px solid var(--brand-dark-orange) !important;
+    color: var(--brand-dark-orange) !important;
+}
+footer.bg-dark p, footer.bg-dark a:not(.btn), footer.bg-dark h5, footer.bg-dark strong {
+    color: #FFF !important;
+}
+footer.bg-dark i, footer.bg-dark svg, footer.bg-dark .fab, footer.bg-dark .fas, footer.bg-dark .bi {
+    color: #FFF !important;
+}
+footer.bg-dark .text-white {
+    color: #FFF !important;
+}
+footer.bg-dark a.neon-link:hover {
+    color: #FFF !important;
+    text-shadow: 0 0 5px var(--brand-dark-orange);
+}
+
+/* Correcciones de Contraste para la Sección Contacto (Cómo encontrarnos) */
+.contact-section .bg-primary.bg-opacity-10 {
+    background-color: var(--brand-orange) !important;
+    opacity: 1 !important;
+}
+.contact-section .text-primary {
+    color: #FFF !important;
+}
+.contact-section .btn-primary i.text-dark {
+    color: #FFF !important;
+}
+
+/* Soporte para Modo Oscuro en la Landing */
+html[data-bs-theme="dark"] body {
+    --bg-principal: #121212;
+    --bg-tarjetas: #1A1D20;
+    --color-sidebar: #E9ECEF;
+    --color-border: rgba(255, 255, 255, 0.1);
+}
+html[data-bs-theme="dark"] .feature-card {
+    background-color: var(--bg-tarjetas);
+    border-color: var(--color-border);
+}
+html[data-bs-theme="dark"] .hero-title, html[data-bs-theme="dark"] .section-title {
+    color: #FFF;
+}
+html[data-bs-theme="dark"] .features-section {
+    background-color: #121212;
+}
+html[data-bs-theme="dark"] .views-section {
+    background-color: #1A1D20;
+}

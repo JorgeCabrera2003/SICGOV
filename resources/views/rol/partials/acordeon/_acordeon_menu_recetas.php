@@ -5,7 +5,7 @@
 <div class="accordion-item">
     <h2 class="accordion-header" id="headingMenu-Receta">
         <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMenu-Receta"
-             aria-controls="collapseMenu-Receta">
+            aria-controls="collapseMenu-Receta">
             Menú y Recetas
         </button>
     </h2>
@@ -18,9 +18,10 @@
                     <fieldset class="permission-group">
                         <legend class="group-header">
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input group-checkbox" type="checkbox" id="group-categoria_insumo"
-                                    data-modulo="CATIN0001520260519200547232">
-                                <label class="form-check-label" for="group-categoria_insumo">Gestionar Categorías de Insumos</label>
+                                <input class="form-check-input group-checkbox" type="checkbox"
+                                    id="group-categoria_insumo" data-modulo="CATIN0001520260519200547232">
+                                <label class="form-check-label" for="group-categoria_insumo">Gestionar Categorías de
+                                    Insumos</label>
                             </div>
                         </legend>
                         <div class="row permission-options" data-modulo-string="CATIN0001520260519200547232">
@@ -62,7 +63,8 @@
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input group-checkbox" type="checkbox" id="group-categoria_menu"
                                     data-modulo="CATME0001620260519200547232">
-                                <label class="form-check-label" for="group-categoria_menu">Gestionar Categorías del Menú</label>
+                                <label class="form-check-label" for="group-categoria_menu">Gestionar Categorías del
+                                    Menú</label>
                             </div>
                         </legend>
                         <div class="row permission-options" data-modulo-string="CATME0001620260519200547232">
@@ -129,6 +131,13 @@
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
                                         type="checkbox" role="switch" value="suministrar" id="insumo-suministrar">
                                     <label class="form-check-label" for="insumo-suministrar">Suministrar</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="asociar" id="insumo-asociar">
+                                    <label class="form-check-label" for="insumo-asociar">Asociar</label>
                                 </div>
                             </div>
                             <div class="col-lg-6">

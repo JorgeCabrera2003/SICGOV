@@ -22,7 +22,7 @@
                 <table class="table table-hover align-middle table-pedidos" id="pedidosTable">
                     <thead class="table-light">
                         <tr>
-                            <th>Nro. Pedido</th>
+                            <th># Pedido</th> 
                             <th>Fecha</th>
                             <th>Cliente</th>
                             <th>Tipo</th>
@@ -44,7 +44,7 @@
 <div class="modal fade" id="modalDetallePedido" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-primary text-white">
+            <div class="modal-header">
                 <h5 class="modal-title fw-bold"><i class="fas fa-receipt me-2"></i>Detalle de Pedido</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -92,7 +92,7 @@
                 <div class="row h-100 g-0">
                     <!-- Panel Izquierdo: Productos -->
                     <div class="col-lg-8 d-flex flex-column h-100 border-end border-2">
-                        <div class="p-3 bg-white shadow-sm z-index-1">
+                        <div class="p-3  shadow-sm z-index-1">
                             <div class="d-flex gap-2 overflow-auto pb-1" id="posFiltros">
                                 <button class="btn btn-outline-primary btn-sm active text-nowrap" data-cat="todas">Todas</button>
                                 <?php if(isset($categorias) && is_array($categorias)): foreach($categorias as $cat): ?>
@@ -107,7 +107,7 @@
                     </div>
 
                     <!-- Panel Derecho: Ticket / Carrito -->
-                    <div class="col-lg-4 h-100 d-flex flex-column pos-ticket bg-white">
+                    <div class="col-lg-4 h-100 d-flex flex-column pos-ticket">
                         <div class="bg-dark text-white p-2 d-flex justify-content-between align-items-center shadow-sm z-index-1">
                             <h6 class="mb-0"><i class="fas fa-receipt me-2"></i>Orden Actual</h6>
                             <span class="badge bg-primary rounded-pill fs-6" id="posCount">0</span>
@@ -121,12 +121,17 @@
                             </div>
                         </div>
 
-                        <div class="bg-white border-top p-3 shadow-sm z-index-1">
+                        <div class="border-top p-3 shadow-sm z-index-1">
                             <div class="d-flex justify-content-between fs-5 fw-bold mb-3">
                                 <span>Total:</span>
                                 <span id="posTotal" class="text-success">$0.00</span>
                             </div>
 
+                            <div class="d-flex justify-content-between small text-muted mb-3">
+                                <span>Total Bs (tasa del día):</span>
+                                <span id="posTotalBs">Bs 0.00</span>
+                            </div>
+                            
                             <form id="posForm">
                                 <div class="mb-2">
                                     <select class="form-select form-select-sm" id="posTipoPedido" required>
@@ -136,7 +141,10 @@
                                     </select>
                                 </div>
                                 <div class="mb-2" id="boxMesa" style="display:none;">
-                                    <input type="text" class="form-control form-control-sm" id="posMesa" placeholder="Nro Mesa">
+                                    <select class="form-select form-select-sm" id="posMesa">
+                                        <option value="">Seleccione una mesa disponible</option>
+                                    </select>
+                                    <small class="text-muted">Solo se muestran mesas disponibles</small>
                                 </div>
                                 <div class="mb-2">
                                     <input type="text" class="form-control form-control-sm" id="posClienteNombre" placeholder="Nombre de Cliente (Opcional)">
@@ -161,3 +169,51 @@
 </div>
 
 
+<!-- Modal de Personalización de Producto -->
+<!-- Modal de Personalización de Producto -->
+<div class="modal fade" id="modalPersonalizar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-sliders-h me-2"></i>
+                    Personalizar Producto
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 id="productoNombre" class="fw-bold mb-3"></h6>
+                <input type="hidden" id="productoId">
+                <input type="hidden" id="productoPrecioBase">
+                
+                <!-- Insumos Principales (opcionales de quitar) -->
+                <div class="mb-3">
+                    <label class="fw-bold mb-2">Ingredientes (puedes quitar los que no quieras):</label>
+                    <div id="listaPrincipales" class="border rounded p-2 bg-light" style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
+                
+                <!-- Insumos Adicionales (extras con costo) -->
+                <div class="mb-3">
+                    <label class="fw-bold mb-2">Extras (costo adicional):</label>
+                    <div id="listaAdicionales" class="border rounded p-2 bg-light" style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
+                
+                <div class="alert alert-info small">
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>Ingredientes:</strong> Desmarca los que no quieras.<br>
+                    <strong>Extras:</strong> Tienen costo adicional y se suman al total.
+                </div>
+            </div>
+            <div class="alert alert-success py-2 mb-3 d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Total:</span>
+                <span id="precioPersonalizadoTotal" class="fw-bold fs-5">$0.00</span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" id="btnConfirmarPersonalizar">
+                    <i class="fas fa-check me-2"></i>Agregar al Carrito
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

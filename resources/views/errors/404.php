@@ -15,7 +15,7 @@ $targetText = $isLoggedIn ? 'Ir al Dashboard' : 'Ir al Login';
     <meta http-equiv="refresh" content="5;?page=<?= $targetUrl ?>">
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="<?php echo BASE_URL; ?>/assets/css/lib/bootstrap.min.css" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -218,6 +218,6 @@ $targetText = $isLoggedIn ? 'Ir al Dashboard' : 'Ir al Login';
     </div>
     
     <!-- Bootstrap JS (opcional, para algunas interacciones) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<?php echo BASE_URL; ?>/assets/js/lib/bootstrap.bundle.min.js"></script>
 </body>
 </html>

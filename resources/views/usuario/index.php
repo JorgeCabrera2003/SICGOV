@@ -11,9 +11,11 @@
             Gestión de Usuarios
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de usuario">
-            <button class="btn btn-primary fw-semibold" id="btn-nuevo">
-                <i class="fas fa-user-plus me-2"></i>Nuevo Usuario
-            </button>
+            <?php if (isset($permisos['usuario']['registrar']) && $permisos['usuario']['registrar'] == 1) { ?>
+                <button class="btn btn-primary fw-semibold" id="btn-nuevo">
+                    <i class="fas fa-user-plus me-2"></i>Nuevo Usuario
+                </button>
+            <?php } ?>
         </div>
     </header>
 
@@ -41,5 +43,9 @@
 
 <!-- Modales (incluidos como partials) -->
 <?php include 'partials/_modal_usuario.php'; ?>
+
+<script>
+    const permisosDB = <?= isset($permisos) ? json_encode($permisos) : 'null' ?>;
+</script>
 
 <!-- Recursos específicos de la página -->

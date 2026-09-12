@@ -7,16 +7,33 @@
     <!-- Encabezado semántico con header -->
     <header class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">
-            <i class="fas fa-box me-2 text-warning"></i>
+            <i class="bi bi-droplet me-2 text-primary"></i>
             Gestión de Insumos
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de insumo">
-            <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoInsumo">
-                <i class="fas fa-plus me-2"></i>Nuevo Insumo
-            </button>
-            <button class="btn btn-outline-warning" id="btn-ModalCategorias">
-                <i class="fas fa-tags me-2"></i>Categorías
-            </button>
+            <?php
+            if (isset($permisos['insumo']['registrar']) && $permisos['insumo']['registrar'] == 1) {
+                ?>
+                <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoInsumo">
+                    <i class="fas fa-plus me-2"></i>Nuevo Insumo
+                </button>
+                <?php
+            }
+            if (isset($permisos['categoria_insumo']['ver']) && $permisos['categoria_insumo']['ver'] == 1) {
+                ?>
+                <button class="btn btn-outline-warning" id="btn-ModalCategorias">
+                    <i class="fas fa-tags me-2"></i>Categorías
+                </button>
+                <?php
+            }
+            if (isset($permisos['insumo']['suministrar']) && $permisos['insumo']['suministrar'] == 1) {
+                ?>
+                <button class="btn btn-warning text-dark fw-semibold" id="btnSuministrarLote">
+                    <i class="fa-solid fa-box me-2"></i>Suministrar Insumos
+                </button>
+                <?php
+            }
+            ?>
         </div>
     </header>
 
@@ -48,7 +65,11 @@
 <?php
 include_once 'partials/_modal_insumo.php';
 include_once 'partials/_modal_categoria_insumo.php';
-include_once $basePath. '/resources/views/categoria_insumo/partials/_modal_categoria_insumo_form.php';
+include_once 'partials/_modal_suministrar_insumo.php';
+include_once 'partials/_modal_movimientos_insumo.php';
+include_once 'partials/_modal_asociar_proveedor.php';
+include_once 'partials/_modal_suministrar_lote.php';
+include_once $basePath . '/resources/views/categoria_insumo/partials/_modal_categoria_insumo_form.php';
 ?>
 
 <!-- Recursos específicos de la página -->

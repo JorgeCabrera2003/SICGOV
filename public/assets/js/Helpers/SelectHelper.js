@@ -50,10 +50,11 @@ export function FeedbackSelect(input, span, mensaje, estado) {
 
   if (estado === 1) {
     $(input).addClass("is-valid");
-    $(span).text();
+    $(span).removeClass("valid-feedback invalid-feedback");
+    $(span).text("");
   } else {
     $(input).addClass("is-invalid");
-    $(span).addClass("invalid-toltip");
+    $(span).addClass("invalid-tooltip");
     $(span).text(mensaje);
   }
 }
@@ -63,13 +64,13 @@ export function RenderizarSelect(etiqueta, arreglo, mensajes) {
     if (Array.isArray(arreglo) && arreglo.length > 0) {
         // Agregar opción placeholder no seleccionable
         const placeholder = new Option(mensajes, "default");
-        $(placeholder).prop('disabled', true).prop('selected', true).attr('hidden', true);
+        $(placeholder).attr('selected', true).prop('disabled', true).prop('hidden', true);
         etiqueta.append(placeholder);
         arreglo.forEach(item => {
-            etiqueta.append(
-                new Option(item.nombre, item.valor)
-            );
+          const option = new Option(item.nombre, item.valor)
+            etiqueta.append(option);
         });
+        etiqueta.val("default");
     } else {
         const noHay = new Option('Sin datos', "default");
         $(noHay).prop('disabled', true).prop('selected', true);
