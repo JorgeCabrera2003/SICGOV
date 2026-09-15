@@ -240,7 +240,6 @@ export async function CrearSelectUnidadMedida(id) {
   try {
     json = await AjaxHelper.enviaAjax(datos, endpoint);
 
-
     if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
       const arrayUnidad = json.datos.map(item => ({
         nombre: item.nombre + " - " + item.abreviatura,
