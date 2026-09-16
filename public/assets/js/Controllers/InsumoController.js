@@ -3,6 +3,7 @@ import * as categoriaInsumo from "../Handlers/CategoriaInsumoHandler.js";
 import * as suministrarInsumo from "../Handlers/SuministrarInsumoHandler.js";
 import * as asociarProveedor from "../Handlers/AsociarProveedorHandler.js";
 import * as movimientoInsumo from "../Handlers/MovimientoInsumoHandler.js";
+import * as movimientoStock from "../Handlers/MovimientosStockHandler.js"
 import * as suministrarLote from "../Handlers/SuministrarLoteHandler.js";
 import * as AjaxHelper from "../Helpers/AjaxHelper.js";
 
@@ -14,6 +15,7 @@ $(document).ready(function () {
   crearDataTable();
   AjaxHelper.registrarEntrada();
   iniciarValidaciones();
+  movimientoStock.IniciarTablas();
 });
 
 //EVENTOS CLICK DE LOS BOTONES DE LA INTERFAZ
@@ -42,9 +44,13 @@ $("#btnSuministrarLoteForm").on("click", async function () {
   };
 });
 
+$("#btnRecargarHistorial").on("click", async function () {
+  movimientoStock.IniciarTablas();
+});
 
-$("#btnNuevoInsumo").on("click", function () {
+$("#btnNuevoInsumo").on("click", async function () {
   insumo.LimpiarFormulario();
+  await insumo.CrearSelectUnidadMedida();
   insumo.EditarModal("registrar");
 });
 

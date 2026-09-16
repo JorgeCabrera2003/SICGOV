@@ -9,6 +9,7 @@ use App\Models\System\UnidadMedida;
 use App\Models\System\Proveedor;
 use App\Models\System\EntradaInsumo;
 use App\Models\System\DetalleEntrada;
+use App\Models\System\MovimientoInsumo;
 use App\Models\System\Insumo;
 use Exception;
 
@@ -20,6 +21,7 @@ $proveedorModel = new Proveedor();
 $entradaInsumoModel = new EntradaInsumo();
 $detalleEntradaModel = new DetalleEntrada();
 $unidadMedidaModel = new UnidadMedida();
+$movimientoInsumoModel = new MovimientoInsumo();
 
 $permisosInsumo = Helper::TraerPermisos("insumo");
 $permisosCategoriaInsumo = Helper::TraerPermisos("categoria_insumo");
@@ -477,8 +479,13 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "UnidadMedida") {
 		if ($_POST["peticion"] == "buscar_medida_insumo") {
 			$insumoModel->setId($_POST["id_insumo"]);
 			$arregloInsumo = $insumoModel->Transaccion(["peticion" => "validar"]);
-			$unidadMedidaModel->setId($arregloInsumo['response']['registro']['id_unidad_medida']);
-			$json = $unidadMedidaModel->Transaccion(['peticion' => "filtrar"]);
+			if ($arregloInsumo['bool'] == 1) {
+				$unidadMedidaModel->setId($arregloInsumo['response']['registro']['id_unidad_medida']);
+				$json = $unidadMedidaModel->Transaccion(['peticion' => "filtrar"]);
+			} else {
+				$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+				$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no válidos'];
+			}
 		}
 		//Enviar respuesta al navegador usando un encabezado HTTP
 		header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
@@ -528,7 +535,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 					$detalleEntradaModel->setIdUnidad($_POST['id_unidad']);
 					$detalleEntradaModel->setCantidad($_POST['stock']);
 					$detalleEntradaModel->setDescripcion(
-						"Se ingresarón " . $_POST['stock'] . $arregloUnidad['response']['registro']['abreviatura'] . ". Quedando con una cantidad de: " . $stock_actualido . $arregloInsumo['response']['registro']['abreviatura']
+						"Había " . RegexHelper::FormatoDecimal($arregloInsumo['response']['registro']['stock_actual']) . "" . $arregloInsumo['response']['registro']['abreviatura'] . " y se ingresó una cantidad de " . $_POST['stock'] . $arregloUnidad['response']['registro']['abreviatura'] . ". Quedando con una cantidad de: " . $stock_actualido . $arregloInsumo['response']['registro']['abreviatura']
 					);
 
 					$json = $detalleEntradaModel->Transaccion(['peticion' => 'registrar']);
@@ -592,7 +599,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "EntradaInsumo") {
 							$detalleEntradaModel->setIdUnidad($insumo['unidad_medida']);
 							$detalleEntradaModel->setCantidad($insumo['cantidad']);
 							$detalleEntradaModel->setDescripcion(
-								"Se ingresarón " . $insumo['cantidad'] . $arregloUnidad['response']['registro']['abreviatura'] . ". Quedando con una cantidad de: " . $stock_actualido . $arregloInsumo['response']['registro']['abreviatura']
+								"Había " . RegexHelper::FormatoDecimal($arregloInsumo['response']['registro']['stock_actual']) . "" . $arregloInsumo['response']['registro']['abreviatura'] . " y se ingresó una cantidad de " . $insumo['cantidad'] . $arregloUnidad['response']['registro']['abreviatura'] . ". Quedando con una cantidad de: " . $stock_actualido . $arregloInsumo['response']['registro']['abreviatura']
 							);
 
 							$json = $detalleEntradaModel->Transaccion(['peticion' => 'registrar']);
@@ -702,25 +709,47 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Movimiento") {
 	if (isset($_POST["peticion"])) {
 
 		//Movimientos de Entrada
-		if ($_POST["peticion"] == "entradaInsumo") {
+		if ($_POST["peticion"] == "historial") {
 			$arregloInsumo = [];
 			$arregloUnidad = [];
 
-			$insumoModel->setId($_POST['id_insumo']);
-			$arregloInsumo = $insumoModel->Transaccion(["peticion" => "validar"]);
+			try {
+				$insumoModel->setId($_POST['id_insumo']);
+				$arregloInsumo = $insumoModel->Transaccion(["peticion" => "validar"]);
+				if ($arregloInsumo['bool'] == 1) {
+					$arregloEntrada = [];
+					$arregloSalida = [];
 
-			if ($arregloInsumo['bool'] == 1) {
+					$peticion = ['peticion' => 'historial_insumo', 'filtro' => $_POST['id_insumo']];
 
-				$peticion = ['peticion' => 'historial_insumo', 'filtro' => $_POST['id_insumo']];
+					$json['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+					$json['response'] = ['resultado' => 200, 'mensaje' => 'OK'];
 
-				$json = $detalleEntradaModel->Transaccion($peticion);
-				$json['response']['datos_insumo'] = $arregloInsumo['response']['registro'];
+					$arregloEntrada = $detalleEntradaModel->Transaccion($peticion);
+					$arregloSalida = $movimientoInsumoModel->Transaccion($peticion);
 
-			} else {
+					$json['response']['entrada_insumo'] = $arregloEntrada['response'];
+					$json['response']['salida_insumo'] = $arregloSalida['response'];
+					$json['response']['datos_insumo'] = $arregloInsumo['response']['registro'];
+
+				} else {
+					$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+					$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
+					$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
+				}
+			} catch (Exception $exception) {
 				$json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
 				$json['response'] = ['resultado' => 400, 'mensaje' => 'Datos no existentes'];
-				$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
+				$msg = "(" . $_SESSION['user']['cedula'] . "), permiso expeción capturada en el sistema";
 			}
+		}
+
+		if ($_POST["peticion"] == "historialEntradas") {
+			$json = $detalleEntradaModel->Transaccion(['peticion' => 'consultar']);
+		}
+
+		if ($_POST["peticion"] == "historialSalidas") {
+			$json = $movimientoInsumoModel->Transaccion(['peticion' => 'consultar']);
 		}
 
 		//Enviar respuesta al navegador usando un encabezado HTTP

@@ -463,29 +463,29 @@ INNER JOIN `proveedor`AS `p` ON `ei`.`documento_proveedor` = `p`.documento_legal
 
 CREATE VIEW `vw_detalle_entrada_insumo` AS 
 SELECT `de`.`id_detalle`,`de`.`fecha`, `de`.`cantidad`, `de`.`descripcion`,
-`i`.`nombre_insumo` AS `insumo`, `i`.`id_insumo`, `p`.`nombre` AS `proveedor`, `i`.`stock_actual`
+`i`.`nombre_insumo` AS `insumo`, `i`.`id_insumo`, `p`.`nombre` AS `proveedor`, `i`.`stock_actual`,
+`um`.`abreviatura`
 FROM `detalle_entrada` AS `de`
 INNER JOIN `entrada_insumo` AS `ei` ON `ei`.`id_entrada` = `de`.`id_entrada`
 INNER JOIN `unidad_medida` AS `um` ON `um`.`id_unidad` = `de`.`id_unidad_medida`
 INNER JOIN `proveedor` AS `p` ON `p`.`documento_legal` = `ei`.`documento_proveedor`
 INNER JOIN `insumo` AS `i` ON `i`.`id_insumo` = `ei`.`id_insumo`;
 
+CREATE VIEW `vw_movimiento_insumo` AS 
+SELECT `mi`.`id_movimiento`, `mi`.`cantidad`, `mi`.`id_insumo`, `mi`.`fecha`, `mi`.`descripcion`,
+`i`.`nombre_insumo` AS 'Insumo',
+`ue`.`nombre` AS 'NombreMedida', `ue`.`abreviatura` AS 'Abreviatura',
+`pr`.`nombre_producto` AS 'Producto'
+FROM `movimiento_insumo` AS `mi` 
+INNER JOIN `insumo` AS `i` ON `mi`.`id_insumo` = `i`.`id_insumo`
+INNER JOIN `unidad_medida` AS `ue` ON `mi`.`id_unidad_medida` = `ue`.`id_unidad`
+INNER JOIN `detalle_pedido` AS `dp` ON `mi`.`id_detalle` = `dp`.`id_detalle`
+INNER JOIN `producto` AS `pr` ON `pr`.`id_producto` = `dp`.`id_producto` 
+INNER JOIN `pedido` AS `p` ON `p`.`id_pedido` = `dp`.`id_pedido`;
+
 -- --------------------------------------------------------
 -- 8. DISPARADORES (TRIGGERS)
 -- --------------------------------------------------------
-
-DELIMITER $$
-
-CREATE TRIGGER `trg_actualizar_stock_movimiento` AFTER INSERT ON `movimiento_insumo`
-FOR EACH ROW BEGIN
-    IF NEW.tipo = 'ENTRADA' OR NEW.tipo = 'AJUSTE' THEN
-        UPDATE insumo SET stock_actual = stock_actual + NEW.cantidad WHERE id_insumo = NEW.id_insumo;
-    ELSEIF NEW.tipo = 'SALIDA' OR NEW.tipo = 'MERMA' THEN
-        UPDATE insumo SET stock_actual = stock_actual - NEW.cantidad WHERE id_insumo = NEW.id_insumo;
-    END IF;
-END$$
-
-DELIMITER ;
 
 -- --------------------------------------------------------
 -- 9. PROCEDIMIENTOS (STORED PROCEDURES)
