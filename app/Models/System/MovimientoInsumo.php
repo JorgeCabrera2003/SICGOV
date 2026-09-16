@@ -151,10 +151,10 @@ class MovimientoInsumo extends Database
 
         if (isset($peticion['peticion'])) {
             $response = match ($peticion['peticion']) {
-                'registrar' => $this->RegistrarDetalleEntrada(),
-                'consultar' => $this->ConsultarDetalleEntrada(),
-                'historial_insumo' => $this->ConsultarDetalleEntrada($peticion['filtro']),
-                'validar' => $this->ValidarDetalleEntrada(),
+                'registrar' => $this->RegistrarMovimientoInsumo(),
+                'consultar' => $this->ConsultarMovimientoInsumo(),
+                'historial_insumo' => $this->ConsultarMovimientoInsumo($peticion['filtro']),
+                'validar' => $this->ValidarMovimientoInsumo(),
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
@@ -166,7 +166,7 @@ class MovimientoInsumo extends Database
     //FIN DE MANEJADOR DE OPERACIONES
 
     //OPERACIONES A BASE DE DATOS
-    private function ConsultarDetalleEntrada(string $filtro = NULL)
+    private function ConsultarMovimientoInsumo(string $filtro = NULL)
     {
         if ($filtro != NULL) {
             if (RegexHelper::ValidarFormatos($filtro, 'ID') == 0) {
@@ -210,11 +210,11 @@ class MovimientoInsumo extends Database
         return $dato;
     }
 
-    private function RegistrarDetalleEntrada()
+    private function RegistrarMovimientoInsumo()
     {
         $dato = [];
         $validacion = [];
-        $validacion = $this->ValidarDetalleEntrada();
+        $validacion = $this->ValidarMovimientoInsumo();
         if ($validacion['bool'] == 0) {
             try {
                 $sql = "INSERT INTO movimiento_insumo(id_movimiento, id_insumo, id_detalle, cantidad, id_unidad_medida, tipo, descripcion, fecha)
@@ -249,7 +249,7 @@ class MovimientoInsumo extends Database
         return $dato;
     }
 
-    private function ValidarDetalleEntrada()
+    private function ValidarMovimientoInsumo()
     {
         $dato = [];
         $arreglo = [];

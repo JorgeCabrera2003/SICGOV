@@ -104,6 +104,7 @@ export async function EnviarFormulario(btn_string) {
 
 export function IniciarTablas() {
   DataTableEntradas();
+  DataTableSalidas();
 }
 
 export async function DataTableEntradas() {
@@ -137,12 +138,13 @@ export async function DataTableEntradas() {
     data: arreglo,
     columns: [
       { data: 'fecha' },
+      { data: 'insumo' },
       { data: 'proveedor' },
       {
         data: null,
         render: function (row) {
           let cantidad = ValidadorHelper.FormatearNumeroSinCeros(row.cantidad);
-          let texto = cantidad+""+ row.abreviatura
+          let texto = cantidad + "" + row.abreviatura
           return texto;
         }
       },
@@ -153,18 +155,47 @@ export async function DataTableEntradas() {
   });
 }
 
-export async function DataTableSalidas(arreglo) {
-  if ($.fn.DataTable.isDataTable('#tablaEntradas')) {
-    $('#tablaEntradas').DataTable().destroy();
+export async function DataTableSalidas() {
+
+  let json = null;
+  let datos = new FormData();
+  const endpoint = "?page=Insumo";
+  const modulo = "Movimiento";
+  let arreglo = [];
+  datos.append("modulo", modulo);
+  datos.append("peticion", "historialSalidas");
+
+  try {
+    json = await AjaxHelper.enviaAjax(datos, endpoint);
+
+    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
+      arreglo = json.datos;
+    };
+
+  } catch (error) {
+    console.log(error);
+    arreglo = [];
   }
 
-  $('#tablaEntradas').DataTable({
+  if ($.fn.DataTable.isDataTable('#tablaSalidas')) {
+    $('#tablaSalidas').DataTable().destroy();
+  }
+
+  $('#tablaSalidas').DataTable({
     processing: true,
     data: arreglo,
     columns: [
       { data: 'fecha' },
-      { data: 'cantidad' },
-      { data: 'proveedor' },
+      { data: 'Insumo' },
+      { data: 'Producto' },
+      {
+        data: null,
+        render: function (row) {
+          let cantidad = ValidadorHelper.FormatearNumeroSinCeros(row.cantidad);
+          let texto = cantidad + "" + row.Abreviatura
+          return texto;
+        }
+      },
       { data: 'descripcion' },
     ],
     order: [[1, 'asc']],

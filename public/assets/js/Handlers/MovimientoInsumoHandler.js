@@ -188,25 +188,32 @@ export async function EnviarFormulario(btn_string) {
 
 //CAPA DE VALIDACIÓN
 
-export async  function CargarModalTabla(parametros){
+export async function CargarModalTabla(parametros) {
   const endpoint = "?page=Insumo"
   let modal = EtiquetasModal("Movimiento");
   let input = EtiquetasFormulario("input");
-  let respuesta = {resultado: 0};
+  let respuesta = { resultado: 0 };
   let datos = new FormData();
+  try {
+    datos.append("modulo", "Movimiento");
+    datos.append("peticion", "historial")
+    datos.append("id_insumo", parametros.id_insumo);
 
-  datos.append("modulo", "Movimiento");
-  datos.append("peticion", "entradaInsumo")
-  datos.append("id_insumo", parametros.id_insumo);
+    respuesta = await AjaxHelper.enviaAjax(datos, endpoint);
 
-  respuesta = await AjaxHelper.enviaAjax(datos, endpoint);
-
-  if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
-    DataTable(respuesta.datos);
-    input.insumo.val(respuesta.datos_insumo.nombre_insumo);
-    input.stock.val(ValidadorHelper.FormatearNumeroSinCeros(respuesta.datos_insumo.stock_actual));
-    input.unidad_medida.val(respuesta.datos_insumo.abreviatura);
-    modal.modal.modal("show");
+    if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
+      input.insumo.val(respuesta.datos_insumo.nombre_insumo);
+      input.stock.val(ValidadorHelper.FormatearNumeroSinCeros(respuesta.datos_insumo.stock_actual));
+      input.unidad_medida.val(respuesta.datos_insumo.abreviatura);
+      DataTable(respuesta.entrada_insumo.datos);
+      DataTableSalida(respuesta.salida_insumo.datos)
+      modal.modal.modal("show");
+    }
+  } catch (error) {
+    console.log(error);
+    arreglo = [];
+    DataTable(arreglo);
+    DataTableSalida(arreglo)
   }
 }
 
@@ -264,6 +271,40 @@ export async function DataTable(arreglo) {
     columns: [
       { data: 'fecha' },
       { data: 'proveedor' },
+      {
+        data: null,
+        render: function (row) {
+          let cantidad = ValidadorHelper.FormatearNumeroSinCeros(row.cantidad);
+          let texto = cantidad + "" + row.abreviatura
+          return texto;
+        }
+      },
+      { data: 'descripcion' },
+    ],
+    order: [[1, 'asc']],
+    language: { url: 'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-ES.json' }
+  });
+}
+
+export async function DataTableSalida(arreglo) {
+  if ($.fn.DataTable.isDataTable('#tablaSalida')) {
+    $('#tablaSalida').DataTable().destroy();
+  }
+
+  $('#tablaSalida').DataTable({
+    processing: true,
+    data: arreglo,
+    columns: [
+      { data: 'fecha' },
+      { data: 'Producto' },
+      {
+        data: null,
+        render: function (row) {
+          let cantidad = ValidadorHelper.FormatearNumeroSinCeros(row.cantidad);
+          let texto = cantidad + "" + row.Abreviatura
+          return texto;
+        }
+      },
       { data: 'descripcion' },
     ],
     order: [[1, 'asc']],
