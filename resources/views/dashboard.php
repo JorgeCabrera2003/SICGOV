@@ -41,15 +41,17 @@ $fechaFormateada = $diaSemana . ', ' . date('d') . ' de ' . $mesNombre . ' de ' 
         <!-- KPI 1: Productos en Menú -->
         <div class="col-xl-3 col-sm-6">
             <div class="dash-kpi-card">
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-start mb-2">
                     <div>
                         <div class="dash-kpi-label">Productos en Menú</div>
                         <div class="dash-kpi-value"><?= $totalProductos ?></div>
-                        <div class="dash-kpi-sub"><?= count($productosCategoria['labels'] ?? []) ?> categorías activas</div>
                     </div>
                     <div class="dash-kpi-icon kpi-icon-amber">
                         <i class="bi bi-egg-fried"></i>
                     </div>
+                </div>
+                <div class="dash-kpi-sub" title="<?= count($productosCategoria['labels'] ?? []) ?> categorías activas">
+                    <?= count($productosCategoria['labels'] ?? []) ?> categorías activas
                 </div>
             </div>
         </div>
@@ -57,15 +59,17 @@ $fechaFormateada = $diaSemana . ', ' . date('d') . ' de ' . $mesNombre . ' de ' 
         <!-- KPI 2: Mesas en Salón -->
         <div class="col-xl-3 col-sm-6">
             <div class="dash-kpi-card">
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-start mb-2">
                     <div>
                         <div class="dash-kpi-label">Mesas en Salón</div>
                         <div class="dash-kpi-value"><?= $mesasOcupadas ?> <span class="fs-6 text-body-secondary fw-normal">/ <?= $totalMesas ?></span></div>
-                        <div class="dash-kpi-sub"><?= $mesasDisponibles ?> libres (<?= $porcentajeOcupacion ?>% ocupado)</div>
                     </div>
                     <div class="dash-kpi-icon kpi-icon-emerald">
                         <i class="bi bi-grid-3x3-gap-fill"></i>
                     </div>
+                </div>
+                <div class="dash-kpi-sub" title="<?= $mesasDisponibles ?> libres (<?= $porcentajeOcupacion ?>% ocupado)">
+                    <?= $mesasDisponibles ?> libres (<?= $porcentajeOcupacion ?>% ocupado)
                 </div>
             </div>
         </div>
@@ -73,15 +77,17 @@ $fechaFormateada = $diaSemana . ', ' . date('d') . ' de ' . $mesNombre . ' de ' 
         <!-- KPI 3: Pedidos de Hoy -->
         <div class="col-xl-3 col-sm-6">
             <div class="dash-kpi-card">
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-start mb-2">
                     <div>
                         <div class="dash-kpi-label">Pedidos Hoy</div>
                         <div class="dash-kpi-value"><?= $pedidosHoy ?></div>
-                        <div class="dash-kpi-sub"><?= $pedidosPendientes ?> pendientes &bull; <?= $pedidosEntregados ?> entregados</div>
                     </div>
                     <div class="dash-kpi-icon kpi-icon-cyan">
                         <i class="bi bi-receipt-cutoff"></i>
                     </div>
+                </div>
+                <div class="dash-kpi-sub" title="<?= $pedidosPendientes ?> pendientes &bull; <?= $pedidosEntregados ?> entregados">
+                    <?= $pedidosPendientes ?> pendientes &bull; <?= $pedidosEntregados ?> entregados
                 </div>
             </div>
         </div>
@@ -89,15 +95,17 @@ $fechaFormateada = $diaSemana . ', ' . date('d') . ' de ' . $mesNombre . ' de ' 
         <!-- KPI 4: Ingresos del Día -->
         <div class="col-xl-3 col-sm-6">
             <div class="dash-kpi-card">
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-start mb-2">
                     <div>
                         <div class="dash-kpi-label">Ingresos Hoy</div>
                         <div class="dash-kpi-value">$<?= number_format($ingresosHoy, 2) ?></div>
-                        <div class="dash-kpi-sub">Total histórico: $<?= number_format($totalIngresosHistorico, 2) ?></div>
                     </div>
                     <div class="dash-kpi-icon kpi-icon-wine">
                         <i class="bi bi-currency-dollar"></i>
                     </div>
+                </div>
+                <div class="dash-kpi-sub" title="Total histórico: $<?= number_format($totalIngresosHistorico, 2) ?>">
+                    Total histórico: $<?= number_format($totalIngresosHistorico, 2) ?>
                 </div>
             </div>
         </div>
