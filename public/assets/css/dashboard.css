@@ -16,6 +16,26 @@
     color: var(--color-acento, #FFD600);
 }
 
+/* Reloj Digital en Vivo */
+.dash-clock-box {
+    background-color: var(--bs-card-bg, #1a1c20);
+    border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.08));
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dash-clock-time {
+    font-size: 1.15rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
+}
+
+.dash-clock-zone {
+    font-size: 0.7rem;
+    font-weight: 600;
+    opacity: 0.75;
+}
+
 /* ==========================================================================
    2. Tarjetas de Métricas (KPI Cards)
    ========================================================================== */

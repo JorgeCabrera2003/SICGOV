@@ -1,14 +1,30 @@
 /**
  * SICGOV - Good Vibes Tapas & Bar
  * Módulo JavaScript del Dashboard Ejecutivo
- * Renderizado dinámico de Chart.js con soporte responsivo y cambio de tema
+ * Renderizado dinámico de Chart.js con soporte responsivo, cambio de tema y Reloj en Vivo
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Reloj Digital en Tiempo Real
+    const clockEl = document.getElementById('dashboardClock');
+    if (clockEl) {
+        const updateClock = () => {
+            const now = new Date();
+            clockEl.textContent = now.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+        };
+        updateClock();
+        setInterval(updateClock, 1000);
+    }
+
+    // 2. Gráficos de Estadísticas
     const dataContainer = document.getElementById('dashboardData');
     if (!dataContainer) return;
 
-    // Extracción segura de datos serializados desde PHP
     let categoriasData = { labels: [], values: [] };
     let reservacionesData = { labels: [], values: [] };
 
@@ -23,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Error parseando datos del Dashboard:', e);
     }
 
-    // Detección de tema (Oscuro / Claro)
     const isDarkMode = () => {
         return document.documentElement.getAttribute('data-bs-theme') === 'dark' ||
                document.documentElement.classList.contains('dark');
@@ -40,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let colors = getChartColors();
 
-    // 1. Gráfico de Tendencia / Evolución Operativa
+    // Gráfico de Tendencia / Evolución Operativa
     const ventasCanvas = document.getElementById('ventasChart');
     let ventasChartInstance = null;
 
@@ -107,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 2. Gráfico de Variedad del Menú por Categorías
+    // Gráfico de Variedad del Menú por Categorías
     const productosCanvas = document.getElementById('productosChart');
     let productosChartInstance = null;
 

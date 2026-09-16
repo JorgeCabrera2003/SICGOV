@@ -13,7 +13,7 @@ $fechaFormateada = $diaSemana . ', ' . date('d') . ' de ' . $mesNombre . ' de ' 
 ?>
 
 <div class="container-fluid py-3 px-md-4">
-    <!-- 1. CABECERA LIMPIA Y DIRECTA -->
+    <!-- 1. CABECERA LIMPIA CON RELOJ EN VIVO -->
     <div class="dash-header mb-4">
         <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
             <div>
@@ -25,13 +25,13 @@ $fechaFormateada = $diaSemana . ', ' . date('d') . ' de ' . $mesNombre . ' de ' 
                 </p>
             </div>
             
-            <div class="d-flex align-items-center gap-2">
-                <a href="<?= BASE_URL ?>?page=pedidos" class="btn btn-sm btn-warning text-dark fw-semibold">
-                    <i class="bi bi-plus-lg me-1"></i> Nuevo Pedido
-                </a>
-                <a href="<?= BASE_URL ?>?page=reservaciones" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-calendar-event me-1"></i> Reservaciones
-                </a>
+            <!-- Reloj Digital en Vivo -->
+            <div class="dash-clock-box d-flex align-items-center gap-2 px-3 py-2">
+                <i class="bi bi-clock-history text-warning fs-5"></i>
+                <div class="d-flex align-items-baseline">
+                    <span id="dashboardClock" class="dash-clock-time fw-bold text-body">--:--:--</span>
+                    <span class="dash-clock-zone text-body-secondary ms-1">VET</span>
+                </div>
             </div>
         </div>
     </div>
