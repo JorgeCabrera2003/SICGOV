@@ -135,15 +135,21 @@ $fechaFormateada = $diaSemana . ', ' . date('d') . ' de ' . $mesNombre . ' de ' 
                                 'COMPLETADA' => 'bg-info-subtle text-info border-info-subtle',
                                 default      => 'bg-warning-subtle text-warning border-warning-subtle'
                             };
+                            $nombreCliente = trim(($reserva['nombre'] ?? '') . ' ' . ($reserva['apellido'] ?? ''));
+                            if (empty($nombreCliente)) {
+                                $nombreCliente = 'Cliente General';
+                            }
+                            $horaRaw = $reserva['hora'] ?? '';
+                            $horaMostrar = !empty($horaRaw) ? substr($horaRaw, 0, 5) : '--:--';
                         ?>
                             <div class="dash-reserva-item">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="dash-time-pill">
-                                        <?= htmlspecialchars(substr($reserva['hora'] ?? '00:00', 0, 5)) ?>
+                                        <?= htmlspecialchars($horaMostrar) ?>
                                     </div>
                                     <div>
                                         <div class="fw-semibold text-body small">
-                                            <?= htmlspecialchars(($reserva['nombre'] ?? '') . ' ' . ($reserva['apellido'] ?? 'Cliente')) ?>
+                                            <?= htmlspecialchars($nombreCliente) ?>
                                         </div>
                                         <div class="text-body-secondary small">
                                             <?= htmlspecialchars($reserva['telefono'] ?? 'Sin contacto') ?>
