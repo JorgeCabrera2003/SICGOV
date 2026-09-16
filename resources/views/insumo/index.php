@@ -90,6 +90,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th scope="col">Fecha</th>
+                                    <th scope="col">Insumo</th>
                                     <th scope="col">Proveedor</th>
                                     <th scope="col">Cantidad Ingresada</th>
                                     <th scope="col">Descripción</th>
@@ -114,7 +115,9 @@
                             <thead class="table-light">
                                 <tr>
                                     <th scope="col">Fecha</th>
-                                    <th scope="col">Proveedor</th>
+                                    <th scope="col">Insumo</th>
+                                    <th scope="col">Pedido</th>
+                                    <th scope="col">Cantidad Egresada</th>
                                     <th scope="col">Descripción</th>
                                 </tr>
                             </thead>
