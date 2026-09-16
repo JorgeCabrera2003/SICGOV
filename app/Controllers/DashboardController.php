@@ -71,8 +71,47 @@ if ($type === 'index' || $type === 'variables') {
                 'hasta' => $fechaHoy
             ]
         ]);
-        if (is_array($resReservas)) {
-            $reservasHoy = $resReservas;
+        
+        $listaReservas = $resReservas['response']['datos'] ?? $resReservas['datos'] ?? (isset($resReservas[0]) ? $resReservas : []);
+
+        if (is_array($listaReservas)) {
+            foreach ($listaReservas as $rev) {
+                if (!is_array($rev)) continue;
+
+                // Extraer hora
+                $hora = $rev['hora'] ?? '';
+                if (empty($hora) && !empty($rev['start'])) {
+                    $partes = explode('T', $rev['start']);
+                    $hora = $partes[1] ?? '';
+                }
+
+                // Extraer nombre y apellido
+                $nombre = $rev['nombre'] ?? '';
+                $apellido = $rev['apellido'] ?? '';
+                if (empty($nombre) && !empty($rev['title'])) {
+                    $limpio = preg_replace('/\s*\(Mesa.*?\)/i', '', $rev['title']);
+                    $nombre = trim($limpio);
+                }
+
+                // Extraer telefono
+                $telefono = $rev['telefono'] ?? ($rev['extendedProps']['telefono'] ?? 'Sin contacto');
+
+                // Extraer estado
+                $estado = $rev['estado'] ?? ($rev['extendedProps']['estado'] ?? 'PENDIENTE');
+
+                // Extraer mesa
+                $numeroMesa = $rev['numero_mesa'] ?? ($rev['extendedProps']['numero_mesa'] ?? null);
+
+                $reservasHoy[] = [
+                    'id_reservacion' => $rev['id'] ?? ($rev['id_reservacion'] ?? ''),
+                    'nombre' => $nombre,
+                    'apellido' => $apellido,
+                    'hora' => $hora,
+                    'telefono' => $telefono,
+                    'estado' => $estado,
+                    'numero_mesa' => $numeroMesa
+                ];
+            }
         }
     } catch (Exception $e) {
         error_log("Error consultando reservaciones en DashboardController: " . $e->getMessage());
