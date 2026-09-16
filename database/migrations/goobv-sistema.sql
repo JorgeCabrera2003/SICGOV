@@ -487,19 +487,6 @@ INNER JOIN `pedido` AS `p` ON `p`.`id_pedido` = `dp`.`id_pedido`;
 -- 8. DISPARADORES (TRIGGERS)
 -- --------------------------------------------------------
 
-DELIMITER $$
-
-CREATE TRIGGER `trg_actualizar_stock_movimiento` AFTER INSERT ON `movimiento_insumo`
-FOR EACH ROW BEGIN
-    IF NEW.tipo = 'ENTRADA' OR NEW.tipo = 'AJUSTE' THEN
-        UPDATE insumo SET stock_actual = stock_actual + NEW.cantidad WHERE id_insumo = NEW.id_insumo;
-    ELSEIF NEW.tipo = 'SALIDA' OR NEW.tipo = 'MERMA' THEN
-        UPDATE insumo SET stock_actual = stock_actual - NEW.cantidad WHERE id_insumo = NEW.id_insumo;
-    END IF;
-END$$
-
-DELIMITER ;
-
 -- --------------------------------------------------------
 -- 9. PROCEDIMIENTOS (STORED PROCEDURES)
 -- --------------------------------------------------------
