@@ -54,5 +54,15 @@ class RegexHelper
         return $bool;
     }
 
+    public static function FormatoDecimal($numero) {
+    if (!is_numeric($numero)) {
+        return 0;
+    }
+    
+    $redondeado = round((float)$numero, 3);
+    $formateado = number_format($redondeado, 3, '.', '');
+    
+    return (float)$formateado;
+}
 }
 ?>

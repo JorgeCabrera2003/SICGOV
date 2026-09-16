@@ -11,14 +11,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function obtenerTasaCambio() {
         try {
-            const response = await fetch('https://pydolarve.org/api/v1/dollar?page=bcv');
-            const data = await response.json();
-            if (data && data.monitors && data.monitors.usd) {
-                tasaCambio = data.monitors.usd.price || 60;
+            const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+            if (response.ok) {
+                const data = await response.json();
+                tasaCambio = data.rates.VES || 60;
                 console.log('Tasa USD/VES obtenida:', tasaCambio);
+            } else {
+                console.warn('Error al obtener tasa, usando fallback:', tasaCambio);
             }
         } catch (error) {
-            console.warn('Error al obtener tasa, usando fallback:', tasaCambio);
+            console.error('Error al obtener tasa, usando fallback:', tasaCambio);
         }
     }
 
@@ -245,9 +247,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         let unitPrice = base + extras;
         let qty = parseInt(qtyInput.value) || 1;
         let total = unitPrice * qty;
+        let totalBs = total * tasaCambio;
 
         document.getElementById('modal-prod-base-price').textContent = `$${unitPrice.toFixed(2)} c/u`;
-        document.getElementById('modal-total-price-btn').textContent = `$${total.toFixed(2)}`;
+        document.getElementById('modal-total-price-btn').innerHTML = `$${total.toFixed(2)} <span class="fw-normal" style="font-size: 0.8em;">(Bs. ${totalBs.toFixed(2)})</span>`;
     }
 
     async function addToCart() {
@@ -547,7 +550,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function openCheckout() {
         let total = cart.reduce((acc, item) => acc + (item.precio_unitario * item.cantidad), 0);
-        document.getElementById('chk-total-display').textContent = `$${total.toFixed(2)}`;
+        let totalBs = total * tasaCambio;
+        document.getElementById('chk-total-display').innerHTML = `$${total.toFixed(2)} <small class="text-muted ms-2 fs-6">(Bs. ${totalBs.toFixed(2)})</small>`;
         modalCheckout.show();
     }
 

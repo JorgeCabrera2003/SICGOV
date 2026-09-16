@@ -101,6 +101,29 @@ class Pedido
             error_log("Estado actual: $estadoActual");
             error_log("Nuevo estado: $estado");
             
+            // ==============================================
+            // VALIDAR TRANSICIÓN DE ESTADO (MÁQUINA DE ESTADOS)
+            // ==============================================
+            $flujoEstados = [
+                'PENDIENTE'  => ['CONFIRMADO', 'CANCELADO'],
+                'CONFIRMADO' => ['PREPARANDO', 'LISTO', 'CANCELADO'],
+                'PREPARANDO' => ['LISTO', 'CANCELADO'],
+                'LISTO'      => ['ENTREGADO', 'PAGADO', 'CANCELADO'],
+                'ENTREGADO'  => ['PAGADO'],
+                'PAGADO'     => [],
+                'CANCELADO'  => []
+            ];
+
+            if (!isset($flujoEstados[$estadoActual])) {
+                $this->dbBusiness->rollBack();
+                return ['success' => false, 'message' => "Estado actual '$estadoActual' no reconocido."];
+            }
+
+            if (!in_array($estado, $flujoEstados[$estadoActual])) {
+                $this->dbBusiness->rollBack();
+                return ['success' => false, 'message' => "Transición no válida: No se puede pasar de '$estadoActual' a '$estado'."];
+            }
+            
             // Actualizar estado del pedido
             $sql = "UPDATE pedido SET estado = ? WHERE id_pedido = ?";
             $stmt = $this->dbBusiness->prepare($sql);
@@ -112,54 +135,34 @@ class Pedido
             }
             
             // ==============================================
-            // DESCONTAR INSUMOS (si corresponde)
+            // DESCONTAR/RESTAURAR INSUMOS
             // ==============================================
-            $insumosDescontados = false;
+            $requierePreparacion = $this->pedidoRequierePreparacion($id_pedido);
             
-            // 1. Si pasa a PREPARACION y no se habían descontado
-            if ($estado === 'PREPARANDO' && $estadoActual !== 'PREPARANDO') {
-                error_log("Entrando a PREPARACION - Verificando si requiere preparación");
-                $requierePreparacion = $this->pedidoRequierePreparacion($id_pedido);
-                
-                if ($requierePreparacion) {
-                    error_log("Pedido con productos de cocina - Descontando insumos");
-                    $resultado = $this->descontarInsumosPedido($id_pedido);
-                    
-                    if (!$resultado['success']) {
-                        $this->dbBusiness->rollBack();
-                        return ['success' => false, 'message' => $resultado['message']];
-                    }
-                    $insumosDescontados = true;
-                } else {
-                    error_log("Pedido sin productos de cocina - Ya se descontaron al crear");
-                }
-            }
+            // Determinar si los insumos YA están descontados actualmente
+            $insumosYaDescontados = in_array($estadoActual, ['LISTO', 'ENTREGADO', 'PAGADO']) || 
+                                    ($estadoActual === 'PREPARANDO' && $requierePreparacion);
+                                    
+            // Determinar si los insumos DEBERÍAN estar descontados en el NUEVO estado
+            $deberiaEstarDescontados = in_array($estado, ['LISTO', 'ENTREGADO', 'PAGADO']) || 
+                                       ($estado === 'PREPARANDO' && $requierePreparacion);
             
-            // 2. Si pasa a LISTO o ENTREGADO y venía de PENDIENTE o CONFIRMADO (saltó PREPARACION o no requiere preparación)
-            if (in_array($estado, ['LISTO', 'ENTREGADO']) && !$insumosDescontados && in_array($estadoActual, ['PENDIENTE', 'CONFIRMADO'])) {
-                error_log("Entrando a $estado desde $estadoActual - Descontando insumos");
+            if ($deberiaEstarDescontados && !$insumosYaDescontados) {
+                error_log("Descontando insumos...");
                 $resultado = $this->descontarInsumosPedido($id_pedido);
-                
                 if (!$resultado['success']) {
                     $this->dbBusiness->rollBack();
                     return ['success' => false, 'message' => $resultado['message']];
                 }
-                $insumosDescontados = true;
-            }
-            
-            // ==============================================
-            // RESTAURAR INSUMOS (si se cancela)
-            // ==============================================
-            // Si el pedido se cancela y estaba en PREPARANDO, LISTO o ENTREGADO, restaurar insumos
-            if ($estado === 'CANCELADO' && in_array($estadoActual, ['PREPARANDO', 'LISTO', 'ENTREGADO'])) {
-                error_log("Cancelando pedido - Restaurando insumos");
+            } elseif ($estado === 'CANCELADO' && $insumosYaDescontados) {
+                error_log("Restaurando insumos...");
                 $this->restaurarInsumosPedido($id_pedido);
             }
             
             // ==============================================
             // LIBERAR MESA (si aplica)
             // ==============================================
-            if (in_array($estado, ['ENTREGADO', 'CANCELADO'])) {
+            if (in_array($estado, ['ENTREGADO', 'PAGADO', 'CANCELADO'])) {
                 $sqlInfo = "SELECT tipo_pedido, id_mesa FROM pedido WHERE id_pedido = ?";
                 $stmtInfo = $this->dbBusiness->prepare($sqlInfo);
                 $stmtInfo->execute([$id_pedido]);
