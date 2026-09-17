@@ -214,7 +214,7 @@ class Reservacion extends Database
 
         // 4. Si se asigna mesa: validar existencia, capacidad y disponibilidad
         if (!empty($this->id_mesa)) {
-            $sqlMesa = "SELECT m.id_mesa, m.numero_mesa, m.capacidad, a.nombre_area 
+            $sqlMesa = "SELECT m.id_mesa, m.numero_mesa, m.capacidad, a.nombre as nombre_area 
                         FROM mesa m 
                         LEFT JOIN area_mesa a ON m.id_area = a.id_area 
                         WHERE m.id_mesa = :id_mesa";
@@ -439,11 +439,11 @@ class Reservacion extends Database
     private function ListarEventos($filtros = [])
     {
         $sql = "SELECT r.id_reservacion, r.cedula_cliente, r.fecha, r.hora, r.hora_fin, r.estado, r.cantidad_personas,
-                       p.nombre, p.apellido, p.telefono, m.numero_mesa, am.id_mesa, m.capacidad, a.nombre_area as area_nombre 
+                       p.nombre, p.apellido, p.telefono, m.numero_mesa, COALESCE(am.id_mesa, r.id_mesa) as id_mesa, m.capacidad, a.nombre as area_nombre 
                 FROM reservacion r 
                 JOIN persona p ON r.cedula_cliente = p.cedula 
                 LEFT JOIN asignacion_mesa am ON r.id_reservacion = am.id_reservacion
-                LEFT JOIN mesa m ON am.id_mesa = m.id_mesa
+                LEFT JOIN mesa m ON (m.id_mesa = COALESCE(am.id_mesa, r.id_mesa))
                 LEFT JOIN area_mesa a ON m.id_area = a.id_area
                 WHERE 1=1";
         
@@ -496,11 +496,11 @@ class Reservacion extends Database
     private function ObtenerDetalle()
     {
         $sql = "SELECT r.id_reservacion, r.cedula_cliente, r.fecha, r.hora, r.hora_fin, r.estado, r.cantidad_personas,
-                       p.nombre, p.apellido, p.telefono, p.correo, m.numero_mesa, am.id_mesa, m.capacidad, a.nombre_area as area_nombre 
+                       p.nombre, p.apellido, p.telefono, p.correo, m.numero_mesa, COALESCE(am.id_mesa, r.id_mesa) as id_mesa, m.capacidad, a.nombre as area_nombre 
                 FROM reservacion r 
                 JOIN persona p ON r.cedula_cliente = p.cedula 
                 LEFT JOIN asignacion_mesa am ON r.id_reservacion = am.id_reservacion
-                LEFT JOIN mesa m ON am.id_mesa = m.id_mesa
+                LEFT JOIN mesa m ON (m.id_mesa = COALESCE(am.id_mesa, r.id_mesa))
                 LEFT JOIN area_mesa a ON m.id_area = a.id_area
                 WHERE r.id_reservacion = :id";
         

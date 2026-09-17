@@ -183,23 +183,38 @@ export function inicializarCalendario(calendarEl, pickers) {
             return selectInfo.start >= hoy;
         },
 
-        events: async function (fetchInfo, successCallback, failureCallback) {
+        events: function (fetchInfo, successCallback, failureCallback) {
             const formData = new FormData();
             formData.append('peticion', 'listar');
             formData.append('start', fetchInfo.startStr.split('T')[0]);
             formData.append('end', fetchInfo.endStr.split('T')[0]);
 
-            try {
-                const res = await AjaxHelper.enviaAjax(formData, BASE_URL_API);
-                if (res && (res.resultado == 200 || Array.isArray(res))) {
-                    const datos = Array.isArray(res) ? res : (res.datos || []);
-                    successCallback(datos);
-                } else {
-                    failureCallback();
-                }
-            } catch (e) {
-                failureCallback();
+            const loader = document.getElementById('calendarLoader');
+            if (loader) {
+                loader.classList.remove('d-none');
+                loader.classList.add('d-flex');
             }
+
+            AjaxHelper.enviaAjax(formData, BASE_URL_API)
+                .then(res => {
+                    if (res && (res.resultado == 200 || Array.isArray(res))) {
+                        const datos = Array.isArray(res) ? res : (res.datos || []);
+                        successCallback(datos);
+                    } else {
+                        console.error('Error al obtener eventos de reservación:', res);
+                        failureCallback();
+                    }
+                })
+                .catch(err => {
+                    console.error('Excepción al obtener eventos:', err);
+                    failureCallback();
+                })
+                .finally(() => {
+                    if (loader) {
+                        loader.classList.add('d-none');
+                        loader.classList.remove('d-flex');
+                    }
+                });
         },
 
         select: function (info) {

@@ -354,7 +354,6 @@ document.addEventListener('DOMContentLoaded', function() {
                                             { element: '#btnGuardarCategoria', popover: { title: 'Guardar', description: 'Guarda los cambios para que la categoría esté disponible al crear productos.', side: "top", align: 'end' } }
                                         ];
                                     }
->>>>>>> dev
                                 }
 
                                 if (steps.length > 0) {
