@@ -83,7 +83,7 @@ class Noticia extends Database
         $subtitulo = trim($subtitulo);
         if (!empty($subtitulo)) {
             // Usamos la misma expresión regular de ObjetoLargo pero permitiendo desde 1 caracter
-            if (!preg_match('/^[0-9 a-zA-ZáéíóúüñÑçÇ\s\-.,()!?]{1,200}$/', $subtitulo)) {
+            if (!preg_match('/^[0-9 a-zA-ZÁÉÍÓÚÜáéíóúüñÑçÇ\s\-.,()!?%¡¿]{1,200}$/u', $subtitulo)) {
                 throw new Exception("El subtítulo contiene caracteres no permitidos.");
             }
         }
