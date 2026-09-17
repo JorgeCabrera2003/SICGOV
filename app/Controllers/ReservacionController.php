@@ -39,6 +39,7 @@ if (isset($_POST['peticion'])) {
 
         switch ($peticionEnviada) {
             case 'listar':
+                session_write_close();
                 $filtros = [
                     'desde' => $_POST['start'] ?? null,
                     'hasta' => $_POST['end'] ?? null

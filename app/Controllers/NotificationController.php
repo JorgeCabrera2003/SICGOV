@@ -21,6 +21,7 @@ if ($type === 'index') {
             
             header('Content-Type: application/json');
             $cedula = $_SESSION['user']['cedula'] ?? "";
+            session_write_close();
 
             // Inicialización de respuesta estándar
             $json = [
@@ -115,7 +116,7 @@ if ($type === 'index') {
             }
 
             // Retornar cabecera e imprimir JSON estandarizado
-            header("HTTP/1.1 " . implode(' ', $json['HTTP_STATUS']));
+            http_response_code($json['HTTP_STATUS']['codigo'] ?? 200);
             echo json_encode($json['response']);
             exit;
         }

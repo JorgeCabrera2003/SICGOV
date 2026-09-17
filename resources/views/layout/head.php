@@ -57,9 +57,12 @@
     
     <!-- Variables globales para JavaScript -->
     <script>
-        const BASE_URL = '<?php echo BASE_URL; ?>';
-        const CURRENT_PAGE = '<?php echo $page ?? ''; ?>';
-        const CSRF_TOKEN = '<?php echo $_SESSION['csrf_token'] ?? ''; ?>';
+        window.BASE_URL = '<?php echo BASE_URL; ?>';
+        var BASE_URL = window.BASE_URL;
+        window.CURRENT_PAGE = '<?php echo $page ?? ''; ?>';
+        var CURRENT_PAGE = window.CURRENT_PAGE;
+        window.CSRF_TOKEN = '<?php echo $_SESSION['csrf_token'] ?? ''; ?>';
+        var CSRF_TOKEN = window.CSRF_TOKEN;
         window.idiomaTabla = BASE_URL + '/assets/DataTables/espanol.json';
     </script>
 </head>
