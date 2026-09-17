@@ -337,6 +337,35 @@ export async function CrearSelectUnidadMedida() {
   }
 }
 
+export async function FiltrarSelectUnidadMedida(id) {
+  let json = null;
+  let datos = new FormData();
+  let input = EtiquetasFormulario('input');
+  const endpoint = "?page=Insumo";
+  const modulo = "UnidadMedida";
+  const mensaje = "Seleccione una Unidad de Medida"
+  let arreglo = [];
+  datos.append("modulo", modulo);
+  datos.append("id_insumo", id);
+  datos.append("peticion", "buscar_medida_insumo");
+
+  try {
+    json = await AjaxHelper.enviaAjax(datos, endpoint);
+
+    if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
+      const arrayUnidad = json.datos.map(item => ({
+        nombre: item.nombre + " - " + item.abreviatura,
+        valor: item.id_unidad
+      }));
+      SelectHelper.RenderizarSelect(input.unidad_medida, arrayUnidad, mensaje);
+    };
+
+  } catch (error) {
+    console.log(error);
+    arreglo = [];
+  }
+}
+
 export async function CrearSelectCategoria() {
   let json = null;
   let datos = new FormData();
@@ -790,7 +819,7 @@ export async function EditarFormInsumo(datos, accion) {
   let fila_stock_inicial = $("#fila-stock-inicial");
 
   if (accion == "eliminar") { bool = true; }
-
+  await FiltrarSelectUnidadMedida(datos.id_insumo);
   input.id_insumo.val(datos.id_insumo).prop("disabled", true);
   input.nombre.val(datos.nombre_insumo).prop("disabled", bool);
   input.costo_unitario.val(datos.precio_unitario).prop("disabled", bool);
