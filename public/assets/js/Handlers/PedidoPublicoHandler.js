@@ -37,6 +37,191 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
+    // Event Listeners para Añadir Promoción en Bloque
+    document.querySelectorAll('.btn-add-promo').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const btnEl = e.currentTarget;
+            const promoId = btnEl.getAttribute('data-id');
+            await addPromoToCart(promoId, btnEl);
+        });
+    });
+
+    async function addPromoToCart(promoId, btnEl) {
+        // Verificar autenticación
+        const isLogged = (window.usuarioLogueado === true) || (document.getElementById('cart-items-container') !== null);
+        if (!isLogged) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Inicia Sesión',
+                text: 'Debes iniciar sesión para comprar esta promoción y armar tu pedido.',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fas fa-sign-in-alt me-1"></i> Iniciar Sesión',
+                cancelButtonText: 'Seguir viendo',
+                confirmButtonColor: 'var(--brand-orange, #ea580c)'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `${BASE_URL}?page=login&msg=inicia-sesion`;
+                }
+            });
+            return;
+        }
+
+        const promos = window.promocionesDisponibles || [];
+        const promo = promos.find(p => String(p.id_promocion) === String(promoId));
+        if (!promo) {
+            Swal.fire('Error', 'No se encontró la información de la promoción seleccionada.', 'error');
+            return;
+        }
+
+        if (!promo.producto_list || !promo.producto_list.trim()) {
+            Swal.fire('Atención', 'Esta promoción no tiene productos asociados disponibles.', 'warning');
+            return;
+        }
+
+        const itemsRaw = promo.producto_list.split('||');
+        const promoItems = [];
+        for (const itemStr of itemsRaw) {
+            const parts = itemStr.split(':::');
+            if (parts.length >= 3) {
+                promoItems.push({
+                    id_producto: parts[0].trim(),
+                    nombre: parts[1].trim(),
+                    cantidad: parseInt(parts[2]) || 1,
+                    precio_original: parseFloat(parts[3]) || 0
+                });
+            }
+        }
+
+        if (promoItems.length === 0) {
+            Swal.fire('Atención', 'No se pudieron procesar los productos de la promoción.', 'warning');
+            return;
+        }
+
+        const originalHtml = btnEl ? btnEl.innerHTML : '';
+        if (btnEl) {
+            btnEl.disabled = true;
+            btnEl.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Verificando stock...';
+        }
+
+        // Verificar stock de todos los productos de la promoción
+        let stockErrors = [];
+        for (const item of promoItems) {
+            let cantEnCarrito = 0;
+            cart.forEach(c => {
+                if (c.id_producto === item.id_producto) {
+                    cantEnCarrito += c.cantidad;
+                }
+            });
+            const cantAVerificar = cantEnCarrito + item.cantidad;
+
+            try {
+                const formData = new FormData();
+                formData.append('action', 'verificar_stock');
+                formData.append('id_producto', item.id_producto);
+                formData.append('cantidad', cantAVerificar);
+
+                const res = await fetch('?page=PedidoPublico', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (!data.success) {
+                    stockErrors.push(`• <b>${item.nombre}</b>: ${data.message || 'Stock insuficiente'} (Disponible: ${data.stock_disponible || 0})`);
+                }
+            } catch (err) {
+                console.error('Error verificando stock de promoción:', err);
+                stockErrors.push(`• <b>${item.nombre}</b>: No se pudo verificar el stock.`);
+            }
+        }
+
+        if (stockErrors.length > 0) {
+            if (btnEl) {
+                btnEl.disabled = false;
+                btnEl.innerHTML = originalHtml;
+            }
+            Swal.fire({
+                icon: 'warning',
+                title: 'Stock insuficiente para la promoción',
+                html: `No se puede agregar la promoción completa:<br><br>${stockErrors.join('<br>')}`,
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+
+        // Cálculo del Descuento Automático
+        let subtotalCombo = promoItems.reduce((acc, p) => acc + (p.precio_original * p.cantidad), 0);
+        let tipoDescuento = promo.tipo_descuento;
+        let valorDescuento = parseFloat(promo.valor_descuento) || 0;
+
+        let descuentoTotalCombo = 0;
+        if (tipoDescuento === 'PORCENTAJE') {
+            descuentoTotalCombo = subtotalCombo * (valorDescuento / 100);
+        } else {
+            descuentoTotalCombo = Math.min(subtotalCombo, valorDescuento);
+        }
+
+        let totalConDescuento = Math.max(0, subtotalCombo - descuentoTotalCombo);
+        let factorDescuento = subtotalCombo > 0 ? (totalConDescuento / subtotalCombo) : 1;
+        let promoGrupoId = `promo_${promo.id_promocion}_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+        let sumaPrecios = 0;
+        promoItems.forEach((p, idx) => {
+            let pUnit;
+            if (idx === promoItems.length - 1 && promoItems.length > 1) {
+                let resto = totalConDescuento - sumaPrecios;
+                pUnit = parseFloat((resto / p.cantidad).toFixed(2));
+                if (pUnit < 0) pUnit = 0;
+            } else {
+                pUnit = parseFloat((p.precio_original * factorDescuento).toFixed(2));
+                sumaPrecios += pUnit * p.cantidad;
+            }
+
+            cart.push({
+                cart_id: Date.now() + Math.random(),
+                id_producto: p.id_producto,
+                nombre: p.nombre,
+                cantidad: p.cantidad,
+                precio_unitario: pUnit,
+                precio_original: p.precio_original,
+                promo_id: promo.id_promocion,
+                promo_nombre: promo.nombre,
+                promo_grupo: promoGrupoId,
+                indicacion: `[Promoción: ${promo.nombre}]`,
+                removedPrincipales: [],
+                addedAdicionales: []
+            });
+        });
+
+        saveCart();
+        renderCart();
+
+        if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.innerHTML = originalHtml;
+        }
+
+        Swal.fire({
+            icon: 'success',
+            title: '¡Promoción añadida!',
+            html: `Se añadieron los productos de <b>"${promo.nombre}"</b> con descuento a tu pedido.`,
+            timer: 2200,
+            showConfirmButton: false,
+            toast: true,
+            position: 'top-end'
+        });
+
+        if (window.innerWidth < 992) {
+            const offcanvasEl = document.getElementById('offcanvasCart');
+            if (offcanvasEl) {
+                const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl) || new bootstrap.Offcanvas(offcanvasEl);
+                bsOffcanvas.show();
+            }
+        } else {
+            const desktopCart = document.getElementById('desktop-cart');
+            if (desktopCart) {
+                desktopCart.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+    }
+
     // Control de cantidad en modal
     document.getElementById('btn-qty-minus').addEventListener('click', () => {
         let q = parseInt(qtyInput.value);
@@ -335,54 +520,90 @@ document.addEventListener('DOMContentLoaded', async () => {
         const emptyMsg = document.getElementById('empty-cart-msg');
 
         let html = '';
+        let subtotalOriginal = 0;
         let total = 0;
         let totalItems = 0;
 
         if (cart.length === 0) {
-            if(emptyMsg) emptyMsg.style.display = 'block';
-            btnDesktop.disabled = true;
-            btnMobile.disabled = true;
+            if (emptyMsg) emptyMsg.style.display = 'block';
+            if (btnDesktop) btnDesktop.disabled = true;
+            if (btnMobile) btnMobile.disabled = true;
         } else {
-            if(emptyMsg) emptyMsg.style.display = 'none';
-            btnDesktop.disabled = false;
-            btnMobile.disabled = false;
+            if (emptyMsg) emptyMsg.style.display = 'none';
+            if (btnDesktop) btnDesktop.disabled = false;
+            if (btnMobile) btnMobile.disabled = false;
 
             cart.forEach(item => {
+                let pOrig = (item.precio_original !== undefined && item.precio_original !== null) ? item.precio_original : item.precio_unitario;
                 let subtotal = item.precio_unitario * item.cantidad;
+                let subtotalOrig = pOrig * item.cantidad;
                 let subtotalBs = subtotal * tasaCambio;
+
+                subtotalOriginal += subtotalOrig;
                 total += subtotal;
                 totalItems += item.cantidad;
 
                 let customHtml = '';
-                if (item.removedPrincipales.length > 0) {
+                if (item.promo_nombre) {
+                    customHtml += `<div class="mb-1"><span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle py-1 px-2"><i class="fas fa-tag me-1"></i>${item.promo_nombre}</span></div>`;
+                }
+                if (item.removedPrincipales && item.removedPrincipales.length > 0) {
                     customHtml += `<div class="text-danger small">Sin: ${item.removedPrincipales.map(i=>i.nombre_insumo).join(', ')}</div>`;
                 }
-                if (item.addedAdicionales.length > 0) {
+                if (item.addedAdicionales && item.addedAdicionales.length > 0) {
                     customHtml += `<div class="text-success small">Ext: ${item.addedAdicionales.map(i=>i.nombre_insumo).join(', ')}</div>`;
+                }
+
+                // Control de cantidad: combos de promoción son empaque cerrado
+                let qtyControlHtml = '';
+                if (item.promo_grupo) {
+                    qtyControlHtml = `
+                        <span class="badge bg-light text-dark border px-2 py-1 small fw-semibold">
+                            <i class="fas fa-box-open me-1 text-primary"></i>Cant: ${item.cantidad}
+                        </span>
+                    `;
+                } else {
+                    qtyControlHtml = `
+                        <div class="d-flex align-items-center bg-light rounded-pill px-2 py-1 shadow-sm border border-secondary-subtle">
+                            <button class="btn btn-sm btn-link text-warning btn-qty-change p-0 m-0 text-decoration-none d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; border-radius: 50%;" data-cartid="${item.cart_id}" data-action="minus">
+                                <i class="fas fa-minus-circle fs-5"></i>
+                            </button>
+                            <input type="number" class="form-control text-center px-1 fw-bold border-0 bg-transparent cart-qty-input text-dark" style="width: 45px; -moz-appearance: textfield; box-shadow: none;" data-cartid="${item.cart_id}" value="${item.cantidad}" min="1">
+                            <button class="btn btn-sm btn-link text-warning btn-qty-change p-0 m-0 text-decoration-none d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; border-radius: 50%;" data-cartid="${item.cart_id}" data-action="plus">
+                                <i class="fas fa-plus-circle fs-5"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+
+                // Visualización de precio con descuento
+                let priceDisplayHtml = '';
+                if (pOrig > item.precio_unitario) {
+                    priceDisplayHtml = `
+                        <div class="text-decoration-line-through text-muted small">$${subtotalOrig.toFixed(2)}</div>
+                        <div class="text-primary fw-bold fs-5">$${subtotal.toFixed(2)}</div>
+                        <div class="text-muted small">Bs. ${subtotalBs.toFixed(2)}</div>
+                    `;
+                } else {
+                    priceDisplayHtml = `
+                        <div class="text-primary fw-bold fs-5">$${subtotal.toFixed(2)}</div>
+                        <div class="text-muted small">Bs. ${subtotalBs.toFixed(2)}</div>
+                    `;
                 }
 
                 html += `
                     <div class="cart-item position-relative mb-3 border-bottom pb-2">
-                        <div class="cart-item-details w-100">
-                            <h6 class="mb-1">${item.nombre}</h6>
+                        <div class="cart-item-details w-100 pe-4">
+                            <h6 class="mb-1 fw-bold">${item.nombre}</h6>
                             <div class="cart-item-customizations mb-2">${customHtml}</div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <div class="d-flex align-items-center bg-light rounded-pill px-2 py-1 shadow-sm border border-secondary-subtle">
-                                    <button class="btn btn-sm btn-link text-warning btn-qty-change p-0 m-0 text-decoration-none d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; border-radius: 50%;" data-cartid="${item.cart_id}" data-action="minus">
-                                        <i class="fas fa-minus-circle fs-5"></i>
-                                    </button>
-                                    <input type="number" class="form-control text-center px-1 fw-bold border-0 bg-transparent cart-qty-input text-dark" style="width: 45px; -moz-appearance: textfield; box-shadow: none;" data-cartid="${item.cart_id}" value="${item.cantidad}" min="1">
-                                    <button class="btn btn-sm btn-link text-warning btn-qty-change p-0 m-0 text-decoration-none d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; border-radius: 50%;" data-cartid="${item.cart_id}" data-action="plus">
-                                        <i class="fas fa-plus-circle fs-5"></i>
-                                    </button>
-                                </div>
+                                ${qtyControlHtml}
                                 <div class="text-end">
-                                    <div class="text-primary fw-bold fs-5">$${subtotal.toFixed(2)}</div>
-                                    <div class="text-muted small">Bs. ${subtotalBs.toFixed(2)}</div>
+                                    ${priceDisplayHtml}
                                 </div>
                             </div>
                         </div>
-                        <button class="btn btn-sm btn-outline-danger btn-remove-item position-absolute top-0 end-0 rounded-circle shadow-sm" style="padding: 4px 6px; transform: translate(25%, -25%); background: white;" data-cartid="${item.cart_id}">
+                        <button class="btn btn-sm btn-outline-danger btn-remove-item position-absolute top-0 end-0 rounded-circle shadow-sm" style="padding: 4px 6px; transform: translate(25%, -25%); background: white;" data-cartid="${item.cart_id}" title="Eliminar del pedido">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
@@ -390,24 +611,68 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        cDesktop.innerHTML = cart.length === 0 ? '<div class="text-center text-muted mt-5"><i class="fas fa-cart-arrow-down fs-1 mb-3"></i><p>Tu carrito está vacío</p></div>' : html;
-        cMobile.innerHTML = cDesktop.innerHTML;
+        if (cDesktop) cDesktop.innerHTML = cart.length === 0 ? '<div class="text-center text-muted mt-5"><i class="fas fa-cart-arrow-down fs-1 mb-3"></i><p>Tu carrito está vacío</p></div>' : html;
+        if (cMobile && cDesktop) cMobile.innerHTML = cDesktop.innerHTML;
         
         let totalBs = total * tasaCambio;
         let tStr = `<span class="fs-4">$${total.toFixed(2)}</span> <br><small class="text-muted" style="font-size:0.65em;">Bs. ${totalBs.toFixed(2)}</small>`;
-        totalDesktop.innerHTML = tStr;
-        totalMobile.innerHTML = tStr;
-        badge.textContent = totalItems;
+        if (totalDesktop) totalDesktop.innerHTML = tStr;
+        if (totalMobile) totalMobile.innerHTML = tStr;
+        if (badge) badge.textContent = totalItems;
 
+        // Renderizado del Desglose de Descuento
+        let totalDescuento = Math.max(0, subtotalOriginal - total);
+        const bDesktop = document.getElementById('cart-breakdown-desktop');
+        const bMobile = document.getElementById('cart-breakdown-mobile');
+        const subOrigDesktop = document.getElementById('cart-subtotal-original');
+        const subOrigMobile = document.getElementById('mobile-cart-subtotal-original');
+        const discValDesktop = document.getElementById('cart-discount-val');
+        const discValMobile = document.getElementById('mobile-cart-discount-val');
+
+        if (totalDescuento > 0.009) {
+            if (bDesktop) bDesktop.style.display = 'block';
+            if (bMobile) bMobile.style.display = 'block';
+            if (subOrigDesktop) subOrigDesktop.textContent = `$${subtotalOriginal.toFixed(2)}`;
+            if (subOrigMobile) subOrigMobile.textContent = `$${subtotalOriginal.toFixed(2)}`;
+            if (discValDesktop) discValDesktop.textContent = `-$${totalDescuento.toFixed(2)}`;
+            if (discValMobile) discValMobile.textContent = `-$${totalDescuento.toFixed(2)}`;
+        } else {
+            if (bDesktop) bDesktop.style.display = 'none';
+            if (bMobile) bMobile.style.display = 'none';
+        }
+
+        // Listeners para eliminar producto (o combo si es promoción)
         document.querySelectorAll('.btn-remove-item').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 let cid = e.currentTarget.getAttribute('data-cartid');
-                cart = cart.filter(i => i.cart_id != cid);
-                saveCart();
-                renderCart();
+                let item = cart.find(i => i.cart_id == cid);
+
+                if (item && item.promo_grupo) {
+                    const promoNombre = item.promo_nombre || 'la promoción';
+                    Swal.fire({
+                        title: '¿Retirar promoción?',
+                        text: `Este producto pertenece al combo "${promoNombre}". Al retirarlo se eliminarán todos los productos de esta promoción.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, retirar promoción',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#d33'
+                    }).then(res => {
+                        if (res.isConfirmed) {
+                            cart = cart.filter(i => i.promo_grupo !== item.promo_grupo);
+                            saveCart();
+                            renderCart();
+                        }
+                    });
+                } else {
+                    cart = cart.filter(i => i.cart_id != cid);
+                    saveCart();
+                    renderCart();
+                }
             });
         });
 
+        // Listeners para botones +/-
         document.querySelectorAll('.btn-qty-change').forEach(btn => {
             btn.addEventListener('click', async (e) => {
                 let btnEl = e.currentTarget;
@@ -418,6 +683,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         });
 
+        // Listeners para input manual de cantidad
         document.querySelectorAll('.cart-qty-input').forEach(input => {
             input.addEventListener('change', async (e) => {
                 let inputEl = e.currentTarget;
@@ -549,8 +815,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function openCheckout() {
-        let total = cart.reduce((acc, item) => acc + (item.precio_unitario * item.cantidad), 0);
+        let subtotalOriginal = 0;
+        let total = 0;
+        cart.forEach(item => {
+            let pOriginal = (item.precio_original !== undefined && item.precio_original !== null) ? item.precio_original : item.precio_unitario;
+            subtotalOriginal += pOriginal * item.cantidad;
+            total += item.precio_unitario * item.cantidad;
+        });
+
+        let totalDescuento = Math.max(0, subtotalOriginal - total);
         let totalBs = total * tasaCambio;
+
+        const chkBreakdown = document.getElementById('chk-breakdown');
+        const chkSubtotal = document.getElementById('chk-subtotal-display');
+        const chkDiscount = document.getElementById('chk-discount-display');
+
+        if (totalDescuento > 0.009) {
+            if (chkBreakdown) chkBreakdown.style.display = 'block';
+            if (chkSubtotal) chkSubtotal.textContent = `$${subtotalOriginal.toFixed(2)}`;
+            if (chkDiscount) chkDiscount.textContent = `-$${totalDescuento.toFixed(2)}`;
+        } else {
+            if (chkBreakdown) chkBreakdown.style.display = 'none';
+        }
+
         document.getElementById('chk-total-display').innerHTML = `$${total.toFixed(2)} <small class="text-muted ms-2 fs-6">(Bs. ${totalBs.toFixed(2)})</small>`;
         modalCheckout.show();
     }
@@ -563,6 +850,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         let total = cart.reduce((acc, item) => acc + (item.precio_unitario * item.cantidad), 0);
+        total = parseFloat(total.toFixed(2));
         
         const formData = new FormData(form);
         formData.append('carrito', JSON.stringify({
