@@ -1,0 +1,211 @@
+/**
+ * SICGOV - Good Vibes Tapas & Bar
+ * Hoja de estilos del Dashboard Ejecutivo
+ * Diseño sobrio, limpio y armónico (Claro / Oscuro)
+ */
+
+/* ==========================================================================
+   1. Cabecera del Dashboard
+   ========================================================================== */
+.dash-header {
+    border-bottom: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.08));
+    padding-bottom: 1.25rem;
+}
+
+.dash-user-name {
+    color: var(--color-acento, #FFD600);
+}
+
+/* Reloj Digital en Vivo */
+.dash-clock-box {
+    background-color: var(--bs-card-bg, #1a1c20);
+    border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.08));
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dash-clock-time {
+    font-size: 1.15rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.5px;
+}
+
+.dash-clock-zone {
+    font-size: 0.7rem;
+    font-weight: 600;
+    opacity: 0.75;
+}
+
+/* ==========================================================================
+   2. Tarjetas de Métricas (KPI Cards)
+   ========================================================================== */
+.dash-kpi-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: var(--bs-card-bg, #1a1c20);
+    border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.08));
+    border-radius: 0.85rem;
+    padding: 1.15rem 1.25rem;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dash-kpi-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 214, 0, 0.3);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.dash-kpi-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.dash-kpi-value {
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--bs-body-color, #fff);
+}
+
+.dash-kpi-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--bs-secondary-color, #adb5bd);
+    margin-bottom: 0.25rem;
+}
+
+.dash-kpi-sub {
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color, #adb5bd);
+    margin-top: auto;
+    padding-top: 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Colores de acento sutiles para los íconos de KPIs */
+.kpi-icon-amber {
+    background-color: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+}
+
+.kpi-icon-emerald {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+
+.kpi-icon-cyan {
+    background-color: rgba(6, 182, 212, 0.12);
+    color: #06b6d4;
+}
+
+.kpi-icon-wine {
+    background-color: rgba(124, 29, 33, 0.2);
+    color: #e11d48;
+}
+
+/* ==========================================================================
+   3. Tarjetas Contenedoras Principales
+   ========================================================================== */
+.dash-card {
+    background-color: var(--bs-card-bg, #1a1c20);
+    border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.08));
+    border-radius: 0.85rem;
+    overflow: hidden;
+}
+
+.dash-card-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.06));
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.dash-card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--bs-body-color, #fff);
+}
+
+.dash-card-subtitle {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color, #adb5bd);
+}
+
+/* ==========================================================================
+   4. Lista Operativa de Reservaciones
+   ========================================================================== */
+.dash-reserva-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.05));
+}
+
+.dash-reserva-item:last-child {
+    border-bottom: none;
+}
+
+.dash-time-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.65rem;
+    border-radius: 8px;
+    background-color: var(--bs-tertiary-bg, rgba(255, 255, 255, 0.04));
+    border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.08));
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--bs-body-color, #fff);
+    line-height: 1.1;
+    white-space: nowrap;
+}
+
+.dash-time-ampm {
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 0.25rem;
+    color: var(--bs-secondary-color, #adb5bd);
+}
+
+/* ==========================================================================
+   5. Inventario & Barras de Progreso Limpias
+   ========================================================================== */
+.dash-stock-item {
+    margin-bottom: 1rem;
+}
+
+.dash-stock-item:last-child {
+    margin-bottom: 0;
+}
+
+.dash-progress {
+    height: 6px;
+    background-color: var(--bs-tertiary-bg, rgba(255, 255, 255, 0.08));
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   6. Contenedor de Gráficos
+   ========================================================================== */
+.dash-chart-container {
+    position: relative;
+    height: 260px;
+    width: 100%;
+}

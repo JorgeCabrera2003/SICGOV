@@ -299,8 +299,11 @@ CREATE TABLE `reservacion` (
   `hora_fin` time NOT NULL,
   `id_mesa` varchar(30) DEFAULT NULL,
   `estado` enum('PENDIENTE','CONFIRMADA','CANCELADA','COMPLETADA') DEFAULT 'PENDIENTE',
+  `cantidad_personas` int(11) DEFAULT 1,
   PRIMARY KEY (`id_reservacion`),
   KEY `fk_res_cli` (`cedula_cliente`),
+  KEY `idx_reservacion_fecha` (`fecha`),
+  KEY `idx_reservacion_fecha_hora` (`fecha`, `hora`),
   CONSTRAINT `fk_res_cli` FOREIGN KEY (`cedula_cliente`) REFERENCES `cliente` (`cedula`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

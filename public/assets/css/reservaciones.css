@@ -38,11 +38,10 @@
 
 /* Estilos Globales de FullCalendar para el Sistema */
 .fc {
-    --fc-border-color: rgba(0, 0, 0, 0.1); /* Más visible en modo claro */
+    --fc-border-color: rgba(0, 0, 0, 0.1);
     --fc-page-bg-color: var(--bg-tarjetas);
     
-    /* Soporte para modo oscuro si la clase dark-mode está presente en el body */
-    body.dark-mode & {
+    body.dark-mode &, [data-bs-theme="dark"] & {
         --fc-border-color: rgba(255, 255, 255, 0.1);
     }
 
@@ -51,7 +50,6 @@
         background-color: rgba(255, 255, 255, 0.01) !important;
         transition: all 0.25s ease;
         border: 1px solid var(--fc-border-color) !important;
-
         
         &:hover {
             background-color: rgba(255, 255, 255, 0.03) !important;
@@ -65,6 +63,38 @@
         .fc-daygrid-day-number {
             color: var(--color-acento) !important;
             font-weight: 800;
+        }
+    }
+
+    /* Bloqueo de Días Anteriores a Hoy */
+    .fc-day-past-blocked {
+        background-color: rgba(0, 0, 0, 0.03) !important;
+        opacity: 0.45 !important;
+        cursor: not-allowed !important;
+
+        .fc-daygrid-day-number {
+            color: #6c757d !important;
+            text-decoration: line-through !important;
+            opacity: 0.6;
+        }
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.03) !important;
+            cursor: not-allowed !important;
+        }
+    }
+
+    body.dark-mode .fc-day-past-blocked,
+    [data-bs-theme="dark"] .fc-day-past-blocked {
+        background-color: rgba(255, 255, 255, 0.02) !important;
+        opacity: 0.35 !important;
+
+        .fc-daygrid-day-number {
+            color: #adb5bd !important;
+        }
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.02) !important;
         }
     }
 
@@ -105,9 +135,9 @@
     }
 }
 
-/* Estilo para bloques ocupados en vista pública (Sólido y compatible) */
+/* Estilo para bloques ocupados en vista pública */
 .status-ocupado-publico {
-    background-color: #f8f9fa !important; /* Gris muy claro sólido */
+    background-color: #f8f9fa !important;
     background-image: repeating-linear-gradient(
         45deg,
         rgba(0, 0, 0, 0.02),
@@ -120,12 +150,12 @@
     pointer-events: none;
     
     .fc-event-title, .fc-event-time {
-        color: #6c757d !important; /* Texto gris intermedio */
+        color: #6c757d !important;
         font-weight: 700 !important;
     }
 
     body.dark-mode & {
-        background-color: #2a2d34 !important; /* Gris oscuro sólido */
+        background-color: #2a2d34 !important;
         background-image: repeating-linear-gradient(
             45deg,
             rgba(255, 255, 255, 0.02),
@@ -140,9 +170,6 @@
         }
     }
 }
-
-
-
 
 /* Badges de estado */
 .status-badge-pendiente { background-color: #ff9800; color: white; }
@@ -236,4 +263,3 @@
         transform: translateY(1px);
     }
 }
-
