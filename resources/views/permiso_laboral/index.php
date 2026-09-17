@@ -9,12 +9,16 @@
             Gestión de Permisos Laborales
         </h1>
         <div class="btn-group" role="group">
-            <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoPermiso">
-                <i class="fas fa-plus me-2"></i>Solicitar Permiso
-            </button>
-            <button class="btn btn-outline-warning" id="btn-ModalTipos">
-                <i class="fas fa-tags me-2"></i>Tipos
-            </button>
+            <?php if (($permisosPermisoLaboral['permiso_laboral']['registrar'] ?? 0) == 1): ?>
+                <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoPermiso">
+                    <i class="fas fa-plus me-2"></i>Solicitar Permiso
+                </button>
+            <?php endif; ?>
+            <?php if (($permisosTipoPermiso['tipo_permiso']['ver'] ?? 0) == 1): ?>
+                <button class="btn btn-outline-warning" id="btn-ModalTipos">
+                    <i class="fas fa-tags me-2"></i>Tipo de Permiso
+                </button>
+            <?php endif; ?>
         </div>
     </header>
 
@@ -27,12 +31,16 @@
 
 <?php
 include_once 'partials/_modal_permiso_laboral.php';
-include_once 'partials/_modal_tipo_permiso.php';
-include_once $basePath . '/resources/views/tipo_permiso/partials/_modal_tipo_permiso_form.php';
+if (($permisosTipoPermiso['tipo_permiso']['ver'] ?? 0) == 1) {
+    include_once 'partials/_modal_tipo_permiso.php';
+    include_once $basePath . '/resources/views/tipo_permiso/partials/_modal_tipo_permiso_form.php';
+}
 ?>
 
 <script>
 window.PERMISO_SESSION_USER = <?= json_encode($_SESSION['user'] ?? []) ?>;
 </script>
 <script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/PermisoLaboralController.js" defer></script>
-<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/TipoPermisoController.js" defer></script>
+<?php if (($permisosTipoPermiso['tipo_permiso']['ver'] ?? 0) == 1): ?>
+    <script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/TipoPermisoController.js" defer></script>
+<?php endif; ?>

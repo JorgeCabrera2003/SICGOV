@@ -11,9 +11,11 @@
             Gestión de Cargos
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de cargos">
-            <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoCargo">
-                <i class="fas fa-plus me-2"></i>Nuevo Cargo
-            </button>
+            <?php if (($permisosCargo['cargo']['registrar'] ?? 0) == 1): ?>
+                <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoCargo">
+                    <i class="fas fa-plus me-2"></i>Nuevo Cargo
+                </button>
+            <?php endif; ?>
         </div>
     </header>
 

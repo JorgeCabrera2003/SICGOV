@@ -21,6 +21,7 @@ $("#btn-TipoPermisoForm").on("click", async function () {
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
     crearDataTable();
     tipoPermiso.CancelarFormulario();
+    $(document).trigger('tipoPermisoActualizado');
   };
 });
 

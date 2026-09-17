@@ -16,12 +16,16 @@
             Gestión de Horarios
         </h1>
         <div class="btn-group" role="group">
-            <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoHorario">
-                <i class="fas fa-plus me-2"></i>Asignar Turno
-            </button>
-            <button class="btn btn-outline-warning text-dark fw-semibold" id="btnGestionarTurnos">
-                <i class="fas fa-clock me-2"></i>Turnos
-            </button>
+            <?php if (($permisosHorario['horario']['registrar'] ?? 0) == 1): ?>
+                <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoHorario">
+                    <i class="fas fa-plus me-2"></i>Asignar Turno
+                </button>
+            <?php endif; ?>
+            <?php if (($permisosTurno['turno']['ver'] ?? 0) == 1): ?>
+                <button class="btn btn-outline-warning text-dark fw-semibold" id="btnGestionarTurnos">
+                    <i class="fas fa-clock me-2"></i>Turnos
+                </button>
+            <?php endif; ?>
         </div>
     </header>
 
@@ -55,7 +59,7 @@
                         <tr>
                             <th scope="col">Cédula</th>
                             <th scope="col">Nombre</th>
-                            <th scope="col">Turno Actual</th>
+                            <th scope="col">Turnos</th>
                             <th scope="col"></th>
                         </tr>
                     </thead>
@@ -74,12 +78,19 @@ include_once 'partials/_modal_horario_empleado.php';
 include_once $basePath . '/resources/views/turno/partials/_modal_turno.php';
 ?>
 
+<script>
+    const permisosHorarioDB = <?= json_encode($permisosHorario ?? []) ?>;
+    const permisosTurnoDB = <?= json_encode($permisosTurno ?? []) ?>;
+</script>
+
 <!-- CSS y JS de FullCalendar -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/es.global.min.js"></script>
-<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/HorarioController.js" defer></script>
-<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/TurnoController.js" defer></script>
+<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/HorarioController.js?v=20260917-3" defer></script>
+<?php if (($permisosTurno['turno']['ver'] ?? 0) == 1): ?>
+    <script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/TurnoController.js" defer></script>
+<?php endif; ?>
 
 <style>
     .fc-event {

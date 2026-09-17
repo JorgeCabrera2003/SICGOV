@@ -135,7 +135,7 @@ export async function EnviarFormulario(btn_string) {
     'Borrar': 'eliminar'
   };
 
-  const accion = MANEJADOR[btn_string] || null;
+  const accion = MANEJADOR[String(btn_string).trim()] || null;
   if (accion !== null) {
     return await EnviarDatos(accion);
   }

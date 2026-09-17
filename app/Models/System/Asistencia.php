@@ -23,17 +23,19 @@ use Exception;
 
 class Asistencia extends Database {
 
-    private $idAsistencia;
-    private $cedulaEmpleado;
-    private $tipoMarcacion;
-    private $fecha;
-    private $hora;
-    private $estado;
-    private $observacion;
-    private $indiceObservacion;
+    // Declarar todas las propiedades de la clase
+    private string $idAsistencia;
+    private string $cedulaEmpleado;
+    private string $tipoMarcacion;
+    private string $fecha;
+    private string $hora;
+    private string $estado;
+    private string $observacion;
+    // Ya no se usa, pero lo mantengo por compatibilidad. Se puede eliminar si no se usa en otros lados.
+    // private int $indiceObservacion; 
    
     public function __construct() {
-
+        // Inicializar propiedades con valores por defecto
         $this->idAsistencia = "";
         $this->cedulaEmpleado = "";
         $this->tipoMarcacion = "";
@@ -41,16 +43,15 @@ class Asistencia extends Database {
         $this->hora = "";
         $this->estado = "";
         $this->observacion = "";
-        $this->indiceObservacion = -1;
-
+        // $this->indiceObservacion = -1; // Comentado porque ya no se usa
     }
 
     //SETTERS
-    public function setIdAsistencia(string $id) {
+    public function setIdAsistencia(string $id): void {
         $this->idAsistencia = $id;
     }
 
-    public function setCedulaEmpleado(string $cedulaEmpleado) {
+    public function setCedulaEmpleado(string $cedulaEmpleado): void {
         $cedulaEmpleado = trim($cedulaEmpleado);
 
         // Normalizar: aceptar formatos 'V12345678' o 'V-12345678' y convertir a 'V-12345678'
@@ -73,80 +74,77 @@ class Asistencia extends Database {
         $this->cedulaEmpleado = $cedulaEmpleado;
     }
 
-    public function setTipoMarcacion(string $tipoMarcacion) {
+    public function setTipoMarcacion(string $tipoMarcacion): void {
         $this->tipoMarcacion = $tipoMarcacion;
     }
 
-    public function setFecha(string $fecha) {
+    public function setFecha(string $fecha): void {
         $this->fecha = $fecha;
     }
 
-    public function setHora(string $hora) {
+    public function setHora(string $hora): void {
         $this->hora = $hora;
     }
 
-    public function setEstado(string $estado) {
+    public function setEstado(string $estado): void {
         $this->estado = $estado;
     }
 
-    public function setObservacion(string $observacion) {
+    public function setObservacion(string $observacion): void {
         $this->observacion = $observacion;
     }
 
-    public function setIndiceObservacion(int $indice) {
-        $this->indiceObservacion = $indice;
-    }
+    // Este setter ya no se usa con la nueva lógica, pero lo mantengo por compatibilidad
+    // public function setIndiceObservacion(int $indice): void {
+    //     $this->indiceObservacion = $indice;
+    // }
     //FIN SETTERS
 
     //GETTERS
-    public function getIdAsistencia() {
+    public function getIdAsistencia(): string {
         return $this->idAsistencia;
     }
 
-    public function getCedulaEmpleado()
-    {
+    public function getCedulaEmpleado(): string {
         return $this->cedulaEmpleado;
     }
 
-    public function getTipoMarcacion() {
+    public function getTipoMarcacion(): string {
         return $this->tipoMarcacion;
     }
 
-    public function getFecha() {
+    public function getFecha(): string {
         return $this->fecha;
     }
 
-    public function getHora() {
+    public function getHora(): string {
         return $this->hora;
     }
 
-    public function getEstado()  {
+    public function getEstado(): string {
         return $this->estado;
     }
 
-    public function getObservacion() {
+    public function getObservacion(): string {
         return $this->observacion;
     }
     //FIN GETTERS
 
     // MANEJADOR DE OPERACIONES
-    public function Transaccion($peticion) {
-
-        $response = [];
-        $response['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"];
-        $response['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => "Solicitud no válida"];
+    public function Transaccion(array $peticion): array {
+        $response = [
+            'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
+            'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
+        ];
 
         if (isset($peticion['peticion'])) {
-
             $response = match ($peticion['peticion']) {
-
-                    'validar' => $this->ValidarAsistencia(),
+                'validar' => $this->ValidarAsistencia(),
                 'consultar' => $this->ConsultarAsistencia(),
                 'consultar_hoy' => $this->ConsultarAsistenciaHoy(),
                 'registrar' => $this->RegistrarAsistencia(),
                 'agregar_observacion' => $this->AgregarObservacion(),
                 'eliminar_observacion' => $this->EliminarObservacion(),
-
                 default => [
                     'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"],
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => "Solicitud no válida"]
@@ -158,15 +156,15 @@ class Asistencia extends Database {
     //FIN DE MANEJADOR DE OPERACIONES
 
     //OPERACIONES A LA BASE DE DATOS
-    private function ValidarAsistencia() {
-        $dato = [];
-        $dato['estado'] = 0;
-        $dato['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Función de validación no implementada'];
-        $dato['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Función no implementada'];
-        return $dato;
+    private function ValidarAsistencia(): array {
+        return [
+            'estado' => 0,
+            'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Función de validación no implementada'],
+            'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Función no implementada']
+        ];
     }
 
-    private function ConsultarAsistencia() {
+    private function ConsultarAsistencia(): array {
         $dato = [];
         $arreglo = [];
 
@@ -188,7 +186,7 @@ class Asistencia extends Database {
             }
 
             $this->LlamarConexion()->commit();
-            $stm = NULL;
+            $stm = null;
 
             $dato['estado'] = 1;
             $dato['response'] = ['resultado' => 200, 'mensaje' => 'OK', 'datos' => $arreglo];
@@ -205,7 +203,7 @@ class Asistencia extends Database {
         return $dato;
     }
 
-    private function ConsultarAsistenciaHoy() {
+    private function ConsultarAsistenciaHoy(): array {
         $dato = [];
         $arreglo = [];
 
@@ -218,9 +216,25 @@ class Asistencia extends Database {
                            MAX(CASE WHEN a.tipo_marcacion = 'ENTRADA' THEN a.hora END) AS hora_entrada,
                            MAX(CASE WHEN a.tipo_marcacion = 'DESCANSO_IN' THEN a.hora END) AS hora_descanso_in,
                            MAX(CASE WHEN a.tipo_marcacion = 'DESCANSO_OUT' THEN a.hora END) AS hora_descanso_out,
-                           MAX(CASE WHEN a.tipo_marcacion = 'SALIDA' THEN a.hora END) AS hora_salida
+                           MAX(CASE WHEN a.tipo_marcacion = 'SALIDA' THEN a.hora END) AS hora_salida,
+                           MAX(CASE WHEN a.tipo_marcacion = 'ENTRADA' THEN a.estado END) AS estado_entrada,
+                                                     MAX(CASE WHEN a.tipo_marcacion = 'SALIDA' THEN a.estado END) AS estado_salida,
+                                                     EXISTS (
+                                                             SELECT 1
+                                                             FROM permiso_laboral pl
+                                                             WHERE pl.cedula_empleado = v.cedula
+                                                                 AND pl.estado = 'APROBADO'
+                                                                 AND pl.estatus = 1
+                                                                 AND CURDATE() BETWEEN pl.fecha_inicio AND pl.fecha_fin
+                                                     ) AS tiene_permiso
                     FROM vw_directorio_empleados v
                     LEFT JOIN asistencia a ON a.cedula_empleado = v.cedula AND a.fecha = CURDATE()
+                                        WHERE EXISTS (
+                                                SELECT 1
+                                                FROM planificador_turno pt
+                                                WHERE pt.cedula_empleado = v.cedula
+                                                    AND pt.fecha = CURDATE()
+                                        )
                     GROUP BY v.cedula, v.nombre, v.apellido
                     ORDER BY v.nombre, v.apellido";
             $stm = $this->LlamarConexion()->prepare($sql);
@@ -231,7 +245,7 @@ class Asistencia extends Database {
             }
 
             $this->LlamarConexion()->commit();
-            $stm = NULL;
+            $stm = null;
 
             $dato['estado'] = 1;
             $dato['response'] = ['resultado' => 200, 'mensaje' => 'OK', 'datos' => $arreglo];
@@ -248,7 +262,7 @@ class Asistencia extends Database {
         return $dato;
     }
 
-    private function RegistrarAsistencia() {
+    private function RegistrarAsistencia(): array {
         $dato = [];
         $dato['estado'] = 0;
         $dato['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Función de registro no implementada'];
@@ -257,6 +271,27 @@ class Asistencia extends Database {
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
+
+            // Si la observación es un texto plano simple y no está vacía, la convertimos al nuevo formato JSON.
+            $observacionJson = $this->observacion;
+            if (!empty($observacionJson)) {
+                // Intentamos decodificarlo para ver si ya es JSON
+                $temp = json_decode($observacionJson, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    // Si no es JSON, lo tratamos como una observación simple de texto plano
+                    // y la convertimos al nuevo formato.
+                    $nuevaObservacion = $this->crearNuevaObservacion($observacionJson);
+                    $observacionJson = json_encode([$nuevaObservacion]);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        throw new Exception('Error al codificar la observación inicial a JSON.');
+                    }
+                } else {
+                    // Ya es JSON, lo dejamos como está.
+                    $observacionJson = $this->observacion;
+                }
+            } else {
+                $observacionJson = null; // Para que la base de datos lo guarde como NULL
+            }
 
             $sql = "INSERT INTO asistencia (id_asistencia, cedula_empleado, tipo_marcacion, fecha, hora, estado, observacion)
                     VALUES (:id_asistencia, :cedula_empleado, :tipo_marcacion, :fecha, :hora, :estado, :observacion)";
@@ -269,11 +304,11 @@ class Asistencia extends Database {
                 ':fecha' => $this->fecha,
                 ':hora' => $this->hora,
                 ':estado' => $this->estado,
-                ':observacion' => $this->observacion
+                ':observacion' => $observacionJson
             ]);
 
             $this->LlamarConexion()->commit();
-            $stm = NULL;
+            $stm = null;
 
             $dato['estado'] = 1;
             $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Asistencia registrada correctamente'];
@@ -296,40 +331,68 @@ class Asistencia extends Database {
         return $dato;
     }
 
-    private function AgregarObservacion() {
+    /**
+     * Agrega una nueva observación al registro de asistencia.
+     * Utiliza un campo JSON en la base de datos para almacenar un array de observaciones.
+     */
+    private function AgregarObservacion(): array {
         $dato = [];
         $dato['estado'] = 0;
         $dato['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Función de actualización no implementada'];
         $dato['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Función no implementada'];
 
         try {
+            // 1. Validar el tamaño de la observación
+            if (mb_strlen($this->observacion) > 2000) {
+                throw new Exception('La observación no puede superar los 2000 caracteres.');
+            }
+
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
 
-            $sql = "UPDATE asistencia
-                    SET observacion = CONCAT(COALESCE(observacion, ''), CASE WHEN COALESCE(observacion, '') = '' THEN '' ELSE '\n' END, :observacion)
-                    WHERE id_asistencia = :id_asistencia";
+            // 2. Obtener la observación actual del registro
+            $sqlSelect = "SELECT observacion FROM asistencia WHERE id_asistencia = :id_asistencia FOR UPDATE";
+            $stm = $this->LlamarConexion()->prepare($sqlSelect);
+            $stm->execute([':id_asistencia' => $this->idAsistencia]);
+            $observacionActual = $stm->fetchColumn();
 
-            $stm = $this->LlamarConexion()->prepare($sql);
+            // 3. Decodificar el JSON actual
+            $observaciones = $this->decodificarObservaciones($observacionActual);
+
+            // 4. Crear la nueva observación
+            $nuevaObservacion = $this->crearNuevaObservacion($this->observacion);
+            
+            // 5. Agregarla al array
+            $observaciones[] = $nuevaObservacion;
+
+            // 6. Codificar a JSON
+            $nuevoJson = json_encode($observaciones);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception('Error al codificar las observaciones a JSON: ' . json_last_error_msg());
+            }
+
+            // 7. Actualizar en la base de datos
+            $sqlUpdate = "UPDATE asistencia SET observacion = :observacion WHERE id_asistencia = :id_asistencia";
+            $stm = $this->LlamarConexion()->prepare($sqlUpdate);
             $stm->execute([
-                ':id_asistencia' => $this->idAsistencia,
-                ':observacion' => $this->observacion
+                ':observacion' => $nuevoJson,
+                ':id_asistencia' => $this->idAsistencia
             ]);
 
             if ($stm->rowCount() === 0) {
                 throw new Exception('No se encontró el registro de asistencia para actualizar.');
             }
 
-            $sql = "SELECT observacion FROM asistencia WHERE id_asistencia = :id_asistencia";
-            $stm = $this->LlamarConexion()->prepare($sql);
-            $stm->execute([':id_asistencia' => $this->idAsistencia]);
-            $observacionActualizada = $stm->fetchColumn() ?: '';
-
             $this->LlamarConexion()->commit();
-            $stm = NULL;
+            $stm = null;
 
             $dato['estado'] = 1;
-            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Observación agregada correctamente', 'datos' => ['observacion' => $observacionActualizada]];
+            $dato['response'] = [
+                'resultado' => 200, 
+                'icon' => 'success', 
+                'mensaje' => 'Observación agregada correctamente', 
+                'datos' => ['observaciones' => $observaciones]
+            ];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
         } catch (\PDOException $e) {
             $this->LlamarConexion()->rollBack();
@@ -341,15 +404,19 @@ class Asistencia extends Database {
             $this->LlamarConexion()->rollBack();
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             $dato['estado'] = -1;
-            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde'];
-            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Error interno del servidor'];
+            $dato['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()];
+            $dato['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Error en la solicitud'];
         }
 
         $this->DestruirConexion();
         return $dato;
     }
 
-    private function EliminarObservacion() {
+    /**
+     * Elimina una observación del registro de asistencia por su ID (eliminación lógica).
+     * La observación se marca como eliminada, pero no se elimina físicamente.
+     */
+    private function EliminarObservacion(): array {
         $dato = [];
         $dato['estado'] = 0;
         $dato['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Función de eliminación no implementada'];
@@ -359,33 +426,43 @@ class Asistencia extends Database {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
 
-            $sql = "SELECT observacion FROM asistencia WHERE id_asistencia = :id_asistencia";
-            $stm = $this->LlamarConexion()->prepare($sql);
+            // 1. Obtener la observación actual del registro
+            $sqlSelect = "SELECT observacion FROM asistencia WHERE id_asistencia = :id_asistencia FOR UPDATE";
+            $stm = $this->LlamarConexion()->prepare($sqlSelect);
             $stm->execute([':id_asistencia' => $this->idAsistencia]);
-            $observacionActual = $stm->fetchColumn() ?: '';
+            $observacionActual = $stm->fetchColumn();
 
-            $lines = preg_split('/\r\n|\r|\n/', $observacionActual);
-            $observacionesArray = array_filter($lines, function($line) {
-                return trim($line) !== '';
-            });
+            // 2. Decodificar el JSON actual
+            $observaciones = $this->decodificarObservaciones($observacionActual);
 
-            // Convertir a array indexado
-            $observacionesArray = array_values($observacionesArray);
-
-            if ($this->indiceObservacion >= count($observacionesArray) || $this->indiceObservacion < 0) {
-                throw new Exception('Índice de observación fuera de rango. Indice: ' . $this->indiceObservacion . ', Total: ' . count($observacionesArray));
+            // 3. Buscar la observación por ID y marcarla como eliminada
+            $encontrado = false;
+            foreach ($observaciones as &$obs) {
+                if (isset($obs['id']) && $obs['id'] === $this->observacion) {
+                    // Eliminación lógica: marcar como eliminada
+                    $obs['eliminada'] = true;
+                    $obs['eliminada_por'] = $_SESSION['user']['cedula'] ?? 'Sistema';
+                    $obs['eliminada_en'] = date('Y-m-d H:i:s');
+                    $encontrado = true;
+                    break;
+                }
             }
 
-            // Eliminar la observación específica
-            array_splice($observacionesArray, $this->indiceObservacion, 1);
+            if (!$encontrado) {
+                throw new Exception('No se encontró la observación con el ID especificado.');
+            }
 
-            // Reconstruir el string de observaciones
-            $nuevaObservacion = implode("\n", $observacionesArray);
+            // 4. Codificar a JSON
+            $nuevoJson = json_encode($observaciones);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception('Error al codificar las observaciones a JSON: ' . json_last_error_msg());
+            }
 
-            $sql = "UPDATE asistencia SET observacion = :observacion WHERE id_asistencia = :id_asistencia";
-            $stm = $this->LlamarConexion()->prepare($sql);
+            // 5. Actualizar en la base de datos
+            $sqlUpdate = "UPDATE asistencia SET observacion = :observacion WHERE id_asistencia = :id_asistencia";
+            $stm = $this->LlamarConexion()->prepare($sqlUpdate);
             $stm->execute([
-                ':observacion' => $nuevaObservacion,
+                ':observacion' => $nuevoJson,
                 ':id_asistencia' => $this->idAsistencia
             ]);
 
@@ -394,10 +471,15 @@ class Asistencia extends Database {
             }
 
             $this->LlamarConexion()->commit();
-            $stm = NULL;
+            $stm = null;
 
             $dato['estado'] = 1;
-            $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Observación eliminada correctamente', 'datos' => ['observacion' => $nuevaObservacion]];
+            $dato['response'] = [
+                'resultado' => 200, 
+                'icon' => 'success', 
+                'mensaje' => 'Observación eliminada correctamente', 
+                'datos' => ['observaciones' => $observaciones]
+            ];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
         } catch (\PDOException $e) {
             $this->LlamarConexion()->rollBack();
@@ -409,8 +491,8 @@ class Asistencia extends Database {
             $this->LlamarConexion()->rollBack();
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             $dato['estado'] = -1;
-            $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde'];
-            $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Error interno del servidor'];
+            $dato['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()];
+            $dato['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Error en la solicitud'];
         }
 
         $this->DestruirConexion();
@@ -419,30 +501,104 @@ class Asistencia extends Database {
 
     //FIN DE OPERACIONES A LA BASE DE DATOS
 
-    public function calcularEstadoAsistencia(string $tipoMarcacion, string $horaActual): string {
-        if ($tipoMarcacion !== 'ENTRADA') {
-            return 'A_TIEMPO';
-        }
-
+    /**
+     * Calcula el estado de la asistencia según el tipo de marcación y la hora actual.
+     * Este método se mantiene igual.
+     */
+    public function calcularEstadoAsistencia(string $tipoMarcacion, string $horaActual, ?string $horaInicio = null, ?int $minutoTolerancia = null, ?string $horaFin = null): string {
         try {
             $horaRegistro = new \DateTime($horaActual);
-            $horaInicio = new \DateTime('08:00:00');
-            $limiteATiempo = (clone $horaInicio)->add(new \DateInterval('PT10M'));
-            $limiteTarde = (clone $horaInicio)->add(new \DateInterval('PT120M'));
+            $tolerancia = max(0, $minutoTolerancia ?? 10);
 
-            if ($horaRegistro <= $limiteATiempo) {
-                return 'A_TIEMPO';
+            if ($tipoMarcacion === 'ENTRADA') {
+                $horaInicioTurno = new \DateTime($horaInicio ?: '08:00:00');
+                $limiteATiempo = (clone $horaInicioTurno)->add(new \DateInterval('PT' . $tolerancia . 'M'));
+                return $horaRegistro <= $limiteATiempo ? 'A_TIEMPO' : 'TARDE';
             }
 
-            if ($horaRegistro <= $limiteTarde) {
-                return 'TARDE';
+            if ($tipoMarcacion === 'SALIDA' && $horaFin) {
+                $horaFinTurno = new \DateTime($horaFin);
+                $inicioSalidaPermitida = (clone $horaFinTurno)->sub(new \DateInterval('PT' . $tolerancia . 'M'));
+                return $horaRegistro >= $inicioSalidaPermitida ? 'A_TIEMPO' : 'FALTA';
             }
         } catch (\Exception $e) {
             return 'A_TIEMPO';
         }
 
-        return 'FALTA';
+        return 'A_TIEMPO';
     }
 
+    public function obtenerTurnoAsignado(): ?array {
+        try {
+            $this->LlamarConexion();
+            $sql = "SELECT t.hora_inicio, t.hora_fin, t.minuto_tolerancia
+                    FROM planificador_turno pt
+                    INNER JOIN turno t ON t.id_turno = pt.id_turno
+                    WHERE pt.cedula_empleado = :cedula
+                      AND pt.fecha = :fecha
+                      AND t.estatus = 1
+                    LIMIT 1";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->execute([
+                ':cedula' => $this->cedulaEmpleado,
+                ':fecha' => $this->fecha
+            ]);
+
+            $turno = $stm->fetch(PDO::FETCH_ASSOC);
+            $this->DestruirConexion();
+            return $turno ?: null;
+        } catch (\PDOException $e) {
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $this->DestruirConexion();
+            return null;
+        }
+    }
+
+    // --- NUEVOS MÉTODOS PRIVADOS PARA MANEJO DE JSON ---
+
+    /**
+     * Decodifica el campo de observación de la base de datos a un array.
+     * Si el JSON es inválido o está vacío, devuelve un array vacío.
+     */
+    private function decodificarObservaciones(?string $json): array {
+        if (empty($json)) {
+            return [];
+        }
+
+        $datos = json_decode($json, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($datos)) {
+            return $datos;
+        }
+
+        // Compatibilidad hacia atrás con texto plano legado
+        $lineas = array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $json)));
+        $observaciones = [];
+        foreach ($lineas as $idx => $linea) {
+            $textoLimpio = ltrim($linea, '- ');
+            if (!empty($textoLimpio)) {
+                $observaciones[] = [
+                    'id' => 'LEGACY_' . ($idx + 1),
+                    'texto' => $textoLimpio,
+                    'autor' => 'Sistema',
+                    'fecha' => date('Y-m-d H:i:s'),
+                    'eliminada' => false
+                ];
+            }
+        }
+        return $observaciones;
+    }
+
+    /**
+     * Crea una nueva observación con el formato estándar.
+     */
+    private function crearNuevaObservacion(string $texto): array {
+        return [
+            'id' => Helper::generarId('OBS'),
+            'texto' => trim($texto),
+            'autor' => $_SESSION['user']['cedula'] ?? 'Sistema',
+            'fecha' => date('Y-m-d H:i:s'),
+            'eliminada' => false
+        ];
+    }
 
 }

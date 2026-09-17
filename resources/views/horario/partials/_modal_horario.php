@@ -40,7 +40,7 @@
                             <div id="botonesTurnos" class="d-flex flex-wrap gap-2">
                                 <!-- JavaScript llena esto -->
                             </div>
-                            <small class="text-muted">Seleccione un turno y luego haga clic en los días del calendario</small>
+                            <small class="text-muted">Seleccione un turno y haga clic en un día</small>
                             <div class="form-label" id="sturno"></div>
                         </div>
                     </div>
@@ -64,17 +64,8 @@
                                 
                                 <div class="card-body p-2">
                                     <!-- Días de la semana -->
-                                    <div class="d-grid mb-1" style="grid-template-columns: repeat(7, 1fr);">
-                                        <div class="text-center fw-bold small py-1">LUN</div>
-                                        <div class="text-center fw-bold small py-1">MAR</div>
-                                        <div class="text-center fw-bold small py-1">MIÉ</div>
-                                        <div class="text-center fw-bold small py-1">JUE</div>
-                                        <div class="text-center fw-bold small py-1">VIE</div>
-                                        <div class="text-center fw-bold small py-1 text-danger">SÁB</div>
-                                        <div class="text-center fw-bold small py-1 text-danger">DOM</div>
-                                    </div>
                                     <!-- Grid de días -->
-                                    <div id="calendarioDias" class="d-grid" style="grid-template-columns: repeat(7, 1fr);">
+                                    <div id="calendarioDias" class="d-grid calendario-grid" style="grid-template-columns: 2.5rem repeat(7, minmax(0, 1fr));">
                                         <!-- JavaScript llena esto -->
                                     </div>
                                 </div>
@@ -99,11 +90,6 @@
                             </div>
                             <div class="form-label" id="sfecha"></div>
                         </div>
-                    </div>
-
-                    <!-- LEYENDA DE COLORES -->
-                    <div id="leyendaColores" class="d-flex flex-wrap gap-3 mb-2">
-                        <!-- JavaScript llena esto -->
                     </div>
 
                     <input type="hidden" name="asignaciones" id="asignaciones">
@@ -140,16 +126,39 @@
         opacity: 0.2;
         pointer-events: none;
     }
+    .dia-calendario.fecha-pasada {
+        cursor: not-allowed;
+        opacity: 0.45;
+        pointer-events: none;
+    }
     .dia-calendario.hoy {
         border: 2px solid #0d6efd !important;
     }
     .dia-calendario.fin-semana {
         color: #dc3545;
     }
+
+    .selector-calendario {
+        border: 0;
+        background: transparent;
+        color: #6c757d;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.25rem;
+    }
+    .selector-calendario:hover {
+        background: #fff3cd;
+        color: #664d03;
+    }
+    .selector-fila {
+        align-self: center;
+        font-size: 0.65rem;
+    }
     
     /* Botones de turno */
     .btn-turno {
         border: 2px solid transparent;
+        margin: 2px;
         transition: all 0.2s;
         font-weight: 500;
     }
