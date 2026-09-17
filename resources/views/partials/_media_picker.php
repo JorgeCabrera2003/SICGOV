@@ -50,6 +50,21 @@
     border-color: var(--bs-primary);
     background-color: rgba(var(--bs-primary-rgb), 0.1);
 }
+html[data-bs-theme="dark"] .picker-card,
+.dark .picker-card {
+    background-color: #15171A;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+html[data-bs-theme="dark"] .picker-card:hover,
+.dark .picker-card:hover {
+    border-color: #ffc107;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.25) !important;
+}
+html[data-bs-theme="dark"] .picker-card.selected,
+.dark .picker-card.selected {
+    border-color: #ffc107;
+    background-color: rgba(255, 193, 7, 0.15);
+}
 .picker-preview {
     height: 100px;
     object-fit: cover;

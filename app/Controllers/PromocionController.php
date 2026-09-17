@@ -77,6 +77,7 @@ if (isset($_POST["peticion"])) {
                 $promocionModel->setFechaFin($_POST["fecha_fin"] ?? '');
                 $promocionModel->setHoraInicio($_POST["hora_inicio"] ?? '');
                 $promocionModel->setHoraFin($_POST["hora_fin"] ?? '');
+                $promocionModel->setImagen($_POST["imagen_galeria"] ?? '');
 
                 $json = $promocionModel->Transaccion(['peticion' => $_POST["peticion"]]);
                 if (isset($json['estado']) && $json['estado'] == 1) {
@@ -121,6 +122,134 @@ if (isset($_POST["peticion"])) {
             $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada: ' . $_POST["peticion"]];
             $json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' una promoción'];
             $msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
+        }
+    }
+
+    // Crear Noticia a partir de Promoción
+    if ($_POST["peticion"] == "crear_noticia") {
+        $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
+        try {
+            $idPromocion = $_POST["id_promocion"] ?? '';
+            if (empty($idPromocion)) {
+                throw new Exception('ID de promoción requerido.');
+            }
+
+            $promocionModel->setIdPromocion($idPromocion);
+            $valPromo = $promocionModel->Transaccion(['peticion' => 'validar']);
+            if (($valPromo['bool'] ?? 0) != 1) {
+                throw new Exception('La promoción indicada no existe.');
+            }
+            $promoData = $valPromo['response']['registro'];
+
+            // Obtener productos asociados a la promoción
+            $dbBusiness = \App\Core\Database::getConnection('business');
+            $sqlProd = "SELECT p.nombre_producto, p.precio, pp.cantidad
+                        FROM (
+                            SELECT id_producto, COUNT(*) as cantidad 
+                            FROM planificador_promocion 
+                            WHERE id_promocion = :id_promocion 
+                            GROUP BY id_producto
+                        ) pp
+                        JOIN producto p ON pp.id_producto = p.id_producto";
+            $stmProd = $dbBusiness->prepare($sqlProd);
+            $stmProd->execute([':id_promocion' => $idPromocion]);
+            $listaProductos = $stmProd->fetchAll(\PDO::FETCH_ASSOC);
+
+            // Armar texto de descuento
+            $descuentoTexto = ($promoData['tipo_descuento'] === 'PORCENTAJE')
+                ? number_format((float)$promoData['valor_descuento'], 2, ',', '.') . "%"
+                : "$" . number_format((float)$promoData['valor_descuento'], 2, ',', '.');
+
+            // Armar lista de productos
+            $prodListadoTexto = "";
+            $subtotalOriginal = 0;
+            foreach ($listaProductos as $lp) {
+                $subtotalOriginal += ((float)$lp['precio'] * (int)$lp['cantidad']);
+                $prodListadoTexto .= "• " . $lp['nombre_producto'] . " (Cant: " . $lp['cantidad'] . " - Ref: $" . number_format((float)$lp['precio'], 2, ',', '.') . ")\n";
+            }
+
+            // Calcular ahorro
+            if ($promoData['tipo_descuento'] === 'PORCENTAJE') {
+                $montoDesc = $subtotalOriginal * ((float)$promoData['valor_descuento'] / 100);
+            } else {
+                $montoDesc = min($subtotalOriginal, (float)$promoData['valor_descuento']);
+            }
+            $totalPromocional = max(0, $subtotalOriginal - $montoDesc);
+
+            // Formatear fechas
+            $fechaIni = date('d/m/Y', strtotime($promoData['fecha_inicio']));
+            $fechaFin = !empty($promoData['fecha_fin']) ? date('d/m/Y', strtotime($promoData['fecha_fin'])) : 'Hasta agotar existencia';
+
+            // Armar contenido redactado
+            $contenidoNoticia = "¡Aprovecha nuestra súper promoción especial en Good Vibes!\n\n"
+                . "🏷️ Oferta: " . $promoData['nombre'] . "\n"
+                . "💥 Descuento exclusivo: " . $descuentoTexto . " OFF\n"
+                . "📅 Vigencia: Desde " . $fechaIni . " hasta " . $fechaFin . "\n\n";
+
+            if (!empty($promoData['descripcion'])) {
+                $contenidoNoticia .= "📝 Detalle:\n" . $promoData['descripcion'] . "\n\n";
+            }
+
+            if (!empty($prodListadoTexto)) {
+                $contenidoNoticia .= "🍽️ Productos incluidos en la promoción:\n" . $prodListadoTexto . "\n";
+                $contenidoNoticia .= "💵 Subtotal referencial: $" . number_format($subtotalOriginal, 2, ',', '.') . "\n";
+                $contenidoNoticia .= "🔥 Precio especial con descuento: $" . number_format($totalPromocional, 2, ',', '.') . "\n\n";
+            }
+
+            $contenidoNoticia .= "¡No te quedes sin disfrutarla! Visítanos en nuestro local o solicita tu pedido en línea.";
+
+            // Título limpio para validación Regex (Titulo: 3-150 caracteres)
+            $tituloNoticia = "¡Promoción: " . trim($promoData['nombre']) . "!";
+            if (mb_strlen($tituloNoticia) > 95) {
+                $tituloNoticia = mb_substr($tituloNoticia, 0, 92) . "...!";
+            }
+
+            // Subtítulo
+            $subtituloNoticia = "Aprovecha " . $descuentoTexto . " de descuento disponible por tiempo limitado.";
+            if (mb_strlen($subtituloNoticia) > 145) {
+                $subtituloNoticia = mb_substr($subtituloNoticia, 0, 142) . "...";
+            }
+
+            // Instanciar modelo Noticia
+            $cedulaUser = $_SESSION['user']['cedula'] ?? '';
+            if (empty($cedulaUser)) {
+                $dbSec = \App\Core\Database::getConnection('security');
+                $stmtAdmin = $dbSec->query("SELECT cedula FROM usuario LIMIT 1");
+                $cedulaUser = $stmtAdmin ? $stmtAdmin->fetchColumn() : '';
+            }
+
+            $noticiaModel = new \App\Models\Security\Noticia();
+            $idNoticia = Helper::generarId("NOTC");
+            $noticiaModel->setId($idNoticia);
+            $noticiaModel->setCedula($cedulaUser);
+            $noticiaModel->setTitulo($tituloNoticia);
+            $noticiaModel->setSubtitulo($subtituloNoticia);
+            $noticiaModel->setContenido($contenidoNoticia);
+            $noticiaModel->setTipo('INFO');
+            $noticiaModel->setFechaPublicacion(date('Y-m-d H:i:s'));
+
+            // Si la promoción tiene imagen, asignarla a la noticia
+            if (!empty($promoData['imagen'])) {
+                $noticiaModel->setImagenesGaleria([$promoData['imagen']]);
+            }
+
+            $resNoticia = $noticiaModel->Transaccion(['peticion' => 'registrar']);
+
+            if (isset($resNoticia['estado']) && $resNoticia['estado'] == 1) {
+                Helper::Bitacora('REGISTRAR', 'NOTICIA', "Se creó noticia automática {$idNoticia} a partir de la promoción {$promoData['nombre']}");
+                $json['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => 'OK'];
+                $json['response'] = [
+                    'resultado' => 201,
+                    'icon' => 'success',
+                    'mensaje' => "¡Noticia creada y publicada exitosamente en el Blog!",
+                    'id_noticia' => $idNoticia
+                ];
+            } else {
+                throw new Exception($resNoticia['response']['mensaje'] ?? "No se pudo registrar la noticia");
+            }
+        } catch (Exception $e) {
+            $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Error al crear noticia'];
+            $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()];
         }
     }
 
