@@ -314,6 +314,8 @@ function prepararNuevaReservacion(info, tpInicio, tpFin, calendar) {
         $('#id_mesa').val('');
         $('#cantidad_personas').val(2);
         verificarMesasPorCapacidad();
+    } else {
+        $('#cantidad_personasPublica').val(2);
     }
     
     $(IDs.fecha).val(fecha);
@@ -351,6 +353,8 @@ function abrirDetalleReservacion(event, props, tpInicio, tpFin, calendar) {
         $('#id_mesa').val(props.id_mesa || '');
         $('#cantidad_personas').val(props.cantidad_personas || 1);
         verificarMesasPorCapacidad();
+    } else {
+        $('#cantidad_personasPublica').val(props.cantidad_personas || 1);
     }
     
     $(IDs.fecha).val(fecha);
