@@ -24,7 +24,7 @@ export async function enviaAjax(datos, controlador = "") {
       data: datos,
       processData: false,
       cache: false,
-      timeout: 10000,
+      timeout: 25000,
       success: function (respuesta) {
         if (respuesta == undefined || respuesta == '' || respuesta == null) {
           response = { resultado: 204, mensaje: '' }

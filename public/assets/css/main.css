@@ -302,7 +302,8 @@ body {
 /* ==========================================
    MODO OSCURO (Adaptación global)
 ========================================= */
-.dark {
+.dark,
+[data-bs-theme="dark"] {
     --bg-principal: #0F1114;
     --bg-tarjetas: #1A1C20;
     --color-sidebar: #F8F9FA;
@@ -534,6 +535,105 @@ body {
     & .swal2-icon.swal2-info {
         border-color: #0dcaf0 !important;
         color: #0dcaf0 !important;
+    }
+
+    /* Correcciones globales de botones y contrastes en modo oscuro */
+    & .btn-outline-warning {
+        color: #ffc107 !important;
+        border-color: #ffc107 !important;
+        background-color: rgba(255, 193, 7, 0.08);
+
+        &:hover, &:focus, &:active {
+            background-color: #ffc107 !important;
+            border-color: #ffc107 !important;
+            color: #121417 !important;
+            box-shadow: 0 0 16px rgba(255, 193, 7, 0.4);
+        }
+    }
+
+    & .btn-outline-info {
+        color: #0dcaf0 !important;
+        border-color: #0dcaf0 !important;
+        background-color: rgba(13, 202, 240, 0.08);
+
+        &:hover, &:focus, &:active {
+            background-color: #0dcaf0 !important;
+            border-color: #0dcaf0 !important;
+            color: #121417 !important;
+            box-shadow: 0 0 16px rgba(13, 202, 240, 0.4);
+        }
+    }
+
+    & .btn-outline-danger {
+        color: #ff6b6b !important;
+        border-color: rgba(220, 53, 69, 0.7) !important;
+        background-color: rgba(220, 53, 69, 0.08);
+
+        &:hover, &:focus, &:active {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 14px rgba(220, 53, 69, 0.4);
+        }
+    }
+
+    & .btn-outline-secondary {
+        color: rgba(248, 249, 250, 0.85) !important;
+        border-color: rgba(255, 255, 255, 0.22) !important;
+        background-color: rgba(255, 255, 255, 0.04);
+
+        &:hover, &:focus, &:active {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.35) !important;
+            color: #ffffff !important;
+        }
+    }
+
+    & .btn-light {
+        background-color: #1a1c20 !important;
+        border-color: rgba(255, 255, 255, 0.15) !important;
+        color: #f8f9fa !important;
+
+        &:hover, &:focus, &:active {
+            background-color: #26292f !important;
+            border-color: rgba(255, 255, 255, 0.3) !important;
+            color: #ffffff !important;
+        }
+    }
+
+    /* Salvaguarda contra text-dark en botones transparentes/outline en modo oscuro */
+    & .btn[class*="btn-outline-"].text-dark,
+    & .btn[class*="btn-outline-"] .text-dark {
+        color: inherit !important;
+    }
+
+    /* Fondos sutiles en modo oscuro */
+    & .bg-warning-subtle {
+        background: rgba(255, 193, 7, 0.12) !important;
+        color: #ffc107 !important;
+    }
+    & .bg-danger-subtle {
+        background: rgba(220, 53, 69, 0.12) !important;
+        color: #ff6b6b !important;
+    }
+    & .bg-success-subtle {
+        background: rgba(25, 135, 84, 0.15) !important;
+        color: #20c997 !important;
+    }
+    & .bg-info-subtle {
+        background: rgba(13, 202, 240, 0.12) !important;
+        color: #0dcaf0 !important;
+    }
+
+    /* List group items */
+    & .list-group-item {
+        background-color: var(--bg-tarjetas) !important;
+        border-color: var(--color-border) !important;
+        color: var(--color-sidebar) !important;
+
+        &.bg-light, &.bg-body-tertiary {
+            background-color: #15171A !important;
+        }
     }
 }
 
