@@ -163,11 +163,9 @@
 
 .dash-time-pill {
     display: inline-flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-width: 52px;
-    padding: 0.35rem 0.5rem;
+    padding: 0.35rem 0.65rem;
     border-radius: 8px;
     background-color: var(--bs-tertiary-bg, rgba(255, 255, 255, 0.04));
     border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.08));
@@ -175,6 +173,14 @@
     font-size: 0.82rem;
     color: var(--bs-body-color, #fff);
     line-height: 1.1;
+    white-space: nowrap;
+}
+
+.dash-time-ampm {
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 0.25rem;
+    color: var(--bs-secondary-color, #adb5bd);
 }
 
 /* ==========================================================================

@@ -140,12 +140,14 @@ $fechaFormateada = $diaSemana . ', ' . date('d') . ' de ' . $mesNombre . ' de ' 
                                 $nombreCliente = 'Cliente General';
                             }
                             $horaRaw = $reserva['hora'] ?? '';
-                            $horaMostrar = !empty($horaRaw) ? substr($horaRaw, 0, 5) : '--:--';
+                            $horaNum = !empty($horaRaw) ? date('h:i', strtotime($horaRaw)) : '--:--';
+                            $ampm = !empty($horaRaw) ? date('A', strtotime($horaRaw)) : '';
                         ?>
                             <div class="dash-reserva-item">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="dash-time-pill">
-                                        <?= htmlspecialchars($horaMostrar) ?>
+                                    <div class="dash-time-pill text-nowrap">
+                                        <span><?= htmlspecialchars($horaNum) ?></span>
+                                        <span class="dash-time-ampm"><?= htmlspecialchars($ampm) ?></span>
                                     </div>
                                     <div>
                                         <div class="fw-semibold text-body small">
@@ -291,6 +293,8 @@ $fechaFormateada = $diaSemana . ', ' . date('d') . ' de ' . $mesNombre . ' de ' 
                                     'CANCELADO' => 'bg-danger-subtle text-danger border-danger-subtle',
                                     default => 'bg-warning-subtle text-warning border-warning-subtle'
                                 };
+                                $fPed = $pedido['fecha_pedido'] ?? '';
+                                $fPedFmt = !empty($fPed) ? date('d/m/Y h:i A', strtotime($fPed)) : '';
                             ?>
                                 <tr>
                                     <td class="ps-3 fw-bold text-body">
@@ -301,7 +305,7 @@ $fechaFormateada = $diaSemana . ', ' . date('d') . ' de ' . $mesNombre . ' de ' 
                                             <?= htmlspecialchars(($pedido['nombre'] ?? '') . ' ' . ($pedido['apellido'] ?? 'Cliente General')) ?>
                                         </div>
                                         <span class="text-body-secondary" style="font-size: 0.75rem;">
-                                            <?= htmlspecialchars(substr($pedido['fecha_pedido'] ?? '', 0, 16)) ?>
+                                            <?= htmlspecialchars($fPedFmt) ?>
                                         </span>
                                     </td>
                                     <td>
