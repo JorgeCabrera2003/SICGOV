@@ -26,6 +26,8 @@
                     $_REQUEST["type"] = 'publico';
                 } elseif ($_REQUEST["page"] === 'pedidos') {
                     $this->url = 'Pedido';
+                } elseif ($_REQUEST["page"] === 'notificaciones' || $_REQUEST["page"] === 'Notification') {
+                    $this->url = 'Notification';
                 } elseif ($_REQUEST["page"] === 'crear-cuenta') {
                     $this->url = 'Login';
                 } elseif (in_array($_REQUEST["page"], ['recuperar-password', 'verificar-codigo', 'restablecer-password'])) {
