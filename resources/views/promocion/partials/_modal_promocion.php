@@ -7,7 +7,7 @@
         <div class="modal-content border-0 shadow">
             <style>
                 #modalPromocion .is-valid {
-                    border-color: #ced4da !important;
+                    border-color: var(--bs-border-color) !important;
                     box-shadow: none !important;
                 }
                 #modalPromocion .valid-feedback {
@@ -18,6 +18,45 @@
                 #modalPromocion select:valid {
                     background-image: none !important;
                     box-shadow: none !important;
+                }
+                /* Reglas para Modo Oscuro en Modal Promoción */
+                html[data-bs-theme="dark"] #modalPromocion .modal-header,
+                .dark #modalPromocion .modal-header {
+                    background: linear-gradient(135deg, rgba(255, 193, 7, 0.16) 0%, rgba(255, 193, 7, 0.04) 100%) !important;
+                    border-bottom: 1px solid rgba(255, 193, 7, 0.25) !important;
+                }
+                html[data-bs-theme="dark"] #modalPromocion #btnAbrirGaleriaPromocion,
+                .dark #modalPromocion #btnAbrirGaleriaPromocion {
+                    color: #ffc107 !important;
+                    border-color: #ffc107 !important;
+                    background-color: rgba(255, 193, 7, 0.1) !important;
+                    transition: all 0.2s ease-in-out;
+                }
+                html[data-bs-theme="dark"] #modalPromocion #btnAbrirGaleriaPromocion:hover,
+                .dark #modalPromocion #btnAbrirGaleriaPromocion:hover {
+                    background-color: #ffc107 !important;
+                    color: #111315 !important;
+                    box-shadow: 0 0 16px rgba(255, 193, 7, 0.45) !important;
+                }
+                html[data-bs-theme="light"] #modalPromocion #btnAbrirGaleriaPromocion,
+                :root:not(.dark) #modalPromocion #btnAbrirGaleriaPromocion {
+                    color: #92400e;
+                    border-color: #f59e0b;
+                    background-color: rgba(245, 158, 11, 0.08);
+                }
+                html[data-bs-theme="light"] #modalPromocion #btnAbrirGaleriaPromocion:hover,
+                :root:not(.dark) #modalPromocion #btnAbrirGaleriaPromocion:hover {
+                    color: #ffffff;
+                    background-color: #d97706;
+                }
+                html[data-bs-theme="dark"] #modalPromocion .promo-preview-container,
+                .dark #modalPromocion .promo-preview-container {
+                    background-color: rgba(255, 255, 255, 0.03) !important;
+                    border-color: rgba(255, 255, 255, 0.12) !important;
+                }
+                html[data-bs-theme="dark"] #modalPromocion .border-end,
+                .dark #modalPromocion .border-end {
+                    border-color: rgba(255, 255, 255, 0.1) !important;
                 }
             </style>
             <div class="modal-header bg-warning-subtle border-bottom-0">
@@ -106,8 +145,28 @@
                                 <label for="descripcion" class="form-label fw-semibold">
                                     Descripción
                                 </label>
-                                <textarea class="form-control" id="descripcion" name="descripcion" rows="4"></textarea>
+                                <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
                                 <div class="form-label text-danger" id="sdescripcion"></div>
+                            </div>
+
+                            <!-- Fila: Imagen de la Promoción (Galería) -->
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">
+                                    <i class="fas fa-image me-1 text-warning"></i> Imagen de la Promoción
+                                </label>
+                                <div class="d-flex gap-2 mb-2">
+                                    <button type="button" class="btn btn-outline-warning w-100 fw-semibold d-flex align-items-center justify-content-center" id="btnAbrirGaleriaPromocion">
+                                        <i class="fas fa-images me-2"></i>Elegir de Galería
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" id="btnQuitarImagenPromocion" style="display: none;" title="Quitar imagen">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <input type="hidden" id="imagen_galeria" name="imagen_galeria">
+                                <div id="previewImagenPromocionContainer" style="display: none;" class="p-2 border rounded bg-body-tertiary text-center promo-preview-container">
+                                    <img id="previewImagenPromocion" src="#" alt="Vista previa" class="img-fluid rounded shadow-sm" style="max-height: 130px; object-fit: contain;">
+                                </div>
+                                <small class="text-muted d-block mt-1">Selecciona una imagen del gestor de galería multimedia.</small>
                             </div>
 
                         </div>
@@ -142,7 +201,7 @@
                                             <small class="text-muted" id="contadorProductosSeleccionados">0 productos</small>
                                         </div>
                                         <div class="list-group list-group-flush" id="productosSeleccionadosLista" style="max-height: 320px; overflow:auto;">
-                                            <div class="list-group-item bg-light text-center text-muted">No hay productos seleccionados</div>
+                                            <div class="list-group-item bg-body-tertiary text-center text-body-secondary py-3">No hay productos seleccionados</div>
                                         </div>
                                         <div class="form-label text-danger mt-2" id="sproducto"></div>
                                     </div>
@@ -152,11 +211,16 @@
                     </div>
                 </div>
 
-                <div class="modal-footer border-top-0">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Cancelar
+                <div class="modal-footer border-top-0 d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-info" id="btnCrearNoticiaModal" style="display: none;">
+                        <i class="fas fa-bullhorn me-2"></i>Publicar como Noticia
                     </button>
-                    <button type="button" class="btn btn-warning text-dark fw-semibold" id="btnPromocionForm"></button>
+                    <div class="ms-auto d-flex gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="button" class="btn btn-warning text-dark fw-semibold" id="btnPromocionForm"></button>
+                    </div>
                 </div>
             </form>
         </div>
