@@ -1,7 +1,7 @@
-import * as AjaxHelper from "../Helpers/AjaxHelper.js";
-import * as SelectHelper from "../Helpers/SelectHelper.js";
-import { confirmarAccion } from "../Helpers/UIHelper.js";
-import { GenerarMensaje, FeedbackToltipInput } from "../Helpers/MensajeriaHelper.js";
+import * as AjaxHelper from "../Helpers/AjaxHelper.js?v=20260917-3";
+import * as SelectHelper from "../Helpers/SelectHelper.js?v=20260917-3";
+import { confirmarAccion } from "../Helpers/UIHelper.js?v=20260917-3";
+import { GenerarMensaje, FeedbackToltipInput } from "../Helpers/MensajeriaHelper.js?v=20260917-3";
 
 // MÓDULO DE HORARIOS
 
@@ -50,6 +50,7 @@ export function EditarModal(operacion) {
   const etiqueta_modal = EtiquetasModal("Horario");
   if (operacion == 'registrar') { titulo = "Asignar Turno"; boton = "Asignar"; }
   if (operacion == 'modificar') { titulo = "Cambiar Turno"; boton = "Actualizar"; }
+  if (operacion == 'modificar_lote') { titulo = "Editar Horario"; boton = "Guardar cambios"; }
   if (operacion == 'eliminar') { titulo = "Eliminar Asignación"; boton = "Eliminar"; }
   etiqueta_modal.titulo.text(titulo);
   etiqueta_modal.boton.text(boton);
@@ -63,7 +64,15 @@ export function EditarModal(operacion) {
 let fechaActualCalendario = new Date();
 let turnoActivo = null; // { id_turno, nombre, color }
 let asignaciones = {}; // { '2025-03-03': { id_turno, nombre, color }, ... }
+let asignacionesOriginales = {}; // Asignaciones existentes al abrir el editor
 let coloresTurnos = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336', '#00BCD4', '#795548', '#607D8B'];
+let coloresTurnosPorId = new Map();
+
+function esFechaPasada(fecha) {
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  return new Date(`${fecha}T00:00:00`) < hoy;
+}
 
 // ==========================================
 // BOTONES DE TURNOS
@@ -74,6 +83,7 @@ function renderizarBotonesTurnos(turnos) {
   
   turnos.forEach((turno, index) => {
     const color = coloresTurnos[index % coloresTurnos.length];
+    coloresTurnosPorId.set(String(turno.id_turno), color);
     const activo = turnoActivo && turnoActivo.id_turno === turno.id_turno ? 'activo' : '';
     html += `<button type="button" class="btn btn-sm btn-turno ${activo}" 
       style="background-color: ${color}; color: white;"
@@ -86,7 +96,6 @@ function renderizarBotonesTurnos(turnos) {
   });
   
   $('#botonesTurnos').html(html);
-  renderizarLeyenda(turnos);
 }
 
 window.seleccionarTurno = function(elemento, id, nombre, color) {
@@ -103,18 +112,6 @@ window.seleccionarTurno = function(elemento, id, nombre, color) {
   renderizarCalendario();
 };
 
-function renderizarLeyenda(turnos) {
-  let html = '';
-  turnos.forEach((turno, index) => {
-    const color = coloresTurnos[index % coloresTurnos.length];
-    html += `<span class="leyenda-item">
-      <span class="leyenda-color" style="background-color: ${color};"></span>
-      ${turno.nombre}
-    </span>`;
-  });
-  $('#leyendaColores').html(html);
-}
-
 // ==========================================
 // CALENDARIO
 // ==========================================
@@ -122,7 +119,9 @@ function renderizarLeyenda(turnos) {
 export function inicializarCalendario() {
   fechaActualCalendario = new Date();
   turnoActivo = null;
+  $('#botonesTurnos .btn-turno').removeClass('activo');
   asignaciones = {};
+  asignacionesOriginales = {};
   renderizarCalendario();
 }
 
@@ -142,56 +141,118 @@ function renderizarCalendario() {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
 
-  let html = '';
+  let html = '<div class="selector-esquina"></div>';
+  const nombresDias = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
+  nombresDias.forEach((nombre, indice) => {
+    const claseFinSemana = indice >= 5 ? ' text-danger' : '';
+    html += `<button type="button" class="selector-calendario selector-columna${claseFinSemana}" onclick="seleccionarColumna(${indice})" title="Seleccionar ${nombre}">${nombre}</button>`;
+  });
 
-  // Días del mes anterior
-  for (let i = primerDiaAjustado - 1; i >= 0; i--) {
-    const dia = ultimoDiaMesAnterior - i;
-    html += `<div class="p-1">
-      <div class="dia-calendario otro-mes d-flex align-items-center justify-content-center">${dia}</div>
-    </div>`;
-  }
+  const totalCeldas = Math.ceil((primerDiaAjustado + ultimoDia) / 7) * 7;
+  for (let posicion = 0; posicion < totalCeldas; posicion++) {
+    if (posicion % 7 === 0) {
+      const fila = Math.floor(posicion / 7);
+      html += `<button type="button" class="selector-calendario selector-fila" onclick="seleccionarFila(${fila})" title="Seleccionar semana ${fila + 1}">S${fila + 1}</button>`;
+    }
 
-  // Días del mes actual
-  for (let dia = 1; dia <= ultimoDia; dia++) {
+    const dia = posicion - primerDiaAjustado + 1;
+    if (dia < 1 || dia > ultimoDia) {
+      const diaFueraDeMes = dia < 1 ? ultimoDiaMesAnterior + dia : dia - ultimoDia;
+      html += `<div class="p-1"><div class="dia-calendario otro-mes d-flex align-items-center justify-content-center">${diaFueraDeMes}</div></div>`;
+      continue;
+    }
+
     const fechaStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
     const fecha = new Date(year, month, dia);
     const diaSemana = fecha.getDay();
     const asignado = asignaciones[fechaStr];
-    
     let clases = 'dia-calendario d-flex align-items-center justify-content-center';
     let estilo = '';
-    
+
     if (diaSemana === 0 || diaSemana === 6) clases += ' fin-semana';
     if (fecha.getTime() === hoy.getTime()) clases += ' hoy';
-    
-    if (asignado) {
-      estilo = `background-color: ${asignado.color}; color: white; font-weight: bold;`;
-    }
-    
-    html += `<div class="p-1">
-      <div class="${clases}" data-fecha="${fechaStr}" 
-        style="${estilo}"
-        onclick="toggleDia(this, '${fechaStr}')">${dia}</div>
-    </div>`;
-  }
+    if (fecha < hoy) clases += ' fecha-pasada';
+    if (asignado) estilo = `background-color: ${asignado.color}; color: white; font-weight: bold;`;
 
-  // Rellenar última fila
-  const totalCeldas = primerDiaAjustado + ultimoDia;
-  const diasRestantes = (7 - (totalCeldas % 7)) % 7;
-  for (let i = 1; i <= diasRestantes; i++) {
-    html += `<div class="p-1">
-      <div class="dia-calendario otro-mes d-flex align-items-center justify-content-center">${i}</div>
-    </div>`;
+    const atributoFechaPasada = fecha < hoy ? ' aria-disabled="true" title="No se puede modificar una fecha pasada"' : '';
+    const eventoClick = fecha < hoy ? '' : ` onclick="toggleDia(this, '${fechaStr}')"`;
+    html += `<div class="p-1"><div class="${clases}" data-fecha="${fechaStr}"
+      style="${estilo}"${atributoFechaPasada}${eventoClick}>${dia}</div></div>`;
   }
 
   $('#calendarioDias').html(html);
   actualizarContador();
 }
 
+function obtenerFechasDelMes() {
+  const year = fechaActualCalendario.getFullYear();
+  const month = fechaActualCalendario.getMonth();
+  const ultimoDia = new Date(year, month + 1, 0).getDate();
+
+  return Array.from({ length: ultimoDia }, (_, indice) =>
+    `${year}-${String(month + 1).padStart(2, '0')}-${String(indice + 1).padStart(2, '0')}`
+  );
+}
+
+function alternarSeleccionMasiva(fechas) {
+  if (!turnoActivo) {
+    GenerarMensaje("warning", 3000, "Seleccione un turno", "Debe seleccionar un turno primero");
+    return;
+  }
+
+  fechas = fechas.filter(fecha => !esFechaPasada(fecha));
+  if (fechas.length === 0) return;
+
+  const todasAsignadasAlTurno = fechas.length > 0 && fechas.every(fecha =>
+    asignaciones[fecha]?.id_turno === turnoActivo.id_turno
+  );
+
+  fechas.forEach(fecha => {
+    if (todasAsignadasAlTurno) {
+      delete asignaciones[fecha];
+    } else {
+      asignaciones[fecha] = { ...turnoActivo };
+    }
+  });
+
+  renderizarCalendario();
+  actualizarInputAsignaciones();
+}
+
+window.seleccionarColumna = function(indiceColumna) {
+  const fechas = obtenerFechasDelMes().filter(fecha => {
+    const diaSemana = new Date(`${fecha}T00:00:00`).getDay();
+    const columna = diaSemana === 0 ? 6 : diaSemana - 1;
+    return columna === indiceColumna;
+  });
+  alternarSeleccionMasiva(fechas);
+};
+
+window.seleccionarFila = function(indiceFila) {
+  const year = fechaActualCalendario.getFullYear();
+  const month = fechaActualCalendario.getMonth();
+  const primerDia = new Date(year, month, 1).getDay();
+  const primerDiaAjustado = primerDia === 0 ? 6 : primerDia - 1;
+  const fechas = obtenerFechasDelMes().filter(fecha => {
+    const dia = Number(fecha.slice(-2));
+    return Math.floor((primerDiaAjustado + dia - 1) / 7) === indiceFila;
+  });
+  alternarSeleccionMasiva(fechas);
+};
+
 window.toggleDia = function(elemento, fecha) {
-  // Si ya tiene asignación, quitarla
-  if (asignaciones[fecha]) {
+  if (esFechaPasada(fecha)) {
+    GenerarMensaje("warning", 3000, "Fecha no permitida", "No puede asignar ni modificar turnos de días anteriores al actual");
+    return;
+  }
+
+  // Si se seleccionó otro turno, reemplazarlo directamente.
+  if (asignaciones[fecha] && turnoActivo && asignaciones[fecha].id_turno !== turnoActivo.id_turno) {
+    asignaciones[fecha] = { ...turnoActivo, id_planificador_turno: asignaciones[fecha].id_planificador_turno };
+    console.log(`🔄 Actualizado: ${fecha} -> ${turnoActivo.nombre}`);
+  }
+  // Si ya tiene asignación y no se seleccionó otro turno, quitarla.
+  else if (asignaciones[fecha]) {
     delete asignaciones[fecha];
     console.log(`❌ Quitado: ${fecha}`);
   } 
@@ -220,7 +281,35 @@ function actualizarInputAsignaciones() {
     id_turno: info.id_turno
   }));
   $('#asignaciones').val(JSON.stringify(data));
+
+  if (data.length > 0) {
+    $('#asignaciones').removeClass('is-valid is-invalid');
+    $('#sfecha')
+      .removeClass('valid-feedback invalid-feedback valid-tooltip invalid-tooltip d-inline-block')
+      .text('')
+      .hide();
+  }
 }
+
+function actualizarFeedbackHorario($campo, $feedback, esValido, mensaje = '') {
+  $campo.removeClass('is-valid is-invalid');
+  $feedback
+    .removeClass('valid-feedback invalid-feedback valid-tooltip invalid-tooltip d-inline-block')
+    .text('')
+    .hide();
+
+  if (esValido) {
+    $campo.addClass('is-valid');
+  } else {
+    $campo.addClass('is-invalid');
+    $feedback.addClass('invalid-tooltip d-inline-block').text(mensaje).show();
+  }
+}
+
+$('#empleado').on('change', function () {
+  const seleccionado = $(this).val() !== 'default' && $(this).val() !== null && $(this).val() !== '';
+  actualizarFeedbackHorario($(this), $('#sempleado'), seleccionado, 'Debe seleccionar un Empleado');
+});
 
 // ==========================================
 // BOTONES DEL CALENDARIO
@@ -246,6 +335,7 @@ $('#btnSeleccionarTodos').on('click', function () {
   const ultimoDia = new Date(year, month + 1, 0).getDate();
   for (let dia = 1; dia <= ultimoDia; dia++) {
     const fechaStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+    if (esFechaPasada(fechaStr)) continue;
     asignaciones[fechaStr] = { ...turnoActivo };
   }
   renderizarCalendario();
@@ -265,6 +355,7 @@ $('#btnDiasHabiles').on('click', function () {
     const diaSemana = fecha.getDay();
     if (diaSemana >= 1 && diaSemana <= 5) {
       const fechaStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+      if (esFechaPasada(fechaStr)) continue;
       asignaciones[fechaStr] = { ...turnoActivo };
     }
   }
@@ -273,7 +364,9 @@ $('#btnDiasHabiles').on('click', function () {
 });
 
 $('#btnLimpiarSeleccion').on('click', function () {
-  asignaciones = {};
+  asignaciones = Object.fromEntries(
+    Object.entries(asignaciones).filter(([fecha]) => esFechaPasada(fecha))
+  );
   renderizarCalendario();
   actualizarInputAsignaciones();
 });
@@ -286,17 +379,20 @@ function ValidarEnvio() {
   let input = EtiquetasFormulario("input");
   let span = EtiquetasFormulario("span");
   let bool = true;
+  actualizarInputAsignaciones();
 
   if (input.empleado.val() == "default" || input.empleado.val() == null) {
-    SelectHelper.FeedbackSelect(input.empleado, span.empleado, "Debe seleccionar un Empleado", 0);
+    actualizarFeedbackHorario(input.empleado, span.empleado, false, "Debe seleccionar un Empleado");
     bool = false;
+  } else {
+    actualizarFeedbackHorario(input.empleado, span.empleado, true);
   }
 
   if (Object.keys(asignaciones).length === 0) {
-    FeedbackToltipInput($('#asignaciones'), $('#sfecha'), "Debe asignar al menos un día con turno", 0);
+    actualizarFeedbackHorario($('#asignaciones'), $('#sfecha'), false, "Debe asignar al menos un día con turno");
     bool = false;
   } else {
-    FeedbackToltipInput($('#asignaciones'), $('#sfecha'), "", 1);
+    actualizarFeedbackHorario($('#asignaciones'), $('#sfecha'), true);
   }
 
   return bool;
@@ -349,6 +445,87 @@ export async function EnviarDatos(operacion) {
     }
   }
 
+  // EDITAR HORARIO COMPLETO: registrar, modificar y eliminar solo las diferencias.
+  if (operacion == "modificar_lote") {
+    const actual = Object.entries(asignaciones).map(([fecha, info]) => ({
+      fecha,
+      id_turno: info.id_turno,
+      id_planificador_turno: info.id_planificador_turno || null
+    }));
+    const originalPorFecha = asignacionesOriginales;
+    const actualPorFecha = Object.fromEntries(actual.map(item => [item.fecha, item]));
+    const altas = actual.filter(item => !originalPorFecha[item.fecha]);
+    const cambios = actual.filter(item => originalPorFecha[item.fecha]
+      && originalPorFecha[item.fecha].id_turno !== item.id_turno);
+    const bajas = Object.values(originalPorFecha).filter(item => !actualPorFecha[item.fecha]);
+
+    if (altas.length === 0 && cambios.length === 0 && bajas.length === 0) {
+      GenerarMensaje("info", 5000, "Sin cambios", "No se modificó el horario");
+      return { resultado: 200 };
+    }
+
+    const resumenCambios = [];
+    if (altas.length > 0) resumenCambios.push(`${altas.length} día${altas.length === 1 ? '' : 's'} nuevo${altas.length === 1 ? '' : 's'}`);
+    if (cambios.length > 0) resumenCambios.push(`${cambios.length} turno${cambios.length === 1 ? '' : 's'} cambiado${cambios.length === 1 ? '' : 's'}`);
+    if (bajas.length > 0) resumenCambios.push(`${bajas.length} día${bajas.length === 1 ? '' : 's'} eliminado${bajas.length === 1 ? '' : 's'}`);
+
+    const confirmacion = await confirmarAccion(
+      `Se actualizará el horario:<br>${resumenCambios.join(', ')}.`,
+      "¿Desea guardar estos cambios?",
+      "question"
+    );
+    if (!confirmacion) return { resultado: 0 };
+
+    modal.boton.prop('disabled', true);
+    let operaciones = 0;
+    let errores = 0;
+
+    if (altas.length > 0) {
+      const registro = new FormData();
+      registro.append('modulo', 'Horario');
+      registro.append('peticion', 'registrar_lote');
+      registro.append('cedula_empleado', input.empleado.val());
+      registro.append('asignaciones', JSON.stringify(altas.map(item => ({
+        fecha: item.fecha,
+        id_turno: item.id_turno
+      }))));
+      const respuesta = await AjaxHelper.enviaAjax(registro, '');
+      if (respuesta.resultado >= 200 && respuesta.resultado <= 299) operaciones += altas.length;
+      else errores++;
+    }
+
+    for (const cambio of cambios) {
+      const modificar = new FormData();
+      modificar.append('modulo', 'Horario');
+      modificar.append('peticion', 'modificar');
+      modificar.append('id_planificador_turno', originalPorFecha[cambio.fecha].id_planificador_turno);
+      modificar.append('id_turno', cambio.id_turno);
+      const respuesta = await AjaxHelper.enviaAjax(modificar, '');
+      if (respuesta.resultado >= 200 && respuesta.resultado <= 299) operaciones++;
+      else errores++;
+    }
+
+    for (const baja of bajas) {
+      const eliminar = new FormData();
+      eliminar.append('modulo', 'Horario');
+      eliminar.append('peticion', 'eliminar');
+      eliminar.append('id_planificador_turno', baja.id_planificador_turno);
+      const respuesta = await AjaxHelper.enviaAjax(eliminar, '');
+      if (respuesta.resultado >= 200 && respuesta.resultado <= 299) operaciones++;
+      else errores++;
+    }
+
+    modal.boton.prop('disabled', false);
+    if (errores === 0) {
+      modal.modal.modal('hide');
+      GenerarMensaje('success', 10000, 'Horario actualizado', `${operaciones} operación(es) aplicada(s)`);
+      return { resultado: 200 };
+    }
+
+    GenerarMensaje('warning', 10000, 'Actualización parcial', `${operaciones} operación(es) aplicada(s), ${errores} con error`);
+    return { resultado: 207 };
+  }
+
   // ELIMINAR
   if (operacion == "eliminar") {
     if (input.id_horario.val() !== "") {
@@ -374,7 +551,7 @@ export async function EnviarDatos(operacion) {
 }
 
 export async function EnviarFormulario(btn_string) {
-  const MANEJADOR = { 'Asignar': 'registrar', 'Eliminar': 'eliminar' };
+  const MANEJADOR = { 'Asignar': 'registrar', 'Eliminar': 'eliminar', 'Guardar cambios': 'modificar_lote' };
   const accion = MANEJADOR[btn_string] || null;
   if (accion) return await EnviarDatos(accion);
   GenerarMensaje("danger", 10000, "Error", "Acción no válida");
@@ -385,17 +562,24 @@ export async function EnviarFormulario(btn_string) {
 // SELECTS
 // ==========================================
 
-export async function CrearSelectEmpleados() {
+export async function CrearSelectEmpleados(soloSinHorario = false) {
   const datos = new FormData();
   datos.append("modulo", "Empleado");
   datos.append("peticion", "consultar");
+  if (soloSinHorario) datos.append("solo_sin_horario", "1");
   
   try {
     const json = await AjaxHelper.enviaAjax(datos, "?page=Horario");
     if (json.resultado >= 200 && json.resultado <= 299) {
-      SelectHelper.RenderizarSelect($('#empleado'), 
-        json.datos.map(item => ({ nombre: item.nombre + " " + item.apellido, valor: item.cedula })),
-        "Seleccione un Empleado");
+      const empleados = Array.isArray(json.datos)
+        ? json.datos.map(item => ({ nombre: item.nombre + " " + item.apellido, valor: item.cedula }))
+        : [];
+
+      if (empleados.length === 0) {
+        $('#empleado').empty();
+      } else {
+        SelectHelper.RenderizarSelect($('#empleado'), empleados, "Seleccione un Empleado");
+      }
     }
   } catch (error) { console.log(error); }
 }
@@ -404,6 +588,7 @@ export async function CrearSelectTurnos() {
   const datos = new FormData();
   datos.append("modulo", "Turno");
   datos.append("peticion", "consultar");
+  datos.append("origen", "Horario");
   
   try {
     const json = await AjaxHelper.enviaAjax(datos, "?page=Horario");
@@ -423,16 +608,28 @@ export async function CrearSelectTurnos() {
 
 export function LimpiarFormulario() {
   let input = EtiquetasFormulario('input');
+  let span = EtiquetasFormulario('span');
   input.id_horario.val("").prop("disabled", true);
   input.empleado.val("default").prop("disabled", false);
+  input.empleado.removeClass("is-valid is-invalid").removeData('touched');
+  span.empleado.removeClass("valid-feedback invalid-feedback invalid-tooltip d-inline-block").text("").hide();
+  $('#asignaciones').removeClass("is-valid is-invalid").removeData('touched').val("");
+  span.sfecha.removeClass("valid-feedback invalid-feedback invalid-tooltip d-inline-block").text("").hide();
+  CrearSelectEmpleados(true);
+  asignacionesOriginales = {};
   inicializarCalendario();
   EtiquetasModal("Horario").boton.prop('disabled', false);
   input = null;
+  span = null;
 }
 
 export function CapaValidar() {
   CrearSelectEmpleados();
-  CrearSelectTurnos();
+  const puedeGestionarHorarios = (typeof permisosHorarioDB !== 'undefined')
+    && (permisosHorarioDB.horario?.registrar == 1 || permisosHorarioDB.horario?.modificar == 1);
+  const puedeVerTurnos = (typeof permisosTurnoDB !== 'undefined')
+    && permisosTurnoDB.turno?.ver == 1;
+  if (puedeGestionarHorarios || puedeVerTurnos) CrearSelectTurnos();
   inicializarCalendario();
 }
 
@@ -441,10 +638,10 @@ export function CapaValidar() {
 // ==========================================
 
 function RenderBotonesAccion() {
-  const puedeEliminar = (typeof permisosHorarioDB !== 'undefined')
+  const puedeModificar = (typeof permisosHorarioDB !== 'undefined')
     && permisosHorarioDB.horario
-    && permisosHorarioDB.horario.eliminar == 1;
-  if (!puedeEliminar) return '';
+    && permisosHorarioDB.horario.modificar == 1;
+  if (!puedeModificar) return '';
 
   const dropdown = $('<div>').addClass('dropdown');
   const boton = $('<button>').addClass('btn btn-sm btn-light border dropdown-toggle')
@@ -452,10 +649,12 @@ function RenderBotonesAccion() {
     .html('<i class="fas fa-ellipsis-v me-3"></i>Acciones');
   const menu = $('<ul>').addClass('dropdown-menu');
   
-  menu.append(
-    $('<li>').append($('<a>').addClass('dropdown-item btn-eliminar text-danger').attr('href','#').attr('data-accion',1)
-      .html('<i class="fas fa-trash me-2"></i>Eliminar'))
-  );
+  if (puedeModificar) {
+    menu.append(
+      $('<li>').append($('<a>').addClass('dropdown-item btn-editar text-primary').attr('href','#').attr('data-accion',0)
+        .html('<i class="fas fa-edit me-2"></i>Editar'))
+    );
+  }
   dropdown.append(boton, menu);
   return dropdown.prop('outerHTML');
 }
@@ -610,24 +809,29 @@ export async function DataTableEmpleados(arreglo) {
       { 
         data: null,
         render: function(row) {
-          if (row.nombre_turno) {
-            return `<span class="badge bg-primary"><i class="fas fa-clock me-1"></i>${row.nombre_turno} (${formatearHora12(row.hora_inicio)} - ${formatearHora12(row.hora_fin)})</span>`;
-          }
-          return '<span class="badge bg-secondary">Sin turno asignado</span>';
+          return (row.turnos || [])
+            .map(turno => `<span class="badge bg-primary me-1 mb-1"><i class="fas fa-clock me-1"></i>${turno.nombre}</span>`)
+            .join('');
         }
       },
       {
         data: null,
         render: function(row) {
+          const puedeVerHorario = (typeof permisosHorarioDB !== 'undefined') && permisosHorarioDB.horario?.ver_horario == 1;
+          const puedeModificar = (typeof permisosHorarioDB !== 'undefined') && permisosHorarioDB.horario?.modificar == 1;
+          if (!puedeVerHorario && !puedeModificar) return '';
+          const acciones = `
+              ${puedeVerHorario ? `<li><a class="dropdown-item btn-ver-horario text-info" href="#" data-cedula="${row.cedula_empleado}" data-nombre="${row.nombre} ${row.apellido}">
+                <i class="fas fa-eye me-2"></i>Ver Horario
+              </a></li>` : ''}
+              ${puedeModificar ? `<li><a class="dropdown-item btn-editar-horario text-primary" href="#" data-cedula="${row.cedula_empleado}" data-nombre="${row.nombre} ${row.apellido}">
+                <i class="fas fa-edit me-2"></i>Editar Horario
+              </a></li>` : ''}`;
           return `<div class="dropdown">
             <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown">
               <i class="fas fa-ellipsis-v me-3"></i>Acciones
             </button>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item btn-ver-horario text-info" href="#" data-cedula="${row.cedula_empleado}" data-nombre="${row.nombre} ${row.apellido}">
-                <i class="fas fa-eye me-2"></i>Ver Horario
-              </a></li>
-            </ul>
+            <ul class="dropdown-menu">${acciones}</ul>
           </div>`;
         }
       }
@@ -637,11 +841,158 @@ export async function DataTableEmpleados(arreglo) {
   });
 }
 
+async function obtenerHorarioEmpleado(cedula) {
+  const peticion = new FormData();
+  peticion.append('modulo', 'Horario');
+  peticion.append('peticion', 'consultar');
+  peticion.append('empleado_cedula', cedula);
+
+  const respuestaHorario = await AjaxHelper.enviaAjax(peticion, '?page=Horario');
+  let respuestaTurnos = { datos: [] };
+  const puedeConsultarTurnos = (typeof permisosTurnoDB !== 'undefined')
+    && permisosTurnoDB.turno?.ver == 1;
+
+  if (puedeConsultarTurnos) {
+    const peticionTurnos = new FormData();
+    peticionTurnos.append('modulo', 'Turno');
+    peticionTurnos.append('peticion', 'consultar');
+    peticionTurnos.append('origen', 'Horario');
+    respuestaTurnos = await AjaxHelper.enviaAjax(peticionTurnos, '?page=Horario');
+  }
+
+  return {
+    horarios: Array.isArray(respuestaHorario?.datos) ? respuestaHorario.datos : [],
+    turnos: Array.isArray(respuestaTurnos?.datos) ? respuestaTurnos.datos : []
+  };
+}
+
+export async function editarHorarioEmpleado(cedula, nombre) {
+  try {
+    const datos = await obtenerHorarioEmpleado(cedula);
+    await CrearSelectEmpleados();
+    await CrearSelectTurnos();
+
+    const input = EtiquetasFormulario('input');
+    SelectHelper.BuscarValor(input.empleado, cedula, 'value');
+    input.empleado.prop('disabled', true);
+    input.id_horario.val('').prop('disabled', true);
+
+    turnoActivo = null;
+    asignaciones = {};
+    asignacionesOriginales = {};
+
+    datos.horarios.forEach(item => {
+      const fecha = normalizarFechaHorario(item.fecha);
+      const asignacion = {
+        id_turno: item.id_turno,
+        nombre: item.nombre_turno,
+        color: coloresTurnosPorId.get(String(item.id_turno)) || coloresTurnos[0],
+        id_planificador_turno: item.id_planificador_turno
+      };
+      asignaciones[fecha] = { ...asignacion };
+      asignacionesOriginales[fecha] = { ...asignacion, fecha };
+    });
+
+    fechaActualCalendario = datos.horarios.length > 0
+      ? new Date(`${normalizarFechaHorario(datos.horarios[0].fecha)}T00:00:00`)
+      : new Date();
+    renderizarCalendario();
+    $('#nombreEmpleadoTitulo').text(nombre);
+    EditarModal('modificar_lote');
+  } catch (error) {
+    console.error(error);
+    GenerarMensaje('error', 8000, 'Error', 'No se pudo cargar el horario para editar');
+  }
+}
+
 // ==========================================
 // MODAL DE HORARIO DEL EMPLEADO (FULLCALENDAR)
 // ==========================================
 
-let calendarEmpleado = null;
+let fechaCalendarioEmpleado = new Date();
+let datosCalendarioEmpleado = [];
+let coloresTurnosEmpleado = new Map();
+
+function colorTurnoEmpleado(idTurno) {
+  const colorAsignado = coloresTurnosEmpleado.get(String(idTurno));
+  return colorAsignado || coloresTurnos[Math.abs(hashCode(String(idTurno))) % coloresTurnos.length];
+}
+
+function normalizarFechaHorario(fecha) {
+  return String(fecha ?? '').slice(0, 10);
+}
+
+function renderizarCalendarioEmpleado() {
+  const year = fechaCalendarioEmpleado.getFullYear();
+  const month = fechaCalendarioEmpleado.getMonth();
+  const nombresMeses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  const primerDia = new Date(year, month, 1).getDay();
+  const primerDiaAjustado = primerDia === 0 ? 6 : primerDia - 1;
+  const ultimoDia = new Date(year, month + 1, 0).getDate();
+  const ultimoDiaMesAnterior = new Date(year, month, 0).getDate();
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  $('#tituloMesEmpleado').text(`${nombresMeses[month]} ${year}`);
+
+  let html = '<div class="selector-esquina"></div>';
+  ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'].forEach((nombre, indice) => {
+    const claseFinSemana = indice >= 5 ? ' text-danger' : '';
+    html += `<div class="selector-calendario${claseFinSemana}">${nombre}</div>`;
+  });
+
+  const totalCeldas = Math.ceil((primerDiaAjustado + ultimoDia) / 7) * 7;
+  for (let posicion = 0; posicion < totalCeldas; posicion++) {
+    if (posicion % 7 === 0) {
+      const fila = Math.floor(posicion / 7);
+      html += `<div class="selector-calendario selector-fila">S${fila + 1}</div>`;
+    }
+
+    const dia = posicion - primerDiaAjustado + 1;
+    if (dia < 1 || dia > ultimoDia) {
+      const diaFueraDeMes = dia < 1 ? ultimoDiaMesAnterior + dia : dia - ultimoDia;
+      html += `<div class="p-1"><div class="dia-calendario otro-mes d-flex align-items-center justify-content-center">${diaFueraDeMes}</div></div>`;
+      continue;
+    }
+
+    const fecha = `${year}-${String(month + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+    const fechaDate = new Date(year, month, dia);
+    const asignacion = datosCalendarioEmpleado.find(item => normalizarFechaHorario(item.fecha) === fecha);
+    let clases = 'dia-calendario d-flex align-items-center justify-content-center';
+    let estilo = '';
+
+    if (fechaDate.getDay() === 0 || fechaDate.getDay() === 6) clases += ' fin-semana';
+    if (fechaDate.getTime() === hoy.getTime()) clases += ' hoy';
+    if (asignacion) {
+      clases += ' empleado-asignado';
+      estilo = `background-color: ${colorTurnoEmpleado(asignacion.id_turno)}; color: white; font-weight: bold;`;
+    }
+
+    html += `<div class="p-1"><div class="${clases}" style="${estilo}" ${asignacion ? `onclick="mostrarDetalleHorarioEmpleado('${fecha}')"` : ''}>${dia}</div></div>`;
+  }
+
+  $('#calendarioDiasEmpleado').html(html);
+
+  const turnos = [...new Map(datosCalendarioEmpleado.map(item => [item.id_turno, item])).values()];
+  $('#leyendaHorariosEmpleado').html(turnos.map(turno => `
+    <span class="leyenda-item">
+      <span class="leyenda-color" style="background-color: ${colorTurnoEmpleado(turno.id_turno)}"></span>
+      ${turno.nombre_turno}
+    </span>`).join(''));
+}
+
+window.mostrarDetalleHorarioEmpleado = function(fecha) {
+  const asignacion = datosCalendarioEmpleado.find(item => normalizarFechaHorario(item.fecha) === fecha);
+  if (!asignacion) return;
+
+  Swal.fire({
+    title: asignacion.nombre_turno,
+    html: `<p><strong>Fecha:</strong> ${fecha}</p><p><strong>Horario:</strong> ${formatearHora12(asignacion.hora_inicio)} - ${formatearHora12(asignacion.hora_fin)}</p>`,
+    icon: 'info',
+    confirmButtonText: 'Cerrar'
+  });
+};
 
 export async function cargarHorarioEmpleado(cedula, nombre) {
   $('#nombreEmpleadoTitulo').text(nombre);
@@ -652,13 +1003,30 @@ export async function cargarHorarioEmpleado(cedula, nombre) {
   peticion.append("empleado_cedula", cedula);
 
   try {
-    const json = await AjaxHelper.enviaAjax(peticion, "?page=Horario");
+    const peticionTurnos = new FormData();
+    peticionTurnos.append("modulo", "Turno");
+    peticionTurnos.append("peticion", "consultar");
+    peticionTurnos.append("origen", "Horario");
+
+    const [json, jsonTurnos] = await Promise.all([
+      AjaxHelper.enviaAjax(peticion, "?page=Horario"),
+      AjaxHelper.enviaAjax(peticionTurnos, "?page=Horario")
+    ]);
+
     if (Array.isArray(json?.datos)) {
       const datos = json.datos;
+      const turnos = Array.isArray(jsonTurnos?.datos) ? jsonTurnos.datos : [];
+
+      coloresTurnosEmpleado = new Map(
+        turnos.map((turno, index) => [
+          String(turno.id_turno),
+          coloresTurnos[index % coloresTurnos.length]
+        ])
+      );
       
       // Turno de hoy
       const hoy = new Date().toISOString().split('T')[0];
-      const turnoHoy = datos.find(d => d.fecha === hoy);
+      const turnoHoy = datos.find(d => normalizarFechaHorario(d.fecha) === hoy);
       
       if (turnoHoy) {
         $('#detalleTurno')
@@ -674,86 +1042,33 @@ export async function cargarHorarioEmpleado(cedula, nombre) {
       
       $('#detalleDiasAsignados').html(`<i class="fas fa-calendar me-1"></i>${datos.length} día(s) asignado(s)`);
 
-      // Convertir datos a eventos de FullCalendar
-      const colores = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336', '#00BCD4', '#795548', '#607D8B'];
-      
-      const eventos = datos.map(item => {
-        const colorIndex = Math.abs(hashCode(item.id_turno)) % colores.length;
-        
-        return {
-          id: item.id_planificador_turno,
-          title: item.nombre_turno,
-          start: item.fecha + 'T' + item.hora_inicio,
-          end: item.fecha + 'T' + item.hora_fin,
-          backgroundColor: colores[colorIndex],
-          borderColor: colores[colorIndex],
-          textColor: '#fff',
-          extendedProps: {
-            turno: item.nombre_turno,
-            hora_inicio: item.hora_inicio,
-            hora_fin: item.hora_fin
-          }
-        };
-      });
+      const modalElement = document.getElementById('modalHorarioEmpleado');
+      const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+      modal.show();
 
-      // Destruir calendario anterior si existe
-      if (calendarEmpleado) {
-        calendarEmpleado.destroy();
-      }
-
-      // Crear calendario en el modal
-      const calendarEl = document.getElementById('calendarEmpleado');
-      calendarEmpleado = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        locale: 'es',
-        height: 'auto',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'timeGridWeek,dayGridMonth'
-        },
-        slotMinTime: '06:00:00',
-        slotMaxTime: '22:00:00',
-        allDaySlot: false,
-        eventTimeFormat: {
-          hour: 'numeric',
-          minute: '2-digit',
-          meridiem: 'short',
-          hour12: true
-        },
-        buttonText: {
-          timeGridWeek: 'Semana',
-          dayGridMonth: 'Mes'
-        },
-        themeSystem: 'bootstrap5',
-        events: eventos,
-        eventClick: function(info) {
-          const props = info.event.extendedProps;
-          Swal.fire({
-            title: props.turno,
-            html: `
-              <p><strong>Horario:</strong> ${formatearHora12(props.hora_inicio)} - ${formatearHora12(props.hora_fin)}</p>
-              <p><strong>Fecha:</strong> ${info.event.startStr.split('T')[0]}</p>
-            `,
-            icon: 'info',
-            confirmButtonText: 'Cerrar'
-          });
-        }
-      });
-
-      calendarEmpleado.render();
+      datosCalendarioEmpleado = datos.map(item => ({
+        ...item,
+        fecha: normalizarFechaHorario(item.fecha)
+      }));
+      fechaCalendarioEmpleado = new Date();
+      renderizarCalendarioEmpleado();
     }
   } catch (error) {
     console.error(error);
   }
-
-  $('#modalHorarioEmpleado').modal('show');
 }
 
 // Destruir calendario al cerrar el modal
 $('#modalHorarioEmpleado').on('hidden.bs.modal', function () {
-  if (calendarEmpleado) {
-    calendarEmpleado.destroy();
-    calendarEmpleado = null;
-  }
+  datosCalendarioEmpleado = [];
+});
+
+$(document).on('click', '#btnMesAnteriorEmpleado', function () {
+  fechaCalendarioEmpleado.setMonth(fechaCalendarioEmpleado.getMonth() - 1);
+  renderizarCalendarioEmpleado();
+});
+
+$(document).on('click', '#btnMesSiguienteEmpleado', function () {
+  fechaCalendarioEmpleado.setMonth(fechaCalendarioEmpleado.getMonth() + 1);
+  renderizarCalendarioEmpleado();
 });

@@ -233,7 +233,10 @@ error_log("Asignaciones decodificadas: " . print_r($asignaciones, true));
 
 if (isset($_POST["modulo"]) && $_POST["modulo"] == "Empleado") {
     if (isset($_POST["peticion"]) && $_POST["peticion"] == "consultar") {
-        $json = $empleadoModel->Transaccion(['peticion' => 'consultar']);
+        $json = $empleadoModel->Transaccion([
+            'peticion' => 'consultar',
+            'solo_sin_horario' => ($_POST['solo_sin_horario'] ?? '') === '1'
+        ]);
         header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
         echo json_encode($json['response']);
         exit;

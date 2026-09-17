@@ -156,7 +156,7 @@
                                 <div class="form-check form-switch">
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
                                         type="checkbox" role="switch" value="registrar" id="horario-registrar">
-                                    <label class="form-check-label" for="horario-registrar">Registrar</label>
+                                    <label class="form-check-label" for="horario-registrar">Asignar</label>
                                 </div>
                             </div>
                             <div class="col-lg-6">
@@ -171,13 +171,6 @@
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
                                         type="checkbox" role="switch" value="modificar" id="horario-modificar">
                                     <label class="form-check-label" for="horario-modificar">Modificar</label>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
-                                        type="checkbox" role="switch" value="eliminar" id="horario-eliminar">
-                                    <label class="form-check-label" for="horario-eliminar">Eliminar</label>
                                 </div>
                             </div>
                         </div>
