@@ -1,0 +1,56 @@
+services:
+  db:
+    image: mariadb:10.11
+    container_name: sicgov-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      DB_NAME_SYSTEM: goobv-sistema
+      DB_NAME_USER: goobv-usuarios
+    ports:
+      - "3306:3306"
+    volumes:
+      - sicgov_db_data:/var/lib/mysql
+      - ./docker-initdb/init.sh:/docker-entrypoint-initdb.d/01-init.sh
+      - ./database/migrations:/migrations
+    networks:
+      - sicgov-net
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "127.0.0.1", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  sicgov:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sicgov-web
+    restart: always
+    ports:
+      - "8095:80"
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASS=root
+      - DB_NAME_SYSTEM=goobv-sistema
+      - DB_NAME_USER=goobv-usuarios
+      - APP_NAME=SICGOV
+      - APP_ENV=development
+      - APP_DEBUG=true
+      - MARIA_URL=http://mar-ia:8090
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - sicgov-net
+
+networks:
+  sicgov-net:
+    name: sicgov-net
+    driver: bridge
+
+volumes:
+  sicgov_db_data:
