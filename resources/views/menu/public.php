@@ -53,6 +53,65 @@ foreach ($menus as $menuItem) {
 
 <main class="bg-body-tertiary py-5 min-vh-100">
     <div class="container">
+        
+        <!-- PROMOCIONES DESTACADAS -->
+        <?php if (!empty($promociones)): ?>
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="d-flex align-items-center mb-4 border-bottom border-warning border-3 pb-2">
+                    <i class="fas fa-star text-warning fs-2 me-3 pulse-animation"></i>
+                    <h2 class="fw-bold mb-0 text-uppercase" style="color: #d97706; letter-spacing: 1px;">Promociones Especiales</h2>
+                </div>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                    <?php foreach ($promociones as $promo): ?>
+                    <div class="col">
+                        <div class="card promo-card h-100 border-0 rounded-4 overflow-hidden shadow-lg hover-lift transition-all position-relative">
+                            <!-- Etiqueta Descuento -->
+                            <div class="position-absolute top-0 end-0 bg-danger text-white fw-bold px-3 py-2 shadow-sm" style="border-bottom-left-radius: 1rem; z-index: 10; font-size: 1.1rem;">
+                                <?= htmlspecialchars($promo['tipo_descuento']) ?> 
+                                <?= $promo['tipo_descuento'] == 'PORCENTAJE' ? number_format($promo['valor_descuento'], 0) . '%' : '$' . number_format($promo['valor_descuento'], 2) ?> OFF
+                            </div>
+                            
+                            <div class="card-body p-4 text-center d-flex flex-column align-items-center">
+                                <div class="promo-icon-wrapper bg-white bg-opacity-25 rounded-circle p-3 mb-3 mt-2">
+                                    <i class="fas fa-gift fs-1 text-white shadow-sm"></i>
+                                </div>
+                                <h4 class="card-title fw-bold text-white mb-2 text-shadow-sm"><?= htmlspecialchars($promo['nombre']) ?></h4>
+                                <p class="card-text text-white mb-4 fw-medium"><?= htmlspecialchars($promo['descripcion']) ?></p>
+                                
+                                <?php if(!empty($promo['producto_list'])): ?>
+                                    <ul class="list-unstyled text-start w-100 mb-4 bg-white bg-opacity-25 p-3 rounded-3 shadow-sm">
+                                    <?php 
+                                        $productosPromo = explode('||', $promo['producto_list']);
+                                        foreach($productosPromo as $prodItem): 
+                                            $prodDetalle = explode(':::', $prodItem);
+                                            if(count($prodDetalle) >= 3):
+                                                $prodNombre = $prodDetalle[1];
+                                                $prodCant = $prodDetalle[2];
+                                    ?>
+                                        <li class="mb-2 fw-bold text-white"><i class="fas fa-check text-warning me-2"></i><?= $prodCant ?>x <?= htmlspecialchars($prodNombre) ?></li>
+                                    <?php 
+                                            endif;
+                                        endforeach; 
+                                    ?>
+                                    </ul>
+                                <?php endif; ?>
+                                
+                                <div class="mt-auto w-100">
+                                    <div class="bg-dark bg-opacity-50 rounded-pill py-2 px-3 text-white fw-bold small shadow-sm d-flex flex-column justify-content-center align-items-center">
+                                        <div class="mb-1"><i class="far fa-calendar-alt me-2 text-warning"></i><?= date('d/m/Y', strtotime($promo['fecha_inicio'])) ?> - <?= date('d/m/Y', strtotime($promo['fecha_fin'])) ?></div>
+                                        <div><i class="far fa-clock me-2 text-warning"></i><?= date('h:i A', strtotime($promo['hora_inicio'])) ?> - <?= date('h:i A', strtotime($promo['hora_fin'])) ?></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="row">
             <!-- Sección Izquierda: Grilla de Productos -->
             <div class="col-lg-8 col-xl-9">
@@ -372,6 +431,26 @@ foreach ($menus as $menuItem) {
 
 
 <style>
+    @keyframes pulse-star {
+        0% { transform: scale(1); opacity: 1; text-shadow: 0 0 0 rgba(217, 119, 6, 0); }
+        50% { transform: scale(1.15); opacity: 0.8; text-shadow: 0 0 15px rgba(217, 119, 6, 0.6); }
+        100% { transform: scale(1); opacity: 1; text-shadow: 0 0 0 rgba(217, 119, 6, 0); }
+    }
+    .pulse-animation {
+        animation: pulse-star 2s infinite ease-in-out;
+    }
+    .promo-card {
+        background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        border: 2px solid rgba(255,255,255,0.4);
+    }
+    .text-shadow-sm {
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
+    .promo-icon-wrapper {
+        display: inline-block;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
     /* Scrollbar horizontal personalizado para escritorio */
     .categories-scroll::-webkit-scrollbar {
         height: 8px;
