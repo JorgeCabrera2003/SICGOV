@@ -375,24 +375,46 @@ foreach ($menus as $menuItem) {
             <div class="modal-body p-4">
                 <form id="formCheckout">
                     <div class="row g-4">
-                        <!-- Datos Personales -->
+                        <!-- Datos del Cliente y Entrega -->
                         <div class="col-md-6">
-                            <h6 class="fw-bold mb-3 border-bottom pb-2 text-primary">Tus Datos</h6>
-                            <div class="mb-3">
-                                <label class="form-label">Cédula / Documento <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="cedula" id="chk-cedula" required placeholder="V-12345678">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Nombre y Apellido <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="nombre" id="chk-nombre" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Teléfono <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="telefono" id="chk-telefono" required>
-                            </div>
+                            <h6 class="fw-bold mb-3 border-bottom pb-2 text-primary">Datos del Pedido</h6>
                             
+                            <?php
+                                $usuarioSesion = $_SESSION['user'] ?? [];
+                                $nombreUsuario = trim(($usuarioSesion['nombre'] ?? '') . ' ' . ($usuarioSesion['apellido'] ?? ''));
+                                if (empty($nombreUsuario)) {
+                                    $nombreUsuario = $usuarioSesion['username'] ?? 'Cliente';
+                                }
+                                $cedulaUsuario = $usuarioSesion['cedula'] ?? '';
+                                $telefonoUsuario = $usuarioSesion['telefono'] ?? '';
+                                $direccionUsuario = $usuarioSesion['direccion'] ?? '';
+                            ?>
+                            
+                            <!-- Tarjeta Informativa del Cliente Logueado -->
+                            <div class="p-3 mb-3 rounded-3 bg-body-tertiary border border-secondary-subtle">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.2rem;">
+                                        <i class="fas fa-user-check"></i>
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <div class="fw-bold text-body text-truncate"><?= htmlspecialchars($nombreUsuario) ?></div>
+                                        <div class="small text-body-secondary text-truncate">
+                                            <span><i class="fas fa-id-card me-1 text-primary"></i><?= htmlspecialchars($cedulaUsuario ?: 'Sin documento') ?></span>
+                                            <?php if (!empty($telefonoUsuario)): ?>
+                                                <span class="ms-2"><i class="fas fa-phone me-1 text-primary"></i><?= htmlspecialchars($telefonoUsuario) ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Campos ocultos para enviar datos de sesión al backend -->
+                            <input type="hidden" name="cedula" value="<?= htmlspecialchars($cedulaUsuario) ?>">
+                            <input type="hidden" name="nombre" value="<?= htmlspecialchars($nombreUsuario) ?>">
+                            <input type="hidden" name="telefono" value="<?= htmlspecialchars($telefonoUsuario) ?>">
+
                             <div class="mb-3">
-                                <label class="form-label">Tipo de Pedido <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold">Tipo de Pedido <span class="text-danger">*</span></label>
                                 <select class="form-select" name="tipo_pedido" id="chk-tipo-pedido" required>
                                     <option value="DELIVERY">Delivery</option>
                                     <option value="RETIRO">Retiro en el Local</option>
@@ -400,12 +422,9 @@ foreach ($menus as $menuItem) {
                             </div>
 
                             <div class="mb-3" id="box-direccion">
-                                <label class="form-label" id="lbl-direccion">Dirección de Entrega <span class="text-danger">*</span></label>
-                                <textarea class="form-control" name="direccion" id="chk-direccion" rows="2" required></textarea>
-                            </div>
-                            <div class="mb-3" id="box-observacion">
-                                <label class="form-label">Observaciones (Opcional)</label>
-                                <textarea class="form-control" name="observacion" id="chk-observacion" rows="1"></textarea>
+                                <label class="form-label fw-semibold" id="lbl-direccion">Dirección de Entrega <span class="text-danger">*</span></label>
+                                <textarea class="form-control" name="direccion" id="chk-direccion" rows="3" required placeholder="Ingresa tu dirección o lugar de entrega"><?= htmlspecialchars($direccionUsuario) ?></textarea>
+                                <div class="form-text small mt-1 text-body-secondary"><i class="fas fa-map-marker-alt me-1 text-primary"></i>Puedes cambiar tu dirección si estás en otra ubicación.</div>
                             </div>
                         </div>
 
