@@ -149,9 +149,21 @@
     <?php endforeach; ?>
 <?php endif; ?>
 
-<!-- 9. Script específico de la página -->
-<?php if (empty($extra_js_modules) && isset($page) && file_exists(__DIR__ . "/../../../public/assets/js/{$page}.js")): ?>
-<script type="module" src="<?php echo BASE_URL; ?>/assets/js/<?php echo $page; ?>.js"></script>
+<!-- 9. Script específico de la página (búsqueda insensible a mayúsculas para compatibilidad WSL/Linux) -->
+<?php 
+$pageScript = null;
+if (empty($extra_js_modules) && isset($page)) {
+    $scriptCandidates = [$page, strtolower($page), lcfirst($page), ucfirst($page)];
+    foreach ($scriptCandidates as $candidate) {
+        if (file_exists(__DIR__ . "/../../../public/assets/js/{$candidate}.js")) {
+            $pageScript = $candidate;
+            break;
+        }
+    }
+}
+?>
+<?php if ($pageScript): ?>
+<script type="module" src="<?php echo BASE_URL; ?>/assets/js/<?php echo $pageScript; ?>.js"></script>
 <?php endif; ?>
 
 <!-- 10. ES Modules — scripts con import/export (requieren type="module") -->
