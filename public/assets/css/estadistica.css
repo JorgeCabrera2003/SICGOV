@@ -1,6 +1,6 @@
 /* ==============================================================================
    MÓDULO: Reportes Estadísticos y Analytics Dashboard (SICGOV)
-   Estilos Ultra-Premium: Glassmorphism, Micro-Interacciones y Temas Dinámicos
+   Estilos Ultra-Premium: Glassmorphism, Micro-Interacciones y Modo Oscuro
 ============================================================================== */
 
 /* Icono de acento flotante en el título */
@@ -25,10 +25,31 @@
     50% { transform: translateY(-5px) rotate(4deg); }
 }
 
-body.dark-mode .icon-title-accent {
-    background: rgba(253, 126, 20, 0.15);
-    border-color: rgba(253, 126, 20, 0.35);
-    box-shadow: 0 8px 25px -5px rgba(253, 126, 20, 0.45);
+/* Título con gradiente (Light & Dark) */
+.text-gradient {
+    background: linear-gradient(135deg, #1A1C20 0%, #475569 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transition: all 0.3s ease;
+}
+
+.dark .text-gradient,
+[data-bs-theme="dark"] .text-gradient,
+body.dark-mode .text-gradient,
+html.dark .text-gradient {
+    background: linear-gradient(135deg, #FFFFFF 20%, #E2E8F0 65%, #94A3B8 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.4));
+}
+
+.dark .icon-title-accent,
+[data-bs-theme="dark"] .icon-title-accent,
+body.dark-mode .icon-title-accent,
+html.dark .icon-title-accent {
+    background: rgba(253, 126, 20, 0.18) !important;
+    border-color: rgba(253, 126, 20, 0.4) !important;
+    box-shadow: 0 8px 25px -5px rgba(253, 126, 20, 0.5) !important;
 }
 
 /* Contenedor Principal con animación de entrada suave */
@@ -36,11 +57,10 @@ main.container-fluid {
     animation: dashboardFadeIn 0.8s cubic-bezier(0.25, 1, 0.5, 1) both;
 }
 
-/* Animación de entrada de tarjetas y elementos */
 @keyframes dashboardFadeIn {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(16px);
     }
     to {
         opacity: 1;
@@ -48,47 +68,48 @@ main.container-fluid {
     }
 }
 
-/* Tarjetas Analíticas Modernas - Glassmorphism Base */
+/* Tarjetas Analíticas Modernas - Glassmorphism Base (Modo Claro) */
 .card-report {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(16px) saturate(120%);
     -webkit-backdrop-filter: blur(16px) saturate(120%);
     border: 1px solid rgba(0, 0, 0, 0.06) !important;
     border-radius: 24px !important;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05) !important;
 }
 
 /* Hover de Tarjetas con Elevación y Resplandor */
 .hover-transform:hover {
-    transform: translateY(-8px) scale(1.02) !important;
+    transform: translateY(-6px) scale(1.015) !important;
     box-shadow: 0 20px 40px -15px rgba(9, 132, 227, 0.15) !important;
     border-color: rgba(9, 132, 227, 0.3) !important;
 }
 
 /* Ajustes especiales para KPIs individuales */
 .card-report h3 {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     letter-spacing: 0.8px;
     color: #636e72;
+    text-transform: uppercase;
 }
 
 .kpi-value {
-    letter-spacing: -1px;
+    letter-spacing: -0.5px;
 }
 
-/* Gradientes específicos para KPIs de negocio adaptativos */
-.card-kpi-ganancias {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(46, 213, 115, 0.08)) !important;
+/* Gradientes específicos para KPIs de negocio en MODO CLARO */
+html:not(.dark):not([data-bs-theme="dark"]) .card-kpi-ganancias {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(46, 213, 115, 0.12)) !important;
 }
-.card-kpi-estrella {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 71, 87, 0.08)) !important;
+html:not(.dark):not([data-bs-theme="dark"]) .card-kpi-estrella {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 71, 87, 0.12)) !important;
 }
-.card-kpi-top-client {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(108, 92, 231, 0.08)) !important;
+html:not(.dark):not([data-bs-theme="dark"]) .card-kpi-top-client {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(108, 92, 231, 0.12)) !important;
 }
-.card-kpi-ocupacion {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(253, 126, 20, 0.08)) !important;
+html:not(.dark):not([data-bs-theme="dark"]) .card-kpi-ocupacion {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(253, 126, 20, 0.12)) !important;
 }
 
 /* Iconos circulares con gradientes tenues de fondo */
@@ -99,7 +120,7 @@ main.container-fluid {
     align-items: center;
     justify-content: center;
     border-radius: 18px;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .card-report:hover .icon-shape {
@@ -108,10 +129,10 @@ main.container-fluid {
 
 /* Overlay de Carga Glassmorphic */
 .chart-loading-overlay {
-    background-color: rgba(255, 255, 255, 0.75) !important;
+    background-color: rgba(255, 255, 255, 0.8) !important;
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    transition: opacity 0.4s ease, visibility 0.4s ease;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
     border-radius: 24px;
     opacity: 1;
     visibility: visible;
@@ -132,59 +153,185 @@ main.container-fluid {
 
 /* ==============================================================================
    ESTILOS COMPLEMENTARIOS PARA MODO OSCURO (DARK MODE)
+   Compatibilidad total con html.dark, [data-bs-theme="dark"] y body.dark-mode
 ============================================================================== */
-body.dark-mode {
-    /* Fondo semi-transparente oscuro con desenfoque para tarjetas */
-    & .card-report {
-        background: rgba(26, 28, 32, 0.8) !important;
-        backdrop-filter: blur(20px) saturate(140%);
-        -webkit-backdrop-filter: blur(20px) saturate(140%);
-        border: 1px solid rgba(255, 255, 255, 0.05) !important;
-        box-shadow: 0 15px 35px -15px rgba(0, 0, 0, 0.5) !important;
-    }
+.dark .card-report,
+[data-bs-theme="dark"] .card-report,
+body.dark-mode .card-report,
+html.dark .card-report {
+    background: linear-gradient(145deg, rgba(22, 28, 42, 0.9) 0%, rgba(15, 19, 29, 0.95) 100%) !important;
+    backdrop-filter: blur(16px) saturate(130%);
+    -webkit-backdrop-filter: blur(16px) saturate(130%);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
 
-    & .card-report h3 {
-        color: #b2bec3 !important;
-    }
+.dark .card-report h3,
+[data-bs-theme="dark"] .card-report h3,
+body.dark-mode .card-report h3,
+html.dark .card-report h3 {
+    color: #CBD5E1 !important;
+    font-weight: 600;
+}
 
-    & .card-header h3 {
-        color: #ffffff !important;
-    }
+.dark .card-header h3,
+[data-bs-theme="dark"] .card-header h3,
+body.dark-mode .card-header h3,
+html.dark .card-header h3 {
+    color: #F8FAFC !important;
+}
 
-    & .text-muted {
-        color: #a4b0be !important;
-    }
+.dark .card-report .text-muted,
+[data-bs-theme="dark"] .card-report .text-muted,
+body.dark-mode .card-report .text-muted,
+html.dark .card-report .text-muted,
+.dark .card-header .text-muted,
+[data-bs-theme="dark"] .card-header .text-muted,
+body.dark-mode .card-header .text-muted,
+html.dark .card-header .text-muted {
+    color: #94A3B8 !important;
+}
 
-    /* Resplandor especial en Hover para Modo Oscuro */
-    & .hover-transform:hover {
-        box-shadow: 0 25px 50px -15px rgba(9, 132, 227, 0.3) !important;
-        border-color: rgba(9, 132, 227, 0.4) !important;
-        background: rgba(26, 28, 32, 0.95) !important;
-    }
+/* Resplandor especial en Hover para Modo Oscuro */
+.dark .hover-transform:hover,
+[data-bs-theme="dark"] .hover-transform:hover,
+body.dark-mode .hover-transform:hover,
+html.dark .hover-transform:hover {
+    box-shadow: 0 22px 48px -12px rgba(0, 0, 0, 0.7), 0 0 20px -4px rgba(252, 164, 52, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    transform: translateY(-6px) scale(1.015) !important;
+}
 
-    /* Carga en Modo Oscuro */
-    & .chart-loading-overlay {
-        background-color: rgba(21, 23, 26, 0.8) !important;
-    }
+/* Carga en Modo Oscuro */
+.dark .chart-loading-overlay,
+[data-bs-theme="dark"] .chart-loading-overlay,
+body.dark-mode .chart-loading-overlay,
+html.dark .chart-loading-overlay {
+    background-color: rgba(12, 16, 24, 0.85) !important;
+    backdrop-filter: blur(10px);
+}
 
-    /* Fondos oscuros adaptativos premium para KPIs de negocio */
-    & .card-kpi-ganancias {
-        background: linear-gradient(135deg, rgba(26, 28, 32, 0.8), rgba(46, 213, 115, 0.12)) !important;
-    }
-    & .card-kpi-estrella {
-        background: linear-gradient(135deg, rgba(26, 28, 32, 0.8), rgba(255, 71, 87, 0.12)) !important;
-    }
-    & .card-kpi-top-client {
-        background: linear-gradient(135deg, rgba(26, 28, 32, 0.8), rgba(108, 92, 231, 0.12)) !important;
-    }
-    & .card-kpi-ocupacion {
-        background: linear-gradient(135deg, rgba(26, 28, 32, 0.8), rgba(253, 126, 20, 0.12)) !important;
-    }
+/* ==============================================================================
+   KPIS PREMIUM CON ILUMINACIÓN NEÓN REFINADA EN MODO OSCURO
+============================================================================== */
+
+/* 1. Ganancias Totales */
+.dark .card-kpi-ganancias,
+[data-bs-theme="dark"] .card-kpi-ganancias,
+body.dark-mode .card-kpi-ganancias,
+html.dark .card-kpi-ganancias {
+    background: linear-gradient(145deg, rgba(16, 44, 28, 0.5) 0%, rgba(15, 21, 32, 0.95) 75%) !important;
+    border: 1px solid rgba(46, 213, 115, 0.25) !important;
+    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5), 0 0 20px -6px rgba(46, 213, 115, 0.15), inset 0 1px 0 rgba(46, 213, 115, 0.2) !important;
+}
+.dark .card-kpi-ganancias:hover,
+[data-bs-theme="dark"] .card-kpi-ganancias:hover,
+body.dark-mode .card-kpi-ganancias:hover,
+html.dark .card-kpi-ganancias:hover {
+    border-color: rgba(46, 213, 115, 0.45) !important;
+    box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.65), 0 0 28px -4px rgba(46, 213, 115, 0.3) !important;
+}
+.dark .card-kpi-ganancias .text-success,
+[data-bs-theme="dark"] .card-kpi-ganancias .text-success,
+body.dark-mode .card-kpi-ganancias .text-success {
+    color: #2ed573 !important;
+    text-shadow: 0 0 16px rgba(46, 213, 115, 0.35);
+}
+
+/* 2. Producto Estrella */
+.dark .card-kpi-estrella,
+[data-bs-theme="dark"] .card-kpi-estrella,
+body.dark-mode .card-kpi-estrella,
+html.dark .card-kpi-estrella {
+    background: linear-gradient(145deg, rgba(48, 18, 24, 0.5) 0%, rgba(15, 21, 32, 0.95) 75%) !important;
+    border: 1px solid rgba(255, 71, 87, 0.25) !important;
+    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5), 0 0 20px -6px rgba(255, 71, 87, 0.15), inset 0 1px 0 rgba(255, 71, 87, 0.2) !important;
+}
+.dark .card-kpi-estrella:hover,
+[data-bs-theme="dark"] .card-kpi-estrella:hover,
+body.dark-mode .card-kpi-estrella:hover,
+html.dark .card-kpi-estrella:hover {
+    border-color: rgba(255, 71, 87, 0.45) !important;
+    box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.65), 0 0 28px -4px rgba(255, 71, 87, 0.3) !important;
+}
+.dark .card-kpi-estrella .text-danger,
+[data-bs-theme="dark"] .card-kpi-estrella .text-danger,
+body.dark-mode .card-kpi-estrella .text-danger {
+    color: #ff6b81 !important;
+    text-shadow: 0 0 16px rgba(255, 107, 129, 0.35);
+}
+
+/* 3. Cliente Top */
+.dark .card-kpi-top-client,
+[data-bs-theme="dark"] .card-kpi-top-client,
+body.dark-mode .card-kpi-top-client,
+html.dark .card-kpi-top-client {
+    background: linear-gradient(145deg, rgba(35, 24, 58, 0.5) 0%, rgba(15, 21, 32, 0.95) 75%) !important;
+    border: 1px solid rgba(139, 92, 246, 0.25) !important;
+    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5), 0 0 20px -6px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(139, 92, 246, 0.2) !important;
+}
+.dark .card-kpi-top-client:hover,
+[data-bs-theme="dark"] .card-kpi-top-client:hover,
+body.dark-mode .card-kpi-top-client:hover,
+html.dark .card-kpi-top-client:hover {
+    border-color: rgba(139, 92, 246, 0.45) !important;
+    box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.65), 0 0 28px -4px rgba(139, 92, 246, 0.3) !important;
+}
+.dark #kpi-cliente-top-nombre,
+[data-bs-theme="dark"] #kpi-cliente-top-nombre,
+body.dark-mode #kpi-cliente-top-nombre {
+    color: #a78bfa !important;
+    text-shadow: 0 0 16px rgba(167, 139, 250, 0.35);
+}
+
+/* 4. Ocupación de Mesas */
+.dark .card-kpi-ocupacion,
+[data-bs-theme="dark"] .card-kpi-ocupacion,
+body.dark-mode .card-kpi-ocupacion,
+html.dark .card-kpi-ocupacion {
+    background: linear-gradient(145deg, rgba(50, 28, 12, 0.5) 0%, rgba(15, 21, 32, 0.95) 75%) !important;
+    border: 1px solid rgba(253, 126, 20, 0.25) !important;
+    box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.5), 0 0 20px -6px rgba(253, 126, 20, 0.15), inset 0 1px 0 rgba(253, 126, 20, 0.2) !important;
+}
+.dark .card-kpi-ocupacion:hover,
+[data-bs-theme="dark"] .card-kpi-ocupacion:hover,
+body.dark-mode .card-kpi-ocupacion:hover,
+html.dark .card-kpi-ocupacion:hover {
+    border-color: rgba(253, 126, 20, 0.45) !important;
+    box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.65), 0 0 28px -4px rgba(253, 126, 20, 0.3) !important;
+}
+.dark .card-kpi-ocupacion .text-warning,
+[data-bs-theme="dark"] .card-kpi-ocupacion .text-warning,
+body.dark-mode .card-kpi-ocupacion .text-warning {
+    color: #ffa502 !important;
+    text-shadow: 0 0 16px rgba(255, 165, 2, 0.35);
+}
+
+/* Acentos y luminosidad en las tarjetas KPI superiores en Modo Oscuro */
+.dark #kpi-reservaciones,
+[data-bs-theme="dark"] #kpi-reservaciones {
+    color: #fca434 !important;
+    text-shadow: 0 0 16px rgba(252, 164, 52, 0.35);
+}
+.dark #kpi-clientes,
+[data-bs-theme="dark"] #kpi-clientes {
+    color: #0dcaf0 !important;
+    text-shadow: 0 0 16px rgba(13, 202, 240, 0.35);
+}
+.dark #kpi-productos,
+[data-bs-theme="dark"] #kpi-productos {
+    color: #2ed573 !important;
+    text-shadow: 0 0 16px rgba(46, 213, 115, 0.35);
+}
+.dark #kpi-asistencias,
+[data-bs-theme="dark"] #kpi-asistencias {
+    color: #fd7e14 !important;
+    text-shadow: 0 0 16px rgba(253, 126, 20, 0.35);
 }
 
 /* ==============================================================================
    FILTROS AVANZADOS Y CONTROLES GLASSMORPHIC (Filtros & Selectores)
-   ============================================================================== */
+============================================================================== */
 .glass-panel {
     background: rgba(255, 255, 255, 0.45) !important;
     border: 1px solid rgba(255, 255, 255, 0.4) !important;
@@ -292,62 +439,188 @@ body.dark-mode {
 }
 
 /* Modo oscuro para filtros y selectores */
-body.dark-mode {
-    & .glass-panel {
-        background: rgba(30, 32, 38, 0.6) !important;
-        border: 1px solid rgba(255, 255, 255, 0.06) !important;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
-    }
-    
-    & #toggle-filter-btn:hover {
-        background-color: rgba(255, 255, 255, 0.02);
-    }
-    
-    & .filter-group {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.03);
-    }
-    
-    & #filter-panel-card .form-control,
-    & #filter-panel-card .form-select {
-        background-color: rgba(26, 28, 32, 0.95);
-        border-color: rgba(255, 255, 255, 0.08);
-        color: #f1f2f6;
-    }
-    
-    & #filter-panel-card .form-control:focus,
-    & #filter-panel-card .form-select:focus {
-        background-color: #1a1c20;
-        border-color: #0984e3;
-        box-shadow: 0 0 0 3px rgba(9, 132, 227, 0.3);
-    }
-    
-    & .input-group-custom .input-group-text {
-        background-color: rgba(26, 28, 32, 0.95);
-        border-color: rgba(255, 255, 255, 0.08);
-        color: #a4b0be;
-    }
-    
-    & .chart-type-select {
-        background-color: rgba(9, 132, 227, 0.15) !important;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2374b9ff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
-        border-color: rgba(9, 132, 227, 0.25) !important;
-        color: #74b9ff !important;
-    }
-    
-    & .chart-type-select:hover {
-        background-color: rgba(9, 132, 227, 0.25) !important;
-        border-color: rgba(9, 132, 227, 0.45) !important;
-    }
-    
-    & .chart-type-select option {
-        background-color: #1e2124 !important;
-        color: #ffffff !important;
-    }
+.dark .glass-panel,
+[data-bs-theme="dark"] .glass-panel,
+body.dark-mode .glass-panel {
+    background: rgba(22, 28, 42, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4) !important;
+}
+
+.dark #toggle-filter-btn:hover,
+[data-bs-theme="dark"] #toggle-filter-btn:hover,
+body.dark-mode #toggle-filter-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark .filter-group,
+[data-bs-theme="dark"] .filter-group,
+body.dark-mode .filter-group {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dark #filter-panel-card .form-control,
+.dark #filter-panel-card .form-select,
+[data-bs-theme="dark"] #filter-panel-card .form-control,
+[data-bs-theme="dark"] #filter-panel-card .form-select,
+body.dark-mode #filter-panel-card .form-control,
+body.dark-mode #filter-panel-card .form-select {
+    background-color: #121724;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #F1F5F9;
+}
+
+.dark #filter-panel-card .form-control:focus,
+.dark #filter-panel-card .form-select:focus,
+[data-bs-theme="dark"] #filter-panel-card .form-control:focus,
+[data-bs-theme="dark"] #filter-panel-card .form-select:focus,
+body.dark-mode #filter-panel-card .form-control:focus,
+body.dark-mode #filter-panel-card .form-select:focus {
+    background-color: #161D2E;
+    border-color: #0984e3;
+    box-shadow: 0 0 0 3px rgba(9, 132, 227, 0.3);
+}
+
+.dark .input-group-custom .input-group-text,
+[data-bs-theme="dark"] .input-group-custom .input-group-text,
+body.dark-mode .input-group-custom .input-group-text {
+    background-color: #121724;
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #94A3B8;
+}
+
+.dark .chart-type-select,
+[data-bs-theme="dark"] .chart-type-select,
+body.dark-mode .chart-type-select {
+    background-color: rgba(9, 132, 227, 0.16) !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2374b9ff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e") !important;
+    border-color: rgba(9, 132, 227, 0.3) !important;
+    color: #74b9ff !important;
+}
+
+.dark .chart-type-select:hover,
+[data-bs-theme="dark"] .chart-type-select:hover,
+body.dark-mode .chart-type-select:hover {
+    background-color: rgba(9, 132, 227, 0.28) !important;
+    border-color: rgba(9, 132, 227, 0.5) !important;
+}
+
+.dark .chart-type-select option,
+[data-bs-theme="dark"] .chart-type-select option,
+body.dark-mode .chart-type-select option {
+    background-color: #151A26 !important;
+    color: #F8FAFC !important;
 }
 
 /* ==============================================================================
-   AJUSTES RESPONSIVOS DE EXCELENCIA
+   LOCAL FILTER PANELS (FILTROS LOCALES POR TARJETA)
+============================================================================== */
+.local-filter-panel {
+    background: rgba(9, 132, 227, 0.02);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+}
+
+.dark .local-filter-panel,
+[data-bs-theme="dark"] .local-filter-panel,
+body.dark-mode .local-filter-panel {
+    background: rgba(12, 16, 24, 0.7) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.local-filter-panel .form-control,
+.local-filter-panel .form-select {
+    font-size: 0.75rem !important;
+    border-radius: 8px !important;
+    padding: 0.3rem 0.5rem !important;
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    color: #2d3436 !important;
+    height: auto !important;
+}
+
+.dark .local-filter-panel .form-control,
+.dark .local-filter-panel .form-select,
+[data-bs-theme="dark"] .local-filter-panel .form-control,
+[data-bs-theme="dark"] .local-filter-panel .form-select,
+body.dark-mode .local-filter-panel .form-control,
+body.dark-mode .local-filter-panel .form-select {
+    background-color: #121724 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #F1F5F9 !important;
+}
+
+.local-filter-panel .form-control:focus,
+.local-filter-panel .form-select:focus {
+    border-color: #0984e3 !important;
+    box-shadow: 0 0 0 2px rgba(9, 132, 227, 0.1) !important;
+    background-color: #ffffff !important;
+}
+
+.dark .local-filter-panel .form-control:focus,
+.dark .local-filter-panel .form-select:focus,
+[data-bs-theme="dark"] .local-filter-panel .form-control:focus,
+[data-bs-theme="dark"] .local-filter-panel .form-select:focus,
+body.dark-mode .local-filter-panel .form-control:focus,
+body.dark-mode .local-filter-panel .form-select:focus {
+    background-color: #161D2E !important;
+    border-color: #0984e3 !important;
+    box-shadow: 0 0 0 2px rgba(9, 132, 227, 0.25) !important;
+}
+
+.btn-toggle-local-filter {
+    transition: all 0.3s ease;
+    background: rgba(9, 132, 227, 0.05);
+    border: 1px solid rgba(9, 132, 227, 0.1);
+    color: #0984e3;
+}
+
+.btn-toggle-local-filter:hover {
+    background: rgba(9, 132, 227, 0.15) !important;
+    transform: scale(1.05);
+}
+
+.dark .btn-toggle-local-filter,
+[data-bs-theme="dark"] .btn-toggle-local-filter,
+body.dark-mode .btn-toggle-local-filter {
+    background: rgba(9, 132, 227, 0.12);
+    border-color: rgba(9, 132, 227, 0.25);
+    color: #74b9ff;
+}
+
+.dark .btn-toggle-local-filter:hover,
+[data-bs-theme="dark"] .btn-toggle-local-filter:hover,
+body.dark-mode .btn-toggle-local-filter:hover {
+    background: rgba(9, 132, 227, 0.25) !important;
+}
+
+.btn-clear-local-filter {
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.6rem !important;
+    border-radius: 20px !important;
+}
+
+/* Active filter state visual indicator for funnel buttons */
+.btn-toggle-local-filter.active-filter {
+    background: #0984e3 !important;
+    color: #ffffff !important;
+    border-color: #0984e3 !important;
+    box-shadow: 0 0 8px rgba(9, 132, 227, 0.4);
+}
+
+.dark .btn-toggle-local-filter.active-filter,
+[data-bs-theme="dark"] .btn-toggle-local-filter.active-filter,
+body.dark-mode .btn-toggle-local-filter.active-filter {
+    background: #74b9ff !important;
+    color: #0f131d !important;
+    border-color: #74b9ff !important;
+    box-shadow: 0 0 10px rgba(116, 185, 255, 0.5);
+}
+
+/* ==============================================================================
+   AJUSTES RESPONSIVOS
 ============================================================================== */
 @media (max-width: 991px) {
     .card-report {
@@ -367,92 +640,4 @@ body.dark-mode {
     .card-report {
         padding: 1.25rem !important;
     }
-}
-
-/* ==============================================================================
-   LOCAL FILTER PANELS (FILTROS LOCALES POR TARJETA)
-   ============================================================================== */
-.local-filter-panel {
-    background: rgba(9, 132, 227, 0.02);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-    transition: all 0.3s ease;
-}
-
-body.dark-mode .local-filter-panel {
-    background: rgba(255, 255, 255, 0.01);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-}
-
-.local-filter-panel .form-control,
-.local-filter-panel .form-select {
-    font-size: 0.75rem !important;
-    border-radius: 8px !important;
-    padding: 0.3rem 0.5rem !important;
-    background-color: rgba(255, 255, 255, 0.9) !important;
-    border: 1px solid rgba(0, 0, 0, 0.08) !important;
-    color: #2d3436 !important;
-    height: auto !important;
-}
-
-body.dark-mode .local-filter-panel .form-control,
-body.dark-mode .local-filter-panel .form-select {
-    background-color: rgba(26, 28, 32, 0.9) !important;
-    border: 1px solid rgba(255, 255, 255, 0.06) !important;
-    color: #f1f2f6 !important;
-}
-
-.local-filter-panel .form-control:focus,
-.local-filter-panel .form-select:focus {
-    border-color: #0984e3 !important;
-    box-shadow: 0 0 0 2px rgba(9, 132, 227, 0.1) !important;
-    background-color: #ffffff !important;
-}
-
-body.dark-mode .local-filter-panel .form-control:focus,
-body.dark-mode .local-filter-panel .form-select:focus {
-    background-color: #1a1c20 !important;
-    box-shadow: 0 0 0 2px rgba(9, 132, 227, 0.2) !important;
-}
-
-.btn-toggle-local-filter {
-    transition: all 0.3s ease;
-    background: rgba(9, 132, 227, 0.05);
-    border: 1px solid rgba(9, 132, 227, 0.1);
-    color: #0984e3;
-}
-
-.btn-toggle-local-filter:hover {
-    background: rgba(9, 132, 227, 0.15) !important;
-    transform: scale(1.05);
-}
-
-body.dark-mode .btn-toggle-local-filter {
-    background: rgba(9, 132, 227, 0.1);
-    border-color: rgba(9, 132, 227, 0.2);
-    color: #74b9ff;
-}
-
-body.dark-mode .btn-toggle-local-filter:hover {
-    background: rgba(9, 132, 227, 0.25) !important;
-}
-
-.btn-clear-local-filter {
-    font-size: 0.75rem !important;
-    padding: 0.25rem 0.6rem !important;
-    border-radius: 20px !important;
-}
-
-/* Active filter state visual indicator for funnel buttons */
-.btn-toggle-local-filter.active-filter {
-    background: #0984e3 !important;
-    color: #ffffff !important;
-    border-color: #0984e3 !important;
-    box-shadow: 0 0 8px rgba(9, 132, 227, 0.4);
-}
-
-body.dark-mode .btn-toggle-local-filter.active-filter {
-    background: #74b9ff !important;
-    color: #15171a !important;
-    border-color: #74b9ff !important;
-    box-shadow: 0 0 8px rgba(116, 185, 255, 0.4);
 }

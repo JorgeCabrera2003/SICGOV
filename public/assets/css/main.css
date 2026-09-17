@@ -303,89 +303,151 @@ body {
    MODO OSCURO (Adaptación global)
 ========================================= */
 .dark,
-[data-bs-theme="dark"] {
-    --bg-principal: #0F1114;
-    --bg-tarjetas: #1A1C20;
-    --color-sidebar: #F8F9FA;
-    --color-border: rgba(255, 255, 255, 0.1);
+[data-bs-theme="dark"],
+body.dark-mode,
+html.dark {
+    --bg-principal: #0C0F17;
+    --bg-tarjetas: #151A26;
+    --color-sidebar: #F8FAFC;
+    --color-border: rgba(255, 255, 255, 0.08);
     --color-bg-muted: rgba(255, 255, 255, 0.05);
-    --color-placeholder: rgba(255, 255, 255, 0.5);
+    --color-placeholder: rgba(255, 255, 255, 0.45);
 
     /* Sobrescribir variables de Bootstrap */
-    --bs-body-bg: var(--bg-principal);
-    --bs-body-color: var(--color-sidebar);
-    --bs-tertiary-bg: #15171A;
+    --bs-body-bg: #0C0F17;
+    --bs-body-color: #F8FAFC;
+    --bs-tertiary-bg: #10141F;
     --bs-border-color: var(--color-border);
+    --bs-card-bg: var(--bg-tarjetas);
+    --bs-card-border-color: var(--color-border);
+    --bs-secondary-color: #94A3B8;
     
     & .bg-body, & .bg-light, & .bg-body-tertiary {
         background-color: var(--bg-principal) !important;
         color: var(--color-sidebar) !important;
 
         & p, & span, & div, & h1, & h2, & h3, & h4, & h5, & h6 {
-            &:not(.text-primary):not(.text-success):not(.text-danger):not(.text-warning):not(.text-info) {
+            &:not(.text-primary):not(.text-success):not(.text-danger):not(.text-warning):not(.text-info):not([class*="badge"]) {
                 color: var(--color-sidebar) !important;
             }
         }
     }
 
     & .text-body, & .text-secondary {
-        color: var(--color-sidebar) !important;
+        color: #CBD5E1 !important;
     }
 
     & .card, & .modal-content {
         background-color: var(--bg-tarjetas);
         border: 1px solid var(--color-border);
+        box-shadow: 0 12px 36px -6px rgba(0, 0, 0, 0.5);
     }
 
     & .form-control, & .form-select {
-        background-color: #15171A;
+        background-color: #10141F;
         border-color: var(--color-border);
-        color: var(--color-sidebar);
+        color: #F8FAFC;
 
         &::placeholder {
-            color: rgba(255, 255, 255, 0.45) !important;
+            color: rgba(255, 255, 255, 0.4) !important;
             opacity: 1;
         }
 
         &:focus {
-            background-color: #1A1C20;
+            background-color: #141926;
             border-color: var(--color-acento);
-            box-shadow: 0 0 0 0.25rem rgba(255, 214, 0, 0.15);
+            box-shadow: 0 0 0 0.25rem rgba(255, 214, 0, 0.18);
+            color: #FFFFFF;
         }
 
         /* ── Estados de validación en modo oscuro ── */
         &.is-valid {
             border-color: #198754 !important;
             box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25) !important;
-            background-color: #15171A;
+            background-color: #10141F;
         }
 
         &.is-invalid {
             border-color: #dc3545 !important;
             box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
-            background-color: #15171A;
+            background-color: #10141F;
+        }
+    }
+
+    & .input-group-text {
+        background-color: #10141F;
+        border-color: var(--color-border);
+        color: #94A3B8;
+    }
+
+    /* Buscador superior de ayuda en modo oscuro */
+    & #ayudaSearchInput {
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
+        color: #F8FAFC !important;
+        border-radius: 0 20px 20px 0 !important;
+
+        &:focus {
+            background-color: rgba(255, 255, 255, 0.07) !important;
+            border-color: var(--color-acento) !important;
+        }
+    }
+
+    & #ayuda-search-icon {
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
+        border-radius: 20px 0 0 20px !important;
+    }
+
+    & #top-nav {
+        background-color: rgba(15, 19, 29, 0.9) !important;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+    }
+
+    & .sidebar {
+        background-color: #0F131D !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.07) !important;
+    }
+
+    & #logo-text {
+        color: #F8FAFC !important;
+    }
+
+    & #collapse-btn {
+        color: #CBD5E1 !important;
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.06) !important;
+            color: #FFFFFF !important;
         }
     }
 
     & .table {
         --bs-table-bg: transparent;
-        --bs-table-color: var(--color-sidebar);
-        --bs-table-border-color: var(--color-border);
+        --bs-table-color: #E2E8F0;
+        --bs-table-border-color: rgba(255, 255, 255, 0.07);
         
         & thead th {
-            background-color: #15171A !important;
+            background-color: #111522 !important;
             color: #FFFFFF !important;
             border-bottom: 2px solid var(--color-acento) !important;
+            font-weight: 600;
         }
 
         & tbody td {
-            color: rgba(248, 249, 250, 0.9);
-            border-bottom-color: var(--color-border);
+            color: #E2E8F0;
+            border-bottom-color: rgba(255, 255, 255, 0.06);
+        }
+
+        & tbody tr:hover td {
+            background-color: rgba(255, 255, 255, 0.025) !important;
         }
     }
 
     & .text-muted {
-        color: rgba(248, 249, 250, 0.6) !important;
+        color: #94A3B8 !important;
     }
 
     /* Paginación y DataTables */
@@ -403,36 +465,37 @@ body {
     & .page-item.active .page-link {
         background-color: var(--color-acento) !important;
         border-color: var(--color-acento) !important;
-        color: var(--bg-principal) !important;
+        color: #1A1C20 !important;
+        font-weight: 700;
     }
 
     & .page-item.disabled .page-link {
-        background-color: #15171A !important;
+        background-color: #10141F !important;
         border-color: var(--color-border) !important;
-        opacity: 0.5;
+        opacity: 0.4;
     }
 
     & .dataTables_info, & .dataTables_length, & .dataTables_filter {
-        color: rgba(248, 249, 250, 0.7) !important;
+        color: #94A3B8 !important;
     }
 
     /* Menús desplegables en modo oscuro */
     & .dropdown-menu {
         background-color: var(--bg-tarjetas) !important;
         border-color: var(--color-border) !important;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
     }
 
     & .dropdown-item {
-        color: var(--color-sidebar) !important;
+        color: #E2E8F0 !important;
         
         &:hover {
-            background-color: var(--color-bg-muted) !important;
+            background-color: rgba(255, 214, 0, 0.12) !important;
             color: var(--color-acento) !important;
         }
 
         &.text-danger:hover {
-            background-color: rgba(220, 53, 69, 0.1) !important;
+            background-color: rgba(220, 53, 69, 0.12) !important;
             color: #ff6b6b !important;
         }
     }
@@ -449,7 +512,7 @@ body {
 
     /* Navegación lateral en modo oscuro */
     & .nav-link {
-        color: rgba(248, 249, 250, 0.7) !important;
+        color: #CBD5E1 !important;
 
         &:hover {
             background-color: rgba(255, 255, 255, 0.05) !important;
@@ -458,7 +521,8 @@ body {
 
         &.active {
             background-color: var(--color-acento) !important;
-            color: var(--bg-principal) !important;
+            color: #1A1C20 !important;
+            font-weight: 700;
         }
     }
 
@@ -705,8 +769,13 @@ body {
 }
 
 /* Modo oscuro: ajustar sombra para contraste */
-.dark #sidebar-flyout {
-    box-shadow: 6px 4px 24px rgba(0, 0, 0, 0.5);
+.dark #sidebar-flyout,
+[data-bs-theme="dark"] #sidebar-flyout,
+body.dark-mode #sidebar-flyout,
+html.dark #sidebar-flyout {
+    background-color: #151A26 !important;
+    border-color: rgba(255, 255, 255, 0.09) !important;
+    box-shadow: 6px 4px 28px rgba(0, 0, 0, 0.6) !important;
 }
 
 .sidebar-flyout__title {

@@ -64,6 +64,25 @@
         window.CSRF_TOKEN = '<?php echo $_SESSION['csrf_token'] ?? ''; ?>';
         var CSRF_TOKEN = window.CSRF_TOKEN;
         window.idiomaTabla = BASE_URL + '/assets/DataTables/espanol.json';
+
+        // Inicialización inmediata de Modo Oscuro (anti-FOUC y sincronización temprana)
+        (function() {
+            try {
+                var savedTheme = localStorage.getItem('sicgov-theme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                    document.documentElement.classList.add('dark', 'dark-mode');
+                    document.documentElement.setAttribute('data-bs-theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-bs-theme', 'light');
+                }
+            } catch (e) {}
+        })();
+        document.addEventListener('DOMContentLoaded', function() {
+            if (document.documentElement.classList.contains('dark') || document.documentElement.getAttribute('data-bs-theme') === 'dark') {
+                document.body.classList.add('dark', 'dark-mode');
+            }
+        });
     </script>
 </head>
 <body class="d-flex flex-column min-vh-100">
