@@ -30,6 +30,7 @@ class Promocion extends Database
     private $fecha_fin;
     private $hora_inicio;
     private $hora_fin;
+    private $imagen;
 
     private $id_producto;
     private $productos;
@@ -45,6 +46,7 @@ class Promocion extends Database
         $this->fecha_fin = "";
         $this->hora_inicio = "";
         $this->hora_fin = "";
+        $this->imagen = null;
         $this->id_producto = "";
         $this->productos = [];
 
@@ -97,6 +99,10 @@ class Promocion extends Database
     public function setProductos(array $productos) {
         $this->productos = $productos;
     }
+
+    public function setImagen(?string $imagen) {
+        $this->imagen = !empty($imagen) ? trim($imagen) : null;
+    }
     //FIN SETTERS
 
     //GETTERS 
@@ -136,6 +142,9 @@ class Promocion extends Database
         return $this->hora_fin;
     }
 
+    public function getImagen() {
+        return $this->imagen;
+    }
 
     public function getIdProducto() {
         return $this->id_producto;
@@ -211,8 +220,8 @@ class Promocion extends Database
     {
         $dato = [];
         try {
-            $sql = "INSERT INTO promocion (id_promocion, nombre, tipo_descuento, valor_descuento, descripcion, fecha_inicio, fecha_fin, hora_inicio, hora_fin)
-                VALUES (:id_promocion, :nombre, :tipo_descuento, :valor_descuento, :descripcion, :fecha_inicio, :fecha_fin, :hora_inicio, :hora_fin)";
+            $sql = "INSERT INTO promocion (id_promocion, nombre, tipo_descuento, valor_descuento, descripcion, fecha_inicio, fecha_fin, hora_inicio, hora_fin, imagen)
+                VALUES (:id_promocion, :nombre, :tipo_descuento, :valor_descuento, :descripcion, :fecha_inicio, :fecha_fin, :hora_inicio, :hora_fin, :imagen)";
 
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
@@ -226,6 +235,7 @@ class Promocion extends Database
             $stm->bindParam(':fecha_fin', $this->fecha_fin);
             $stm->bindParam(':hora_inicio', $this->hora_inicio);
             $stm->bindParam(':hora_fin', $this->hora_fin);
+            $stm->bindParam(':imagen', $this->imagen);
             $stm->execute();
 
             if (!empty($this->productos)) {
@@ -236,7 +246,7 @@ class Promocion extends Database
                     $idProducto = null;
                     $cantidad = 1;
                     if (is_array($producto)) {
-                        $idProducto = $producto['id'] ?? $producto[0] ?? null;
+                        $idProducto = $producto['id'] ?? $producto['id_producto'] ?? $producto[0] ?? null;
                         $cantidad = intval($producto['cantidad'] ?? 1);
                     } else {
                         $idProducto = $producto;
@@ -256,6 +266,23 @@ class Promocion extends Database
                             ':id_promocion' => $this->id_promocion
                         ]);
                     }
+                }
+            }
+
+            // Sincronizar imagen en tabla polimórfica (Security DB)
+            if (!empty($this->imagen)) {
+                try {
+                    $dbSec = \App\Core\Database::getConnection('security');
+                    $id_img = "IMG-P" . date('YmdHis') . rand(100, 999);
+                    $stmtImg = $dbSec->prepare("INSERT INTO imagen (id_imagen, entidad_tipo, entidad_id, direccion, orden, es_principal) 
+                                                VALUES (:id_imagen, 'PROMOCION', :entidad_id, :direccion, 1, 1)");
+                    $stmtImg->execute([
+                        ':id_imagen' => $id_img,
+                        ':entidad_id' => $this->id_promocion,
+                        ':direccion' => $this->imagen
+                    ]);
+                } catch (\Exception $e) {
+                    Helper::ErrorLog("Error guardando imagen polimórfica de promoción: " . $e->getMessage());
                 }
             }
 
@@ -282,7 +309,7 @@ class Promocion extends Database
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
             $sql = "UPDATE promocion SET nombre = :nombre, tipo_descuento = :tipo_descuento, valor_descuento = :valor_descuento, descripcion = :descripcion,
-            fecha_inicio = :fecha_inicio, fecha_fin = :fecha_fin, hora_inicio = :hora_inicio, hora_fin = :hora_fin
+            fecha_inicio = :fecha_inicio, fecha_fin = :fecha_fin, hora_inicio = :hora_inicio, hora_fin = :hora_fin, imagen = :imagen
             WHERE id_promocion = :id_promocion";
 
             $stm = $this->LlamarConexion()->prepare($sql);
@@ -295,6 +322,7 @@ class Promocion extends Database
             $stm->bindParam(':fecha_fin', $this->fecha_fin);
             $stm->bindParam(':hora_inicio', $this->hora_inicio);
             $stm->bindParam(':hora_fin', $this->hora_fin);
+            $stm->bindParam(':imagen', $this->imagen);
             $stm->execute();
 
             $deletePlan = "DELETE FROM planificador_promocion WHERE id_promocion = :id_promocion";
@@ -310,7 +338,7 @@ class Promocion extends Database
                     $idProducto = null;
                     $cantidad = 1;
                     if (is_array($producto)) {
-                        $idProducto = $producto['id'] ?? $producto[0] ?? null;
+                        $idProducto = $producto['id'] ?? $producto['id_producto'] ?? $producto[0] ?? null;
                         $cantidad = intval($producto['cantidad'] ?? 1);
                     } else {
                         $idProducto = $producto;
@@ -330,6 +358,26 @@ class Promocion extends Database
                         ]);
                     }
                 }
+            }
+
+            // Sincronizar imagen en tabla polimórfica (Security DB)
+            try {
+                $dbSec = \App\Core\Database::getConnection('security');
+                $delImg = $dbSec->prepare("DELETE FROM imagen WHERE entidad_tipo = 'PROMOCION' AND entidad_id = :id_promocion");
+                $delImg->execute([':id_promocion' => $this->id_promocion]);
+
+                if (!empty($this->imagen)) {
+                    $id_img = "IMG-P" . date('YmdHis') . rand(100, 999);
+                    $stmtImg = $dbSec->prepare("INSERT INTO imagen (id_imagen, entidad_tipo, entidad_id, direccion, orden, es_principal) 
+                                                VALUES (:id_imagen, 'PROMOCION', :entidad_id, :direccion, 1, 1)");
+                    $stmtImg->execute([
+                        ':id_imagen' => $id_img,
+                        ':entidad_id' => $this->id_promocion,
+                        ':direccion' => $this->imagen
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Helper::ErrorLog("Error actualizando imagen polimórfica de promoción: " . $e->getMessage());
             }
 
             $this->LlamarConexion()->commit();
@@ -365,6 +413,15 @@ class Promocion extends Database
                 $stm->execute();
                 $this->LlamarConexion()->commit();
                 $stm = NULL;
+
+                // Eliminar vínculo en tabla polimórfica
+                try {
+                    $dbSec = \App\Core\Database::getConnection('security');
+                    $delImg = $dbSec->prepare("DELETE FROM imagen WHERE entidad_tipo = 'PROMOCION' AND entidad_id = :id_promocion");
+                    $delImg->execute([':id_promocion' => $this->id_promocion]);
+                } catch (\Exception $e) {
+                    Helper::ErrorLog("Error eliminando imagen polimórfica de promoción: " . $e->getMessage());
+                }
 
                 $dato['estado'] = 1;
                 $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "Promoción eliminada exitosamente"];

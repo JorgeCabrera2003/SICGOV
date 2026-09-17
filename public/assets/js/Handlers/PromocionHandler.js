@@ -14,7 +14,8 @@ function EtiquetasFormulario(etiquetas) {
     fecha_inicio: $('#fecha_inicio'),
     fecha_fin: $('#fecha_fin'),
     hora_inicio: $('#hora_inicio'),
-    hora_fin: $('#hora_fin')
+    hora_fin: $('#hora_fin'),
+    imagen_galeria: $('#imagen_galeria')
   };
 
   const spanPromocion = {
@@ -32,6 +33,22 @@ function EtiquetasFormulario(etiquetas) {
   if (etiquetas === 'input') return inputPromocion;
   if (etiquetas === 'span') return spanPromocion;
   return null;
+}
+
+export function SetPreviewImagen(ruta) {
+  if (ruta) {
+    $('#imagen_galeria').val(ruta);
+    const baseUrlClean = (typeof BASE_URL !== 'undefined') ? BASE_URL.replace(/\/$/, '') : '';
+    const fullUrl = ruta.startsWith('http') ? ruta : (baseUrlClean + '/' + ruta.replace(/^\//, ''));
+    $('#previewImagenPromocion').attr('src', fullUrl);
+    $('#previewImagenPromocionContainer').show();
+    $('#btnQuitarImagenPromocion').show();
+  } else {
+    $('#imagen_galeria').val('');
+    $('#previewImagenPromocion').attr('src', '#');
+    $('#previewImagenPromocionContainer').hide();
+    $('#btnQuitarImagenPromocion').hide();
+  }
 }
 
 function EtiquetasModal(etiqueta) {
@@ -95,6 +112,7 @@ export async function EnviarDatos(operacion) {
     peticion.append('fecha_fin', input.fecha_fin.val());
     peticion.append('hora_inicio', input.hora_inicio.val());
     peticion.append('hora_fin', input.hora_fin.val());
+    peticion.append('imagen_galeria', $('#imagen_galeria').val().trim());
     peticion.append('productos', input.productos.val());
   }
 
@@ -146,11 +164,13 @@ function KeyUpPromocion() {
     $(input.tipo_descuento).removeClass('is-valid is-invalid');
     limpiarValidacionPromocion();
     actualizarEtiquetaValorDescuento();
+    renderProductosSeleccionados();
   });
   $(input.valor_descuento).on('input', () => {
     $('#svalor_descuento').text('');
     $(input.valor_descuento).removeClass('is-valid is-invalid');
     aplicarFormatoValorDescuento();
+    renderProductosSeleccionados();
   });
   $(input.fecha_inicio).on('change', () => {
     $('#sfecha_inicio').text('');
@@ -318,9 +338,42 @@ function renderProductosSeleccionados() {
       );
       lista.append(item);
     });
-    // subtotal global
+    // Cálculo financiero: subtotal, descuento aplicado y total promocional
     const subtotal = productosSeleccionados.reduce((s, p) => s + (Number(p.precio || 0) * Number(p.cantidad || 1)), 0);
-    lista.append('<div class="list-group-item d-flex justify-content-between align-items-center"><div>Subtotal</div><div><strong>$ ' + formatMoney(subtotal) + '</strong></div></div>');
+    const tipoDesc = $('#tipo_descuento').val();
+    const valorDescNum = normalizarValorDescuento($('#valor_descuento').val());
+
+    let montoDescuento = 0;
+    let labelDescuento = 'Descuento';
+
+    if (tipoDesc === 'PORCENTAJE') {
+      const pct = Math.min(100, Math.max(0, valorDescNum));
+      montoDescuento = subtotal * (pct / 100);
+      labelDescuento = `Descuento (${formatMoney(pct)}%)`;
+    } else if (tipoDesc === 'MONTO_FIJO') {
+      montoDescuento = Math.min(subtotal, Math.max(0, valorDescNum));
+      labelDescuento = `Descuento (Monto Fijo)`;
+    }
+
+    const totalConDescuento = Math.max(0, subtotal - montoDescuento);
+
+    const resumenHtml = $(
+      '<div class="list-group-item promo-resumen-financiero bg-body-tertiary p-3 mt-2 rounded border">' +
+        '<div class="d-flex justify-content-between align-items-center mb-1">' +
+          '<span class="text-muted small">Subtotal original:</span>' +
+          '<span class="fw-semibold">$ ' + formatMoney(subtotal) + '</span>' +
+        '</div>' +
+        '<div class="d-flex justify-content-between align-items-center mb-2 text-success">' +
+          '<span class="fw-medium small"><i class="fas fa-arrow-down me-1"></i>' + labelDescuento + ':</span>' +
+          '<span class="fw-bold">-$ ' + formatMoney(montoDescuento) + '</span>' +
+        '</div>' +
+        '<div class="d-flex justify-content-between align-items-center pt-2 border-top">' +
+          '<span class="fw-bold text-warning fs-6"><i class="fas fa-tag me-1"></i>Total Promocional:</span>' +
+          '<span class="fw-bolder fs-5 text-warning">$ ' + formatMoney(totalConDescuento) + '</span>' +
+        '</div>' +
+      '</div>'
+    );
+    lista.append(resumenHtml);
   }
 
   const totalCantidad = productosSeleccionados.reduce((sum, producto) => sum + Number(producto.cantidad || 0), 0);
@@ -448,14 +501,14 @@ export async function DataTablePrincipal(arreglo) {
   }
 
   // Construye HTML de botones igual que en proveedores (dropdown)
-  function botonesAccion(modulo = 'Promocion') {
+  function botonesAccion(row = {}, modulo = 'Promocion') {
     const dropdown = $('<div>').addClass('dropdown');
     const boton = $('<button>').addClass('btn btn-sm btn-light border dropdown-toggle')
       .attr('type', 'button')
       .attr('data-bs-toggle', 'dropdown')
-      .html('<i class="fas fa-ellipsis-v me-3"></i>Acciones');
+      .html('<i class="fas fa-ellipsis-v me-2"></i>Acciones');
 
-    const menu = $('<ul>').addClass('dropdown-menu');
+    const menu = $('<ul>').addClass('dropdown-menu dropdown-menu-end shadow-sm');
     const separador = $('<li>').html('<hr class="dropdown-divider">');
 
     const itemEditar = $('<li>');
@@ -467,6 +520,15 @@ export async function DataTablePrincipal(arreglo) {
       .html('<i class="fas fa-edit me-2"></i>Editar');
     itemEditar.append(linkEditar);
 
+    const itemNoticia = $('<li>');
+    const linkNoticia = $('<a>')
+      .addClass('dropdown-item btn-crear-noticia text-info')
+      .attr('href', '#')
+      .attr('data-id', row.id_promocion || '')
+      .attr('data-nombre', row.nombre || '')
+      .html('<i class="fas fa-bullhorn me-2"></i>Publicar como Noticia');
+    itemNoticia.append(linkNoticia);
+
     const itemEliminar = $('<li>');
     const linkEliminar = $('<a>')
       .addClass('dropdown-item btn-eliminar text-danger')
@@ -476,7 +538,7 @@ export async function DataTablePrincipal(arreglo) {
       .html('<i class="fas fa-trash me-2"></i>Eliminar');
     itemEliminar.append(linkEliminar);
 
-    menu.append(itemEditar, separador, itemEliminar);
+    menu.append(itemEditar, itemNoticia, separador, itemEliminar);
     dropdown.append(boton, menu);
 
     return dropdown.prop('outerHTML');
@@ -493,7 +555,16 @@ export async function DataTablePrincipal(arreglo) {
     },
     columnDefs: [{ className: 'text-center align-middle', targets: '_all' }],
     columns: [
-      { data: 'nombre' },
+      {
+        data: 'nombre',
+        render: function (val, type, row) {
+          const baseUrlClean = (typeof BASE_URL !== 'undefined') ? BASE_URL.replace(/\/$/, '') : '';
+          const imgHtml = row.imagen
+            ? `<img src="${baseUrlClean}/${row.imagen.replace(/^\//, '')}" class="rounded me-2 shadow-sm border" style="width: 38px; height: 38px; object-fit: cover;" alt="Portada">`
+            : `<span class="badge bg-secondary-subtle text-secondary me-2 p-2"><i class="fas fa-tags"></i></span>`;
+          return `<div class="d-flex align-items-center text-start">${imgHtml}<div><strong>${val || ''}</strong></div></div>`;
+        }
+      },
       {
         data: null,
         render: function (row) {
@@ -565,8 +636,8 @@ export async function DataTablePrincipal(arreglo) {
         data: null,
         orderable: false,
         searchable: false,
-        render: function () {
-          return botonesAccion();
+        render: function (row) {
+          return botonesAccion(row);
         }
       }
     ],
@@ -589,6 +660,9 @@ export function LimpiarFormulario() {
   input.fecha_fin.val('');
   input.hora_inicio.val('');
   input.hora_fin.val('');
+
+  SetPreviewImagen(null);
+  $('#btnCrearNoticiaModal').hide();
 
   productosSeleccionados = [];
   renderProductosSeleccionados();
@@ -615,6 +689,17 @@ export function EditarFormPromocion(datos, accion) {
   input.hora_inicio.val(datos.hora_inicio || '');
   input.hora_fin.val(datos.hora_fin || '');
 
+  SetPreviewImagen(datos.imagen || null);
+
+  if (accion === 'modificar') {
+    $('#btnCrearNoticiaModal')
+      .show()
+      .attr('data-id', datos.id_promocion || '')
+      .attr('data-nombre', datos.nombre || '');
+  } else {
+    $('#btnCrearNoticiaModal').hide();
+  }
+
   productosSeleccionados = [];
   const listaProductos = datos.producto_list || '';
   if (listaProductos) {
@@ -637,4 +722,29 @@ export function EditarFormPromocion(datos, accion) {
   }
 
   EditarModal(accion);
+}
+
+export async function PublicarNoticiaDesdePromocion(idPromocion, nombre = '') {
+  if (!idPromocion) return;
+
+  const confirmado = await MensajeriaHelper.MostrarConfirmacion(
+    '¿Publicar como Noticia?',
+    `Se generará automáticamente un artículo en el Blog y Noticias para la promoción "${nombre || idPromocion}".`
+  );
+  if (!confirmado) return;
+
+  const peticion = new FormData();
+  peticion.append('peticion', 'crear_noticia');
+  peticion.append('id_promocion', idPromocion);
+
+  try {
+    const json = await AjaxHelper.enviaAjax(peticion);
+    if (json?.resultado === 201 || json?.resultado === 200) {
+      MensajeriaHelper.GenerarMensaje('success', 4000, '¡Publicado!', json.mensaje || 'Noticia creada con éxito');
+    } else {
+      MensajeriaHelper.GenerarMensaje(json?.icon || 'error', 5000, 'Error', json?.mensaje || 'No se pudo crear la noticia');
+    }
+  } catch (error) {
+    MensajeriaHelper.GenerarMensaje('error', 5000, 'Error', 'Error de comunicación al publicar noticia');
+  }
 }

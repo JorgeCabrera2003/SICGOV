@@ -16,9 +16,13 @@ class MarIaService
 
     public function __construct()
     {
-        // En un entorno de producción, esto debería venir de una variable de entorno o configuración.
-        // Para este caso, el microservicio está en localhost:8090
-        $this->endpointUrl = 'http://localhost:8090/classify';
+        if (class_exists(\Dotenv\Dotenv::class) && defined('BASE_PATH')) {
+            $dotenv = \Dotenv\Dotenv::createImmutable(BASE_PATH);
+            $dotenv->safeLoad();
+        }
+
+        $mariaUrl = $_ENV['MARIA_URL'] ?? getenv('MARIA_URL') ?: 'http://localhost:8090';
+        $this->endpointUrl = rtrim($mariaUrl, '/') . '/classify';
     }
 
     /**
