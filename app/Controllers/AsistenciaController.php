@@ -42,7 +42,14 @@ if ($type === 'publico') {
                     $asistenciaModel->setTipoMarcacion($_POST['tipo_marcacion'] ?? '');
                     $asistenciaModel->setFecha($fechaHoy);
                     $asistenciaModel->setHora($horaActual);
-                    $asistenciaModel->setEstado($asistenciaModel->calcularEstadoAsistencia($_POST['tipo_marcacion'] ?? '', $horaActual));
+                    $turnoAsignado = $asistenciaModel->obtenerTurnoAsignado();
+                    $asistenciaModel->setEstado($asistenciaModel->calcularEstadoAsistencia(
+                        $_POST['tipo_marcacion'] ?? '',
+                        $horaActual,
+                        $turnoAsignado['hora_inicio'] ?? null,
+                        isset($turnoAsignado['minuto_tolerancia']) ? (int) $turnoAsignado['minuto_tolerancia'] : null,
+                        $turnoAsignado['hora_fin'] ?? null
+                    ));
                     $asistenciaModel->setObservacion($_POST['observacion'] ?? '');
 
                     $json = $asistenciaModel->Transaccion(['peticion' => 'registrar']);
@@ -145,7 +152,14 @@ if (isset($_POST['peticion'])) {
                 $asistenciaModel->setTipoMarcacion($_POST['tipo_marcacion'] ?? '');
                 $asistenciaModel->setFecha($fechaHoy);
                 $asistenciaModel->setHora($horaActual);
-                $asistenciaModel->setEstado($asistenciaModel->calcularEstadoAsistencia($_POST['tipo_marcacion'] ?? '', $horaActual));
+                $turnoAsignado = $asistenciaModel->obtenerTurnoAsignado();
+                $asistenciaModel->setEstado($asistenciaModel->calcularEstadoAsistencia(
+                    $_POST['tipo_marcacion'] ?? '',
+                    $horaActual,
+                    $turnoAsignado['hora_inicio'] ?? null,
+                    isset($turnoAsignado['minuto_tolerancia']) ? (int) $turnoAsignado['minuto_tolerancia'] : null,
+                    $turnoAsignado['hora_fin'] ?? null
+                ));
                 $asistenciaModel->setObservacion($_POST['observacion'] ?? '');
 
                 $json = $asistenciaModel->Transaccion(['peticion' => 'registrar']);

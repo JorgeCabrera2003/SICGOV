@@ -216,9 +216,25 @@ class Asistencia extends Database {
                            MAX(CASE WHEN a.tipo_marcacion = 'ENTRADA' THEN a.hora END) AS hora_entrada,
                            MAX(CASE WHEN a.tipo_marcacion = 'DESCANSO_IN' THEN a.hora END) AS hora_descanso_in,
                            MAX(CASE WHEN a.tipo_marcacion = 'DESCANSO_OUT' THEN a.hora END) AS hora_descanso_out,
-                           MAX(CASE WHEN a.tipo_marcacion = 'SALIDA' THEN a.hora END) AS hora_salida
+                           MAX(CASE WHEN a.tipo_marcacion = 'SALIDA' THEN a.hora END) AS hora_salida,
+                           MAX(CASE WHEN a.tipo_marcacion = 'ENTRADA' THEN a.estado END) AS estado_entrada,
+                                                     MAX(CASE WHEN a.tipo_marcacion = 'SALIDA' THEN a.estado END) AS estado_salida,
+                                                     EXISTS (
+                                                             SELECT 1
+                                                             FROM permiso_laboral pl
+                                                             WHERE pl.cedula_empleado = v.cedula
+                                                                 AND pl.estado = 'APROBADO'
+                                                                 AND pl.estatus = 1
+                                                                 AND CURDATE() BETWEEN pl.fecha_inicio AND pl.fecha_fin
+                                                     ) AS tiene_permiso
                     FROM vw_directorio_empleados v
                     LEFT JOIN asistencia a ON a.cedula_empleado = v.cedula AND a.fecha = CURDATE()
+                                        WHERE EXISTS (
+                                                SELECT 1
+                                                FROM planificador_turno pt
+                                                WHERE pt.cedula_empleado = v.cedula
+                                                    AND pt.fecha = CURDATE()
+                                        )
                     GROUP BY v.cedula, v.nombre, v.apellido
                     ORDER BY v.nombre, v.apellido";
             $stm = $this->LlamarConexion()->prepare($sql);
@@ -489,29 +505,53 @@ class Asistencia extends Database {
      * Calcula el estado de la asistencia según el tipo de marcación y la hora actual.
      * Este método se mantiene igual.
      */
-    public function calcularEstadoAsistencia(string $tipoMarcacion, string $horaActual): string {
-        if ($tipoMarcacion !== 'ENTRADA') {
-            return 'A_TIEMPO';
-        }
-
+    public function calcularEstadoAsistencia(string $tipoMarcacion, string $horaActual, ?string $horaInicio = null, ?int $minutoTolerancia = null, ?string $horaFin = null): string {
         try {
             $horaRegistro = new \DateTime($horaActual);
-            $horaInicio = new \DateTime('08:00:00');
-            $limiteATiempo = (clone $horaInicio)->add(new \DateInterval('PT10M'));
-            $limiteTarde = (clone $horaInicio)->add(new \DateInterval('PT120M'));
+            $tolerancia = max(0, $minutoTolerancia ?? 10);
 
-            if ($horaRegistro <= $limiteATiempo) {
-                return 'A_TIEMPO';
+            if ($tipoMarcacion === 'ENTRADA') {
+                $horaInicioTurno = new \DateTime($horaInicio ?: '08:00:00');
+                $limiteATiempo = (clone $horaInicioTurno)->add(new \DateInterval('PT' . $tolerancia . 'M'));
+                return $horaRegistro <= $limiteATiempo ? 'A_TIEMPO' : 'TARDE';
             }
 
-            if ($horaRegistro <= $limiteTarde) {
-                return 'TARDE';
+            if ($tipoMarcacion === 'SALIDA' && $horaFin) {
+                $horaFinTurno = new \DateTime($horaFin);
+                $inicioSalidaPermitida = (clone $horaFinTurno)->sub(new \DateInterval('PT' . $tolerancia . 'M'));
+                return $horaRegistro >= $inicioSalidaPermitida ? 'A_TIEMPO' : 'FALTA';
             }
         } catch (\Exception $e) {
             return 'A_TIEMPO';
         }
 
-        return 'FALTA';
+        return 'A_TIEMPO';
+    }
+
+    public function obtenerTurnoAsignado(): ?array {
+        try {
+            $this->LlamarConexion();
+            $sql = "SELECT t.hora_inicio, t.hora_fin, t.minuto_tolerancia
+                    FROM planificador_turno pt
+                    INNER JOIN turno t ON t.id_turno = pt.id_turno
+                    WHERE pt.cedula_empleado = :cedula
+                      AND pt.fecha = :fecha
+                      AND t.estatus = 1
+                    LIMIT 1";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->execute([
+                ':cedula' => $this->cedulaEmpleado,
+                ':fecha' => $this->fecha
+            ]);
+
+            $turno = $stm->fetch(PDO::FETCH_ASSOC);
+            $this->DestruirConexion();
+            return $turno ?: null;
+        } catch (\PDOException $e) {
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $this->DestruirConexion();
+            return null;
+        }
     }
 
     // --- NUEVOS MÉTODOS PRIVADOS PARA MANEJO DE JSON ---

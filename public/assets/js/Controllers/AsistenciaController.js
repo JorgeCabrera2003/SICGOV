@@ -107,11 +107,11 @@ function renderAsistenciaHoyTable(datos) {
   }
 
   const filas = datos.map((item) => ({
-    empleado: item.nombre_empleado && item.nombre_empleado.trim() ? item.nombre_empleado : item.cedula_empleado,
-    entrada: item.hora_entrada ? formatearHora(item.hora_entrada) : '-',
-    descanso_in: item.hora_descanso_in ? formatearHora(item.hora_descanso_in) : '-',
-    descanso_out: item.hora_descanso_out ? formatearHora(item.hora_descanso_out) : '-',
-    salida: item.hora_salida ? formatearHora(item.hora_salida) : '-'
+    empleado: formatearEmpleadoHoy(item),
+    entrada: formatearCeldaAsistencia(item, item.hora_entrada, item.estado_entrada, 'entrada'),
+    descanso_in: formatearCeldaAsistencia(item, item.hora_descanso_in, null, 'descanso'),
+    descanso_out: formatearCeldaAsistencia(item, item.hora_descanso_out, null, 'descanso'),
+    salida: formatearCeldaAsistencia(item, item.hora_salida, item.estado_salida, 'salida')
   }));
 
   $('#tablaAsistenciaHoy').DataTable({
@@ -134,6 +134,43 @@ function renderAsistenciaHoyTable(datos) {
     order: [[0, 'asc']],
     language: { url: idiomaTabla }
   });
+}
+
+function formatearEmpleadoHoy(item) {
+  const nombre = item.nombre_empleado && item.nombre_empleado.trim()
+    ? item.nombre_empleado
+    : item.cedula_empleado;
+
+  return nombre;
+}
+
+function formatearCeldaAsistencia(item, hora, estado, tipo) {
+  if (Number(item.tiene_permiso) === 1) {
+    return '<span class="badge bg-info text-dark">De permiso</span>';
+  }
+
+  if (tipo === 'descanso') {
+    return hora ? formatearHora(hora) : '-';
+  }
+
+  return formatearMarcacion(hora, estado, tipo);
+}
+
+function formatearMarcacion(hora, estado, tipo) {
+  if (!hora) return '-';
+
+  const textos = tipo === 'salida'
+    ? { A_TIEMPO: 'A tiempo', FALTA: 'Salida anticipada' }
+    : { A_TIEMPO: 'A tiempo', TARDE: 'Tarde', FALTA: 'Falta' };
+  const clases = tipo === 'salida'
+    ? { A_TIEMPO: 'bg-success', FALTA: 'bg-danger' }
+    : { A_TIEMPO: 'bg-success', TARDE: 'bg-warning text-dark', FALTA: 'bg-danger' };
+
+  if (!estado || !textos[estado]) {
+    return formatearHora(hora);
+  }
+
+  return `${formatearHora(hora)}<span class="d-block badge ${clases[estado]} mt-1">${textos[estado]}</span>`;
 }
 
 function formatearHora(hora) {

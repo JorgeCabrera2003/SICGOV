@@ -49,11 +49,14 @@ export async function CargarSelects() {
   pet.append('modulo','PermisoLaboral');
   try {
     let json = await AjaxHelper.enviaAjax(pet, '?page=PermisoLaboral');
+    e.input.tipo.empty().append(new Option('Seleccione un tipo de permiso', '', true, true));
     if (Array.isArray(json.datos)) {
-      e.input.tipo.empty();
       json.datos.forEach(d => e.input.tipo.append(new Option(d.nombre, d.id_tipo_permiso)));
     }
-  } catch(e){}
+  } catch(error) {
+    e.input.tipo.empty().append(new Option('No hay tipos disponibles', '', true, true));
+    console.error('No se pudieron cargar los tipos de permiso:', error);
+  }
 
   const pet2 = new FormData();
   pet2.append('peticion','consultar_empleados');
