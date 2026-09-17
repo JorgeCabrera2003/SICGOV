@@ -85,58 +85,6 @@ export function verificarMesasPorCapacidad() {
         } else {
             feedbackEl.innerHTML = `<span class="text-warning fw-semibold"><i class="bi bi-exclamation-circle-fill me-1"></i>No hay mesas individuales con capacidad para ${personas} personas. Puede requerir unir mesas.</span>`;
         }
-    }
-}
-/**
- * Verificación en tiempo real de mesas y áreas según la cantidad de personas
- */
-export function verificarMesasPorCapacidad() {
-    const personasInput = document.getElementById('cantidad_personas');
-    const mesaSelect = document.getElementById('id_mesa');
-    const feedbackEl = document.getElementById('mesa_info_recomendacion');
-    if (!personasInput || !mesaSelect) return;
-
-    const personas = parseInt(personasInput.value, 10) || 1;
-    const options = mesaSelect.querySelectorAll('option');
-
-    let compatibles = 0;
-    let areasCompatibles = new Set();
-    const mesaSeleccionada = mesaSelect.value;
-    let mesaSeleccionadaInfo = null;
-
-    options.forEach(opt => {
-        if (!opt.value) return;
-        const capacidad = parseInt(opt.getAttribute('data-capacidad') || '0', 10);
-        const area = opt.getAttribute('data-area') || 'General';
-        const numero = opt.getAttribute('data-numero') || '';
-
-        if (capacidad >= personas) {
-            compatibles++;
-            areasCompatibles.add(area);
-            opt.textContent = `Mesa #${numero} • Área: ${area} (Capacidad: ${capacidad} pers.) - Adecuada`;
-        } else {
-            opt.textContent = `Mesa #${numero} • Área: ${area} (Capacidad: ${capacidad} pers.) - Capacidad insuficiente`;
-        }
-
-        if (opt.value === mesaSeleccionada) {
-            mesaSeleccionadaInfo = { numero, area, capacidad };
-        }
-    });
-
-    if (feedbackEl) {
-        if (mesaSeleccionadaInfo) {
-            if (mesaSeleccionadaInfo.capacidad < personas) {
-                feedbackEl.innerHTML = `<span class="text-danger fw-semibold"><i class="bi bi-exclamation-triangle-fill me-1"></i>Advertencia: La Mesa #${mesaSeleccionadaInfo.numero} (${mesaSeleccionadaInfo.area}) tiene capacidad para ${mesaSeleccionadaInfo.capacidad} personas, pero la reservación es para ${personas}.</span>`;
-            } else {
-                feedbackEl.innerHTML = `<span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>Mesa #${mesaSeleccionadaInfo.numero} adecuada en Área ${mesaSeleccionadaInfo.area} (Capacidad: ${mesaSeleccionadaInfo.capacidad} personas).</span>`;
-            }
-        } else if (compatibles > 0) {
-            const areasTexto = Array.from(areasCompatibles).join(', ');
-            feedbackEl.innerHTML = `<span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>${compatibles} mesa(s) con capacidad adecuada (≥ ${personas} pers.) disponibles en: ${areasTexto}.</span>`;
-        } else {
-            feedbackEl.innerHTML = `<span class="text-warning fw-semibold"><i class="bi bi-exclamation-circle-fill me-1"></i>No hay mesas individuales con capacidad para ${personas} personas. Puede requerir unir mesas.</span>`;
-        }
-    }
 }
 
 export function inicializarPickers() {
