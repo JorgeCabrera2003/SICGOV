@@ -96,16 +96,15 @@ export function DiccionarioValidacion(termino) {
 
 export function FeedbackToltipInput(etiqueta, span, mensaje, estado = 1) {
   etiqueta.removeClass("is-valid is-invalid");
-  span.removeClass("valid-tooltip-tooltip invalid-tooltip");
-  span.text("");
+  span
+    .removeClass("valid-tooltip valid-tooltip-tooltip invalid-tooltip d-inline-block")
+    .text("")
+    .hide();
 
   if (estado == 1) {
     etiqueta.addClass("is-valid");
-    span.removeClass("valid-tooltip-tooltip invalid-tooltip");
-    span.text("");
   } else {
     etiqueta.addClass("is-invalid");
-    span.addClass("invalid-tooltip");
-    span.text(mensaje);
+    span.addClass("invalid-tooltip d-inline-block").text(mensaje).show();
   }
 }

@@ -268,7 +268,7 @@ async function VistaPermiso(modulo = "Cargo") {
     bool = true;
   }
 
-  if (permisos['cargo']['eliminar'] != undefined && permisos['cargo']['modificar'] == 1) {
+  if (permisos['cargo']['eliminar'] != undefined && permisos['cargo']['eliminar'] == 1) {
     const itemEliminar = $('<li>');
     const linkEliminar = $('<a>')
       .addClass('dropdown-item btn-eliminar text-danger')

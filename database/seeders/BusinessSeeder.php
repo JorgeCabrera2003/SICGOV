@@ -20,6 +20,7 @@ class BusinessSeeder
     public function run()
     {
         $this->crearCargosBase();
+        $this->crearTiposPermisoBase();
         $this->crearCategoriasBase();
         $this->crearAreasMesa();
         $this->crearMetodosPago();
@@ -31,6 +32,26 @@ class BusinessSeeder
         $this->crearClientesActuales();
         $this->crearProveedoresFalsos(5);
         $this->crearAsociacionProveedor(5);
+    }
+
+    private function crearTiposPermisoBase()
+    {
+        $tipos = [
+            ['TIPOP0012026091700000000000001', 'Reposo médico'],
+            ['TIPOP0022026091700000000000002', 'Vacaciones'],
+            ['TIPOP0032026091700000000000003', 'Permiso personal'],
+        ];
+
+        $sql = "INSERT IGNORE INTO tipo_permiso (id_tipo_permiso, nombre, estatus)
+                VALUES (:id_tipo_permiso, :nombre, 1)";
+        $stm = $this->db->prepare($sql);
+
+        foreach ($tipos as [$id, $nombre]) {
+            $stm->execute([
+                ':id_tipo_permiso' => $id,
+                ':nombre' => $nombre,
+            ]);
+        }
     }
 
     private function crearCargosBase()

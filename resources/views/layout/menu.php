@@ -214,17 +214,28 @@
             </div>
 
             <!-- CATEGORÍA: GESTIÓN DEL PERSONAL -->
+            <?php
+            $paginaPersonal = strtolower((string) $page);
+            $puedeVerPersonal = ($permisosGlobales['empleado']['ver'] ?? 0) == 1
+                || ($permisosGlobales['asistencia']['ver'] ?? 0) == 1
+                || ($permisosGlobales['cargo']['ver'] ?? 0) == 1
+                || ($permisosGlobales['turno']['ver'] ?? 0) == 1
+                || ($permisosGlobales['horario']['ver'] ?? 0) == 1
+                || ($permisosGlobales['tipo_permiso']['ver'] ?? 0) == 1
+                || ($permisosGlobales['permiso_laboral']['ver'] ?? 0) == 1;
+            ?>
+            <?php if ($puedeVerPersonal): ?>
             <div class="nav-item w-100 mb-1">
                 <small class="text-muted text-uppercase fw-bold px-3 mb-2 d-block sidebar-label"
                     style="font-size: 0.65rem; letter-spacing: 1px;">Gestión del Personal</small>
-                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($page, ['Asistencia', 'Cargo', 'Empleado', 'Turno', 'Horario']) ? '' : 'collapsed'; ?>"
+                <a class="nav-link d-flex align-items-center gap-2 <?php echo in_array($paginaPersonal, ['asistencia', 'cargo', 'empleado', 'turno', 'horario']) ? '' : 'collapsed'; ?>"
                     data-bs-toggle="collapse" href="#personal-submenu" role="button"
                     data-bs-tooltip-title="Equipo y Horario" title="Equipo y Horario">
                     <i class="bi bi-people fs-5"></i>
                     <span class="flex-grow-1">Equipo y Horario</span>
                     <i class="bi bi-chevron-right transition-rotate"></i>
                 </a>
-                <div class="collapse <?php echo in_array($page, ['Asistencia', 'Cargo', 'Empleado', 'Turno', 'Horario']) ? 'show' : ''; ?>"
+                <div class="collapse <?php echo in_array($paginaPersonal, ['asistencia', 'cargo', 'empleado', 'turno', 'horario']) ? 'show' : ''; ?>"
                     id="personal-submenu">
                     <div class="d-flex flex-column gap-1 ps-4 mt-1">
                         <?php if (isset($permisosGlobales['empleado']['ver']) && $permisosGlobales['empleado']['ver'] == 1) { ?>
@@ -275,6 +286,7 @@
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
 
             <!-- CATEGORÍA: INTELIGENCIA DE NEGOCIO -->
             <div class="nav-item w-100 mb-1">

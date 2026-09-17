@@ -25,6 +25,10 @@ RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 # Directorio de trabajo
 WORKDIR /var/www/html
 
+<<<<<<< HEAD
+# Ajustar permisos para que Apache pueda escribir
+RUN chown -R www-data:www-data /var/www/html
+=======
 # Copiar archivos del proyecto
 COPY . .
 
@@ -35,3 +39,4 @@ RUN if [ -f composer.json ]; then composer install --no-interaction --prefer-dis
 RUN chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
+>>>>>>> 207642dd7a1f4c040e06bb8d8198d87475613a1e

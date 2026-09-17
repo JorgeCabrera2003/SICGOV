@@ -1,0 +1,106 @@
+/* Estilos para el modal de observaciones - Adaptable a modo claro/oscuro */
+#modalObservacion .modal-content {
+    background-color: var(--bg-tarjetas, #ffffff);
+    color: var(--color-texto, #212529);
+}
+
+#modalObservacion .modal-header {
+    background-color: var(--bg-header-modal, #fff3cd);
+    border-bottom: 1px solid var(--color-border, #dee2e6);
+}
+
+#modalObservacion .form-control-plaintext {
+    color: var(--color-texto, #212529);
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+}
+
+#modalObservacion .bg-body-tertiary {
+    background-color: var(--bg-terciario, #f8f9fa) !important;
+}
+
+#modalObservacion .list-group-item {
+    background-color: transparent;
+    border-color: var(--color-border, #dee2e6);
+    color: var(--color-texto, #212529);
+}
+
+#modalObservacion .list-group-item .text-body {
+    color: var(--color-texto, #212529) !important;
+}
+
+#modalObservacion .list-group-item .text-muted {
+    color: var(--color-texto-muted, #6c757d) !important;
+}
+
+/* Modo oscuro - adaptación automática */
+[data-bs-theme="dark"] #modalObservacion .modal-content {
+    background-color: #2d2d2d;
+    color: #e9ecef;
+}
+
+[data-bs-theme="dark"] #modalObservacion .modal-header {
+    background-color: #3d3d3d;
+    border-bottom-color: #4a4a4a;
+}
+
+[data-bs-theme="dark"] #modalObservacion .bg-body-tertiary {
+    background-color: #3d3d3d !important;
+}
+
+[data-bs-theme="dark"] #modalObservacion .list-group-item {
+    border-color: #4a4a4a;
+    color: #e9ecef;
+}
+
+[data-bs-theme="dark"] #modalObservacion .list-group-item .text-body {
+    color: #e9ecef !important;
+}
+
+[data-bs-theme="dark"] #modalObservacion .list-group-item .text-muted {
+    color: #adb5bd !important;
+}
+
+[data-bs-theme="dark"] #modalObservacion .form-control-plaintext {
+    color: #e9ecef;
+}
+
+[data-bs-theme="dark"] #modalObservacion .form-label {
+    color: #adb5bd;
+}
+
+[data-bs-theme="dark"] #modalObservacion .btn-close {
+    filter: invert(1);
+}
+
+/* Estilos específicos para el área de observaciones previas */
+#observacionActual {
+    transition: all 0.3s ease;
+    border: 1px solid var(--color-border, #dee2e6);
+}
+
+#observacionActual .list-group-item {
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+    padding: 0.5rem 1rem;
+}
+
+#observacionActual .list-group-item:first-child {
+    border-top: none;
+}
+
+#observacionActual .list-group-item:last-child {
+    border-bottom: none;
+}
+
+/* Botón de eliminar observación */
+.btn-eliminar-observacion {
+    transition: all 0.2s ease;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+.btn-eliminar-observacion:hover {
+    transform: scale(1.1);
+}

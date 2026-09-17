@@ -13,6 +13,11 @@ Helper::verificarSesion();
 $permisoModel = new PermisoLaboral();
 $tipoModel = new TipoPermiso();
 $empleadoModel = new Empleado();
+$permisosPermisoLaboral = Helper::TraerPermisos('permiso_laboral');
+$permisosTipoPermiso = Helper::TraerPermisos('tipo_permiso');
+$tienePermisoPermisoLaboral = static function (string $accion) use ($permisosPermisoLaboral): bool {
+    return ($permisosPermisoLaboral['permiso_laboral'][$accion] ?? 0) == 1;
+};
 
 $json = [
     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Solicitud no válida'],
@@ -34,6 +39,10 @@ if (isset($_POST["peticion"])) {
 
     // Registrar
     if ($_POST["peticion"] == "registrar") {
+        if (!$tienePermisoPermisoLaboral('registrar')) {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para solicitar permisos laborales'];
+        } else {
         try {
             $id = Helper::generarId("PERM");
             $permisoModel->setId($id);
@@ -52,14 +61,24 @@ if (isset($_POST["peticion"])) {
             $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
             $json['response'] = ['resultado' => 400, 'mensaje' => $e->getMessage()];
         }
+        }
     }
 
     // Consultar
     if ($_POST["peticion"] == "consultar") {
-        $json = $permisoModel->Transaccion(['peticion' => 'consultar']);
+        if ($tienePermisoPermisoLaboral('ver')) {
+            $json = $permisoModel->Transaccion(['peticion' => 'consultar']);
+        } else {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para consultar permisos laborales', 'datos' => []];
+        }
     }
 
     if ($_POST["peticion"] == "aprobar") {
+        if (!$tienePermisoPermisoLaboral('aprobar_rechazar')) {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para aprobar permisos laborales'];
+        } else {
         try {
             $permisoModel->setId($_POST['id_permiso']);
             $permisoModel->setEstado('APROBADO');
@@ -72,9 +91,14 @@ if (isset($_POST["peticion"])) {
             $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
             $json['response'] = ['resultado' => 400, 'mensaje' => $e->getMessage()];
         }
+        }
     }
 
     if ($_POST["peticion"] == "rechazar") {
+        if (!$tienePermisoPermisoLaboral('aprobar_rechazar')) {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para rechazar permisos laborales'];
+        } else {
         try {
             $permisoModel->setId($_POST['id_permiso']);
             $permisoModel->setEstado('RECHAZADO');
@@ -87,10 +111,15 @@ if (isset($_POST["peticion"])) {
             $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
             $json['response'] = ['resultado' => 400, 'mensaje' => $e->getMessage()];
         }
+        }
     }
 
     // Modificar (ej: aprobar/rechazar)
     if ($_POST["peticion"] == "modificar") {
+        if (!$tienePermisoPermisoLaboral('modificar')) {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para modificar permisos laborales'];
+        } else {
         try {
             $permisoModel->setId($_POST['id_permiso']);
             $permisoModel->setIdTipoPermiso($_POST['id_tipo_permiso']);
@@ -105,10 +134,15 @@ if (isset($_POST["peticion"])) {
             $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
             $json['response'] = ['resultado' => 400, 'mensaje' => $e->getMessage()];
         }
+        }
     }
 
     // Eliminar
     if ($_POST["peticion"] == "eliminar") {
+        if (!$tienePermisoPermisoLaboral('eliminar')) {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para eliminar permisos laborales'];
+        } else {
         try {
             $permisoModel->setId($_POST['id_permiso']);
             $json = $permisoModel->Transaccion(['peticion' => 'eliminar']);
@@ -119,16 +153,27 @@ if (isset($_POST["peticion"])) {
             $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
             $json['response'] = ['resultado' => 400, 'mensaje' => $e->getMessage()];
         }
+        }
     }
 
     // Consultar tipos de permiso (para select)
     if ($_POST["peticion"] == "consultar_tipos") {
-        $json = $tipoModel->Transaccion(['peticion' => 'consultar']);
+        if ($tienePermisoPermisoLaboral('ver') || $tienePermisoPermisoLaboral('registrar')) {
+            $json = $tipoModel->Transaccion(['peticion' => 'consultar']);
+        } else {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para cargar Tipo de Permiso', 'datos' => []];
+        }
     }
 
     // Consultar empleados (para select)
     if ($_POST["peticion"] == "consultar_empleados") {
-        $json = $empleadoModel->Transaccion(['peticion' => 'consultar']);
+        if ($tienePermisoPermisoLaboral('ver') || $tienePermisoPermisoLaboral('registrar')) {
+            $json = $empleadoModel->Transaccion(['peticion' => 'consultar']);
+        } else {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para cargar empleados', 'datos' => []];
+        }
     }
 
     header("HTTP/1.1 " . $json['HTTP_STATUS']['codigo'] . " " . $json['HTTP_STATUS']['mensaje'] . "");
@@ -136,7 +181,17 @@ if (isset($_POST["peticion"])) {
     exit;
 }
 
+if (!$tienePermisoPermisoLaboral('ver')) {
+    header('Location: ' . BASE_URL . '?page=Dashboard');
+    exit;
+}
+
 Helper::cargarVista(
     'permiso_laboral/index',
-    'Permisos Laborales - Good Vibes'
+    'Permisos Laborales - Good Vibes',
+    [
+        'ver' => $permisosPermisoLaboral['permiso_laboral']['ver'] ?? 0,
+        'permisosPermisoLaboral' => $permisosPermisoLaboral,
+        'permisosTipoPermiso' => $permisosTipoPermiso
+    ]
 );
