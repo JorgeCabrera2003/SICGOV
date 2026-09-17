@@ -510,9 +510,9 @@ private function descontarInsumosPedido($id_pedido)
         $unidadMedida = new \App\Models\System\UnidadMedida();
 
         // Obtener todos los productos del pedido con sus detalles (insumos base y extras)
-        $sql = "SELECT dp.id_producto, dp.cantidad, dp.indicacion, dp.extras, dp.removidos,
+        $sql = "SELECT dp.id_detalle, dp.id_producto, dp.cantidad, dp.indicacion, dp.extras, dp.removidos,
                        p.id_preparacion, p.id_insumo, p.cantidad as cantidad_insumo, p.prioridad_insumo,
-                       i.stock_actual, i.nombre_insumo,
+                       i.stock_actual, i.nombre_insumo, i.id_unidad_medida as id_unidad_stock,
                        up.abreviatura as abrev_req,
                        ui.abreviatura as abrev_stock
                 FROM detalle_pedido dp
@@ -534,6 +534,8 @@ private function descontarInsumosPedido($id_pedido)
         }
         
         $insumosAgrupados = [];
+        $movimientosAInsertar = [];
+        $stocksCorrientes = []; // Para calcular el stock en cada paso
         
         // Agrupar y convertir cantidades
         foreach ($insumos as $item) {
@@ -564,6 +566,18 @@ private function descontarInsumosPedido($id_pedido)
             }
             
             $id = $item['id_insumo'];
+            
+            // Inicializar stock corriente si es la primera vez que vemos este insumo
+            if (!isset($stocksCorrientes[$id])) {
+                $stocksCorrientes[$id] = $item['stock_actual'];
+            }
+            
+            $stockHabia = $stocksCorrientes[$id];
+            $stockQuedando = $stockHabia - $reqEnUnidadStock;
+            
+            // Actualizar stock corriente para la próxima iteración
+            $stocksCorrientes[$id] = $stockQuedando;
+            
             if (!isset($insumosAgrupados[$id])) {
                 $insumosAgrupados[$id] = [
                     'id_insumo' => $id,
@@ -574,6 +588,28 @@ private function descontarInsumosPedido($id_pedido)
                 ];
             }
             $insumosAgrupados[$id]['cantidad_descontar'] += $reqEnUnidadStock;
+            
+            // Formatear descripción como: "Había 19.3Kg y se egresó una cantidad de 100g. Quedando con una cantidad de: 19.2Kg"
+            // Mostrar los valores sin demasiados decimales (ej: round a 2 o lo que tenga)
+            $stockHabiaFmt = round($stockHabia, 2);
+            $reqTotalFmt = round($reqTotal, 2);
+            $stockQuedandoFmt = round($stockQuedando, 2);
+            
+            // Utilizar abrev original tal como viene de la DB sin strtolower() para que la M mayuscula de Kg no se pierda,
+            // pero si no hay usamos las que tenemos.
+            $abrevReqDisp = $item['abrev_req'] ?? 'u';
+            $abrevStockDisp = $item['abrev_stock'] ?? 'u';
+
+            $descripcion = "Había {$stockHabiaFmt}{$abrevStockDisp} y se egresó una cantidad de {$reqTotalFmt}{$abrevReqDisp}. Quedando con una cantidad de: {$stockQuedandoFmt}{$abrevStockDisp}";
+            
+            // Guardar el movimiento detallado para insertar luego
+            $movimientosAInsertar[] = [
+                'id_insumo' => $id,
+                'id_detalle' => $item['id_detalle'],
+                'cantidad' => $reqEnUnidadStock,
+                'id_unidad_medida' => $item['id_unidad_stock'] ?? 'MEDIAUN23220260519200547232',
+                'descripcion' => $descripcion
+            ];
         }
 
         $insumosAprocesar = [];
@@ -601,6 +637,25 @@ private function descontarInsumosPedido($id_pedido)
             error_log("Descontado: {$item['nombre_insumo']} - {$item['cantidad_descontar']} unidades");
         }
         
+        // Registrar movimientos
+        $sqlMov = "INSERT INTO movimiento_insumo (id_movimiento, id_insumo, id_detalle, cantidad, id_unidad_medida, tipo, descripcion, fecha) 
+                   VALUES (?, ?, ?, ?, ?, 'SALIDA', ?, NOW())";
+        $stmtMov = $this->dbBusiness->prepare($sqlMov);
+
+        foreach ($movimientosAInsertar as $mov) {
+            if ($mov['cantidad'] > 0) {
+                $idMovimiento = 'MOV' . date('YmdHis') . rand(1000, 9999);
+                $stmtMov->execute([
+                    $idMovimiento,
+                    $mov['id_insumo'],
+                    $mov['id_detalle'],
+                    $mov['cantidad'],
+                    $mov['id_unidad_medida'],
+                    $mov['descripcion']
+                ]);
+            }
+        }
+        
         return ['success' => true, 'message' => 'Insumos descontados correctamente'];
         
     } catch (\PDOException $e) {
@@ -617,8 +672,9 @@ private function restaurarInsumosPedido($id_pedido)
     try {
         $unidadMedida = new \App\Models\System\UnidadMedida();
 
-        $sql = "SELECT dp.id_producto, dp.cantidad, dp.extras, dp.removidos,
+        $sql = "SELECT dp.id_detalle, dp.id_producto, dp.cantidad, dp.extras, dp.removidos,
                        p.id_preparacion, p.id_insumo, p.cantidad as cantidad_insumo, p.prioridad_insumo,
+                       i.stock_actual, i.id_unidad_medida as id_unidad_stock,
                        up.abreviatura as abrev_req,
                        ui.abreviatura as abrev_stock
                 FROM detalle_pedido dp
@@ -641,6 +697,9 @@ private function restaurarInsumosPedido($id_pedido)
         $stmtUpdate = $this->dbBusiness->prepare($sqlUpdate);
         
         $insumosAgrupados = [];
+        $movimientosAInsertar = [];
+        $stocksCorrientes = []; // Para calcular el stock en cada paso
+        
         foreach ($insumos as $item) {
             $prioridad = $item['prioridad_insumo'];
             $extras = !empty($item['extras']) ? json_decode($item['extras'], true) : [];
@@ -669,14 +728,64 @@ private function restaurarInsumosPedido($id_pedido)
             }
             
             $id = $item['id_insumo'];
+            
+            // Inicializar stock corriente si es la primera vez que vemos este insumo
+            if (!isset($stocksCorrientes[$id])) {
+                $stocksCorrientes[$id] = $item['stock_actual'];
+            }
+            
+            $stockHabia = $stocksCorrientes[$id];
+            $stockQuedando = $stockHabia + $stockARestaurar;
+            
+            // Actualizar stock corriente para la próxima iteración
+            $stocksCorrientes[$id] = $stockQuedando;
+            
             if (!isset($insumosAgrupados[$id])) {
                 $insumosAgrupados[$id] = 0;
             }
             $insumosAgrupados[$id] += $stockARestaurar;
+            
+            // Formatear descripción
+            $stockHabiaFmt = round($stockHabia, 2);
+            $reqTotalFmt = round($reqTotal, 2);
+            $stockQuedandoFmt = round($stockQuedando, 2);
+            
+            $abrevReqDisp = $item['abrev_req'] ?? 'u';
+            $abrevStockDisp = $item['abrev_stock'] ?? 'u';
+
+            $descripcion = "Había {$stockHabiaFmt}{$abrevStockDisp} y se ingresó una cantidad de {$reqTotalFmt}{$abrevReqDisp}. Quedando con una cantidad de: {$stockQuedandoFmt}{$abrevStockDisp}";
+            
+            // Guardar el movimiento detallado para insertar luego
+            $movimientosAInsertar[] = [
+                'id_insumo' => $id,
+                'id_detalle' => $item['id_detalle'],
+                'cantidad' => $stockARestaurar,
+                'id_unidad_medida' => $item['id_unidad_stock'] ?? 'MEDIAUN23220260519200547232',
+                'descripcion' => $descripcion
+            ];
         }
 
         foreach ($insumosAgrupados as $id_insumo => $stockARestaurar) {
             $stmtUpdate->execute([$stockARestaurar, $id_insumo]);
+        }
+        
+        // Registrar movimientos
+        $sqlMov = "INSERT INTO movimiento_insumo (id_movimiento, id_insumo, id_detalle, cantidad, id_unidad_medida, tipo, descripcion, fecha) 
+                   VALUES (?, ?, ?, ?, ?, 'ENTRADA', ?, NOW())";
+        $stmtMov = $this->dbBusiness->prepare($sqlMov);
+
+        foreach ($movimientosAInsertar as $mov) {
+            if ($mov['cantidad'] > 0) {
+                $idMovimiento = 'MOV' . date('YmdHis') . rand(1000, 9999);
+                $stmtMov->execute([
+                    $idMovimiento,
+                    $mov['id_insumo'],
+                    $mov['id_detalle'],
+                    $mov['cantidad'],
+                    $mov['id_unidad_medida'],
+                    $mov['descripcion']
+                ]);
+            }
         }
         
         return ['success' => true, 'message' => 'Insumos restaurados correctamente'];
