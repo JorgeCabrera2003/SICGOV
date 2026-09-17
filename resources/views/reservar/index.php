@@ -25,8 +25,13 @@
         <div class="small text-muted"><span class="badge rounded-circle p-1 me-1" style="background: repeating-linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.1) 5px, rgba(255,255,255,0.2) 5px, rgba(255,255,255,0.2) 10px); width: 10px; height: 10px; display: inline-block; border: 1px solid rgba(255,255,255,0.1);"></span> Ocupado</div>
     </div>
 
-    <!-- Calendario Full Width -->
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <!-- Calendario Full Width con Feedback de Carga Rápida -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden position-relative">
+        <div id="calendarLoader" class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-10 d-none align-items-center justify-content-center" style="z-index: 5; backdrop-filter: blur(1px); border-radius: inherit;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando reservaciones...</span>
+            </div>
+        </div>
         <div class="card-body p-4">
             <div id="calendarPublico" style="min-height: 700px;"></div>
         </div>
@@ -55,11 +60,24 @@
                         </div>
                     </div>
 
-                    <div class="reservation-form-group mb-4">
-                        <label>Fecha de tu visita</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-calendar3"></i></span>
-                            <input type="text" class="form-control border-start-0 ps-0" name="fecha" id="fechaPublica" required>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-7">
+                            <div class="reservation-form-group">
+                                <label>Fecha de tu visita</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-calendar3"></i></span>
+                                    <input type="text" class="form-control border-start-0 ps-0" name="fecha" id="fechaPublica" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="reservation-form-group">
+                                <label>Personas</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-people-fill"></i></span>
+                                    <input type="number" class="form-control border-start-0 ps-0 text-center" name="cantidad_personas" id="cantidad_personasPublica" min="1" max="50" value="2" required>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

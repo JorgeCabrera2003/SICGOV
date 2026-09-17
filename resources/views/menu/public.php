@@ -53,6 +53,83 @@ foreach ($menus as $menuItem) {
 
 <main class="bg-body-tertiary py-5 min-vh-100">
     <div class="container">
+        
+        <!-- PROMOCIONES DESTACADAS -->
+        <?php if (!empty($promociones)): ?>
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="d-flex align-items-center mb-4 border-bottom border-warning border-3 pb-2">
+                    <i class="fas fa-star text-warning fs-2 me-3 pulse-animation"></i>
+                    <h2 class="fw-bold mb-0 text-uppercase" style="color: #d97706; letter-spacing: 1px;">Promociones Especiales</h2>
+                </div>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                    <?php foreach ($promociones as $promo): ?>
+                    <div class="col">
+                        <div class="card promo-card h-100 border-0 rounded-4 overflow-hidden shadow-sm hover-lift transition-all position-relative">
+                            <!-- Etiqueta Descuento -->
+                            <div class="position-absolute top-0 end-0 bg-danger text-white fw-bold px-3 py-2 shadow-sm" style="border-bottom-left-radius: 1rem; z-index: 10; font-size: 1.1rem;">
+                                <?= htmlspecialchars($promo['tipo_descuento']) ?> 
+                                <?= $promo['tipo_descuento'] == 'PORCENTAJE' ? number_format($promo['valor_descuento'], 0) . '%' : '$' . number_format($promo['valor_descuento'], 2) ?> OFF
+                            </div>
+                            
+                            <!-- Imagen de la Promoción -->
+                            <?php 
+                                $imgPromoUrl = BASE_URL . '/assets/img/placeholder.png';
+                                if (!empty($promo['imagen']) && $promo['imagen'] !== 'default-product.png') {
+                                    $imgPromoUrl = str_starts_with($promo['imagen'], 'http') ? $promo['imagen'] : BASE_URL . (str_starts_with($promo['imagen'], '/') ? '' : '/') . ltrim($promo['imagen'], '/');
+                                }
+                            ?>
+                            <div class="ratio ratio-16x9 overflow-hidden bg-body border-bottom border-primary-subtle">
+                                <img src="<?= $imgPromoUrl ?>" class="card-img-top object-fit-cover transition-scale" alt="<?= htmlspecialchars($promo['nombre']) ?>" onerror="this.onerror=null; this.src='<?= BASE_URL ?>/assets/img/placeholder.png'">
+                            </div>
+
+                            <div class="card-body p-4 text-center d-flex flex-column align-items-center">
+                                <h4 class="card-title fw-bold text-body mb-2"><?= htmlspecialchars($promo['nombre']) ?></h4>
+                                <p class="card-text text-body-secondary mb-4 fw-medium"><?= htmlspecialchars($promo['descripcion']) ?></p>
+                                
+                                <?php if(!empty($promo['producto_list'])): ?>
+                                    <ul class="list-unstyled text-start w-100 mb-4 promo-products-list p-3 rounded-3 shadow-sm">
+                                    <?php 
+                                        $productosPromo = explode('||', $promo['producto_list']);
+                                        foreach($productosPromo as $prodItem): 
+                                            $prodDetalle = explode(':::', $prodItem);
+                                            if(count($prodDetalle) >= 3):
+                                                $prodNombre = $prodDetalle[1];
+                                                $prodCant = $prodDetalle[2];
+                                    ?>
+                                        <li class="mb-2 fw-bold"><i class="fas fa-check text-warning me-2"></i><span><?= $prodCant ?>x <?= htmlspecialchars($prodNombre) ?></span></li>
+                                    <?php 
+                                            endif;
+                                        endforeach; 
+                                    ?>
+                                    </ul>
+                                <?php endif; ?>
+                                
+                                <div class="mt-auto w-100">
+                                    <div class="promo-schedule-pill rounded-pill py-2 px-3 fw-bold small d-flex flex-column justify-content-center align-items-center mb-3">
+                                        <div class="mb-1 d-flex align-items-center justify-content-center">
+                                            <i class="far fa-calendar-alt me-2 promo-icon"></i>
+                                            <span><?= date('d/m/Y', strtotime($promo['fecha_inicio'])) ?> - <?= date('d/m/Y', strtotime($promo['fecha_fin'])) ?></span>
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <i class="far fa-clock me-2 promo-icon"></i>
+                                            <span><?= date('h:i A', strtotime($promo['hora_inicio'])) ?> - <?= date('h:i A', strtotime($promo['hora_fin'])) ?></span>
+                                        </div>
+                                    </div>
+                                    
+                                    <button class="btn btn-primary w-100 rounded-pill fw-bold btn-add-promo shadow-sm" data-id="<?= $promo['id_promocion'] ?>">
+                                        <i class="fas fa-shopping-basket me-2"></i>Comprar Promoción
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="row">
             <!-- Sección Izquierda: Grilla de Productos -->
             <div class="col-lg-8 col-xl-9">
@@ -154,6 +231,17 @@ foreach ($menus as $menuItem) {
                         </div>
                     </div>
                     <div class="cart-footer">
+                        <div id="cart-breakdown-desktop" class="mb-2 small" style="display: none;">
+                            <div class="d-flex justify-content-between text-body-secondary mb-1">
+                                <span>Subtotal:</span>
+                                <span id="cart-subtotal-original">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-success fw-bold mb-1">
+                                <span><i class="fas fa-tag me-1"></i>Descuento Promoción:</span>
+                                <span id="cart-discount-val">-$0.00</span>
+                            </div>
+                            <hr class="my-2 border-secondary-subtle">
+                        </div>
                         <div class="cart-total">
                             <span>Total</span>
                             <span id="cart-total-price">$0.00</span>
@@ -196,6 +284,17 @@ foreach ($menus as $menuItem) {
         <!-- Rendered via JS -->
     </div>
     <div class="cart-footer p-3 border-top bg-body-tertiary">
+        <div id="cart-breakdown-mobile" class="mb-2 small" style="display: none;">
+            <div class="d-flex justify-content-between text-body-secondary mb-1">
+                <span>Subtotal:</span>
+                <span id="mobile-cart-subtotal-original">$0.00</span>
+            </div>
+            <div class="d-flex justify-content-between text-success fw-bold mb-1">
+                <span><i class="fas fa-tag me-1"></i>Descuento Promoción:</span>
+                <span id="mobile-cart-discount-val">-$0.00</span>
+            </div>
+            <hr class="my-2 border-secondary-subtle">
+        </div>
         <div class="cart-total">
             <span>Total</span>
             <span id="mobile-cart-total-price">$0.00</span>
@@ -351,8 +450,21 @@ foreach ($menus as $menuItem) {
                                 </div>
                             </div>
                             
-                            <div class="alert alert-info py-2 mt-3 text-center">
-                                <span class="fw-bold">Total a Pagar:</span> <span class="fs-4 fw-bold ms-2" id="chk-total-display">$0.00</span>
+                            <div class="alert alert-info py-2 mt-3 text-center" id="chk-summary-box">
+                                <div id="chk-breakdown" class="small mb-2 pb-2 border-bottom border-info-subtle" style="display: none;">
+                                    <div class="d-flex justify-content-between text-body-secondary mb-1">
+                                        <span>Subtotal Original:</span>
+                                        <span id="chk-subtotal-display" class="fw-semibold">$0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-success fw-bold">
+                                        <span><i class="fas fa-tag me-1"></i>Descuento Promoción:</span>
+                                        <span id="chk-discount-display">-$0.00</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold">Total a Pagar:</span> 
+                                    <span class="fs-4 fw-bold ms-2" id="chk-total-display">$0.00</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -372,6 +484,99 @@ foreach ($menus as $menuItem) {
 
 
 <style>
+    @keyframes pulse-star {
+        0% { transform: scale(1); opacity: 1; text-shadow: 0 0 0 rgba(217, 119, 6, 0); }
+        50% { transform: scale(1.15); opacity: 0.8; text-shadow: 0 0 15px rgba(217, 119, 6, 0.6); }
+        100% { transform: scale(1); opacity: 1; text-shadow: 0 0 0 rgba(217, 119, 6, 0); }
+    }
+    .pulse-animation {
+        animation: pulse-star 2s infinite ease-in-out;
+    }
+    .promo-card {
+        background-color: var(--bg-tarjetas, #ffffff);
+        border: 1px solid rgba(250, 158, 59, 0.25);
+    }
+    html[data-bs-theme="dark"] .promo-card,
+    body[data-bs-theme="dark"] .promo-card,
+    .dark .promo-card {
+        background-color: #1e2126 !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    }
+
+    /* Cápsula de horario y vigencia con contraste óptimo */
+    .promo-schedule-pill {
+        background-color: rgba(250, 158, 59, 0.12) !important;
+        border: 1px solid rgba(250, 158, 59, 0.35) !important;
+        transition: all 0.3s ease;
+    }
+    .promo-schedule-pill .promo-icon {
+        color: #ea580c !important;
+    }
+    .promo-schedule-pill span {
+        color: #9a3412 !important;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+    }
+
+    /* Adaptación para Modo Oscuro en la cápsula */
+    html[data-bs-theme="dark"] .promo-schedule-pill,
+    body[data-bs-theme="dark"] .promo-schedule-pill,
+    .dark .promo-schedule-pill {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(250, 158, 59, 0.45) !important;
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+    }
+    html[data-bs-theme="dark"] .promo-schedule-pill .promo-icon,
+    body[data-bs-theme="dark"] .promo-schedule-pill .promo-icon,
+    .dark .promo-schedule-pill .promo-icon {
+        color: #fb923c !important;
+    }
+    html[data-bs-theme="dark"] .promo-schedule-pill span,
+    body[data-bs-theme="dark"] .promo-schedule-pill span,
+    .dark .promo-schedule-pill span {
+        color: #ffffff !important;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Botón Comprar Promoción con contraste premium */
+    .promo-card .btn-add-promo {
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+        border: 1px solid #ea580c !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.4px;
+        padding: 0.75rem 1.25rem;
+        box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35) !important;
+        transition: all 0.25s ease;
+    }
+    .promo-card .btn-add-promo:hover {
+        background: linear-gradient(135deg, #fb923c 0%, #f97316 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(234, 88, 12, 0.5) !important;
+        color: #ffffff !important;
+    }
+    .promo-card .btn-add-promo i {
+        color: #ffffff !important;
+    }
+
+    /* Lista de productos de la promoción */
+    .promo-card .promo-products-list {
+        background-color: rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    html[data-bs-theme="dark"] .promo-card .promo-products-list,
+    body[data-bs-theme="dark"] .promo-card .promo-products-list,
+    .dark .promo-card .promo-products-list {
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    html[data-bs-theme="dark"] .promo-card .promo-products-list li,
+    body[data-bs-theme="dark"] .promo-card .promo-products-list li,
+    .dark .promo-card .promo-products-list li {
+        color: #f8fafc !important;
+    }
+
     /* Scrollbar horizontal personalizado para escritorio */
     .categories-scroll::-webkit-scrollbar {
         height: 8px;
@@ -394,3 +599,8 @@ foreach ($menus as $menuItem) {
     .hover-lift:hover .transition-scale { transform: scale(1.05); }
     .fs-7 { font-size: 0.85rem; }
 </style>
+
+<script>
+    window.promocionesDisponibles = <?= json_encode($promociones ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
+    window.usuarioLogueado = <?= isset($_SESSION['user']) ? 'true' : 'false' ?>;
+</script>
