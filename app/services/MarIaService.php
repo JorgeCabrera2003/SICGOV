@@ -16,9 +16,13 @@ class MarIaService
 
     public function __construct()
     {
-        // En un entorno de producción, esto debería venir de una variable de entorno o configuración.
-        // Para este caso, el microservicio está en localhost:8090
-        $this->endpointUrl = 'http://localhost:8090/classify';
+        if (class_exists(\Dotenv\Dotenv::class) && defined('BASE_PATH')) {
+            $dotenv = \Dotenv\Dotenv::createImmutable(BASE_PATH);
+            $dotenv->safeLoad();
+        }
+
+        $mariaUrl = $_ENV['MARIA_URL'] ?? getenv('MARIA_URL') ?: 'http://127.0.0.1:8090';
+        $this->endpointUrl = rtrim($mariaUrl, '/') . '/classify';
     }
 
     /**
@@ -51,6 +55,33 @@ class MarIaService
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
         curl_close($ch);
+
+        // Si falló por host inaccesible (ej. host 'mar-ia' en entorno local), reintentar automáticamente con 127.0.0.1
+        if ($error && strpos($this->endpointUrl, '127.0.0.1') === false) {
+            $fallbackUrl = 'http://127.0.0.1:8090/classify';
+            $chFb = curl_init($fallbackUrl);
+            curl_setopt($chFb, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($chFb, CURLOPT_POST, true);
+            curl_setopt($chFb, CURLOPT_POSTFIELDS, $payload);
+            curl_setopt($chFb, CURLOPT_HTTPHEADER, [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Content-Length: ' . strlen($payload)
+            ]);
+            curl_setopt($chFb, CURLOPT_TIMEOUT, 15);
+
+            $fbResponse = curl_exec($chFb);
+            $fbHttpCode = curl_getinfo($chFb, CURLINFO_HTTP_CODE);
+            $fbError = curl_error($chFb);
+            curl_close($chFb);
+
+            if (!$fbError && $fbHttpCode === 200) {
+                $this->endpointUrl = $fallbackUrl;
+                $response = $fbResponse;
+                $httpCode = $fbHttpCode;
+                $error = '';
+            }
+        }
 
         if ($error) {
             return [

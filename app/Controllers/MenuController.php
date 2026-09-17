@@ -235,10 +235,13 @@ if ($type === 'admin') {
 
 
 } else {
-    // MODO PÚBLICO
     $menuModel = new Menu();
     $menus = $menuModel->Transaccion(['peticion' => 'listar']) ?: [];
     $categorias = $menuModel->Transaccion(['peticion' => 'categorias']) ?: [];
+    
+    $promocionModel = new \App\Models\System\Promocion();
+    $promocionesResult = $promocionModel->Transaccion(['peticion' => 'consultar']);
+    $promociones = (isset($promocionesResult['estado']) && $promocionesResult['estado'] == 1) ? $promocionesResult['response']['datos'] : [];
 
     $page = 'menu_publico';
     $titulo = 'Nuestro Menú - Good Vibes';

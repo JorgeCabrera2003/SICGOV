@@ -48,9 +48,11 @@
 
 <?php
 include_once 'partials/_modal_promocion.php';
+include_once __DIR__ . '/../partials/_media_picker.php';
 ?>
 
 <script>
     const productosDB = <?= json_encode($productos ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 </script>
-<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/PromocionController.js" defer></script>
+<script src="<?= BASE_URL ?>assets/js/media-picker.js" defer></script>
+<script type="module" src="<?= BASE_URL ?>assets/js/Controllers/PromocionController.js" defer></script>
