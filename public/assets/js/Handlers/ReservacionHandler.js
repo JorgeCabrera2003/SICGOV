@@ -1,10 +1,8 @@
 import * as AjaxHelper from "../Helpers/AjaxHelper.js";
 import * as MensajeriaHelper from "../Helpers/MensajeriaHelper.js";
 
-
 const ES_PUBLICO = window.location.search.includes('type=publico');
 const BASE_URL_API = ES_PUBLICO ? '?page=Reservacion&type=publico' : '?page=Reservacion';
-
 
 const IDs = {
     form: ES_PUBLICO ? '#formReservarPublico' : '#formReservacion',
@@ -15,7 +13,6 @@ const IDs = {
     calendar: 'calendarPublico' 
 };
 
-
 export function extraerHora(datetimeStr) {
     if (!datetimeStr || !datetimeStr.includes('T')) return null;
     return datetimeStr.split('T')[1].substring(0, 5);
@@ -24,7 +21,6 @@ export function extraerHora(datetimeStr) {
 export function formatarEstadoCliente(state) {
     if (!state.id) return state.text;
     
-
     const avatarUrl = (state.element && state.element.dataset.avatar) ? state.element.dataset.avatar : null;
     
     const iconHtml = avatarUrl 
@@ -39,6 +35,57 @@ export function formatarEstadoCliente(state) {
     `);
 }
 
+/**
+ * Verificación en tiempo real de mesas y áreas según la cantidad de personas
+ */
+export function verificarMesasPorCapacidad() {
+    const personasInput = document.getElementById('cantidad_personas');
+    const mesaSelect = document.getElementById('id_mesa');
+    const feedbackEl = document.getElementById('mesa_info_recomendacion');
+    if (!personasInput || !mesaSelect) return;
+
+    const personas = parseInt(personasInput.value, 10) || 1;
+    const options = mesaSelect.querySelectorAll('option');
+
+    let compatibles = 0;
+    let areasCompatibles = new Set();
+    const mesaSeleccionada = mesaSelect.value;
+    let mesaSeleccionadaInfo = null;
+
+    options.forEach(opt => {
+        if (!opt.value) return;
+        const capacidad = parseInt(opt.getAttribute('data-capacidad') || '0', 10);
+        const area = opt.getAttribute('data-area') || 'General';
+        const numero = opt.getAttribute('data-numero') || '';
+
+        if (capacidad >= personas) {
+            compatibles++;
+            areasCompatibles.add(area);
+            opt.textContent = `Mesa #${numero} • Área: ${area} (Capacidad: ${capacidad} pers.) - Adecuada`;
+        } else {
+            opt.textContent = `Mesa #${numero} • Área: ${area} (Capacidad: ${capacidad} pers.) - Capacidad insuficiente`;
+        }
+
+        if (opt.value === mesaSeleccionada) {
+            mesaSeleccionadaInfo = { numero, area, capacidad };
+        }
+    });
+
+    if (feedbackEl) {
+        if (mesaSeleccionadaInfo) {
+            if (mesaSeleccionadaInfo.capacidad < personas) {
+                feedbackEl.innerHTML = `<span class="text-danger fw-semibold"><i class="bi bi-exclamation-triangle-fill me-1"></i>Advertencia: La Mesa #${mesaSeleccionadaInfo.numero} (${mesaSeleccionadaInfo.area}) tiene capacidad para ${mesaSeleccionadaInfo.capacidad} personas, pero la reservación es para ${personas}.</span>`;
+            } else {
+                feedbackEl.innerHTML = `<span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>Mesa #${mesaSeleccionadaInfo.numero} adecuada en Área ${mesaSeleccionadaInfo.area} (Capacidad: ${mesaSeleccionadaInfo.capacidad} personas).</span>`;
+            }
+        } else if (compatibles > 0) {
+            const areasTexto = Array.from(areasCompatibles).join(', ');
+            feedbackEl.innerHTML = `<span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i>${compatibles} mesa(s) con capacidad adecuada (≥ ${personas} pers.) disponibles en: ${areasTexto}.</span>`;
+        } else {
+            feedbackEl.innerHTML = `<span class="text-warning fw-semibold"><i class="bi bi-exclamation-circle-fill me-1"></i>No hay mesas individuales con capacidad para ${personas} personas. Puede requerir unir mesas.</span>`;
+        }
+    }
+}
 
 export function inicializarPickers() {
     const configBaseTime = {
@@ -51,23 +98,27 @@ export function inicializarPickers() {
         locale: "es"
     };
 
+    // Bloqueo de días anteriores a hoy en selector de fecha
     const configDate = {
         enableTime: false,
         dateFormat: "Y-m-d",
         altInput: true,
         altFormat: "d/m/Y",
         locale: "es",
-        minDate: ES_PUBLICO ? "today" : null
+        minDate: "today"
     };
 
     flatpickr(IDs.fecha, configDate);
+
+    // Eventos reactivos para verificación de capacidad de mesas
+    $('#cantidad_personas').off('input change').on('input change', verificarMesasPorCapacidad);
+    $('#id_mesa').off('change').on('change', verificarMesasPorCapacidad);
 
     return {
         timePickerInicio: flatpickr(IDs.hora, configBaseTime),
         timePickerFin: flatpickr(IDs.hora_fin, configBaseTime)
     };
 }
-
 
 export function inicializarCalendario(calendarEl, pickers) {
     const { timePickerInicio, timePickerFin } = pickers;
@@ -92,8 +143,33 @@ export function inicializarCalendario(calendarEl, pickers) {
         unselectAuto: false,
         editable: !ES_PUBLICO,           
         eventResizableFromStart: true,
+        lazyFetching: true, // Carga rápida y cacheo inteligente de eventos
+
+        // Indicador de carga rápida
+        loading: function(isLoading) {
+            const loader = document.getElementById('calendarLoader');
+            if (loader) {
+                if (isLoading) {
+                    loader.classList.remove('d-none');
+                    loader.classList.add('d-flex');
+                } else {
+                    loader.classList.add('d-none');
+                    loader.classList.remove('d-flex');
+                }
+            }
+        },
+
+        // Bloqueo visual de días anteriores a hoy
+        dayCellDidMount: function(arg) {
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            if (arg.date < hoy) {
+                arg.el.classList.add('fc-day-past-blocked');
+            }
+        },
+
+        // Bloqueo funcional de selección en días anteriores a hoy
         selectAllow: function(selectInfo) {
-            // Evitar selección de múltiples días
             if (selectInfo.allDay) {
                 const unDiaDespues = new Date(selectInfo.start);
                 unDiaDespues.setDate(unDiaDespues.getDate() + 1);
@@ -102,7 +178,6 @@ export function inicializarCalendario(calendarEl, pickers) {
                 }
             }
 
-            if (!ES_PUBLICO) return true;
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
             return selectInfo.start >= hoy;
@@ -111,15 +186,13 @@ export function inicializarCalendario(calendarEl, pickers) {
         events: async function (fetchInfo, successCallback, failureCallback) {
             const formData = new FormData();
             formData.append('peticion', 'listar');
-            if (!ES_PUBLICO) {
-                formData.append('start', fetchInfo.startStr.split('T')[0]);
-                formData.append('end', fetchInfo.endStr.split('T')[0]);
-            }
+            formData.append('start', fetchInfo.startStr.split('T')[0]);
+            formData.append('end', fetchInfo.endStr.split('T')[0]);
 
             try {
                 const res = await AjaxHelper.enviaAjax(formData, BASE_URL_API);
                 if (res && (res.resultado == 200 || Array.isArray(res))) {
-                    const datos = Array.isArray(res) ? res : res.datos;
+                    const datos = Array.isArray(res) ? res : (res.datos || []);
                     successCallback(datos);
                 } else {
                     failureCallback();
@@ -137,9 +210,9 @@ export function inicializarCalendario(calendarEl, pickers) {
             }
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
-            if (ES_PUBLICO && info.start < hoy) {
+            if (info.start < hoy) {
                 calendar.unselect();
-                MensajeriaHelper.GenerarMensaje('warning', 3000, 'Fecha inválida', 'No puede reservar en una fecha pasada.');
+                MensajeriaHelper.GenerarMensaje('warning', 3000, 'Fecha no permitida', 'No se pueden realizar reservaciones en fechas pasadas.');
                 return;
             }
             prepararNuevaReservacion(info, timePickerInicio, timePickerFin, calendar);
@@ -158,19 +231,25 @@ export function inicializarCalendario(calendarEl, pickers) {
             abrirDetalleReservacion(event, props, timePickerInicio, timePickerFin, calendar);
         },
 
-
         eventDrop: function (info) {
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
-            if (ES_PUBLICO && info.event.start < hoy) {
+            if (info.event.start < hoy) {
                 info.revert();
-                MensajeriaHelper.GenerarMensaje('warning', 3000, 'Fecha inválida', 'No puede mover a una fecha pasada.');
+                MensajeriaHelper.GenerarMensaje('warning', 3000, 'Movimiento no permitido', 'No puede mover una reservación a una fecha pasada.');
                 return;
             }
             MoverEvento(info, calendar);
         },
 
         eventResize: function (info) {
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
+            if (info.event.start < hoy) {
+                info.revert();
+                MensajeriaHelper.GenerarMensaje('warning', 3000, 'Rango no permitido', 'No puede ampliar una reservación a una fecha pasada.');
+                return;
+            }
             MoverEvento(info, calendar, 'Duración actualizada');
         }
     });
@@ -178,8 +257,6 @@ export function inicializarCalendario(calendarEl, pickers) {
     calendar.render();
     return calendar;
 }
-
-
 
 function obtenerRangosOcupados(fecha, calendar, idActual = null, idMesa = null) {
     return calendar.getEvents()
@@ -220,10 +297,12 @@ function prepararNuevaReservacion(info, tpInicio, tpFin, calendar) {
     if (!ES_PUBLICO) {
         $('#cedula_cliente').val('').trigger('change');
         $('#id_mesa').val('');
+        $('#cantidad_personas').val(2);
+        verificarMesasPorCapacidad();
     }
     
     $(IDs.fecha).val(fecha);
-    const fpFecha = document.querySelector(IDs.fecha)._flatpickr;
+    const fpFecha = document.querySelector(IDs.fecha)?._flatpickr;
     if (fpFecha) fpFecha.setDate(fecha);
 
     const mesaSel = $('#id_mesa').val();
@@ -255,10 +334,12 @@ function abrirDetalleReservacion(event, props, tpInicio, tpFin, calendar) {
     if (!ES_PUBLICO) {
         $('#cedula_cliente').val(props.cedula).trigger('change');
         $('#id_mesa').val(props.id_mesa || '');
+        $('#cantidad_personas').val(props.cantidad_personas || 1);
+        verificarMesasPorCapacidad();
     }
     
     $(IDs.fecha).val(fecha);
-    const fpFecha = document.querySelector(IDs.fecha)._flatpickr;
+    const fpFecha = document.querySelector(IDs.fecha)?._flatpickr;
     if (fpFecha) fpFecha.setDate(fecha);
 
     actualizarBloqueosPickers(fecha, calendar, tpInicio, tpFin, event.id, props.id_mesa);
@@ -290,7 +371,6 @@ function abrirDetalleReservacion(event, props, tpInicio, tpFin, calendar) {
     $(IDs.modal).modal('show');
 }
 
-
 export async function MoverEvento(info, calendar, mensaje = 'Reprogramado con éxito') {
     const formData = new FormData();
     formData.append('peticion', 'mover');
@@ -313,15 +393,15 @@ export async function GestionarEnvio(form, calendar) {
     
     const fecha = formData.get('fecha');
     const hoyStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Caracas' }).split('T')[0];
-    if (ES_PUBLICO && fecha && fecha < hoyStr) {
-        MensajeriaHelper.GenerarMensaje('warning', 5000, "Fecha inválida", "No puede realizar ni mover una reservación a una fecha pasada.");
+    if (fecha && fecha < hoyStr) {
+        MensajeriaHelper.GenerarMensaje('warning', 5000, "Fecha no permitida", "No puede realizar ni mover una reservación a una fecha pasada.");
         return;
     }
 
     const h1 = $(IDs.hora).val();
     const h2 = $(IDs.hora_fin).val();
     if (h1 && h2 && h2 <= h1) {
-        MensajeriaHelper.GenerarMensaje('warning', 5000, "Rango inválido", "La hora de fin debe ser posterior.");
+        MensajeriaHelper.GenerarMensaje('warning', 5000, "Rango inválido", "La hora de fin debe ser posterior a la hora de inicio.");
         return;
     }
 
@@ -332,7 +412,7 @@ export async function GestionarEnvio(form, calendar) {
         MensajeriaHelper.GenerarMensaje('success', 2000, "¡Éxito!", msg);
         calendar.refetchEvents();
     } else {
-        MensajeriaHelper.GenerarMensaje('error', 5000, "Error", res?.mensaje || "Error al procesar");
+        MensajeriaHelper.GenerarMensaje('error', 5000, "Error", res?.mensaje || "Error al procesar la reservación");
     }
 }
 
@@ -348,7 +428,9 @@ export async function EliminarReservacion(id, calendar) {
     const res = await AjaxHelper.enviaAjax(formData, BASE_URL_API);
     if (res && res.resultado == 200) {
         $(IDs.modal).modal('hide');
-        MensajeriaHelper.GenerarMensaje('success', 2000, "Eliminado", "La reservación ha sido borrada.");
+        MensajeriaHelper.GenerarMensaje('success', 2000, '¡Eliminado!', res.mensaje);
         calendar.refetchEvents();
+    } else {
+        MensajeriaHelper.GenerarMensaje('error', 5000, 'Error', res?.mensaje || 'No se pudo eliminar');
     }
 }

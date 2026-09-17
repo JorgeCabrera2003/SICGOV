@@ -39,38 +39,47 @@ if (isset($_POST['peticion'])) {
 
         switch ($peticionEnviada) {
             case 'listar':
-                if ($esPublico) {
-                    $resp = $resModel->Transaccion(['peticion' => 'listar']);
-                    if ($resp['estado'] == 1) {
-                        $eventos = array_map(function($e) use ($datos) {
-                            if ($e['extendedProps']['cedula'] === $datos['cedula']) {
-                                return $e;
-                            }
-                            $hInicio = date("h:i A", strtotime($e['start']));
-                            $hFin = date("h:i A", strtotime($e['end']));
-                            return [
-                                'id' => 'occ_' . $e['id'],
-                                'title' => "{$hInicio} - {$hFin} (Ocupado)",
-                                'start' => $e['start'],
-                                'end' => $e['end'],
-                                'editable' => false,
-                                'className' => 'status-ocupado-publico',
-                                'extendedProps' => ['ocupado' => true]
-                            ];
-                        }, $resp['response']['datos']);
-                        $json = ['response' => ['resultado' => 200, 'datos' => $eventos]];
-                    } else {
-                        $json = $resp;
-                    }
+                $filtros = [
+                    'desde' => $_POST['start'] ?? null,
+                    'hasta' => $_POST['end'] ?? null
+                ];
+                $resp = $resModel->Transaccion(['peticion' => 'listar', 'filtros' => $filtros]);
+                
+                if ($esPublico && $resp['estado'] == 1) {
+                    $eventos = array_map(function($e) use ($datos) {
+                        if ($e['extendedProps']['cedula'] === $datos['cedula']) {
+                            return $e;
+                        }
+                        $hInicio = date("h:i A", strtotime($e['start']));
+                        $hFin = date("h:i A", strtotime($e['end']));
+                        return [
+                            'id' => 'occ_' . $e['id'],
+                            'title' => "{$hInicio} - {$hFin} (Ocupado)",
+                            'start' => $e['start'],
+                            'end' => $e['end'],
+                            'editable' => false,
+                            'className' => 'status-ocupado-publico',
+                            'extendedProps' => ['ocupado' => true]
+                        ];
+                    }, $resp['response']['datos']);
+                    $json = ['response' => ['resultado' => 200, 'datos' => $eventos]];
                 } else {
-                    $json = $resModel->Transaccion([
-                        'peticion' => 'listar', 
-                        'filtros' => [
-                            'desde' => $_POST['start'] ?? null,
-                            'hasta' => $_POST['end'] ?? null
-                        ]
-                    ]);
+                    $json = $resp;
                 }
+                break;
+
+            case 'validar':
+                // Endpoint para validar disponibilidad / capacidad en tiempo real
+                $resModel->setId($_POST['id_reservacion'] ?? '');
+                $resModel->setCedulaCliente($_POST['cedula_cliente'] ?? ($datos['cedula'] ?? ''));
+                $resModel->setIdMesa(!empty($_POST['id_mesa']) ? $_POST['id_mesa'] : null);
+                $resModel->setFecha($_POST['fecha'] ?? date('Y-m-d'));
+                $resModel->setHora($_POST['hora'] ?? '12:00');
+                $resModel->setHoraFin($_POST['hora_fin'] ?? '13:00');
+                $resModel->setEstado($_POST['estado'] ?? 'PENDIENTE');
+                $resModel->setCantidadPersonas((int)($_POST['cantidad_personas'] ?? 1));
+
+                $json = $resModel->Transaccion(['peticion' => 'validar']);
                 break;
 
             case 'registrar':
@@ -92,11 +101,7 @@ if (isset($_POST['peticion'])) {
                 }
 
                 $id = ($peticion === 'registrar') ? Helper::generarId('RES') : ($_POST['id_reservacion'] ?? '');
-                
                 $fechaSel = $_POST['fecha'] ?? '';
-                if ($esPublico && $peticion === 'registrar' && strtotime($fechaSel) < strtotime(date('Y-m-d'))) {
-                    throw new Exception("No puede realizar una reservación en una fecha pasada.");
-                }
 
                 $resModel->setId($id);
                 $resModel->setCedulaCliente($_POST['cedula_cliente'] ?? '');
@@ -105,7 +110,16 @@ if (isset($_POST['peticion'])) {
                 $resModel->setHora($_POST['hora'] ?? '');
                 $resModel->setHoraFin($_POST['hora_fin'] ?? '');
                 $resModel->setEstado($_POST['estado'] ?? 'PENDIENTE');
+                $resModel->setCantidadPersonas((int)($_POST['cantidad_personas'] ?? 1));
 
+                // VALIDACIÓN EXTERNA FUERA DE REGISTRAR/MODIFICAR (Patrón Insumo - Requerimiento 4)
+                $validacion = $resModel->Transaccion(['peticion' => 'validar']);
+                if ($validacion['estado'] != 1 || ($validacion['bool'] ?? 0) != 1) {
+                    $json = $validacion;
+                    break;
+                }
+
+                // SI LA VALIDACIÓN ES EXITOSA, PROCEDE A REGISTRAR / MODIFICAR
                 $json = $resModel->Transaccion(['peticion' => $peticion]);
 
                 if ($json['estado'] == 1) {
@@ -137,17 +151,21 @@ if (isset($_POST['peticion'])) {
                 }
 
                 $fechaMover = $_POST['fecha'];
-                if ($esPublico && strtotime($fechaMover) < strtotime(date('Y-m-d'))) {
-                    throw new Exception("No puede mover la reservación a una fecha pasada.");
-                }
-
                 $resModel->setFecha($fechaMover);
                 $resModel->setHora(!empty($_POST['hora']) ? $_POST['hora'] : $registro['hora']);
                 $resModel->setHoraFin(!empty($_POST['hora_fin']) ? $_POST['hora_fin'] : $registro['hora_fin']);
                 $resModel->setCedulaCliente($registro['cedula_cliente'] ?? '');
                 $resModel->setIdMesa(!empty($registro['id_mesa']) ? $registro['id_mesa'] : null);
                 $resModel->setEstado($registro['estado'] ?? 'PENDIENTE');
-                
+                $resModel->setCantidadPersonas((int)($registro['cantidad_personas'] ?? 1));
+
+                // VALIDACIÓN EXTERNA AL MOVER
+                $validacion = $resModel->Transaccion(['peticion' => 'validar']);
+                if ($validacion['estado'] != 1 || ($validacion['bool'] ?? 0) != 1) {
+                    $json = $validacion;
+                    break;
+                }
+
                 $json = $resModel->Transaccion(['peticion' => 'modificar']);
                 if ($json['estado'] == 1) {
                     Helper::Bitacora('MOVER', 'RESERVACIONES', "Se movió la reservación {$_POST['id_reservacion']} a la fecha {$_POST['fecha']}");
@@ -185,7 +203,6 @@ if (isset($_POST['peticion'])) {
     }
     exit;
 }
-
 
 $vista = $esPublico ? 'reservar/index' : 'reservaciones/index';
 $titulo = $esPublico ? 'Mis Reservaciones' : 'Gestión de Reservaciones';
@@ -253,9 +270,3 @@ Helper::cargarVista($vista, $titulo, [
         });
     '
 ]);
-
-
-
-
-
-
