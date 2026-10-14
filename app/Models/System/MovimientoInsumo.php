@@ -218,23 +218,28 @@ class MovimientoInsumo extends Database
         if ($validacion['bool'] == 0) {
             try {
                 $sql = "INSERT INTO movimiento_insumo(id_movimiento, id_insumo, id_detalle, cantidad, id_unidad_medida, tipo, descripcion, fecha)
-                VALUES (:id, :id_insumo,:id_detalle, :cantidad, :id_unidad_medida, :tipo, :descripcion, :fecha)";
+                VALUES (:id, :id_insumo, :id_detalle, :cantidad, :id_unidad_medida, :tipo, :descripcion, :fecha)";
 
                 $this->LlamarConexion();
                 $this->LlamarConexion()->beginTransaction();
                 $stm = $this->LlamarConexion()->prepare($sql);
                 $stm->bindParam(':id', $this->id);
-                $stm->bindParam(':id_entrada', $this->id_insumo);
+                $stm->bindParam(':id_insumo', $this->id_insumo);
                 $stm->bindParam(':id_unidad_medida', $this->id_unidad_medida);
                 $stm->bindParam(':id_detalle', $this->id_detalle);
                 $stm->bindParam(':tipo', $this->tipo);
                 $stm->bindParam(':cantidad', $this->cantidad);
                 $stm->bindParam(':descripcion', $this->descripcion);
+                
+                // Formatear la fecha si es objeto DateTime o un string
+                $fechaFormateada = $this->fecha instanceof \DateTime ? $this->fecha->format('Y-m-d H:i:s') : (empty($this->fecha) ? date('Y-m-d H:i:s') : $this->fecha);
+                $stm->bindParam(':fecha', $fechaFormateada);
+                
                 $stm->execute();
                 $this->LlamarConexion()->commit();
 
                 $dato['estado'] = 1;
-                $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Relación de Entrada registrado exitosamente"];
+                $dato['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => "Movimiento de Insumo registrado exitosamente"];
                 $dato['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => "OK"];
 
             } catch (\PDOException $e) {

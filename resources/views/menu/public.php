@@ -88,7 +88,7 @@ foreach ($menus as $menuItem) {
                                 <p class="card-text text-body-secondary mb-4 fw-medium"><?= htmlspecialchars($promo['descripcion']) ?></p>
                                 
                                 <?php if(!empty($promo['producto_list'])): ?>
-                                    <ul class="list-unstyled text-start w-100 mb-4 bg-body p-3 rounded-3 shadow-sm border border-secondary-subtle">
+                                    <ul class="list-unstyled text-start w-100 mb-4 promo-products-list p-3 rounded-3 shadow-sm">
                                     <?php 
                                         $productosPromo = explode('||', $promo['producto_list']);
                                         foreach($productosPromo as $prodItem): 
@@ -97,7 +97,7 @@ foreach ($menus as $menuItem) {
                                                 $prodNombre = $prodDetalle[1];
                                                 $prodCant = $prodDetalle[2];
                                     ?>
-                                        <li class="mb-2 fw-bold text-body"><i class="fas fa-check text-warning me-2"></i><?= $prodCant ?>x <?= htmlspecialchars($prodNombre) ?></li>
+                                        <li class="mb-2 fw-bold"><i class="fas fa-check text-warning me-2"></i><span><?= $prodCant ?>x <?= htmlspecialchars($prodNombre) ?></span></li>
                                     <?php 
                                             endif;
                                         endforeach; 
@@ -106,9 +106,15 @@ foreach ($menus as $menuItem) {
                                 <?php endif; ?>
                                 
                                 <div class="mt-auto w-100">
-                                    <div class="bg-primary bg-opacity-10 text-primary border border-primary-subtle rounded-pill py-2 px-3 fw-bold small d-flex flex-column justify-content-center align-items-center mb-3">
-                                        <div class="mb-1"><i class="far fa-calendar-alt me-2 text-primary"></i><?= date('d/m/Y', strtotime($promo['fecha_inicio'])) ?> - <?= date('d/m/Y', strtotime($promo['fecha_fin'])) ?></div>
-                                        <div><i class="far fa-clock me-2 text-primary"></i><?= date('h:i A', strtotime($promo['hora_inicio'])) ?> - <?= date('h:i A', strtotime($promo['hora_fin'])) ?></div>
+                                    <div class="promo-schedule-pill rounded-pill py-2 px-3 fw-bold small d-flex flex-column justify-content-center align-items-center mb-3">
+                                        <div class="mb-1 d-flex align-items-center justify-content-center">
+                                            <i class="far fa-calendar-alt me-2 promo-icon"></i>
+                                            <span><?= date('d/m/Y', strtotime($promo['fecha_inicio'])) ?> - <?= date('d/m/Y', strtotime($promo['fecha_fin'])) ?></span>
+                                        </div>
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <i class="far fa-clock me-2 promo-icon"></i>
+                                            <span><?= date('h:i A', strtotime($promo['hora_inicio'])) ?> - <?= date('h:i A', strtotime($promo['hora_fin'])) ?></span>
+                                        </div>
                                     </div>
                                     
                                     <button class="btn btn-primary w-100 rounded-pill fw-bold btn-add-promo shadow-sm" data-id="<?= $promo['id_promocion'] ?>">
@@ -225,6 +231,17 @@ foreach ($menus as $menuItem) {
                         </div>
                     </div>
                     <div class="cart-footer">
+                        <div id="cart-breakdown-desktop" class="mb-2 small" style="display: none;">
+                            <div class="d-flex justify-content-between text-body-secondary mb-1">
+                                <span>Subtotal:</span>
+                                <span id="cart-subtotal-original">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-success fw-bold mb-1">
+                                <span><i class="fas fa-tag me-1"></i>Descuento Promoción:</span>
+                                <span id="cart-discount-val">-$0.00</span>
+                            </div>
+                            <hr class="my-2 border-secondary-subtle">
+                        </div>
                         <div class="cart-total">
                             <span>Total</span>
                             <span id="cart-total-price">$0.00</span>
@@ -267,6 +284,17 @@ foreach ($menus as $menuItem) {
         <!-- Rendered via JS -->
     </div>
     <div class="cart-footer p-3 border-top bg-body-tertiary">
+        <div id="cart-breakdown-mobile" class="mb-2 small" style="display: none;">
+            <div class="d-flex justify-content-between text-body-secondary mb-1">
+                <span>Subtotal:</span>
+                <span id="mobile-cart-subtotal-original">$0.00</span>
+            </div>
+            <div class="d-flex justify-content-between text-success fw-bold mb-1">
+                <span><i class="fas fa-tag me-1"></i>Descuento Promoción:</span>
+                <span id="mobile-cart-discount-val">-$0.00</span>
+            </div>
+            <hr class="my-2 border-secondary-subtle">
+        </div>
         <div class="cart-total">
             <span>Total</span>
             <span id="mobile-cart-total-price">$0.00</span>
@@ -422,8 +450,21 @@ foreach ($menus as $menuItem) {
                                 </div>
                             </div>
                             
-                            <div class="alert alert-info py-2 mt-3 text-center">
-                                <span class="fw-bold">Total a Pagar:</span> <span class="fs-4 fw-bold ms-2" id="chk-total-display">$0.00</span>
+                            <div class="alert alert-info py-2 mt-3 text-center" id="chk-summary-box">
+                                <div id="chk-breakdown" class="small mb-2 pb-2 border-bottom border-info-subtle" style="display: none;">
+                                    <div class="d-flex justify-content-between text-body-secondary mb-1">
+                                        <span>Subtotal Original:</span>
+                                        <span id="chk-subtotal-display" class="fw-semibold">$0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-success fw-bold">
+                                        <span><i class="fas fa-tag me-1"></i>Descuento Promoción:</span>
+                                        <span id="chk-discount-display">-$0.00</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold">Total a Pagar:</span> 
+                                    <span class="fs-4 fw-bold ms-2" id="chk-total-display">$0.00</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -443,19 +484,6 @@ foreach ($menus as $menuItem) {
 
 
 <style>
-    @keyframes pulse-star {
-        0% { transform: scale(1); opacity: 1; text-shadow: 0 0 0 rgba(217, 119, 6, 0); }
-        50% { transform: scale(1.15); opacity: 0.8; text-shadow: 0 0 15px rgba(217, 119, 6, 0.6); }
-        100% { transform: scale(1); opacity: 1; text-shadow: 0 0 0 rgba(217, 119, 6, 0); }
-    }
-    .pulse-animation {
-        animation: pulse-star 2s infinite ease-in-out;
-    }
-    .promo-card {
-        background-color: var(--bs-primary-bg-subtle);
-        border: 2px solid var(--bs-primary-border-subtle);
-    }
-
     /* Scrollbar horizontal personalizado para escritorio */
     .categories-scroll::-webkit-scrollbar {
         height: 8px;
@@ -478,24 +506,3 @@ foreach ($menus as $menuItem) {
     .hover-lift:hover .transition-scale { transform: scale(1.05); }
     .fs-7 { font-size: 0.85rem; }
 </style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.btn-add-promo').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Comprar Promoción',
-                    text: 'Para aplicar esta promoción, por favor añade los productos individualmente a tu carrito o pregunta en caja.',
-                    confirmButtonText: 'Entendido',
-                    confirmButtonColor: 'var(--bs-primary)'
-                });
-            } else {
-                alert('Para aplicar esta promoción, por favor añade los productos individualmente a tu carrito o pregunta en caja.');
-            }
-        });
-    });
-});
-</script>
