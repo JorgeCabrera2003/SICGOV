@@ -484,99 +484,6 @@ foreach ($menus as $menuItem) {
 
 
 <style>
-    @keyframes pulse-star {
-        0% { transform: scale(1); opacity: 1; text-shadow: 0 0 0 rgba(217, 119, 6, 0); }
-        50% { transform: scale(1.15); opacity: 0.8; text-shadow: 0 0 15px rgba(217, 119, 6, 0.6); }
-        100% { transform: scale(1); opacity: 1; text-shadow: 0 0 0 rgba(217, 119, 6, 0); }
-    }
-    .pulse-animation {
-        animation: pulse-star 2s infinite ease-in-out;
-    }
-    .promo-card {
-        background-color: var(--bg-tarjetas, #ffffff);
-        border: 1px solid rgba(250, 158, 59, 0.25);
-    }
-    html[data-bs-theme="dark"] .promo-card,
-    body[data-bs-theme="dark"] .promo-card,
-    .dark .promo-card {
-        background-color: #1e2126 !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    }
-
-    /* Cápsula de horario y vigencia con contraste óptimo */
-    .promo-schedule-pill {
-        background-color: rgba(250, 158, 59, 0.12) !important;
-        border: 1px solid rgba(250, 158, 59, 0.35) !important;
-        transition: all 0.3s ease;
-    }
-    .promo-schedule-pill .promo-icon {
-        color: #ea580c !important;
-    }
-    .promo-schedule-pill span {
-        color: #9a3412 !important;
-        font-weight: 700;
-        letter-spacing: 0.2px;
-    }
-
-    /* Adaptación para Modo Oscuro en la cápsula */
-    html[data-bs-theme="dark"] .promo-schedule-pill,
-    body[data-bs-theme="dark"] .promo-schedule-pill,
-    .dark .promo-schedule-pill {
-        background-color: rgba(255, 255, 255, 0.08) !important;
-        border: 1px solid rgba(250, 158, 59, 0.45) !important;
-        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
-    }
-    html[data-bs-theme="dark"] .promo-schedule-pill .promo-icon,
-    body[data-bs-theme="dark"] .promo-schedule-pill .promo-icon,
-    .dark .promo-schedule-pill .promo-icon {
-        color: #fb923c !important;
-    }
-    html[data-bs-theme="dark"] .promo-schedule-pill span,
-    body[data-bs-theme="dark"] .promo-schedule-pill span,
-    .dark .promo-schedule-pill span {
-        color: #ffffff !important;
-        font-weight: 700;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-    }
-
-    /* Botón Comprar Promoción con contraste premium */
-    .promo-card .btn-add-promo {
-        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
-        border: 1px solid #ea580c !important;
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.4px;
-        padding: 0.75rem 1.25rem;
-        box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35) !important;
-        transition: all 0.25s ease;
-    }
-    .promo-card .btn-add-promo:hover {
-        background: linear-gradient(135deg, #fb923c 0%, #f97316 100%) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(234, 88, 12, 0.5) !important;
-        color: #ffffff !important;
-    }
-    .promo-card .btn-add-promo i {
-        color: #ffffff !important;
-    }
-
-    /* Lista de productos de la promoción */
-    .promo-card .promo-products-list {
-        background-color: rgba(0, 0, 0, 0.03);
-        border: 1px solid rgba(0, 0, 0, 0.08);
-    }
-    html[data-bs-theme="dark"] .promo-card .promo-products-list,
-    body[data-bs-theme="dark"] .promo-card .promo-products-list,
-    .dark .promo-card .promo-products-list {
-        background-color: rgba(255, 255, 255, 0.04) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }
-    html[data-bs-theme="dark"] .promo-card .promo-products-list li,
-    body[data-bs-theme="dark"] .promo-card .promo-products-list li,
-    .dark .promo-card .promo-products-list li {
-        color: #f8fafc !important;
-    }
-
     /* Scrollbar horizontal personalizado para escritorio */
     .categories-scroll::-webkit-scrollbar {
         height: 8px;
@@ -599,8 +506,3 @@ foreach ($menus as $menuItem) {
     .hover-lift:hover .transition-scale { transform: scale(1.05); }
     .fs-7 { font-size: 0.85rem; }
 </style>
-
-<script>
-    window.promocionesDisponibles = <?= json_encode($promociones ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
-    window.usuarioLogueado = <?= isset($_SESSION['user']) ? 'true' : 'false' ?>;
-</script>
