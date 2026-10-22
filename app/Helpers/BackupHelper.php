@@ -9,10 +9,46 @@ class BackupHelper
 
     private const ALLOWED_DBS = ['good_vibes', 'goobv-sistema', 'goobv-usuarios'];
 
+    public static function getAllowedDbs(): array
+    {
+        $dbs = self::ALLOWED_DBS;
+        if (!empty($_ENV['DB_NAME_SYSTEM'])) {
+            $dbs[] = $_ENV['DB_NAME_SYSTEM'];
+        }
+        if (!empty($_ENV['DB_NAME_USER'])) {
+            $dbs[] = $_ENV['DB_NAME_USER'];
+        }
+        return array_values(array_unique(array_filter($dbs)));
+    }
+
     public static function generarRespaldo(string $database, ?string $destDir = null): array
     {
+        if ($database === 'todas') {
+            $dbsToBackup = [
+                $_ENV['DB_NAME_SYSTEM'] ?? 'goobv-sistema',
+                $_ENV['DB_NAME_USER']   ?? 'goobv-usuarios',
+            ];
+            $dbsToBackup = array_unique($dbsToBackup);
+            $generados = [];
+            $ultimoArchivo = null;
+            foreach ($dbsToBackup as $db) {
+                $res = self::generarRespaldo($db, $destDir);
+                if (!$res['success']) {
+                    return $res;
+                }
+                $generados[] = $res['filename'];
+                $ultimoArchivo = $res['file'];
+            }
 
-        if (!in_array($database, self::ALLOWED_DBS, true)) {
+            return [
+                'success'  => true,
+                'file'     => $ultimoArchivo,
+                'filename' => implode(', ', $generados),
+                'message'  => "Respaldos generados exitosamente: " . implode(' y ', $generados)
+            ];
+        }
+
+        if (!in_array($database, self::getAllowedDbs(), true)) {
             return self::error("Base de datos no permitida: '$database'.");
         }
 
@@ -20,7 +56,7 @@ class BackupHelper
         if ($mysqldumpBin === null) {
             return self::error(
                 "El ejecutable 'mysqldump' no fue encontrado en el servidor. " .
-                "Instale mysql-client o revise la variable PATH."
+                "Verifique que MySQL esté instalado o agregue su ruta a la variable de entorno PATH."
             );
         }
 
@@ -54,12 +90,17 @@ class BackupHelper
         $filepath  = $destDir . DIRECTORY_SEPARATOR . $filename;
 
         $errFile = tempnam(sys_get_temp_dir(), 'backup_err_');
+        $passArg = ($pass !== '') ? ' --password=' . escapeshellarg($pass) : '';
+        $binEscaped = (str_starts_with($mysqldumpBin, 'docker') || str_starts_with($mysqldumpBin, 'podman'))
+            ? $mysqldumpBin
+            : '"' . $mysqldumpBin . '"';
+
         $command = sprintf(
-            '%s --host=%s --user=%s --password=%s --single-transaction --routines --events -- %s > %s 2> %s',
-            $mysqldumpBin,
+            '%s --host=%s --user=%s%s --single-transaction --routines --events -- %s > %s 2> %s',
+            $binEscaped,
             escapeshellarg($host),
             escapeshellarg($user),
-            escapeshellarg($pass),
+            $passArg,
             escapeshellarg($database),
             escapeshellarg($filepath),
             escapeshellarg($errFile)
@@ -71,7 +112,7 @@ class BackupHelper
             exec($command, $output, $exitCode);
 
             if ($exitCode !== 0) {
-                $errorMsg = file_get_contents($errFile);
+                $errorMsg = file_exists($errFile) ? file_get_contents($errFile) : '';
                 @unlink($errFile);
                 if (file_exists($filepath)) {
                     @unlink($filepath);
@@ -149,9 +190,55 @@ class BackupHelper
         return $result;
     }
 
+    public static function subirRespaldo(array $file): array
+    {
+        if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+            $errorCodes = [
+                UPLOAD_ERR_INI_SIZE   => "El archivo excede el tamaño máximo permitido por el servidor.",
+                UPLOAD_ERR_FORM_SIZE  => "El archivo excede el límite del formulario.",
+                UPLOAD_ERR_PARTIAL    => "El archivo solo fue subido parcialmente.",
+                UPLOAD_ERR_NO_FILE    => "No se seleccionó ningún archivo.",
+                UPLOAD_ERR_NO_TMP_DIR => "Falta la carpeta temporal en el servidor.",
+                UPLOAD_ERR_CANT_WRITE => "No se pudo escribir el archivo en el disco.",
+            ];
+            return self::error($errorCodes[$file['error'] ?? -1] ?? "Error al subir el archivo.");
+        }
+
+        $destDir = self::BACKUP_DIR;
+        if (!is_dir($destDir)) {
+            if (!mkdir($destDir, 0750, true)) {
+                return self::error("No se pudo crear el directorio de respaldos.");
+            }
+        }
+
+        $origName = basename($file['name']);
+        $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+
+        if ($ext !== 'sql') {
+            return self::error("Solo se permiten archivos con extensión .sql");
+        }
+
+        $cleanBase = preg_replace('/[^a-zA-Z0-9_\-]/', '_', pathinfo($origName, PATHINFO_FILENAME));
+        if (!str_starts_with($cleanBase, 'backup_')) {
+            $cleanBase = 'backup_' . $cleanBase;
+        }
+        $timestamp = date('Y-m-d_His');
+        $filename = "{$cleanBase}_{$timestamp}.sql";
+        $targetPath = $destDir . DIRECTORY_SEPARATOR . $filename;
+
+        if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+            return self::error("No se pudo guardar el archivo en el almacén de respaldos.");
+        }
+
+        return [
+            'success'  => true,
+            'filename' => $filename,
+            'message'  => "Archivo '$origName' subido exitosamente."
+        ];
+    }
+
     public static function eliminarRespaldo(string $filename): array
     {
-
         if (!preg_match('/^backup_[\w\-]+\.sql$/', $filename)) {
             return self::error("Nombre de archivo inválido.");
         }
@@ -178,12 +265,21 @@ class BackupHelper
 
     public static function restaurarRespaldo(string $filename): array
     {
-
         $database = null;
-        foreach (self::ALLOWED_DBS as $dbName) {
-            if (strpos($filename, "backup_{$dbName}_") === 0) {
+        $allowed = self::getAllowedDbs();
+
+        foreach ($allowed as $dbName) {
+            if (str_starts_with($filename, "backup_{$dbName}_") || str_starts_with($filename, "backup_{$dbName}.")) {
                 $database = $dbName;
                 break;
+            }
+        }
+
+        if ($database === null) {
+            if (str_contains($filename, 'sistema')) {
+                $database = $_ENV['DB_NAME_SYSTEM'] ?? 'goobv-sistema';
+            } elseif (str_contains($filename, 'usuario')) {
+                $database = $_ENV['DB_NAME_USER'] ?? 'goobv-usuarios';
             }
         }
 
@@ -198,7 +294,7 @@ class BackupHelper
 
         $mysqlBin = self::detectarMysql();
         if ($mysqlBin === null) {
-            return self::error("El ejecutable 'mysql' no fue encontrado. Instale mysql-client.");
+            return self::error("El ejecutable 'mysql' no fue encontrado. Verifique la instalación de MySQL.");
         }
 
         if (!isset($_ENV['DB_USER']) && class_exists(\Dotenv\Dotenv::class)) {
@@ -214,12 +310,17 @@ class BackupHelper
             return self::error("Credenciales de base de datos no definidas.");
         }
 
+        $passArg = ($pass !== '') ? ' --password=' . escapeshellarg($pass) : '';
+        $binEscaped = (str_starts_with($mysqlBin, 'docker') || str_starts_with($mysqlBin, 'podman'))
+            ? $mysqlBin
+            : '"' . $mysqlBin . '"';
+
         $command = sprintf(
-            '%s --host=%s --user=%s --password=%s %s < %s 2>&1',
-            $mysqlBin,
+            '%s --host=%s --user=%s%s %s < %s 2>&1',
+            $binEscaped,
             escapeshellarg($host),
             escapeshellarg($user),
-            escapeshellarg($pass),
+            $passArg,
             escapeshellarg($database),
             escapeshellarg($filepath)
         );
@@ -244,19 +345,25 @@ class BackupHelper
     private static function detectarMysqldump(): ?string
     {
         $candidatos = [
-            'mysqldump',                              
+            'mysqldump',
+            'C:\\xampp\\mysql\\bin\\mysqldump.exe',
+            'C:\\wamp64\\bin\\mysql\\mysql8.0.31\\bin\\mysqldump.exe',
+            'C:\\laragon\\bin\\mysql\\current\\bin\\mysqldump.exe',
             '/usr/bin/mysqldump',
             '/usr/local/bin/mysqldump',
-            '/opt/lampp/bin/mysqldump',               
-            '/Applications/MAMP/Library/bin/mysqldump', 
-            'podman exec codex_mysql_dev mysqldump',  
-            'docker exec codex_mysql_dev mysqldump',  
+            '/opt/lampp/bin/mysqldump',
+            '/Applications/MAMP/Library/bin/mysqldump',
+            'podman exec codex_mysql_dev mysqldump',
+            'docker exec codex_mysql_dev mysqldump',
         ];
 
         foreach ($candidatos as $bin) {
+            if (file_exists($bin)) {
+                return $bin;
+            }
             $output   = [];
             $exitCode = 0;
-            exec($bin . ' --version 2>&1', $output, $exitCode);
+            @exec($bin . ' --version 2>&1', $output, $exitCode);
             if ($exitCode === 0) {
                 return $bin;
             }
@@ -269,6 +376,9 @@ class BackupHelper
     {
         $candidatos = [
             'mysql',
+            'C:\\xampp\\mysql\\bin\\mysql.exe',
+            'C:\\wamp64\\bin\\mysql\\mysql8.0.31\\bin\\mysql.exe',
+            'C:\\laragon\\bin\\mysql\\current\\bin\\mysql.exe',
             '/usr/bin/mysql',
             '/usr/local/bin/mysql',
             '/opt/lampp/bin/mysql',
@@ -278,9 +388,12 @@ class BackupHelper
         ];
 
         foreach ($candidatos as $bin) {
+            if (file_exists($bin)) {
+                return $bin;
+            }
             $output   = [];
             $exitCode = 0;
-            exec($bin . ' --version 2>&1', $output, $exitCode);
+            @exec($bin . ' --version 2>&1', $output, $exitCode);
             if ($exitCode === 0) {
                 return $bin;
             }

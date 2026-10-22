@@ -59,6 +59,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Manejo de modales anidados para modalComprobante
+    const modalComprobanteEl = document.getElementById('modalComprobante');
+    if (modalComprobanteEl) {
+        modalComprobanteEl.addEventListener('show.bs.modal', function () {
+            const detalleModal = document.getElementById('modalDetallePedido');
+            if (detalleModal && detalleModal.classList.contains('show')) {
+                setTimeout(() => {
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    if (backdrops.length > 1) {
+                        backdrops[backdrops.length - 1].style.zIndex = '1058';
+                    }
+                }, 10);
+            }
+        });
+        modalComprobanteEl.addEventListener('hidden.bs.modal', function () {
+            const detalleModal = document.getElementById('modalDetallePedido');
+            if (detalleModal && detalleModal.classList.contains('show')) {
+                document.body.classList.add('modal-open');
+            }
+        });
+    }
 });
 
 async function cargarPedidos() {
@@ -76,8 +98,8 @@ async function cargarPedidos() {
                 
                 // Botones de acción
                 let btnComprobante = '';
-                if (p.metodo_pago === 'Pago Móvil') {
-                    btnComprobante = `<button class="btn btn-sm btn-outline-info" onclick="verComprobante('${p.id_pedido}', '${p.estado}')" title="Ver Comprobante"><i class="fas fa-image"></i></button>`;
+                if (p.comprobante_url || p.metodo_pago === 'Pago Móvil') {
+                    btnComprobante = `<button class="btn btn-sm btn-outline-info" onclick="verComprobante('${p.id_pedido}', '${p.estado}')" title="Ver Comprobante de Pago"><i class="fas fa-image"></i></button>`;
                 }
 
                 const tr = document.createElement('tr');
@@ -176,19 +198,48 @@ async function verDetalle(idPedido, estadoActual) {
                         <!-- INFORMACIÓN DEL CLIENTE Y PEDIDO (compacto) -->
                         <div class="row g-2 mb-3">
                             <div class="col-md-6">
-                                <div class="bg-light p-2 rounded-3">
+                                <div class="bg-light p-2 rounded-3 h-100">
                                     <span class="fw-bold small">${escapeHtml(p.nombre ? p.nombre + ' ' + (p.apellido||'') : 'Mostrador')}</span>
                                     <span class="text-muted small ms-2">${escapeHtml(p.telefono || 'N/A')}</span>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="bg-light p-2 rounded-3 d-flex gap-3 flex-wrap">
+                                <div class="bg-light p-2 rounded-3 h-100 d-flex gap-3 flex-wrap align-items-center">
                                     ${p.id_mesa ? `<span class="small"><span class="text-muted">Mesa:</span> <strong>${p.numero_mesa || p.id_mesa}</strong></span>` : ''}
                                     ${p.metodo_pago ? `<span class="small"><span class="text-muted">Pago:</span> <strong>${escapeHtml(p.metodo_pago)}</strong></span>` : ''}
                                     ${p.referencia ? `<span class="small"><span class="text-muted">Ref:</span> <strong>${escapeHtml(p.referencia)}</strong></span>` : ''}
                                 </div>
                             </div>
                         </div>
+                        
+                        ${p.comprobante_url ? `
+                        <!-- VISTA PREVIA DEL COMPROBANTE -->
+                        <div class="card border border-info border-opacity-25 bg-light mb-3 shadow-sm">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold small text-primary">
+                                        <i class="fas fa-receipt me-1 text-info"></i>Comprobante de Pago Adjunto
+                                    </span>
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 small" onclick="verComprobante('${p.id_pedido}', '${p.estado}')">
+                                        <i class="fas fa-search-plus me-1"></i>Ver grande
+                                    </button>
+                                </div>
+                                <div class="text-center p-2 bg-white rounded border">
+                                    ${p.comprobante_url.toLowerCase().endsWith('.pdf') ? `
+                                        <div class="py-2">
+                                            <i class="fas fa-file-pdf text-danger fa-2x mb-1"></i>
+                                            <div class="small text-muted">Archivo PDF de comprobante</div>
+                                            <a href="${p.comprobante_url.startsWith('http') ? p.comprobante_url : (window.BASE_URL || '').replace(/\/$/, '') + (p.comprobante_url.startsWith('/') ? '' : '/') + p.comprobante_url}" target="_blank" class="btn btn-sm btn-outline-danger mt-1">
+                                                <i class="fas fa-external-link-alt me-1"></i>Abrir PDF
+                                            </a>
+                                        </div>
+                                    ` : `
+                                        <img src="${p.comprobante_url.startsWith('http') ? p.comprobante_url : (window.BASE_URL || '').replace(/\/$/, '') + (p.comprobante_url.startsWith('/') ? '' : '/') + p.comprobante_url}" alt="Comprobante" class="img-fluid rounded" style="max-height: 140px; cursor: pointer; object-fit: contain;" onclick="verComprobante('${p.id_pedido}', '${p.estado}')" title="Clic para ampliar comprobante">
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
                         
                         <!-- PRODUCTOS (compacto) -->
                         <div class="mb-2">
@@ -328,19 +379,44 @@ async function verComprobante(idPedido, estado) {
     Swal.close();
     
     if (res.success && res.url) {
-        document.getElementById('imgComprobante').src = res.url;
-        const btnVerificar = document.getElementById('btnVerificarPago');
+        const cleanBase = (window.BASE_URL || '').replace(/\/$/, '');
+        const fullUrl = res.url.startsWith('http') ? res.url : cleanBase + (res.url.startsWith('/') ? '' : '/') + res.url;
+        const isPdf = res.url.toLowerCase().endsWith('.pdf');
         
+        const container = document.getElementById('comprobanteBody');
+        if (container) {
+            if (isPdf) {
+                container.innerHTML = `
+                    <div class="p-2">
+                        <iframe src="${fullUrl}" style="width: 100%; height: 65vh; border: none;" class="rounded shadow-sm"></iframe>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="comprobante-preview-wrapper p-2 bg-dark bg-opacity-10 rounded d-flex justify-content-center align-items-center" style="min-height: 260px;">
+                        <img src="${fullUrl}" id="imgComprobante" class="img-fluid rounded shadow" alt="Comprobante de Pago" style="max-height: 65vh; object-fit: contain;">
+                    </div>
+                `;
+            }
+        }
+        
+        const btnVerOriginal = document.getElementById('btnVerOriginal');
+        if (btnVerOriginal) {
+            btnVerOriginal.href = fullUrl;
+        }
+
+        const btnVerificar = document.getElementById('btnVerificarPago');
         if (btnVerificar) {
-            if (estado !== 'PAGADO' && estado !== 'ENTREGADO') {
-                btnVerificar.style.display = 'block';
+            if (estado !== 'PAGADO' && estado !== 'ENTREGADO' && estado !== 'CANCELADO') {
+                btnVerificar.style.display = 'inline-block';
                 btnVerificar.dataset.idPedido = idPedido;
             } else {
                 btnVerificar.style.display = 'none';
             }
         }
         
-        const modal = new bootstrap.Modal(document.getElementById('modalComprobante'));
+        const modalEl = document.getElementById('modalComprobante');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
     } else {
         Swal.fire({
