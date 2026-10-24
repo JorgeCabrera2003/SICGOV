@@ -11,7 +11,7 @@
             Gestión de Empleados
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de empleado">
-            <?php if (isset($permisos['empleado']['registrar']) && $permisos['empleado']['registrar'] == 1) { ?>
+            <?php if (($permisosEmpleado['empleado']['registrar'] ?? 0) == 1) { ?>
             <button class="btn btn-primary fw-semibold" id="btnNuevoEmpleado">
                 <i class="fas fa-plus me-2"></i>Nuevo Empleado
             </button>
@@ -27,8 +27,7 @@
                     <thead class="table-light">
                         <tr>
                             <th scope="col">Cédula</th>
-                            <th scope="col">Nombre</th>
-                            <th scope="col">Apellido</th>
+                            <th scope="col">Nombre y Apellido</th>
                             <th scope="col">Cargo</th>
                             <th scope="col">Edad</th>
                             <th scope="col">Acciones</th>
@@ -49,6 +48,6 @@
 
 <!-- Recursos específicos de la página -->
 <script>
-    const permisosDB = <?= isset($permisos) ? json_encode($permisos) : 'null' ?>;
+    const permisosDB = <?= json_encode($permisosEmpleado ?? []) ?>;
 </script>
-<script src="<?= BASE_URL ?>public/assets/js/empleado.js"></script>
+<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/EmpleadoController.js" defer></script>

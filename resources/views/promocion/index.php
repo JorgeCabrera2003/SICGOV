@@ -10,16 +10,21 @@
             Gestión de Promoción
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de promociones">
-            <button class="btn btn-warning text-dark fw-semibold" id="btnNuevaPromocion">
-                <i class="fas fa-plus me-2"></i>Nueva Promoción
-            </button>
+            <?php if (($permisosPromocion['promocion']['registrar'] ?? 0) == 1): ?>
+                <button class="btn btn-warning text-dark fw-semibold" id="btnNuevaPromocion">
+                    <i class="fas fa-plus me-2"></i>Nueva Promoción
+                </button>
+            <?php endif; ?>
         </div>
     </header>
 
     <section class="card shadow-sm border-0">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover align-middle" id="tablaPromocion" style="width:100%">
+                <table class="table table-hover align-middle" id="tablaPromocion"
+                    data-puede-modificar="<?= (($permisosPromocion['promocion']['modificar'] ?? 0) == 1) ? '1' : '0' ?>"
+                    data-puede-eliminar="<?= (($permisosPromocion['promocion']['eliminar'] ?? 0) == 1) ? '1' : '0' ?>"
+                    style="width:100%">
                     <thead class="table-light">
                                 <tr>
                                     <th scope="col">Nombre</th>

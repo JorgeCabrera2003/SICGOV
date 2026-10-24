@@ -7,7 +7,7 @@ $(document).ready(function () {
 });
 
 $(document).on('click', '#btnTurnoForm', async function () {
-  const respuesta = await turno.EnviarFormulario($(this).text());
+  const respuesta = await turno.EnviarFormulario($(this).text().trim());
   if (typeof respuesta?.resultado === 'number' && respuesta.resultado >= 200 && respuesta.resultado < 300) {
     crearDataTable();
   }
@@ -37,11 +37,17 @@ async function crearDataTable() {
 }
 
 async function rellenar(pos, accion) {
+  const acciones = {
+    '0': 'modificar',
+    '1': 'eliminar'
+  };
   const linea = $(pos).closest('tr');
   const tabla = $('#tablaTurno').DataTable();
   const datosFila = tabla.row(linea).data();
-  turno.EditarFormTurno(datosFila, accion);
+  turno.EditarFormTurno(datosFila, acciones[String(accion)] || accion);
 }
 
-$(document).on('click', '.btn-editar', function () { rellenar($(this), $(this).attr('data-accion')); });
-$(document).on('click', '.btn-eliminar', function () { rellenar($(this), $(this).attr('data-accion')); });
+$(document).on('click', '.btn-editar, .btn-eliminar', function (event) {
+  event.preventDefault();
+  rellenar($(this), $(this).attr('data-accion'));
+});
