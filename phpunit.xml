@@ -1,10 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          bootstrap="tests/bootstrap.php"
-         colors="true">
+         colors="true"
+         displayDetailsOnTestsThatTriggerWarnings="true">
     <testsuites>
-        <testsuite name="Tests">
-            <directory>tests</directory>
+        <testsuite name="Smoke">
+            <directory>tests/Smoke</directory>
+        </testsuite>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
         </testsuite>
     </testsuites>
+    <php>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="DB_NAME_SYSTEM" value="goobv-sistema-test" force="true"/>
+        <env name="DB_NAME_USER" value="goobv-usuarios-test" force="true"/>
+    </php>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
 </phpunit>
