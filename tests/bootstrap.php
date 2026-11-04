@@ -9,3 +9,11 @@ if (!defined('BASE_PATH')) {
 if (!defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
 }
+
+if (!defined('BASE_URL')) {
+    define('BASE_URL', 'http://localhost/SICGOV/public/');
+}
+
+// Cargar variables de entorno base respetando overrides de phpunit.xml
+$dotenv = \Dotenv\Dotenv::createImmutable(BASE_PATH);
+$dotenv->safeLoad();

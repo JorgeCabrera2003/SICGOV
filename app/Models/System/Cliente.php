@@ -348,7 +348,7 @@ class Cliente extends Persona
     {
         try {
             $this->LlamarConexion();
-            // Verificar existencia sin transacción
+            
             $stmCheck = $this->LlamarConexion()->prepare(
                 "SELECT c.cedula FROM cliente c WHERE c.cedula = :cedula"
             );

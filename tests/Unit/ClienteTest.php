@@ -55,55 +55,113 @@ class ClienteTest extends TestCase
      */
     public function test_registrar_cliente_con_datos_vacios_lanza_excepcion(): void
     {
-        $cliente = new Cliente();
-
+        // -----------------------------------------------------------------
         // 1. Cédula vacía
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
             $cliente->setCedula('');
-            $this->fail("Se esperaba Exception por cédula vacía.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("La cédula debe tener un prefijo válido", $e->getMessage());
+            $excepcion = $e;
         }
 
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por cédula vacía.");
+        $this->assertStringContainsString("La cédula debe tener un prefijo válido", $excepcion->getMessage());
+
+        // -----------------------------------------------------------------
         // 2. Nombre vacío
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
             $cliente->setNombre('');
-            $this->fail("Se esperaba Exception por nombre vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El nombre es obligatoria", $e->getMessage());
+            $excepcion = $e;
         }
 
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por nombre vacío.");
+        $this->assertStringContainsString("El nombre es obligatoria", $excepcion->getMessage());
+
+        // -----------------------------------------------------------------
         // 3. Apellido vacío
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
             $cliente->setApellido('   ');
-            $this->fail("Se esperaba Exception por apellido vacío.");
         } catch (Exception $e) {
-            $this->assertEquals("El apellido es obligatorio.", $e->getMessage());
+            $excepcion = $e;
         }
 
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por apellido vacío.");
+        $this->assertEquals("El apellido es obligatorio.", $excepcion->getMessage());
+
+        // -----------------------------------------------------------------
         // 4. Fecha de nacimiento vacía
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
             $cliente->setFechaNacimiento('');
-            $this->fail("Se esperaba Exception por fecha de nacimiento vacía.");
         } catch (Exception $e) {
-            $this->assertEquals("La fecha de nacimiento es obligatoria.", $e->getMessage());
+            $excepcion = $e;
         }
 
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por fecha de nacimiento vacía.");
+        $this->assertEquals("La fecha de nacimiento es obligatoria.", $excepcion->getMessage());
+
+        // -----------------------------------------------------------------
         // 5. Dirección vacía
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
             $cliente->setDireccion('');
-            $this->fail("Se esperaba Exception por dirección vacía.");
         } catch (Exception $e) {
-            $this->assertEquals("La dirección es obligatoria.", $e->getMessage());
+            $excepcion = $e;
         }
 
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por dirección vacía.");
+        $this->assertEquals("La dirección es obligatoria.", $excepcion->getMessage());
+
+        // -----------------------------------------------------------------
         // 6. Sexo vacío
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
             $cliente->setSexo('');
-            $this->fail("Se esperaba Exception por sexo vacío.");
         } catch (Exception $e) {
-            $this->assertEquals("El sexo debe ser M (Masculino) o F (Femenino).", $e->getMessage());
+            $excepcion = $e;
         }
+
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por sexo vacío.");
+        $this->assertEquals("El sexo debe ser M (Masculino) o F (Femenino).", $excepcion->getMessage());
     }
 
     /**
@@ -114,33 +172,64 @@ class ClienteTest extends TestCase
      */
     public function test_registrar_cliente_con_datos_incorrectos_falla(): void
     {
-        $cliente = new Cliente();
-
+        // -----------------------------------------------------------------
         // 1. Cédula sin prefijo ni guion
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
             $cliente->setCedula('12345678');
-            $this->fail("Se esperaba Exception por formato de cédula incorrecto.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("prefijo válido", $e->getMessage());
+            $excepcion = $e;
         }
 
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por formato de cédula incorrecto.");
+        $this->assertStringContainsString("prefijo válido", $excepcion->getMessage());
+
+        // -----------------------------------------------------------------
         // 2. Correo con formato inválido
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
             $cliente->setCorreo('correo-invalido-sin-arroba');
-            $this->fail("Se esperaba Exception por correo inválido.");
         } catch (Exception $e) {
-            $this->assertEquals("El formato del correo electrónico no es válido.", $e->getMessage());
+            $excepcion = $e;
         }
 
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por correo inválido.");
+        $this->assertEquals("El formato del correo electrónico no es válido.", $excepcion->getMessage());
+
+        // -----------------------------------------------------------------
         // 3. Fecha de nacimiento futura
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
             $cliente->setFechaNacimiento('2099-12-31');
-            $this->fail("Se esperaba Exception por fecha futura.");
         } catch (Exception $e) {
-            $this->assertEquals("La fecha de nacimiento debe ser anterior a hoy.", $e->getMessage());
+            $excepcion = $e;
         }
 
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por fecha futura.");
+        $this->assertEquals("La fecha de nacimiento debe ser anterior a hoy.", $excepcion->getMessage());
+
+        // -----------------------------------------------------------------
         // 4. Regla de negocio: La cédula ya está registrada como cliente
+        // -----------------------------------------------------------------
+        // Arrange
         $mockPdo = $this->createMock(PDO::class);
         $mockCheckCliente = $this->createMock(PDOStatement::class);
 
@@ -153,13 +242,18 @@ class ClienteTest extends TestCase
         $clienteMock = $this->createClienteMock($mockPdo);
         $this->poblarDatosValidos($clienteMock);
 
+        // Act
         $resultado = $clienteMock->Transaccion(['peticion' => 'registrar']);
 
+        // Assert
         $this->assertEquals(-1, $resultado['estado']);
         $this->assertEquals(400, $resultado['response']['resultado']);
         $this->assertEquals('El cliente ya se encuentra registrado.', $resultado['response']['mensaje']);
 
+        // -----------------------------------------------------------------
         // 5. Error a nivel de BD simulada: correo duplicado (SQLSTATE 23000)
+        // -----------------------------------------------------------------
+        // Arrange
         $mockPdoError = $this->createMock(PDO::class);
         $mockCheckNotFound = $this->createMock(PDOStatement::class);
         $mockStmtInsert = $this->createMock(PDOStatement::class);
@@ -184,8 +278,10 @@ class ClienteTest extends TestCase
         $clienteMockError = $this->createClienteMock($mockPdoError);
         $this->poblarDatosValidos($clienteMockError);
 
+        // Act
         $resultadoError = $clienteMockError->Transaccion(['peticion' => 'registrar']);
 
+        // Assert
         $this->assertEquals(-1, $resultadoError['estado']);
         $this->assertEquals('El correo electrónico ya se encuentra registrado.', $resultadoError['response']['mensaje']);
     }
@@ -197,6 +293,7 @@ class ClienteTest extends TestCase
      */
     public function test_registrar_cliente_con_datos_correctos_registra_exitosamente(): void
     {
+        // Arrange
         $mockPdo = $this->createMock(PDO::class);
         $mockCheckCliente = $this->createMock(PDOStatement::class);
         $mockCheckPersona = $this->createMock(PDOStatement::class);
@@ -240,8 +337,10 @@ class ClienteTest extends TestCase
         $clienteMock = $this->createClienteMock($mockPdo);
         $this->poblarDatosValidos($clienteMock);
 
+        // Act
         $resultado = $clienteMock->Transaccion(['peticion' => 'registrar']);
 
+        // Assert
         $this->assertEquals(1, $resultado['estado']);
         $this->assertEquals(200, $resultado['response']['resultado']);
         $this->assertEquals('Cliente registrado exitosamente.', $resultado['response']['mensaje']);
@@ -258,31 +357,59 @@ class ClienteTest extends TestCase
      */
     public function test_modificar_cliente_con_datos_vacios_lanza_excepcion(): void
     {
-        $cliente = new Cliente();
-
+        // -----------------------------------------------------------------
         // 1. Nombre vacío
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
-            $cliente->setNombre('  ');
-            $this->fail("Se esperaba Exception por nombre vacío.");
+            $cliente->setNombre('');
         } catch (Exception $e) {
-            $this->assertStringContainsString("El nombre es obligatoria", $e->getMessage());
+            $excepcion = $e;
         }
 
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por nombre vacío.");
+        $this->assertStringContainsString("El nombre es obligatoria", $excepcion->getMessage());
+
+        // -----------------------------------------------------------------
         // 2. Apellido vacío
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
             $cliente->setApellido('');
-            $this->fail("Se esperaba Exception por apellido vacío.");
         } catch (Exception $e) {
-            $this->assertEquals("El apellido es obligatorio.", $e->getMessage());
+            $excepcion = $e;
         }
 
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por apellido vacío.");
+        $this->assertEquals("El apellido es obligatorio.", $excepcion->getMessage());
+
+        // -----------------------------------------------------------------
         // 3. Dirección demasiado corta (< 3 caracteres)
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
             $cliente->setDireccion('Av');
-            $this->fail("Se esperaba Exception por dirección demasiado corta.");
         } catch (Exception $e) {
-            $this->assertEquals("La dirección debe tener al menos 3 caracteres.", $e->getMessage());
+            $excepcion = $e;
         }
+
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por dirección demasiado corta.");
+        $this->assertEquals("La dirección debe tener al menos 3 caracteres.", $excepcion->getMessage());
     }
 
     /**
@@ -292,25 +419,46 @@ class ClienteTest extends TestCase
      */
     public function test_modificar_cliente_con_datos_incorrectos_falla(): void
     {
-        $cliente = new Cliente();
-
+        // -----------------------------------------------------------------
         // 1. Nombre con números
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
             $cliente->setNombre('Carlos 123');
-            $this->fail("Se esperaba Exception por números en el nombre.");
         } catch (Exception $e) {
-            $this->assertEquals("El nombre solo puede contener letras y espacios.", $e->getMessage());
+            $excepcion = $e;
         }
 
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por números en el nombre.");
+        $this->assertEquals("El nombre solo puede contener letras y espacios.", $excepcion->getMessage());
+
+        // -----------------------------------------------------------------
         // 2. Estatus no permitido
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
             $cliente->setEstatus(9);
-            $this->fail("Se esperaba Exception por estatus no válido.");
         } catch (Exception $e) {
-            $this->assertEquals("El estatus no es válido.", $e->getMessage());
+            $excepcion = $e;
         }
 
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por estatus no válido.");
+        $this->assertEquals("El estatus no es válido.", $excepcion->getMessage());
+
+        // -----------------------------------------------------------------
         // 3. Conflicto de correo duplicado en la base de datos durante el UPDATE
+        // -----------------------------------------------------------------
+        // Arrange
         $mockPdo = $this->createMock(PDO::class);
         $mockStmt = $this->createMock(PDOStatement::class);
 
@@ -325,8 +473,10 @@ class ClienteTest extends TestCase
         $clienteMock = $this->createClienteMock($mockPdo);
         $this->poblarDatosValidos($clienteMock);
 
+        // Act
         $resultado = $clienteMock->Transaccion(['peticion' => 'actualizar']);
 
+        // Assert
         $this->assertEquals(-1, $resultado['estado']);
         $this->assertEquals('El correo electrónico ya se encuentra registrado a otra persona.', $resultado['response']['mensaje']);
     }
@@ -338,6 +488,7 @@ class ClienteTest extends TestCase
      */
     public function test_modificar_cliente_con_datos_correctos_modifica_exitosamente(): void
     {
+        // Arrange
         $mockPdo = $this->createMock(PDO::class);
         $mockStmt = $this->createMock(PDOStatement::class);
 
@@ -352,8 +503,10 @@ class ClienteTest extends TestCase
         $clienteMock->setNombre('Carlos Alberto');
         $clienteMock->setTelefono('0424-9876543');
 
+        // Act
         $resultado = $clienteMock->Transaccion(['peticion' => 'actualizar']);
 
+        // Assert
         $this->assertEquals(1, $resultado['estado']);
         $this->assertEquals(200, $resultado['response']['resultado']);
         $this->assertEquals('Cliente actualizado exitosamente.', $resultado['response']['mensaje']);
@@ -370,6 +523,7 @@ class ClienteTest extends TestCase
      */
     public function test_eliminar_cliente_con_datos_vacios_retorna_no_encontrado(): void
     {
+        // Arrange
         $mockPdo = $this->createMock(PDO::class);
         $mockStmtCheck = $this->createMock(PDOStatement::class);
 
@@ -387,8 +541,10 @@ class ClienteTest extends TestCase
         $clienteMock = $this->createClienteMock($mockPdo);
         // Sin asignar cédula
 
+        // Act
         $resultado = $clienteMock->Transaccion(['peticion' => 'eliminar']);
 
+        // Assert
         $this->assertEquals(-1, $resultado['estado']);
         $this->assertEquals(404, $resultado['response']['resultado']);
         $this->assertEquals('Registro no encontrado.', $resultado['response']['mensaje']);
@@ -401,16 +557,28 @@ class ClienteTest extends TestCase
      */
     public function test_eliminar_cliente_con_datos_incorrectos_o_error_bd_falla(): void
     {
+        // -----------------------------------------------------------------
         // 1. Cédula con formato no válido dispara excepción en setter
+        // -----------------------------------------------------------------
+        // Arrange
         $cliente = new Cliente();
+        $excepcion = null;
+
+        // Act
         try {
             $cliente->setCedula('CEDULA-FALSA');
-            $this->fail("Se esperaba Exception por cédula inválida.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("prefijo válido", $e->getMessage());
+            $excepcion = $e;
         }
 
-        // 2. Falla en base de datos al actualizar el estatus
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por cédula inválida.");
+        $this->assertStringContainsString("prefijo válido", $excepcion->getMessage());
+
+        // -----------------------------------------------------------------
+        // 2. Falla en base de datos al actualizar el estatus (Rollback)
+        // -----------------------------------------------------------------
+        // Arrange
         $mockPdo = $this->createMock(PDO::class);
         $mockStmtCheck = $this->createMock(PDOStatement::class);
         $mockStmtUpdate = $this->createMock(PDOStatement::class);
@@ -435,8 +603,10 @@ class ClienteTest extends TestCase
         $clienteMock = $this->createClienteMock($mockPdo);
         $clienteMock->setCedula('V-12345678');
 
+        // Act
         $resultado = $clienteMock->Transaccion(['peticion' => 'eliminar']);
 
+        // Assert
         $this->assertEquals(-1, $resultado['estado']);
         $this->assertEquals(500, $resultado['response']['resultado']);
     }
@@ -448,6 +618,7 @@ class ClienteTest extends TestCase
      */
     public function test_eliminar_cliente_con_datos_correctos_elimina_exitosamente(): void
     {
+        // Arrange
         $mockPdo = $this->createMock(PDO::class);
         $mockStmtCheck = $this->createMock(PDOStatement::class);
         $mockStmtUpdate = $this->createMock(PDOStatement::class);
@@ -481,10 +652,47 @@ class ClienteTest extends TestCase
         $clienteMock = $this->createClienteMock($mockPdo);
         $clienteMock->setCedula('V-12345678');
 
+        // Act
         $resultado = $clienteMock->Transaccion(['peticion' => 'eliminar']);
 
+        // Assert
         $this->assertEquals(1, $resultado['estado']);
         $this->assertEquals(200, $resultado['response']['resultado']);
         $this->assertEquals('Cliente eliminado exitosamente.', $resultado['response']['mensaje']);
     }
+
+
+
+
+
+
+    // =========================================================================
+    // 4. CASOS DE PRUEBA: ERROR Y WARNING EN CONSOLA
+    // =========================================================================
+
+    /*
+   
+    public function test_error_en_consola(): void
+    {
+        $cliente = new Cliente();
+        $this->poblarDatosValidos($cliente);
+
+        // Provoca un Error no capturado en la consola de PHPUnit
+        throw new Exception("Error en consola: Fallo crítico no controlado en la prueba de Cliente.");
+    }
+
+   
+    public function test_warning_en_consola(): void
+    {
+        $cliente = new Cliente();
+        $this->poblarDatosValidos($cliente);
+
+        // Provoca un Warning de PHP registrado por PHPUnit
+        trigger_error("Warning en consola: Atributo o configuración de Cliente potencialmente obsoleta o en revisión.", E_USER_WARNING);
+
+        $this->assertEquals('Carlos', $cliente->getNombre());
+    }
+        */
 }
+
+
