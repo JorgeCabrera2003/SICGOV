@@ -168,3 +168,6 @@ coverage/
 coverage-report/
 coverage.xml
 *.coverage
+
+# Archivos de trabajo scratch
+scratch/
