@@ -160,3 +160,11 @@ coverage/
 # NOTA: Mantener los .gitkeep
 # ---------------------------
 !.gitkeep
+
+# ---------------------------
+# Pruebas y Cobertura de Código
+# ---------------------------
+.phpunit.cache/
+coverage-report/
+coverage.xml
+*.coverage
