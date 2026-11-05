@@ -1834,12 +1834,17 @@
                                     "type": "text"
                                 },
                                 {
-                                    "key": "cedula",
-                                    "value": "V-12345678",
+                                    "key": "tipo_doc",
+                                    "value": "V-",
                                     "type": "text"
                                 },
                                 {
-                                    "key": "tipo_registro",
+                                    "key": "cedula_empleado",
+                                    "value": "12345678",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "tipo_marcacion",
                                     "value": "ENTRADA",
                                     "type": "text"
                                 }
