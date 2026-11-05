@@ -167,6 +167,9 @@ coverage/
 .phpunit.cache/
 coverage-report/
 coverage.xml
+phpunit
+phpunit.phar
+.phpunit.cache
 *.coverage
 
 # Archivos de trabajo scratch

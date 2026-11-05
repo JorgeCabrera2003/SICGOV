@@ -15,21 +15,26 @@ use ReflectionClass;
 class PedidoTest extends TestCase
 {
     /**
-     * Inyecta conexiones mock en una instancia de Pedido usando reflexión.
+     * Crea una instancia de Pedido sin invocar su constructor original,
+     * aislando completamente las conexiones de base de datos e inyectando mocks.
      */
-    private function injectConnections(Pedido $pedido, PDO $dbBusiness, ?PDO $dbSecurity = null): void
+    private function createPedidoInstance(?PDO $dbBusiness = null, ?PDO $dbSecurity = null): Pedido
     {
-        $reflection = new ReflectionClass($pedido);
+        $reflection = new ReflectionClass(Pedido::class);
+        /** @var Pedido $pedido */
+        $pedido = $reflection->newInstanceWithoutConstructor();
 
-        $propBusiness = $reflection->getProperty('dbBusiness');
-        $propBusiness->setAccessible(true);
-        $propBusiness->setValue($pedido, $dbBusiness);
+        if ($dbBusiness !== null) {
+            $propBusiness = $reflection->getProperty('dbBusiness');
+            $propBusiness->setValue($pedido, $dbBusiness);
+        }
 
         if ($dbSecurity !== null) {
             $propSecurity = $reflection->getProperty('dbSecurity');
-            $propSecurity->setAccessible(true);
             $propSecurity->setValue($pedido, $dbSecurity);
         }
+
+        return $pedido;
     }
 
     // =========================================================================
@@ -41,7 +46,7 @@ class PedidoTest extends TestCase
      */
     public function test_transaccion_con_peticion_no_valida_lanza_excepcion(): void
     {
-        $pedido = new Pedido();
+        $pedido = $this->createPedidoInstance();
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage("Petición no válida.");
@@ -81,8 +86,7 @@ class PedidoTest extends TestCase
             ->method('prepare')
             ->willReturnOnConsecutiveCalls($mockStmEstado, $mockStmUpdate, $mockStmPrep);
 
-        $pedido = new Pedido();
-        $this->injectConnections($pedido, $mockDb);
+        $pedido = $this->createPedidoInstance($mockDb);
 
         $res = $pedido->Transaccion([
             'peticion' => 'cambiar_estado',
@@ -110,8 +114,7 @@ class PedidoTest extends TestCase
 
         $mockDb->expects($this->once())->method('prepare')->willReturn($mockStmEstado);
 
-        $pedido = new Pedido();
-        $this->injectConnections($pedido, $mockDb);
+        $pedido = $this->createPedidoInstance($mockDb);
 
         $res = $pedido->Transaccion([
             'peticion' => 'cambiar_estado',
@@ -139,8 +142,7 @@ class PedidoTest extends TestCase
         $mockStm1->expects($this->once())->method('fetch')->willReturn(['estado' => 'PAGADO']);
         $mockDb1->expects($this->once())->method('prepare')->willReturn($mockStm1);
 
-        $pedido1 = new Pedido();
-        $this->injectConnections($pedido1, $mockDb1);
+        $pedido1 = $this->createPedidoInstance($mockDb1);
 
         $res1 = $pedido1->Transaccion([
             'peticion' => 'cambiar_estado',
@@ -161,8 +163,7 @@ class PedidoTest extends TestCase
         $mockStm2->expects($this->once())->method('fetch')->willReturn(['estado' => 'CANCELADO']);
         $mockDb2->expects($this->once())->method('prepare')->willReturn($mockStm2);
 
-        $pedido2 = new Pedido();
-        $this->injectConnections($pedido2, $mockDb2);
+        $pedido2 = $this->createPedidoInstance($mockDb2);
 
         $res2 = $pedido2->Transaccion([
             'peticion' => 'cambiar_estado',
@@ -188,8 +189,7 @@ class PedidoTest extends TestCase
         $mockStm->expects($this->once())->method('fetch')->willReturn(['estado' => 'ESTADO_FANTASMA']);
         $mockDb->expects($this->once())->method('prepare')->willReturn($mockStm);
 
-        $pedido = new Pedido();
-        $this->injectConnections($pedido, $mockDb);
+        $pedido = $this->createPedidoInstance($mockDb);
 
         $res = $pedido->Transaccion([
             'peticion' => 'cambiar_estado',
@@ -245,8 +245,7 @@ class PedidoTest extends TestCase
             ->method('prepare')
             ->willReturnOnConsecutiveCalls($mockStmEstado, $mockStmUpdate, $mockStmPrep, $mockStmInfo, $mockStmLiberar);
 
-        $pedido = new Pedido();
-        $this->injectConnections($pedido, $mockDb);
+        $pedido = $this->createPedidoInstance($mockDb);
 
         $res = $pedido->Transaccion([
             'peticion' => 'cambiar_estado',
@@ -293,8 +292,7 @@ class PedidoTest extends TestCase
             ->method('prepare')
             ->willReturnOnConsecutiveCalls($mockStmEstado, $mockStmUpdate, $mockStmPrep, $mockStmInfo);
 
-        $pedido = new Pedido();
-        $this->injectConnections($pedido, $mockDb);
+        $pedido = $this->createPedidoInstance($mockDb);
 
         $res = $pedido->Transaccion([
             'peticion' => 'cambiar_estado',
@@ -322,8 +320,7 @@ class PedidoTest extends TestCase
 
         $mockDbBusiness->expects($this->once())->method('prepare')->willReturn($mockStmPago);
 
-        $pedido = new Pedido();
-        $this->injectConnections($pedido, $mockDbBusiness);
+        $pedido = $this->createPedidoInstance($mockDbBusiness);
 
         $res = $pedido->Transaccion([
             'peticion' => 'obtener_comprobante',
@@ -354,8 +351,7 @@ class PedidoTest extends TestCase
         $mockStmImg->expects($this->once())->method('fetch')->willReturn(['direccion' => 'uploads/pagos/comprobante123.jpg']);
         $mockDbSecurity->expects($this->once())->method('prepare')->willReturn($mockStmImg);
 
-        $pedido = new Pedido();
-        $this->injectConnections($pedido, $mockDbBusiness, $mockDbSecurity);
+        $pedido = $this->createPedidoInstance($mockDbBusiness, $mockDbSecurity);
 
         $res = $pedido->Transaccion([
             'peticion' => 'obtener_comprobante',
@@ -367,7 +363,7 @@ class PedidoTest extends TestCase
     }
 
     // =========================================================================
-    // 5. BÚSQUEDA DE PEDIDO Y DETALLES
+    // 5. BÚSQUEDA Y LISTADOS DE PEDIDOS
     // =========================================================================
 
     /**
@@ -383,8 +379,7 @@ class PedidoTest extends TestCase
 
         $mockDbBusiness->expects($this->once())->method('prepare')->willReturn($mockStm);
 
-        $pedido = new Pedido();
-        $this->injectConnections($pedido, $mockDbBusiness);
+        $pedido = $this->createPedidoInstance($mockDbBusiness);
 
         $res = $pedido->Transaccion([
             'peticion' => 'buscar',
@@ -392,5 +387,29 @@ class PedidoTest extends TestCase
         ]);
 
         $this->assertFalse($res);
+    }
+
+    /**
+     * Prueba el listado de mesas disponibles para asignación en pedidos.
+     */
+    public function test_listar_mesas_disponibles_exitoso(): void
+    {
+        $mockDbBusiness = $this->createMock(PDO::class);
+        $mockStm = $this->createMock(PDOStatement::class);
+
+        $mockStm->expects($this->once())->method('execute')->willReturn(true);
+        $mockStm->expects($this->once())->method('fetchAll')->willReturn([
+            ['id_mesa' => 'MESA001', 'numero_mesa' => 1, 'capacidad' => 4, 'id_area' => 'AREA001'],
+            ['id_mesa' => 'MESA002', 'numero_mesa' => 2, 'capacidad' => 2, 'id_area' => 'AREA001']
+        ]);
+
+        $mockDbBusiness->expects($this->once())->method('prepare')->willReturn($mockStm);
+
+        $pedido = $this->createPedidoInstance($mockDbBusiness);
+        $res = $pedido->Transaccion(['peticion' => 'listar_mesas_disponibles']);
+
+        $this->assertIsArray($res);
+        $this->assertCount(2, $res);
+        $this->assertEquals('MESA001', $res[0]['id_mesa']);
     }
 }

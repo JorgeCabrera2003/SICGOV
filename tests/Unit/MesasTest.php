@@ -221,4 +221,151 @@ class MesasTest extends TestCase
         $this->assertEquals(200, $res['response']['resultado']);
         $this->assertEquals('Estatus de la mesa cambiado exitosamente', $res['response']['mensaje']);
     }
+
+    // =========================================================================
+    // 3. CRUD: REGISTRAR, MODIFICAR, ELIMINAR Y CONSULTAR POR ÁREA
+    // =========================================================================
+
+    /**
+     * Prueba el registro exitoso de una mesa nueva.
+     */
+    public function test_registrar_mesa_con_datos_correctos_registra_exitosamente(): void
+    {
+        $mockPdo = $this->createMock(PDO::class);
+        $mockStm = $this->createMock(PDOStatement::class);
+
+        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
+        $mockPdo->expects($this->once())->method('prepare')->willReturn($mockStm);
+        $mockPdo->expects($this->once())->method('commit')->willReturn(true);
+
+        $mockStm->expects($this->once())->method('execute')->willReturn(true);
+
+        $mesa = $this->createMesasMock($mockPdo);
+        $this->poblarMesaValida($mesa);
+
+        $res = $mesa->Transaccion(['peticion' => 'registrar']);
+
+        $this->assertEquals(1, $res['estado']);
+        $this->assertEquals(200, $res['response']['resultado']);
+        $this->assertEquals("Mesa registrada con éxito", $res['response']['mensaje']);
+    }
+
+    /**
+     * Prueba que al intentar registrar una mesa con ID duplicado retorne código 409.
+     */
+    public function test_registrar_mesa_con_id_duplicado_retorna_409(): void
+    {
+        $mockPdo = $this->createMock(PDO::class);
+        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
+        $mockPdo->expects($this->once())->method('inTransaction')->willReturn(true);
+        $mockPdo->expects($this->once())->method('rollBack')->willReturn(true);
+
+        $pdoException = new PDOException("Duplicate entry 'MESA20261025140000001' for key 'PRIMARY'", 23000);
+        $mockPdo->expects($this->once())->method('prepare')->willThrowException($pdoException);
+
+        $mesa = $this->createMesasMock($mockPdo);
+        $this->poblarMesaValida($mesa);
+
+        $res = $mesa->Transaccion(['peticion' => 'registrar']);
+
+        $this->assertEquals(0, $res['estado']);
+        $this->assertEquals(409, $res['response']['resultado']);
+        $this->assertStringContainsString("El ID de la mesa ya existe", $res['response']['mensaje']);
+    }
+
+    /**
+     * Prueba que ante un error de BD al registrar retorne 500.
+     */
+    public function test_registrar_mesa_con_error_bd_retorna_500(): void
+    {
+        $mockPdo = $this->createMock(PDO::class);
+        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
+        $mockPdo->expects($this->once())->method('inTransaction')->willReturn(true);
+        $mockPdo->expects($this->once())->method('rollBack')->willReturn(true);
+
+        $mockPdo->expects($this->once())->method('prepare')->willThrowException(new PDOException("Error general"));
+
+        $mesa = $this->createMesasMock($mockPdo);
+        $this->poblarMesaValida($mesa);
+
+        $res = $mesa->Transaccion(['peticion' => 'registrar']);
+
+        $this->assertEquals(-1, $res['estado']);
+        $this->assertEquals(500, $res['response']['resultado']);
+    }
+
+    /**
+     * Prueba la modificación exitosa de una mesa.
+     */
+    public function test_modificar_mesa_con_datos_correctos_modifica_exitosamente(): void
+    {
+        $mockPdo = $this->createMock(PDO::class);
+        $mockStm = $this->createMock(PDOStatement::class);
+
+        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
+        $mockPdo->expects($this->once())->method('prepare')->willReturn($mockStm);
+        $mockPdo->expects($this->once())->method('commit')->willReturn(true);
+
+        $mockStm->expects($this->once())->method('execute')->willReturn(true);
+
+        $mesa = $this->createMesasMock($mockPdo);
+        $this->poblarMesaValida($mesa);
+        $mesa->setCapacidad(8);
+
+        $res = $mesa->Transaccion(['peticion' => 'modificar']);
+
+        $this->assertEquals(1, $res['estado']);
+        $this->assertEquals(200, $res['response']['resultado']);
+        $this->assertEquals("Mesa actualizada con éxito", $res['response']['mensaje']);
+    }
+
+    /**
+     * Prueba la eliminación lógica exitosa de una mesa.
+     */
+    public function test_eliminar_mesa_con_datos_correctos_elimina_exitosamente(): void
+    {
+        $mockPdo = $this->createMock(PDO::class);
+        $mockStm = $this->createMock(PDOStatement::class);
+
+        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
+        $mockPdo->expects($this->once())->method('prepare')->willReturn($mockStm);
+        $mockPdo->expects($this->once())->method('commit')->willReturn(true);
+
+        $mockStm->expects($this->once())->method('execute')->willReturn(true);
+
+        $mesa = $this->createMesasMock($mockPdo);
+        $mesa->setIdMesa('MESA20261025140000001');
+
+        $res = $mesa->Transaccion(['peticion' => 'eliminar']);
+
+        $this->assertEquals(1, $res['estado']);
+        $this->assertEquals(200, $res['response']['resultado']);
+        $this->assertEquals("Mesa eliminada con éxito", $res['response']['mensaje']);
+    }
+
+    /**
+     * Prueba la consulta de mesas filtradas por área.
+     */
+    public function test_consultar_mesas_por_area_exitoso(): void
+    {
+        $mockPdo = $this->createMock(PDO::class);
+        $mockStm = $this->createMock(PDOStatement::class);
+
+        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
+        $mockPdo->expects($this->once())->method('prepare')->willReturn($mockStm);
+        $mockPdo->expects($this->once())->method('commit')->willReturn(true);
+
+        $mockStm->expects($this->once())->method('execute')->willReturn(true);
+        $mockStm->expects($this->once())->method('rowCount')->willReturn(1);
+        $mockStm->expects($this->once())->method('fetchAll')->willReturn([
+            ['id_mesa' => 'MESA001', 'numero_mesa' => 1, 'capacidad' => 4, 'estado' => 'DISPONIBLE']
+        ]);
+
+        $mesa = $this->createMesasMock($mockPdo);
+        $res = $mesa->Transaccion(['peticion' => 'consultar_por_area', 'id_area' => 'AREA20261025140000001']);
+
+        $this->assertEquals(1, $res['estado']);
+        $this->assertEquals(200, $res['response']['resultado']);
+        $this->assertCount(1, $res['response']['datos']);
+    }
 }
