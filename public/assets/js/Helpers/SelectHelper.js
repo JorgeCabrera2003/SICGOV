@@ -46,16 +46,16 @@ export async function BuscarValor(id_select, valor, opcion) {
 
 export function FeedbackSelect(input, span, mensaje, estado) {
   $(input).removeClass("is-valid is-invalid");
-  $(span).removeClass("valid-feedback invalid-feedback");
+  $(span)
+    .removeClass("valid-feedback invalid-feedback valid-tooltip invalid-tooltip d-inline-block")
+    .text("")
+    .hide();
 
   if (estado === 1) {
     $(input).addClass("is-valid");
-    $(span).removeClass("valid-feedback invalid-feedback");
-    $(span).text("");
   } else {
     $(input).addClass("is-invalid");
-    $(span).addClass("invalid-tooltip");
-    $(span).text(mensaje);
+    $(span).addClass("invalid-tooltip d-inline-block").text(mensaje).show();
   }
 }
 

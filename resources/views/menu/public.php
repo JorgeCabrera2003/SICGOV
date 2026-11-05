@@ -375,24 +375,46 @@ foreach ($menus as $menuItem) {
             <div class="modal-body p-4">
                 <form id="formCheckout">
                     <div class="row g-4">
-                        <!-- Datos Personales -->
+                        <!-- Datos del Cliente y Entrega -->
                         <div class="col-md-6">
-                            <h6 class="fw-bold mb-3 border-bottom pb-2 text-primary">Tus Datos</h6>
-                            <div class="mb-3">
-                                <label class="form-label">Cédula / Documento <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="cedula" id="chk-cedula" required placeholder="V-12345678">
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Nombre y Apellido <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="nombre" id="chk-nombre" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Teléfono <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="telefono" id="chk-telefono" required>
-                            </div>
+                            <h6 class="fw-bold mb-3 border-bottom pb-2 text-primary">Datos del Pedido</h6>
                             
+                            <?php
+                                $usuarioSesion = $_SESSION['user'] ?? [];
+                                $nombreUsuario = trim(($usuarioSesion['nombre'] ?? '') . ' ' . ($usuarioSesion['apellido'] ?? ''));
+                                if (empty($nombreUsuario)) {
+                                    $nombreUsuario = $usuarioSesion['username'] ?? 'Cliente';
+                                }
+                                $cedulaUsuario = $usuarioSesion['cedula'] ?? '';
+                                $telefonoUsuario = $usuarioSesion['telefono'] ?? '';
+                                $direccionUsuario = $usuarioSesion['direccion'] ?? '';
+                            ?>
+                            
+                            <!-- Tarjeta Informativa del Cliente Logueado -->
+                            <div class="p-3 mb-3 rounded-3 bg-body-tertiary border border-secondary-subtle">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.2rem;">
+                                        <i class="fas fa-user-check"></i>
+                                    </div>
+                                    <div class="overflow-hidden">
+                                        <div class="fw-bold text-body text-truncate"><?= htmlspecialchars($nombreUsuario) ?></div>
+                                        <div class="small text-body-secondary text-truncate">
+                                            <span><i class="fas fa-id-card me-1 text-primary"></i><?= htmlspecialchars($cedulaUsuario ?: 'Sin documento') ?></span>
+                                            <?php if (!empty($telefonoUsuario)): ?>
+                                                <span class="ms-2"><i class="fas fa-phone me-1 text-primary"></i><?= htmlspecialchars($telefonoUsuario) ?></span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Campos ocultos para enviar datos de sesión al backend -->
+                            <input type="hidden" name="cedula" value="<?= htmlspecialchars($cedulaUsuario) ?>">
+                            <input type="hidden" name="nombre" value="<?= htmlspecialchars($nombreUsuario) ?>">
+                            <input type="hidden" name="telefono" value="<?= htmlspecialchars($telefonoUsuario) ?>">
+
                             <div class="mb-3">
-                                <label class="form-label">Tipo de Pedido <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold">Tipo de Pedido <span class="text-danger">*</span></label>
                                 <select class="form-select" name="tipo_pedido" id="chk-tipo-pedido" required>
                                     <option value="DELIVERY">Delivery</option>
                                     <option value="RETIRO">Retiro en el Local</option>
@@ -400,12 +422,9 @@ foreach ($menus as $menuItem) {
                             </div>
 
                             <div class="mb-3" id="box-direccion">
-                                <label class="form-label" id="lbl-direccion">Dirección de Entrega <span class="text-danger">*</span></label>
-                                <textarea class="form-control" name="direccion" id="chk-direccion" rows="2" required></textarea>
-                            </div>
-                            <div class="mb-3" id="box-observacion">
-                                <label class="form-label">Observaciones (Opcional)</label>
-                                <textarea class="form-control" name="observacion" id="chk-observacion" rows="1"></textarea>
+                                <label class="form-label fw-semibold" id="lbl-direccion">Dirección de Entrega <span class="text-danger">*</span></label>
+                                <textarea class="form-control" name="direccion" id="chk-direccion" rows="3" required placeholder="Ingresa tu dirección o lugar de entrega"><?= htmlspecialchars($direccionUsuario) ?></textarea>
+                                <div class="form-text small mt-1 text-body-secondary"><i class="fas fa-map-marker-alt me-1 text-primary"></i>Puedes cambiar tu dirección si estás en otra ubicación.</div>
                             </div>
                         </div>
 
@@ -484,6 +503,99 @@ foreach ($menus as $menuItem) {
 
 
 <style>
+    @keyframes pulse-star {
+        0% { transform: scale(1); opacity: 1; text-shadow: 0 0 0 rgba(217, 119, 6, 0); }
+        50% { transform: scale(1.15); opacity: 0.8; text-shadow: 0 0 15px rgba(217, 119, 6, 0.6); }
+        100% { transform: scale(1); opacity: 1; text-shadow: 0 0 0 rgba(217, 119, 6, 0); }
+    }
+    .pulse-animation {
+        animation: pulse-star 2s infinite ease-in-out;
+    }
+    .promo-card {
+        background-color: var(--bg-tarjetas, #ffffff);
+        border: 1px solid rgba(250, 158, 59, 0.25);
+    }
+    html[data-bs-theme="dark"] .promo-card,
+    body[data-bs-theme="dark"] .promo-card,
+    .dark .promo-card {
+        background-color: #1e2126 !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    }
+
+    /* Cápsula de horario y vigencia con contraste óptimo */
+    .promo-schedule-pill {
+        background-color: rgba(250, 158, 59, 0.12) !important;
+        border: 1px solid rgba(250, 158, 59, 0.35) !important;
+        transition: all 0.3s ease;
+    }
+    .promo-schedule-pill .promo-icon {
+        color: #ea580c !important;
+    }
+    .promo-schedule-pill span {
+        color: #9a3412 !important;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+    }
+
+    /* Adaptación para Modo Oscuro en la cápsula */
+    html[data-bs-theme="dark"] .promo-schedule-pill,
+    body[data-bs-theme="dark"] .promo-schedule-pill,
+    .dark .promo-schedule-pill {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(250, 158, 59, 0.45) !important;
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+    }
+    html[data-bs-theme="dark"] .promo-schedule-pill .promo-icon,
+    body[data-bs-theme="dark"] .promo-schedule-pill .promo-icon,
+    .dark .promo-schedule-pill .promo-icon {
+        color: #fb923c !important;
+    }
+    html[data-bs-theme="dark"] .promo-schedule-pill span,
+    body[data-bs-theme="dark"] .promo-schedule-pill span,
+    .dark .promo-schedule-pill span {
+        color: #ffffff !important;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Botón Comprar Promoción con contraste premium */
+    .promo-card .btn-add-promo {
+        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+        border: 1px solid #ea580c !important;
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.4px;
+        padding: 0.75rem 1.25rem;
+        box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35) !important;
+        transition: all 0.25s ease;
+    }
+    .promo-card .btn-add-promo:hover {
+        background: linear-gradient(135deg, #fb923c 0%, #f97316 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(234, 88, 12, 0.5) !important;
+        color: #ffffff !important;
+    }
+    .promo-card .btn-add-promo i {
+        color: #ffffff !important;
+    }
+
+    /* Lista de productos de la promoción */
+    .promo-card .promo-products-list {
+        background-color: rgba(0, 0, 0, 0.03);
+        border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    html[data-bs-theme="dark"] .promo-card .promo-products-list,
+    body[data-bs-theme="dark"] .promo-card .promo-products-list,
+    .dark .promo-card .promo-products-list {
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    html[data-bs-theme="dark"] .promo-card .promo-products-list li,
+    body[data-bs-theme="dark"] .promo-card .promo-products-list li,
+    .dark .promo-card .promo-products-list li {
+        color: #f8fafc !important;
+    }
+
     /* Scrollbar horizontal personalizado para escritorio */
     .categories-scroll::-webkit-scrollbar {
         height: 8px;
@@ -506,3 +618,8 @@ foreach ($menus as $menuItem) {
     .hover-lift:hover .transition-scale { transform: scale(1.05); }
     .fs-7 { font-size: 0.85rem; }
 </style>
+
+<script>
+    window.promocionesDisponibles = <?= json_encode($promociones ?? [], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
+    window.usuarioLogueado = <?= isset($_SESSION['user']) ? 'true' : 'false' ?>;
+</script>

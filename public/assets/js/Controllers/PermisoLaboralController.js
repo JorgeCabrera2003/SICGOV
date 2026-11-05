@@ -10,6 +10,7 @@ async function Inicializar(){
   await Handler.CargarSelects();
   $('#btnNuevoPermiso').on('click', ()=>{ Handler.Limpiar(); Handler.EditarModal('registrar'); });
   $('#btn-ModalTipos').on('click', ()=>{ $('#modalTipoPermiso').modal('show'); });
+  $(document).on('tipoPermisoActualizado', () => Handler.CargarSelects());
 
   $('#btnPermisoForm').on('click', async function(){
     const res = await Handler.EnviarFormulario($('#btnPermisoForm'));
