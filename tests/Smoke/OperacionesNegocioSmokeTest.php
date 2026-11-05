@@ -9,6 +9,7 @@ use App\Models\System\Pedido;
 use App\Models\System\Promocion;
 use App\Models\Security\Noticia;
 use App\Models\System\Mesas;
+use App\Models\System\Areas;
 use App\Models\System\Menu;
 
 /**
@@ -108,5 +109,18 @@ class OperacionesNegocioSmokeTest extends TestCase
         $resultado = $menuModel->Transaccion(['peticion' => 'listar']);
 
         $this->assertIsArray($resultado, 'El catálogo del menú debe responder con un array de productos.');
+    }
+
+    /**
+     * Humo 7: Comprueba que el módulo de Áreas pueda consultar el catálogo de áreas.
+     */
+    public function test_humo_areas_catalogo_activo(): void
+    {
+        $areasModel = new Areas();
+        $resultado = $areasModel->Transaccion(['peticion' => 'consultar']);
+
+        $this->assertEquals(1, $resultado['estado'] ?? 0, 'La consulta de áreas debe ser exitosa.');
+        $this->assertEquals(200, $resultado['response']['resultado'] ?? 0);
+        $this->assertIsArray($resultado['response']['datos'] ?? null);
     }
 }
