@@ -12,7 +12,7 @@ namespace App\Models\System;
 
 use App\Core\Database;
 use App\Helpers\Helper;
-use APP\Helpers\RegexHelper;
+use App\Helpers\RegexHelper;
 use PhpUnitsOfMeasure\PhysicalQuantity\Volume;
 use PhpUnitsOfMeasure\PhysicalQuantity\Mass;
 use PDO;
