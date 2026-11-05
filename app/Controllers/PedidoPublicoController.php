@@ -50,6 +50,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $referencia = $_POST['referencia'] ?? '';
         $carritoJson = $_POST['carrito'] ?? '';
 
+        // Si faltan datos en POST, usar los datos de la sesión del usuario autenticado
+        if (isset($_SESSION['user'])) {
+            $userSesion = $_SESSION['user'];
+            if (empty($cedula)) {
+                $cedula = $userSesion['cedula'] ?? '';
+            }
+            if (empty($nombre)) {
+                $nombre = trim(($userSesion['nombre'] ?? '') . ' ' . ($userSesion['apellido'] ?? '')) ?: ($userSesion['username'] ?? 'Cliente');
+            }
+            if (empty($telefono)) {
+                $telefono = $userSesion['telefono'] ?? '';
+            }
+            if (empty($direccion) && !empty($userSesion['direccion'])) {
+                $direccion = $userSesion['direccion'];
+            }
+        }
+
         if (empty($cedula) || empty($nombre) || empty($carritoJson)) {
             echo json_encode(['success' => false, 'message' => 'Faltan datos obligatorios (Cédula, Nombre o Carrito).']);
             exit;

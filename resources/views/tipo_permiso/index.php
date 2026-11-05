@@ -11,9 +11,11 @@
             Gestión de Tipos de Permisos
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de tipos de permisos">
-            <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoTipo">
-                <i class="fas fa-plus me-2"></i>Nuevo Tipo de Permiso
-            </button>
+            <?php if (($permisosTipoPermiso['tipo_permiso']['registrar'] ?? 0) == 1): ?>
+                <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoTipo">
+                    <i class="fas fa-plus me-2"></i>Nuevo Tipo de Permiso
+                </button>
+            <?php endif; ?>
         </div>
     </header>
 

@@ -9,16 +9,21 @@
             Gestión de Turnos
         </h1>
         <div class="btn-group" role="group" aria-label="Acciones de turnos">
-            <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoTurno">
-                <i class="fas fa-plus me-2"></i>Nuevo Turno
-            </button>
+            <?php if (($permisosTurno['turno']['registrar'] ?? 0) == 1): ?>
+                <button class="btn btn-warning text-dark fw-semibold" id="btnNuevoTurno">
+                    <i class="fas fa-plus me-2"></i>Nuevo Turno
+                </button>
+            <?php endif; ?>
         </div>
     </header>
 
     <section class="card shadow-sm border-0">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover align-middle" id="tablaTurno" style="width:100%">
+                <table class="table table-hover align-middle" id="tablaTurno"
+                    data-puede-modificar="<?= (($permisosTurno['turno']['modificar'] ?? 0) == 1) ? '1' : '0' ?>"
+                    data-puede-eliminar="<?= (($permisosTurno['turno']['eliminar'] ?? 0) == 1) ? '1' : '0' ?>"
+                    style="width:100%">
                     <thead class="table-light">
                         <tr>
                             <th scope="col">Nombre</th>

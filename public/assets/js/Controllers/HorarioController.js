@@ -1,5 +1,5 @@
-import * as horario from "../Handlers/HorarioHandler.js";
-import * as AjaxHelper from "../Helpers/AjaxHelper.js";
+import * as horario from "../Handlers/HorarioHandler.js?v=20260917-3";
+import * as AjaxHelper from "../Helpers/AjaxHelper.js?v=20260917-3";
 
 // MÓDULO DE HORARIOS
 
@@ -36,6 +36,10 @@ $("#btnHorarioForm").on("click", async function () {
 $("#btnNuevoHorario").on("click", function () {
   horario.LimpiarFormulario();
   horario.EditarModal("registrar");
+});
+
+$('#modalHorario').on('hidden.bs.modal', function () {
+  horario.LimpiarFormulario();
 });
 
 // Botón Turnos - Abre el modal con la LISTA
@@ -245,16 +249,20 @@ async function crearDataTableEmpleados() {
   try {
     const json = await AjaxHelper.enviaAjax(peticion, "?page=Horario");
     if (Array.isArray(json.datos)) {
-      // Agrupar por empleado único
-      const empleadosUnicos = [];
-      const visto = new Set();
-      
+      const empleadosPorCedula = new Map();
+
       json.datos.forEach(item => {
-        if (!visto.has(item.cedula_empleado)) {
-          visto.add(item.cedula_empleado);
-          empleadosUnicos.push(item);
+        if (!empleadosPorCedula.has(item.cedula_empleado)) {
+          empleadosPorCedula.set(item.cedula_empleado, { ...item, turnos: [] });
+        }
+
+        const empleado = empleadosPorCedula.get(item.cedula_empleado);
+        if (item.nombre_turno && !empleado.turnos.some(turno => turno.nombre === item.nombre_turno)) {
+          empleado.turnos.push({ nombre: item.nombre_turno });
         }
       });
+
+      const empleadosUnicos = Array.from(empleadosPorCedula.values());
       
       horario.DataTableEmpleados(empleadosUnicos);
     }
@@ -268,4 +276,11 @@ $(document).on('click', '.btn-ver-horario', function () {
   const cedula = $(this).data('cedula');
   const nombre = $(this).data('nombre');
   horario.cargarHorarioEmpleado(cedula, nombre);
+});
+
+// Editar horario completo desde el listado de empleados
+$(document).on('click', '.btn-editar-horario, .btn-eliminar-horario', function () {
+  const cedula = $(this).data('cedula');
+  const nombre = $(this).data('nombre');
+  horario.editarHorarioEmpleado(cedula, nombre);
 });

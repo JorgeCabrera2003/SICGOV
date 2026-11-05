@@ -42,7 +42,14 @@ if ($type === 'publico') {
                     $asistenciaModel->setTipoMarcacion($_POST['tipo_marcacion'] ?? '');
                     $asistenciaModel->setFecha($fechaHoy);
                     $asistenciaModel->setHora($horaActual);
-                    $asistenciaModel->setEstado($asistenciaModel->calcularEstadoAsistencia($_POST['tipo_marcacion'] ?? '', $horaActual));
+                    $turnoAsignado = $asistenciaModel->obtenerTurnoAsignado();
+                    $asistenciaModel->setEstado($asistenciaModel->calcularEstadoAsistencia(
+                        $_POST['tipo_marcacion'] ?? '',
+                        $horaActual,
+                        $turnoAsignado['hora_inicio'] ?? null,
+                        isset($turnoAsignado['minuto_tolerancia']) ? (int) $turnoAsignado['minuto_tolerancia'] : null,
+                        $turnoAsignado['hora_fin'] ?? null
+                    ));
                     $asistenciaModel->setObservacion($_POST['observacion'] ?? '');
 
                     $json = $asistenciaModel->Transaccion(['peticion' => 'registrar']);
@@ -114,6 +121,10 @@ if ($type === 'publico') {
 }
 
 Helper::verificarSesion();
+$permisosAsistencia = Helper::TraerPermisos('asistencia');
+$tienePermisoAsistencia = static function (string $accion) use ($permisosAsistencia): bool {
+    return ($permisosAsistencia['asistencia'][$accion] ?? 0) == 1;
+};
 
 if (isset($_POST['peticion'])) {
     $json = [
@@ -127,7 +138,7 @@ if (isset($_POST['peticion'])) {
     }
 
     if ($_POST['peticion'] == 'registrar') {
-        $accion_permiso = true;
+        $accion_permiso = $tienePermisoAsistencia('registrar');
 
         if ($accion_permiso) {
             try {
@@ -141,7 +152,14 @@ if (isset($_POST['peticion'])) {
                 $asistenciaModel->setTipoMarcacion($_POST['tipo_marcacion'] ?? '');
                 $asistenciaModel->setFecha($fechaHoy);
                 $asistenciaModel->setHora($horaActual);
-                $asistenciaModel->setEstado($asistenciaModel->calcularEstadoAsistencia($_POST['tipo_marcacion'] ?? '', $horaActual));
+                $turnoAsignado = $asistenciaModel->obtenerTurnoAsignado();
+                $asistenciaModel->setEstado($asistenciaModel->calcularEstadoAsistencia(
+                    $_POST['tipo_marcacion'] ?? '',
+                    $horaActual,
+                    $turnoAsignado['hora_inicio'] ?? null,
+                    isset($turnoAsignado['minuto_tolerancia']) ? (int) $turnoAsignado['minuto_tolerancia'] : null,
+                    $turnoAsignado['hora_fin'] ?? null
+                ));
                 $asistenciaModel->setObservacion($_POST['observacion'] ?? '');
 
                 $json = $asistenciaModel->Transaccion(['peticion' => 'registrar']);
@@ -161,7 +179,13 @@ if (isset($_POST['peticion'])) {
         }
     }
 
-    if ($_POST['peticion'] == 'agregar_observacion') {
+    if ($_POST['peticion'] == 'agregar_observacion' || $_POST['peticion'] == 'eliminar_observacion') {
+        $accion_permiso = $tienePermisoAsistencia($_POST['peticion']);
+
+        if (!$accion_permiso) {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para ' . str_replace('_', ' ', $_POST['peticion'])];
+        } elseif ($_POST['peticion'] == 'agregar_observacion') {
         try {
             $idAsistencia = trim($_POST['id_asistencia'] ?? '');
             $observacion = trim($_POST['observacion'] ?? '');
@@ -174,7 +198,8 @@ if (isset($_POST['peticion'])) {
             }
 
             $asistenciaModel->setIdAsistencia($idAsistencia);
-            $asistenciaModel->setObservacion('- ' . $observacion);
+            // La observación se pasa tal cual, sin el prefijo "- ". El modelo se encarga de formatearla.
+            $asistenciaModel->setObservacion($observacion);
 
             $json = $asistenciaModel->Transaccion(['peticion' => 'agregar_observacion']);
             if (isset($json['estado']) && $json['estado'] == 1) {
@@ -186,22 +211,25 @@ if (isset($_POST['peticion'])) {
                 'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()]
             ];
         }
+        }
     }
 
-    if ($_POST['peticion'] == 'eliminar_observacion') {
+    if ($_POST['peticion'] == 'eliminar_observacion' && $accion_permiso) {
         try {
             $idAsistencia = trim($_POST['id_asistencia'] ?? '');
-            $indice = isset($_POST['indice']) ? (int) $_POST['indice'] : -1;
+            $idObservacion = trim($_POST['id_observacion'] ?? '');
 
             if (empty($idAsistencia)) {
                 throw new Exception('Identificador de asistencia inválido.');
             }
-            if ($indice < 0) {
-                throw new Exception('Índice de observación inválido.');
+            if (empty($idObservacion)) {
+                throw new Exception('Identificador de observación inválido.');
             }
 
             $asistenciaModel->setIdAsistencia($idAsistencia);
-            $asistenciaModel->setIndiceObservacion($indice);
+            // En lugar del índice, ahora pasamos el ID de la observación a eliminar.
+            // Reutilizamos el setter setObservacion para pasar el ID.
+            $asistenciaModel->setObservacion($idObservacion);
 
             $json = $asistenciaModel->Transaccion(['peticion' => 'eliminar_observacion']);
             if (isset($json['estado']) && $json['estado'] == 1) {
@@ -216,7 +244,12 @@ if (isset($_POST['peticion'])) {
     }
 
     if ($_POST['peticion'] == 'consultar' || $_POST['peticion'] == 'consultar_hoy') {
-        $json = $asistenciaModel->Transaccion(['peticion' => $_POST['peticion']]);
+        if ($tienePermisoAsistencia('ver')) {
+            $json = $asistenciaModel->Transaccion(['peticion' => $_POST['peticion']]);
+        } else {
+            $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Acción no autorizada'];
+            $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para consultar asistencias', 'datos' => []];
+        }
     }
 
     header('Content-Type: application/json');
@@ -227,7 +260,17 @@ if (isset($_POST['peticion'])) {
     exit;
 }
 
+if (!$tienePermisoAsistencia('ver')) {
+    header('Location: ' . BASE_URL . '?page=Dashboard');
+    exit;
+}
+
 Helper::cargarVista(
     'asistencia/index',
-    'Asistencia - Good Vibes'
+    'Asistencia - Good Vibes',
+    [
+        'ver' => $permisosAsistencia['asistencia']['ver'] ?? 0,
+        'permisosAsistencia' => $permisosAsistencia,
+        'extra_css' => [BASE_URL . '/assets/css/asistencia.css?v=' . time()]
+    ]
 );

@@ -123,6 +123,15 @@ class Noticia extends Database
 
     // GETTERS
     public function getId() { return $this->id_noticia; }
+    public function getCedula() { return $this->cedula; }
+    public function getTitulo() { return $this->titulo; }
+    public function getSubtitulo() { return $this->subtitulo; }
+    public function getContenido() { return $this->contenido; }
+    public function getTipo() { return $this->tipo; }
+    public function getFechaPublicacion() { return $this->fecha_publicacion; }
+    public function getEstatus() { return $this->estatus; }
+    public function getImagenes() { return $this->imagenes; }
+    public function getImagenesGaleria() { return $this->imagenes_galeria; }
 
     // MANEJADOR DE OPERACIONES
     public function Transaccion($peticion)
@@ -336,7 +345,7 @@ class Noticia extends Database
                 $this->LlamarConexion()->beginTransaction();
                 $sql = "UPDATE noticia SET estatus = 0 WHERE id_noticia = :id_noticia";
                 $stm = $this->LlamarConexion()->prepare($sql);
-                $stm->bindParam('id_noticia', $this->id_noticia);
+                $stm->bindParam(':id_noticia', $this->id_noticia);
                 $stm->execute();
                 
                 $this->LlamarConexion()->commit();
@@ -344,7 +353,7 @@ class Noticia extends Database
                 $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => "La noticia ha sido eliminada"];
                 $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
             } catch (\PDOException $e) {
-                $this->LlamarConexion()->rollBack();
+                if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
                 Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
                 $dato['estado'] = -1;
                 $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor"];
@@ -397,7 +406,7 @@ class Noticia extends Database
             $dato['response'] = ['resultado' => 200, 'registro' => $arreglo];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
         } catch (\PDOException $e) {
-            $this->LlamarConexion()->rollBack();
+            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
             $dato['bool'] = -1;
             $dato['estado'] = -1;
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
@@ -518,12 +527,12 @@ class Noticia extends Database
                 $dato['resultado'] = 200;
                 $dato['mensaje'] = "Imagen desvinculada de la noticia correctamente";
             } else {
-                $this->LlamarConexion()->rollBack();
+                if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
                 $dato['resultado'] = 404;
                 $dato['mensaje'] = "Imagen no encontrada";
             }
         } catch (\PDOException $e) {
-            $this->LlamarConexion()->rollBack();
+            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
             Helper::ErrorLog("Error desvinculando imagen: " . $e->getMessage());
             $dato['resultado'] = 500;
             $dato['mensaje'] = "Error interno";
@@ -556,12 +565,12 @@ class Noticia extends Database
                 $dato['resultado'] = 200;
                 $dato['mensaje'] = "Imagen principal actualizada";
             } else {
-                $this->LlamarConexion()->rollBack();
+                if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
                 $dato['resultado'] = 404;
                 $dato['mensaje'] = "Imagen no encontrada";
             }
         } catch (\PDOException $e) {
-            $this->LlamarConexion()->rollBack();
+            if ($this->LlamarConexion()->inTransaction()) $this->LlamarConexion()->rollBack();
             Helper::ErrorLog("Error marcando principal: " . $e->getMessage());
             $dato['resultado'] = 500;
             $dato['mensaje'] = "Error interno";

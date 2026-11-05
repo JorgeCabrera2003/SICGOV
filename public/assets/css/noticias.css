@@ -313,16 +313,22 @@
     letter-spacing: 0.5px;
 }
 
+.dark #tablaPapelera thead th,
+[data-bs-theme="dark"] #tablaPapelera thead th,
 body.dark-mode #tablaPapelera thead th {
-    background-color: #2c2c2c;
-    color: #e0e0e0;
-    border-bottom: 1px solid #444;
+    background-color: #111522;
+    color: #F8FAFC;
+    border-bottom: 2px solid var(--color-acento);
 }
 
+.dark #tablaPapelera,
+[data-bs-theme="dark"] #tablaPapelera,
 body.dark-mode #tablaPapelera {
-    color: #e0e0e0;
+    color: #E2E8F0;
 }
 
+.dark #tablaPapelera .badge.bg-warning,
+[data-bs-theme="dark"] #tablaPapelera .badge.bg-warning,
 body.dark-mode #tablaPapelera .badge.bg-warning {
     background-color: #ffc107 !important;
     color: #000 !important;

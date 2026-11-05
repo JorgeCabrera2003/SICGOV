@@ -33,7 +33,7 @@ CREATE TABLE `modulo` (
 
 CREATE TABLE `imagen` (
   `id_imagen` varchar(30) NOT NULL,
-  `entidad_tipo` enum('USUARIO','NOTICIA','PRODUCTO','CATEGORIA','PROMOCION') NOT NULL COMMENT 'Tipo de entidad a la que pertenece la imagen',
+  `entidad_tipo` enum('USUARIO','NOTICIA','PRODUCTO','CATEGORIA','PROMOCION','PAGO') NOT NULL COMMENT 'Tipo de entidad a la que pertenece la imagen',
   `entidad_id` varchar(30) NOT NULL COMMENT 'ID de la entidad relacionada',
   `direccion` varchar(255) NOT NULL COMMENT 'Ruta o URL de la imagen',
   `orden` int(11) DEFAULT 1 COMMENT 'Orden de visualización',
