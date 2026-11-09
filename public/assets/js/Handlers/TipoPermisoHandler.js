@@ -219,7 +219,8 @@ export async function EnviarFormulario(etiqueta_boton, modulo = "TipoPermiso") {
   }
   const DEFAULT = null
 
-  accion = MANEJADOR[etiqueta_boton.text()] || DEFAULT
+  const textoBoton = typeof etiqueta_boton === 'string' ? etiqueta_boton : etiqueta_boton.text();
+  accion = MANEJADOR[String(textoBoton).trim()] || DEFAULT
 
   if (accion != null) {
     respuesta = await EnviarDatos(accion, modulo);
@@ -259,12 +260,14 @@ export function ValidarEnvio() {
 
 async function VistaPermiso(modulo = "TipoPermiso") {
   const permisos = await PermisoHelper.LlamarPermiso("tipo_permiso");
+  const puedeModificar = permisos['tipo_permiso']['modificar'] == 1;
+  const puedeEliminar = permisos['tipo_permiso']['eliminar'] == 1;
   let bool = false;
   let btn_eliminar = "";
   let btn_modificar = "";
   let separadorHTML = "";
 
-  if (permisos['tipo_permiso']['modificar'] != undefined && permisos['tipo_permiso']['modificar'] == 1) {
+  if (puedeModificar) {
     const itemEditar = $('<li>');
     const linkEditar = $('<a>')
       .addClass('dropdown-item btn-editar text-primary')
@@ -277,7 +280,7 @@ async function VistaPermiso(modulo = "TipoPermiso") {
     bool = true;
   }
 
-  if (permisos['tipo_permiso']['eliminar'] != undefined && permisos['tipo_permiso']['modificar'] == 1) {
+  if (puedeEliminar) {
     const itemEliminar = $('<li>');
     const linkEliminar = $('<a>')
       .addClass('dropdown-item btn-eliminar text-danger')

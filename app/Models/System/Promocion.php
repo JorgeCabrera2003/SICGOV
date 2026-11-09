@@ -101,7 +101,8 @@ class Promocion extends Database
     }
 
     public function setImagen(?string $imagen) {
-        $this->imagen = !empty($imagen) ? trim($imagen) : null;
+        $trimmed = ($imagen !== null) ? trim($imagen) : '';
+        $this->imagen = ($trimmed !== '') ? $trimmed : null;
     }
     //FIN SETTERS
 

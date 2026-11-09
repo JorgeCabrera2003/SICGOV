@@ -167,4 +167,14 @@ coverage/
 .phpunit.cache/
 coverage-report/
 coverage.xml
+<<<<<<< HEAD
 *.coverage
+=======
+phpunit
+phpunit.phar
+.phpunit.cache
+*.coverage
+
+# Archivos de trabajo scratch
+scratch/
+>>>>>>> b381f00e5af9268c4d53c967f32e1af626ee4d1b

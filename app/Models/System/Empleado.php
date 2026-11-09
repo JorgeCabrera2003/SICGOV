@@ -51,7 +51,7 @@ class Empleado extends Persona
         if (isset($peticion['peticion'])) {
             $response = match ($peticion['peticion']) {
                 'registrar'       => $this->RegistrarEmpleado(),
-                'consultar'       => $this->ConsultarEmpleado(),
+                'consultar'       => $this->ConsultarEmpleado($peticion['solo_sin_horario'] ?? false),
                 'actualizar', 'modificar' => $this->ModificarEmpleado(),
                 'eliminar'        => $this->EliminarEmpleado(),
                 'verificar_cedula'=> $this->verificarCedulaExiste(),
@@ -77,7 +77,7 @@ class Empleado extends Persona
 
 
 
-    private function ConsultarEmpleado()
+    private function ConsultarEmpleado($soloSinHorario = false)
     {
         try {
             $db = $this->LlamarConexion();
@@ -87,8 +87,17 @@ class Empleado extends Persona
                     FROM empleado e 
                     INNER JOIN persona p ON e.cedula = p.cedula
                     LEFT JOIN cargo c ON e.id_cargo = c.id_cargo
-                    WHERE e.estatus = 1
-                    ORDER BY p.nombre ASC";
+                    WHERE e.estatus = 1";
+
+            if ($soloSinHorario) {
+                $sql .= " AND NOT EXISTS (
+                              SELECT 1
+                              FROM planificador_turno pt
+                              WHERE pt.cedula_empleado = e.cedula
+                          )";
+            }
+
+            $sql .= " ORDER BY p.nombre ASC";
                     
             $stm = $db->prepare($sql);
             $stm->execute();

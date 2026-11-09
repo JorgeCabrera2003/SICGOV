@@ -51,7 +51,28 @@ class Pedido
                 LEFT JOIN metodo_pago mp ON pag.id_metodo_pago = mp.id_metodo_pago
                 ORDER BY p.numero_pedido DESC";
         $stmt = $this->dbBusiness->query($sql);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $pedidos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!empty($pedidos)) {
+            $pagosIds = array_filter(array_column($pedidos, 'id_pago'));
+            if (!empty($pagosIds)) {
+                $placeholders = implode(',', array_fill(0, count($pagosIds), '?'));
+                $stmtImg = $this->dbSecurity->prepare("SELECT entidad_id, direccion FROM imagen WHERE entidad_tipo = 'PAGO' AND entidad_id IN ($placeholders)");
+                $stmtImg->execute(array_values($pagosIds));
+                $imagenes = $stmtImg->fetchAll(PDO::FETCH_KEY_PAIR);
+                
+                foreach ($pedidos as &$ped) {
+                    $pId = $ped['id_pago'] ?? null;
+                    if ($pId && isset($imagenes[$pId])) {
+                        $ped['comprobante_url'] = $imagenes[$pId];
+                    } else {
+                        $ped['comprobante_url'] = null;
+                    }
+                }
+            }
+        }
+
+        return $pedidos;
     }
 
     private function buscarPedido($id_pedido)
@@ -79,6 +100,24 @@ class Pedido
             $stmtDet = $this->dbBusiness->prepare($sqlDetalle);
             $stmtDet->execute([$id_pedido]);
             $pedido['detalles'] = $stmtDet->fetchAll(PDO::FETCH_ASSOC);
+
+            // Obtener comprobante si existe
+            $pedido['comprobante_url'] = null;
+            if (!empty($pedido['id_pago'])) {
+                $stmtImg = $this->dbSecurity->prepare("SELECT direccion FROM imagen WHERE entidad_tipo = 'PAGO' AND (entidad_id = ? OR entidad_id = ?) LIMIT 1");
+                $stmtImg->execute([$pedido['id_pago'], $id_pedido]);
+                $imagen = $stmtImg->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$imagen) {
+                    $stmtImg = $this->dbSecurity->prepare("SELECT direccion FROM imagen WHERE entidad_id = ? OR entidad_id = ? LIMIT 1");
+                    $stmtImg->execute([$pedido['id_pago'], $id_pedido]);
+                    $imagen = $stmtImg->fetch(PDO::FETCH_ASSOC);
+                }
+
+                if ($imagen && !empty($imagen['direccion'])) {
+                    $pedido['comprobante_url'] = $imagen['direccion'];
+                }
+            }
         }
 
         return $pedido;
@@ -188,7 +227,6 @@ class Pedido
 
     private function obtenerComprobante($id_pedido)
     {
-        
         $stmt = $this->dbBusiness->prepare("SELECT id_pago FROM pago WHERE id_pedido = ?");
         $stmt->execute([$id_pedido]);
         $pago = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -197,12 +235,17 @@ class Pedido
             return ['success' => false, 'message' => 'No hay pago registrado para este pedido.'];
         }
 
-        
-        $stmtImg = $this->dbSecurity->prepare("SELECT direccion FROM imagen WHERE entidad_tipo = 'PAGO' AND entidad_id = ?");
-        $stmtImg->execute([$pago['id_pago']]);
+        $stmtImg = $this->dbSecurity->prepare("SELECT direccion FROM imagen WHERE entidad_tipo = 'PAGO' AND (entidad_id = ? OR entidad_id = ?) LIMIT 1");
+        $stmtImg->execute([$pago['id_pago'], $id_pedido]);
         $imagen = $stmtImg->fetch(PDO::FETCH_ASSOC);
 
-        if ($imagen) {
+        if (!$imagen) {
+            $stmtFallback = $this->dbSecurity->prepare("SELECT direccion FROM imagen WHERE entidad_id = ? OR entidad_id = ? LIMIT 1");
+            $stmtFallback->execute([$pago['id_pago'], $id_pedido]);
+            $imagen = $stmtFallback->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if ($imagen && !empty($imagen['direccion'])) {
             return ['success' => true, 'url' => $imagen['direccion']];
         }
 
