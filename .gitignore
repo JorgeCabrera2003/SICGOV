@@ -171,3 +171,4 @@ coverage.xml
 
 # Archivos de trabajo scratch
 scratch/
+chromedriver.exe

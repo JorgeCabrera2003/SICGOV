@@ -1,0 +1,11 @@
+actor: AcceptanceTester
+modules:
+    enabled:
+        - WebDriver:
+            url: 'http://localhost:8081'
+            browser: chrome
+            host: 127.0.0.1
+            port: 4444
+            path: ''
+            window_size: maximize
+        - Tests\Support\Helper\Acceptance

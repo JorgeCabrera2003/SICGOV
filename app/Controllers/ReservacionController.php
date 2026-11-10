@@ -205,69 +205,86 @@ if (isset($_POST['peticion'])) {
     exit;
 }
 
-$vista = $esPublico ? 'reservar/index' : 'reservaciones/index';
-$titulo = $esPublico ? 'Mis Reservaciones' : 'Gestión de Reservaciones';
-
 $mesasModel = new Mesas();
 $mesasList = $mesasModel->Transaccion(['peticion' => 'consultar']);
 
-Helper::cargarVista($vista, $titulo, [
-    'hideSidebar' => $esPublico,
-    'clientes' => $esPublico ? [] : $resModel->ObtenerClientes(),
-    'mesas' => ($mesasList['estado'] == 1) ? $mesasList['response']['datos'] : [],
-    'extra_css' => [
-        'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css',
-        'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css',
-        BASE_URL . '/assets/css/reservaciones.css'
-    ],
-    'extra_js' => [
-        'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js',
-        'https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/es.global.min.js',
-        'https://cdn.jsdelivr.net/npm/flatpickr',
-        'https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js'
-    ],
-    'extra_js_inline_module' => '
-        import * as handler from "' . BASE_URL . '/assets/js/Handlers/ReservacionHandler.js?v=' . time() . '";
-        
-        document.addEventListener("DOMContentLoaded", function() {
-            const $ = window.$;
-            const calendarEl = document.getElementById("calendarPublico");
-            if (!calendarEl) return;
+$extra_css = [
+    'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css',
+    'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css',
+    BASE_URL . '/assets/css/reservaciones.css'
+];
 
-            const pickers = handler.inicializarPickers();
-            const $selectCliente = $("#cedula_cliente");
-            if ($selectCliente.length) {
-                $selectCliente.select2({
-                    theme: "bootstrap-5",
-                    dropdownParent: $("#modalReservacion"),
-                    placeholder: "Seleccione un cliente",
-                    width: "100%",
-                    templateResult: handler.formatarEstadoCliente,
-                    templateSelection: handler.formatarEstadoCliente
-                });
-            }
+$extra_js = [
+    'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js',
+    'https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/es.global.min.js',
+    'https://cdn.jsdelivr.net/npm/flatpickr',
+    'https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/es.js'
+];
 
-            const calendar = handler.inicializarCalendario(calendarEl, pickers);
-            const esPublico = window.location.search.includes("type=publico");
-            if (!esPublico) {
-                calendar.setOption("editable", true);
-                calendar.setOption("eventResizableFromStart", true);
-            }
+$extra_js_inline_module = '
+    import * as handler from "' . BASE_URL . '/assets/js/Handlers/ReservacionHandler.js?v=' . time() . '";
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        const $ = window.$;
+        const calendarEl = document.getElementById("calendarPublico");
+        if (!calendarEl) return;
 
-            $("#formReservacion, #formReservarPublico").on("submit", function(e) {
-                e.preventDefault();
-                handler.GestionarEnvio(this, calendar);
+        const pickers = handler.inicializarPickers();
+        const $selectCliente = $("#cedula_cliente");
+        if ($selectCliente.length) {
+            $selectCliente.select2({
+                theme: "bootstrap-5",
+                dropdownParent: $("#modalReservacion"),
+                placeholder: "Seleccione un cliente",
+                width: "100%",
+                templateResult: handler.formatarEstadoCliente,
+                templateSelection: handler.formatarEstadoCliente
             });
+        }
 
-            $("#btnEliminar").on("click", function() {
-                const id = $("#id_reservacion").val();
-                handler.EliminarReservacion(id, calendar);
-            });
+        const calendar = handler.inicializarCalendario(calendarEl, pickers);
+        const esPublico = window.location.search.includes("type=publico");
+        if (!esPublico) {
+            calendar.setOption("editable", true);
+            calendar.setOption("eventResizableFromStart", true);
+        }
 
-            $("#btnNuevaReservacion, #btnNuevaReservacionMobile").on("click", function() {
-                const hoy = new Date().toISOString().split("T")[0];
-                calendar.select(hoy);
-            });
+        $("#formReservacion, #formReservarPublico").on("submit", function(e) {
+            e.preventDefault();
+            handler.GestionarEnvio(this, calendar);
         });
-    '
+
+        $("#btnEliminar").on("click", function() {
+            const id = $("#id_reservacion").val();
+            handler.EliminarReservacion(id, calendar);
+        });
+
+        $("#btnNuevaReservacion, #btnNuevaReservacionMobile").on("click", function() {
+            const hoy = new Date().toISOString().split("T")[0];
+            calendar.select(hoy);
+        });
+    });
+';
+
+if ($esPublico) {
+    $page = 'reservar';
+    $titulo = 'Reservar Mesa - Good Vibes';
+    $hideSidebar = true;
+    $mesas = ($mesasList['estado'] == 1) ? $mesasList['response']['datos'] : [];
+
+    require_once BASE_PATH . '/resources/views/layout/head.php';
+    require_once BASE_PATH . '/resources/views/layout/menu.php';
+    require_once BASE_PATH . '/resources/views/reservar/index.php';
+    echo '</div></main>';
+    require_once BASE_PATH . '/resources/views/layout/footer.php';
+    exit;
+}
+
+Helper::cargarVista('reservaciones/index', 'Gestión de Reservaciones', [
+    'hideSidebar' => false,
+    'clientes' => $resModel->ObtenerClientes(),
+    'mesas' => ($mesasList['estado'] == 1) ? $mesasList['response']['datos'] : [],
+    'extra_css' => $extra_css,
+    'extra_js' => $extra_js,
+    'extra_js_inline_module' => $extra_js_inline_module
 ]);

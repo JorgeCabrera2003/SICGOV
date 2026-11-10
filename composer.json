@@ -24,7 +24,8 @@
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
-        "phpunit/phpunit": "^11.5"
+        "phpunit/phpunit": "^11.5",
+        "codeception/module-webdriver": "^4.0"
     },
     "config": {
         "optimize-autoloader": true
