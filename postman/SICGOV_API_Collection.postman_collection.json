@@ -35,8 +35,11 @@
                     "        }",
                     "    }, function (err, res) {",
                     "        if (!err && res) {",
-                    "            var cookie = res.cookies.get('PHPSESSID');",
+                    "            var setCookie = res.headers.get('set-cookie') || '';",
+                    "            var match = setCookie.match(/PHPSESSID=([^;]+)/);",
+                    "            var cookie = match ? match[1] : (res.cookies ? res.cookies.get('PHPSESSID') : null);",
                     "            if (cookie) {",
+                    "                pm.environment.set('cookie_session', cookie);",
                     "                pm.collectionVariables.set('cookie_session', cookie);",
                     "                pm.request.headers.upsert({ key: 'Cookie', value: 'PHPSESSID=' + cookie });",
                     "            }",
@@ -54,8 +57,33 @@
             "type": "string"
         },
         {
-            "key": "cookie_session",
-            "value": "",
+            "key": "target_id_producto",
+            "value": "PROD202606111134584244",
+            "type": "string"
+        },
+        {
+            "key": "target_id_insumo",
+            "value": "INGR000120260611",
+            "type": "string"
+        },
+        {
+            "key": "target_id_rol",
+            "value": "ADMIN00120251001",
+            "type": "string"
+        },
+        {
+            "key": "test_user_cedula",
+            "value": "V-12345677",
+            "type": "string"
+        },
+        {
+            "key": "test_cedula_empleado",
+            "value": "V-12345678",
+            "type": "string"
+        },
+        {
+            "key": "target_id_pedido",
+            "value": "PED20260917130617145",
             "type": "string"
         }
     ],
@@ -71,21 +99,19 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 302, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK o Redirección 302', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
                                     "});",
                                     "var sessionCookie = pm.cookies.get('PHPSESSID');",
                                     "if (sessionCookie) {",
                                     "    pm.environment.set('cookie_session', sessionCookie);",
                                     "    pm.collectionVariables.set('cookie_session', sessionCookie);",
-                                    "    console.log('Sesión PHPSESSID guardada automáticamente: ' + sessionCookie);",
+                                    "    console.log('Sesión PHPSESSID guardada exitosamente: ' + sessionCookie);",
                                     "}",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Autenticación procesada correctamente', function () {",
+                                    "    var bodyText = pm.response.text();",
+                                    "    pm.expect(bodyText).to.not.include('Credenciales incorrectas');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -152,15 +178,15 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
+                                    "pm.test('Verificación de cédula procesada', function () {",
+                                    "    if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
                                     "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "        pm.expect(jsonData).to.have.any.keys('resultado', 'existe', 'mensaje');",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -217,17 +243,28 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK o respuesta procesada', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400]);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
+                                    "pm.test('Registro de cuenta externa procesado', function () {",
+                                    "    if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
                                     "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "        pm.expect(jsonData).to.have.any.keys('resultado', 'icon', 'mensaje');",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var randomCi = Math.floor(10000000 + Math.random() * 89999999);",
+                                    "pm.collectionVariables.set('temp_reg_ci', randomCi.toString());",
+                                    "pm.collectionVariables.set('temp_reg_user', 'user_' + randomCi);"
+                                ]
                             }
                         }
                     ],
@@ -272,7 +309,7 @@
                                 },
                                 {
                                     "key": "cedula",
-                                    "value": "28111222",
+                                    "value": "{{temp_reg_ci}}",
                                     "type": "text"
                                 },
                                 {
@@ -312,7 +349,7 @@
                                 },
                                 {
                                     "key": "username",
-                                    "value": "usuarioprueba",
+                                    "value": "{{temp_reg_user}}",
                                     "type": "text"
                                 },
                                 {
@@ -335,66 +372,15 @@
                     }
                 },
                 {
-                    "name": "Cerrar Sesión (Logout)",
-                    "event": [
-                        {
-                            "listen": "test",
-                            "script": {
-                                "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
-                                    "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
-                                ],
-                                "type": "text/javascript"
-                            }
-                        }
-                    ],
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "X-Requested-With",
-                                "value": "XMLHttpRequest",
-                                "type": "text"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/?page=LogOut",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "query": [
-                                {
-                                    "key": "page",
-                                    "value": "LogOut"
-                                }
-                            ]
-                        },
-                        "description": "Destruye la sesión activa y redirige a la vista de login."
-                    }
-                },
-                {
                     "name": "Recuperar Clave - Solicitar Código",
                     "event": [
                         {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
-                                    "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Status code es válido (200 o validación controlada)', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -450,15 +436,9 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
-                                    "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Status code es válido (200 o validación controlada)', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -514,15 +494,9 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
-                                    "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Status code es válido (200 o validación controlada)', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -583,15 +557,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es válido (200 o validación controlada 400)', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 400]);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Validación de cambio forzado de clave ejecutada', function () {",
+                                    "    var bodyText = pm.response.text();",
+                                    "    pm.expect(bodyText.length).to.be.above(0);",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -638,7 +610,7 @@
                                 },
                                 {
                                     "key": "clave_confirmar",
-                                    "value": "AdminRoot2026*",
+                                    "value": "MismatchClave123*",
                                     "type": "text"
                                 }
                             ]
@@ -652,15 +624,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK o Redirección', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Respuesta de módulo de perfil procesada', function () {",
+                                    "    var bodyText = pm.response.text();",
+                                    "    pm.expect(bodyText.length).to.be.above(0);",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -732,15 +702,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK o Redirección', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Respuesta de cambio de clave procesada', function () {",
+                                    "    var bodyText = pm.response.text();",
+                                    "    pm.expect(bodyText.length).to.be.above(0);",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -778,7 +746,7 @@
                                 },
                                 {
                                     "key": "clave_actual",
-                                    "value": "1234",
+                                    "value": "ClaveInvalidaTest*",
                                     "type": "text"
                                 },
                                 {
@@ -802,15 +770,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK o Redirección', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Respuesta de actividad de perfil procesada', function () {",
+                                    "    var bodyText = pm.response.text();",
+                                    "    pm.expect(bodyText.length).to.be.above(0);",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -863,15 +829,20 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Lista de usuarios retornada correctamente', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "    if (jsonData.datos.length > 0) {",
+                                    "        var nonAdmin = jsonData.datos.find(u => u.cedula !== 'V-00000000') || jsonData.datos[0];",
+                                    "        pm.environment.set('test_user_cedula', nonAdmin.cedula);",
+                                    "        pm.collectionVariables.set('test_user_cedula', nonAdmin.cedula);",
+                                    "        console.log('Cédula de usuario para pruebas capturada:', nonAdmin.cedula);",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -918,15 +889,19 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna catálogo de roles activos', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "    if (jsonData.datos.length > 0) {",
+                                    "        pm.environment.set('target_id_rol', jsonData.datos[0].id_rol);",
+                                    "        pm.collectionVariables.set('target_id_rol', jsonData.datos[0].id_rol);",
+                                    "        console.log('ID de rol capturado:', jsonData.datos[0].id_rol);",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -973,15 +948,18 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna lista de empleados sin usuario asignado', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "    if (jsonData.datos.length > 0) {",
+                                    "        pm.environment.set('test_emp_sin_user', jsonData.datos[0].cedula);",
+                                    "        pm.collectionVariables.set('test_emp_sin_user', jsonData.datos[0].cedula);",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1028,15 +1006,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es válido (200 OK o validación controlada 400/403/409)', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 403, 409]);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Respuesta estructurada de registro de usuario', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.any.keys('resultado', 'mensaje');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1089,7 +1065,7 @@
                                 },
                                 {
                                     "key": "id_rol",
-                                    "value": "ROLS71920260602140652719",
+                                    "value": "{{target_id_rol}}",
                                     "type": "text"
                                 }
                             ]
@@ -1103,15 +1079,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Alternancia de estatus procesada', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.any.keys('resultado', 'mensaje');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1149,7 +1123,7 @@
                                 },
                                 {
                                     "key": "cedula",
-                                    "value": "V-00000000",
+                                    "value": "{{test_user_cedula}}",
                                     "type": "text"
                                 },
                                 {
@@ -1168,15 +1142,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Lista de roles obtenida', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1223,15 +1196,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Filtro de permisos por rol retornado', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.any.keys('resultado', 'datos', 'permisos');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1269,7 +1240,7 @@
                                 },
                                 {
                                     "key": "id_rol",
-                                    "value": "ROLS71920260602140652719",
+                                    "value": "{{target_id_rol}}",
                                     "type": "text"
                                 }
                             ]
@@ -1283,15 +1254,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Matriz de permisos cargada', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(jsonData).to.have.property('permisos');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1324,7 +1294,12 @@
                             "urlencoded": [
                                 {
                                     "key": "peticion",
-                                    "value": "cargar",
+                                    "value": "filtrar",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "modulo",
+                                    "value": "usuario",
                                     "type": "text"
                                 }
                             ]
@@ -1338,15 +1313,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna catálogo de módulos del sistema', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1393,15 +1367,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna registros estructurados de bitácora', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(Array.isArray(jsonData.data)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1436,6 +1408,11 @@
                                     "key": "peticion",
                                     "value": "listar",
                                     "type": "text"
+                                },
+                                {
+                                    "key": "action",
+                                    "value": "listarJson",
+                                    "type": "text"
                                 }
                             ]
                         }
@@ -1448,15 +1425,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna galería de medios multimedia', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1503,15 +1479,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna catálogo de respaldos SQL', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.true;",
+                                    "    pm.expect(Array.isArray(jsonData.backups)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1558,15 +1533,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Generación de respaldo completada', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('success');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1624,15 +1597,19 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna listado de empleados registrados', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "    if (jsonData.datos.length > 0) {",
+                                    "        pm.environment.set('test_cedula_empleado', jsonData.datos[0].cedula);",
+                                    "        pm.collectionVariables.set('test_cedula_empleado', jsonData.datos[0].cedula);",
+                                    "        console.log('Cédula de empleado capturada:', jsonData.datos[0].cedula);",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1679,15 +1656,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Verificación de cédula de empleado procesada', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(jsonData.existe).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1725,7 +1701,7 @@
                                 },
                                 {
                                     "key": "cedula",
-                                    "value": "V-12345678",
+                                    "value": "{{test_cedula_empleado}}",
                                     "type": "text"
                                 }
                             ]
@@ -1739,15 +1715,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna listado de cargos laborales', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1794,15 +1769,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna marcajes de asistencia de la jornada', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1849,17 +1823,31 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Registro de marcaje de asistencia exitoso', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(jsonData.icon).to.equal('success');",
+                                    "    pm.expect(jsonData.mensaje).to.include('Asistencia registrada');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var rawCi = pm.environment.get('test_cedula_empleado') || pm.collectionVariables.get('test_cedula_empleado') || 'V-12345678';",
+                                    "var parts = rawCi.split('-');",
+                                    "var tipoDoc = parts[0] ? parts[0] + '-' : 'V-';",
+                                    "var numCi = parts[1] || '12345678';",
+                                    "pm.collectionVariables.set('asistencia_tipo_doc', tipoDoc);",
+                                    "pm.collectionVariables.set('asistencia_num_ci', numCi);"
+                                ]
                             }
                         }
                     ],
@@ -1899,17 +1887,22 @@
                                 },
                                 {
                                     "key": "tipo_doc",
-                                    "value": "V-",
+                                    "value": "{{asistencia_tipo_doc}}",
                                     "type": "text"
                                 },
                                 {
                                     "key": "cedula_empleado",
-                                    "value": "25261082",
+                                    "value": "{{asistencia_num_ci}}",
                                     "type": "text"
                                 },
                                 {
                                     "key": "tipo_marcacion",
                                     "value": "ENTRADA",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "observacion",
+                                    "value": "Marcaje API automatizado",
                                     "type": "text"
                                 }
                             ]
@@ -1923,15 +1916,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna planificación de horarios', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -1966,6 +1958,11 @@
                                     "key": "peticion",
                                     "value": "consultar",
                                     "type": "text"
+                                },
+                                {
+                                    "key": "modulo",
+                                    "value": "Horario",
+                                    "type": "text"
                                 }
                             ]
                         }
@@ -1978,15 +1975,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna catálogo de turnos', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -2021,6 +2017,11 @@
                                     "key": "peticion",
                                     "value": "consultar",
                                     "type": "text"
+                                },
+                                {
+                                    "key": "modulo",
+                                    "value": "Turno",
+                                    "type": "text"
                                 }
                             ]
                         }
@@ -2033,15 +2034,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna solicitudes de permisos laborales', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -2088,15 +2088,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna catálogo de tipos de permiso', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -2855,15 +2854,19 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna historial estructurado de pedidos', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.true;",
+                                    "    pm.expect(Array.isArray(jsonData.data)).to.be.true;",
+                                    "    if (jsonData.data.length > 0) {",
+                                    "        pm.environment.set('target_id_pedido', jsonData.data[0].id_pedido);",
+                                    "        pm.collectionVariables.set('target_id_pedido', jsonData.data[0].id_pedido);",
+                                    "        console.log('ID de pedido capturado:', jsonData.data[0].id_pedido);",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -2898,6 +2901,11 @@
                                     "key": "peticion",
                                     "value": "listar",
                                     "type": "text"
+                                },
+                                {
+                                    "key": "action",
+                                    "value": "listar",
+                                    "type": "text"
                                 }
                             ]
                         }
@@ -2910,15 +2918,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna detalle del pedido seleccionado', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.true;",
+                                    "    pm.expect(jsonData.data).to.be.an('object');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -2956,7 +2963,12 @@
                                 },
                                 {
                                     "key": "id_pedido",
-                                    "value": "PED20261025140000001",
+                                    "value": "{{target_id_pedido}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "action",
+                                    "value": "buscar",
                                     "type": "text"
                                 }
                             ]
@@ -2970,15 +2982,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Transición de estado del pedido procesada', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('success');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -3016,12 +3026,17 @@
                                 },
                                 {
                                     "key": "id_pedido",
-                                    "value": "PED20261025140000001",
+                                    "value": "{{target_id_pedido}}",
                                     "type": "text"
                                 },
                                 {
                                     "key": "estado",
                                     "value": "CONFIRMADO",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "action",
+                                    "value": "cambiar_estado",
                                     "type": "text"
                                 }
                             ]
@@ -3035,15 +3050,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Comprobante de pago consultado correctamente', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('success');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -3081,7 +3094,12 @@
                                 },
                                 {
                                     "key": "id_pedido",
-                                    "value": "PED20261025140000001",
+                                    "value": "{{target_id_pedido}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "action",
+                                    "value": "obtener_comprobante",
                                     "type": "text"
                                 }
                             ]
@@ -3095,15 +3113,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Verificación de stock procesada con respuesta válida', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('success');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -3140,8 +3156,18 @@
                                     "type": "text"
                                 },
                                 {
-                                    "key": "carrito",
-                                    "value": "[{\"id_producto\":\"PROD001\",\"cantidad\":2}]",
+                                    "key": "action",
+                                    "value": "verificar_stock",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "id_producto",
+                                    "value": "PROD-000120260611",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "cantidad",
+                                    "value": "1",
                                     "type": "text"
                                 }
                             ]
@@ -3155,15 +3181,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna mesas disponibles para asignación de pedidos', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.true;",
+                                    "    pm.expect(Array.isArray(jsonData.data)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -3198,6 +3223,11 @@
                                     "key": "peticion",
                                     "value": "listar_mesas_disponibles",
                                     "type": "text"
+                                },
+                                {
+                                    "key": "action",
+                                    "value": "listar_mesas_disponibles",
+                                    "type": "text"
                                 }
                             ]
                         }
@@ -3210,15 +3240,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Catálogo público retorna información del producto', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.true;",
+                                    "    pm.expect(jsonData.data.id_producto).to.equal('PROD-000120260611');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -3233,26 +3262,7 @@
                                 "type": "text"
                             }
                         ],
-                        "url": {
-                            "raw": "{{base_url}}/?page=PedidoPublico&action=buscarProducto&id=PROD001",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "query": [
-                                {
-                                    "key": "page",
-                                    "value": "PedidoPublico"
-                                },
-                                {
-                                    "key": "action",
-                                    "value": "buscarProducto"
-                                },
-                                {
-                                    "key": "id",
-                                    "value": "PROD001"
-                                }
-                            ]
-                        },
+                        "url": "{{base_url}}/?page=PedidoPublico&action=buscarProducto&id=PROD-000120260611",
                         "description": "Consulta pública de detalles de producto para el carrito web."
                     }
                 },
@@ -3263,15 +3273,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Verificación de stock web exitosa', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -3309,7 +3317,7 @@
                                 },
                                 {
                                     "key": "id_producto",
-                                    "value": "PROD001",
+                                    "value": "PROD-000120260611",
                                     "type": "text"
                                 },
                                 {
@@ -3328,17 +3336,26 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Pedido público registrado exitosamente', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.true;",
+                                    "    pm.expect(jsonData.message).to.include('registrado exitosamente');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var ref = 'REF-' + Math.floor(100000 + Math.random() * 900000);",
+                                    "pm.collectionVariables.set('web_ref_pago', ref);"
+                                ]
                             }
                         }
                     ],
@@ -3389,7 +3406,7 @@
                                 },
                                 {
                                     "key": "referencia",
-                                    "value": "REF-998877",
+                                    "value": "{{web_ref_pago}}",
                                     "type": "text"
                                 },
                                 {
@@ -3399,12 +3416,12 @@
                                 },
                                 {
                                     "key": "carrito",
-                                    "value": "{\"total\":25.5,\"items\":[{\"id_producto\":\"PROD001\",\"cantidad\":2,\"precio\":12.75}]}",
+                                    "value": "{\"total\":25.5,\"items\":[{\"id_producto\":\"PROD-000120260611\",\"cantidad\":2,\"precio_unitario\":12.75}]}",
                                     "type": "text"
                                 },
                                 {
                                     "key": "id_metodo_pago",
-                                    "value": "MPAG20261025140000001",
+                                    "value": "METOD00120260519200547232",
                                     "type": "text"
                                 }
                             ]
@@ -3424,15 +3441,18 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna catálogo de productos activos del menú', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(Array.isArray(jsonData.data)).to.be.true;",
+                                    "    if (jsonData.data.length > 0) {",
+                                    "        pm.environment.set('target_id_producto', jsonData.data[0].id_producto);",
+                                    "        pm.collectionVariables.set('target_id_producto', jsonData.data[0].id_producto);",
+                                    "        console.log('ID de producto menú capturado:', jsonData.data[0].id_producto);",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -3479,15 +3499,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna datos detallados del producto', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.true;",
+                                    "    pm.expect(jsonData.data).to.be.an('object');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -3502,18 +3521,7 @@
                                 "type": "text"
                             }
                         ],
-                        "url": {
-                            "raw": "{{base_url}}/?page=Menu",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "query": [
-                                {
-                                    "key": "page",
-                                    "value": "Menu"
-                                }
-                            ]
-                        },
+                        "url": "{{base_url}}/?page=Menu&id={{target_id_producto}}",
                         "description": "",
                         "body": {
                             "mode": "urlencoded",
@@ -3525,7 +3533,7 @@
                                 },
                                 {
                                     "key": "id_producto",
-                                    "value": "PROD001",
+                                    "value": "{{target_id_producto}}",
                                     "type": "text"
                                 }
                             ]
@@ -3539,15 +3547,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna lista de insumos disponibles para recetas', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(Array.isArray(jsonData) || typeof jsonData === 'object').to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -3594,15 +3600,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna catálogo de unidades de medida', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(Array.isArray(jsonData) || typeof jsonData === 'object').to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -3649,15 +3653,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna categorías del menú', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(Array.isArray(jsonData) || typeof jsonData === 'object').to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -3704,15 +3706,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna promociones y ofertas vigentes', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -3759,17 +3760,37 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK o 201 Created', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Promoción registrada exitosamente', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.be.oneOf([200, 201]);",
+                                    "    if (jsonData.id_promocion) {",
+                                    "        pm.environment.set('target_id_promocion', jsonData.id_promocion);",
+                                    "        pm.collectionVariables.set('target_id_promocion', jsonData.id_promocion);",
+                                    "        console.log('ID de promoción capturado:', jsonData.id_promocion);",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var ts = Date.now();",
+                                    "var now = new Date();",
+                                    "var start = now.toISOString().split('T')[0];",
+                                    "var end = new Date(now.getTime() + 15 * 86400000).toISOString().split('T')[0];",
+                                    "var prodId = pm.environment.get('target_id_producto') || pm.collectionVariables.get('target_id_producto') || 'PROD202606111134584244';",
+                                    "pm.collectionVariables.set('promo_nueva_nombre', 'Promo Test ' + ts);",
+                                    "pm.collectionVariables.set('promo_start_date', start);",
+                                    "pm.collectionVariables.set('promo_end_date', end);",
+                                    "pm.collectionVariables.set('target_id_producto', prodId);"
+                                ]
                             }
                         }
                     ],
@@ -3805,7 +3826,7 @@
                                 },
                                 {
                                     "key": "nombre",
-                                    "value": "Súper Combo 2x1 Burguer",
+                                    "value": "{{promo_nueva_nombre}}",
                                     "type": "text"
                                 },
                                 {
@@ -3820,17 +3841,17 @@
                                 },
                                 {
                                     "key": "descripcion",
-                                    "value": "20% de descuento en la segunda hamburguesa clásica.",
+                                    "value": "Descuento especial de prueba automatizada",
                                     "type": "text"
                                 },
                                 {
                                     "key": "fecha_inicio",
-                                    "value": "2026-11-04",
+                                    "value": "{{promo_start_date}}",
                                     "type": "text"
                                 },
                                 {
                                     "key": "fecha_fin",
-                                    "value": "2026-11-19",
+                                    "value": "{{promo_end_date}}",
                                     "type": "text"
                                 },
                                 {
@@ -3844,8 +3865,8 @@
                                     "type": "text"
                                 },
                                 {
-                                    "key": "productos",
-                                    "value": "[{\"id\":\"PROD001\",\"cantidad\":2}]",
+                                    "key": "id_producto",
+                                    "value": "{{target_id_producto}}",
                                     "type": "text"
                                 }
                             ]
@@ -3859,15 +3880,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Modificación de promoción procesada', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.any.keys('resultado', 'mensaje');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -3905,12 +3924,12 @@
                                 },
                                 {
                                     "key": "id_promocion",
-                                    "value": "PROM20261025140000001",
+                                    "value": "{{target_id_promocion}}",
                                     "type": "text"
                                 },
                                 {
                                     "key": "nombre",
-                                    "value": "Súper Combo Actualizado",
+                                    "value": "{{promo_nueva_nombre}} Modificada",
                                     "type": "text"
                                 },
                                 {
@@ -3925,22 +3944,32 @@
                                 },
                                 {
                                     "key": "descripcion",
-                                    "value": "Ahora con 25% de descuento.",
+                                    "value": "Actualización de promoción automatizada",
                                     "type": "text"
                                 },
                                 {
                                     "key": "fecha_inicio",
-                                    "value": "2026-11-04",
+                                    "value": "{{promo_start_date}}",
                                     "type": "text"
                                 },
                                 {
                                     "key": "fecha_fin",
-                                    "value": "2026-11-24",
+                                    "value": "{{promo_end_date}}",
                                     "type": "text"
                                 },
                                 {
-                                    "key": "productos",
-                                    "value": "[{\"id\":\"PROD001\",\"cantidad\":2}]",
+                                    "key": "hora_inicio",
+                                    "value": "12:00",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "hora_fin",
+                                    "value": "23:00",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "id_producto",
+                                    "value": "{{target_id_producto}}",
                                     "type": "text"
                                 }
                             ]
@@ -3954,15 +3983,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK o 201 Created', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Noticia generada automáticamente desde promoción', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.any.keys('resultado', 'mensaje');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4000,7 +4027,7 @@
                                 },
                                 {
                                     "key": "id_promocion",
-                                    "value": "PROM20261025140000001",
+                                    "value": "{{target_id_promocion}}",
                                     "type": "text"
                                 }
                             ]
@@ -4014,15 +4041,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Eliminación de promoción procesada', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.any.keys('resultado', 'mensaje');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4060,7 +4085,7 @@
                                 },
                                 {
                                     "key": "id_promocion",
-                                    "value": "PROM20261025140000001",
+                                    "value": "{{target_id_promocion}}",
                                     "type": "text"
                                 }
                             ]
@@ -4492,15 +4517,19 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna catálogo de insumos registrados', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "    if (jsonData.datos.length > 0) {",
+                                    "        pm.environment.set('target_id_insumo', jsonData.datos[0].id_insumo);",
+                                    "        pm.collectionVariables.set('target_id_insumo', jsonData.datos[0].id_insumo);",
+                                    "        console.log('ID de insumo capturado:', jsonData.datos[0].id_insumo);",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4535,6 +4564,11 @@
                                     "key": "peticion",
                                     "value": "consultar",
                                     "type": "text"
+                                },
+                                {
+                                    "key": "modulo",
+                                    "value": "Insumo",
+                                    "type": "text"
                                 }
                             ]
                         }
@@ -4547,15 +4581,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna categorías de inventario de insumos', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4602,17 +4635,25 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Recálculo de stock procesado', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.any.keys('resultado', 'mensaje');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
+                            }
+                        },
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var insId = pm.environment.get('target_id_insumo') || pm.collectionVariables.get('target_id_insumo') || 'INGR000120260611';",
+                                    "pm.collectionVariables.set('target_id_insumo', insId);"
+                                ]
                             }
                         }
                     ],
@@ -4645,6 +4686,31 @@
                                     "key": "peticion",
                                     "value": "recalcular_stock",
                                     "type": "text"
+                                },
+                                {
+                                    "key": "modulo",
+                                    "value": "Insumo",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "id_insumo",
+                                    "value": "{{target_id_insumo}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "id_unidad",
+                                    "value": "MEDIAGR23220260519200547232",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "stock_minimo",
+                                    "value": "5",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "stock_maximo",
+                                    "value": "50",
+                                    "type": "text"
                                 }
                             ]
                         }
@@ -4657,15 +4723,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna catálogo de proveedores', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4718,15 +4783,19 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna catálogo de clientes', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "    if (jsonData.datos.length > 0) {",
+                                    "        pm.environment.set('target_id_cliente', jsonData.datos[0].cedula);",
+                                    "        pm.collectionVariables.set('target_id_cliente', jsonData.datos[0].cedula);",
+                                    "        console.log('Cédula de cliente capturada:', jsonData.datos[0].cedula);",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4773,15 +4842,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Verificación de cédula de cliente procesada', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(jsonData).to.have.property('existe');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4819,7 +4887,7 @@
                                 },
                                 {
                                     "key": "cedula",
-                                    "value": "V-12345678",
+                                    "value": "{{target_id_cliente}}",
                                     "type": "text"
                                 }
                             ]
@@ -4839,15 +4907,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna notificaciones del sistema', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.data)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4894,15 +4961,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Notificaciones marcadas como leídas', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(jsonData.success).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4949,15 +5015,13 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Respuesta del servicio IA Mar-IA recibida', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.have.property('status');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4995,7 +5059,7 @@
                                 },
                                 {
                                     "key": "mensaje",
-                                    "value": "¿Cuáles fueron los 3 productos más vendidos esta semana?",
+                                    "value": "¿Cuáles son los productos más vendidos?",
                                     "type": "text"
                                 }
                             ]
@@ -5009,15 +5073,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna tópicos de ayuda interactiva', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.status).to.equal('success');",
+                                    "    pm.expect(Array.isArray(jsonData.data)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -5062,15 +5125,14 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test('Status code es 200 OK', function () {",
+                                    "    pm.expect(pm.response.code).to.equal(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test('Retorna elementos eliminados en papelera', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.resultado).to.equal(200);",
+                                    "    pm.expect(Array.isArray(jsonData.datos)).to.be.true;",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -5108,6 +5170,48 @@
                                 }
                             ]
                         }
+                    }
+                },
+                {
+                    "name": "Cerrar Sesión (Logout)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code es 200 OK o Redirección 302', function () {",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
+                                    "});",
+                                    "pm.environment.unset('cookie_session');",
+                                    "pm.collectionVariables.unset('cookie_session');",
+                                    "console.log('Sesión cerrada y suite finalizada con éxito.');"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "X-Requested-With",
+                                "value": "XMLHttpRequest",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/?page=LogOut",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "LogOut"
+                                }
+                            ]
+                        },
+                        "description": "Destruye la sesión activa y redirige a la vista de login."
                     }
                 }
             ]
