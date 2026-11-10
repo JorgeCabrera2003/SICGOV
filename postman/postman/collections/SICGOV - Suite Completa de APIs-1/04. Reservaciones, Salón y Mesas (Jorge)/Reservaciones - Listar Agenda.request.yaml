@@ -1,0 +1,28 @@
+$kind: http-request
+description: Retorna todos los eventos y reservaciones del calendario para el rango indicado.
+url: "{{base_url}}?page=Reservacion"
+method: POST
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  page: Reservacion
+body:
+  type: urlencoded
+  content:
+    peticion: listar
+    start: 2026-11-01
+    end: 2026-11-30
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 1000

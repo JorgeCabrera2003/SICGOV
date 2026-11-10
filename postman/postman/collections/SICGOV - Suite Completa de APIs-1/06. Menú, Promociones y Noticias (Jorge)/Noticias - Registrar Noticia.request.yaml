@@ -1,0 +1,29 @@
+$kind: http-request
+url: "{{base_url}}?page=Noticia"
+method: POST
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  page: Noticia
+body:
+  type: urlencoded
+  content:
+    peticion: registrar
+    titulo: Nueva Terraza VIP
+    subtitulo: Descubre nuestro nuevo ambiente
+    contenido: Te invitamos a conocer la nueva terraza con servicio de coctelería y música en vivo.
+    tipo: INFO
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 12000

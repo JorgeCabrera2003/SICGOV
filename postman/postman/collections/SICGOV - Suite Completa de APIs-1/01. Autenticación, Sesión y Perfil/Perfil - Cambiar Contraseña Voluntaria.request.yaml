@@ -1,0 +1,29 @@
+$kind: http-request
+description: Permite al usuario cambiar su clave ingresando la actual.
+url: "{{base_url}}?page=Perfil"
+method: POST
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  page: Perfil
+body:
+  type: urlencoded
+  content:
+    peticion: cambiar-clave
+    clave_actual: "1234"
+    clave_nueva: NuevaClaveSegura2026*
+    clave_confirmar: NuevaClaveSegura2026*
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 10000

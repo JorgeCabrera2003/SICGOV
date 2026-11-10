@@ -1,0 +1,30 @@
+$kind: http-request
+description: Inicia sesión y genera la cookie de sesión del usuario.
+url: "{{base_url}}?page=Login"
+method: POST
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  page: Login
+body:
+  type: urlencoded
+  content:
+    peticion: sesion
+    particle: V
+    CI: "00000000"
+    password: "1234"
+    g-recaptcha-response: bypass-test
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 1000

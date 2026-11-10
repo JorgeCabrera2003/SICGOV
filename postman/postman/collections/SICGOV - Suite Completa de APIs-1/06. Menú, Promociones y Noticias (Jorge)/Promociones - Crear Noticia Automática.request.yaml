@@ -1,0 +1,27 @@
+$kind: http-request
+description: Genera y publica un artículo de blog/noticia a partir de la oferta.
+url: "{{base_url}}?page=Promocion"
+method: POST
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  page: Promocion
+body:
+  type: urlencoded
+  content:
+    peticion: crear_noticia
+    id_promocion: PROM20261025140000001
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 9000

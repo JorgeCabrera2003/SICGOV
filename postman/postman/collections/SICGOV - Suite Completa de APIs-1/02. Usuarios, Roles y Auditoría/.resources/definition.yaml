@@ -1,0 +1,3 @@
+$kind: collection
+description: Administración de usuarios del sistema, matriz de roles, permisos, auditoría en bitácora y medios.
+order: 2000

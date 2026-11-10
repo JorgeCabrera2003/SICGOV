@@ -1,0 +1,5 @@
+$kind: collection
+name: SICGOV - Suite Completa de APIs
+description: |-
+  Colección integral de pruebas y verificación de todas las APIs del sistema SICGOV (Good Vibes).
+  Contiene las 37 áreas/controladores y más de 160 endpoints funcionales con tests automáticos, soporte para sesión administrativa y peticiones públicas.

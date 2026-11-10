@@ -1,0 +1,3 @@
+$kind: collection
+description: Endpoints de control de acceso, login, logout, recuperación de contraseña y gestión del perfil del usuario.
+order: 1000

@@ -1,0 +1,3 @@
+$kind: collection
+description: Administración de empleados, cargos, marcajes de asistencia, turnos, horarios y permisos laborales.
+order: 3000

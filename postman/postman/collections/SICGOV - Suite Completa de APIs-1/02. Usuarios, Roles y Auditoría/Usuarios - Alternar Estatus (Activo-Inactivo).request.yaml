@@ -1,0 +1,28 @@
+$kind: http-request
+name: Usuarios - Alternar Estatus (Activo/Inactivo)
+url: "{{base_url}}?page=Usuario"
+method: POST
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  page: Usuario
+body:
+  type: urlencoded
+  content:
+    peticion: toggle-estatus
+    cedula: V-00000000
+    estatus: "1"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 5000

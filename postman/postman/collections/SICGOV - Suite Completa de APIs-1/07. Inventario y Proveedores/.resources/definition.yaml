@@ -1,0 +1,3 @@
+$kind: collection
+description: Control de materias primas, insumos, compras a proveedores y cálculo de stock.
+order: 7000

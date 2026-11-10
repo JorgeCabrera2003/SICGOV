@@ -1,0 +1,12 @@
+name: SICGOV Local Environment
+values:
+  - key: base_url
+    value: 'http://localhost/SICGOV/public/'
+  - key: admin_user
+    value: V-00000000
+  - key: admin_pass
+    value: '1234'
+  - key: test_cliente_cedula
+    value: V-12345678
+  - key: cookie_session
+    value: ''
