@@ -14,6 +14,34 @@
                     "var session = pm.environment.get('cookie_session') || pm.collectionVariables.get('cookie_session');",
                     "if (session) {",
                     "    pm.request.headers.upsert({ key: 'Cookie', value: 'PHPSESSID=' + session });",
+                    "} else if (pm.info && pm.info.requestName && !pm.info.requestName.includes('Login')) {",
+                    "    var baseUrl = pm.environment.get('base_url') || pm.collectionVariables.get('base_url') || 'http://localhost/SICGOV/public/';",
+                    "    pm.sendRequest({",
+                    "        url: baseUrl.replace(/\\/?$/, '/') + '?page=Login',",
+                    "        method: 'POST',",
+                    "        header: {",
+                    "            'Content-Type': 'application/x-www-form-urlencoded',",
+                    "            'X-Requested-With': 'XMLHttpRequest'",
+                    "        },",
+                    "        body: {",
+                    "            mode: 'urlencoded',",
+                    "            urlencoded: [",
+                    "                { key: 'peticion', value: 'sesion' },",
+                    "                { key: 'particle', value: 'V' },",
+                    "                { key: 'CI', value: '00000000' },",
+                    "                { key: 'password', value: '1234' },",
+                    "                { key: 'g-recaptcha-response', value: 'bypass-test' }",
+                    "            ]",
+                    "        }",
+                    "    }, function (err, res) {",
+                    "        if (!err && res) {",
+                    "            var cookie = res.cookies.get('PHPSESSID');",
+                    "            if (cookie) {",
+                    "                pm.collectionVariables.set('cookie_session', cookie);",
+                    "                pm.request.headers.upsert({ key: 'Cookie', value: 'PHPSESSID=' + cookie });",
+                    "            }",
+                    "        }",
+                    "    });",
                     "}"
                 ]
             }
@@ -2121,15 +2149,22 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test(\"Status code es 200 OK\", function () {",
+                                    "    pm.response.to.have.status(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test(\"Estructura JSON de eventos de agenda válida\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.be.an('object');",
+                                    "    var eventos = jsonData.datos || (jsonData.response && jsonData.response.datos) || [];",
+                                    "    pm.expect(eventos).to.be.an('array');",
+                                    "    if (eventos.length > 0) {",
+                                    "        var primerEvento = eventos[0];",
+                                    "        pm.expect(primerEvento).to.have.property('id');",
+                                    "        pm.expect(primerEvento).to.have.property('start');",
+                                    "        pm.collectionVariables.set('test_id_reservacion', primerEvento.id);",
+                                    "        console.log('ID de reservación capturado para pruebas:', primerEvento.id);",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -2183,18 +2218,31 @@
                     "name": "Reservaciones - Validar Disponibilidad y Capacidad",
                     "event": [
                         {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "var manana = new Date();",
+                                    "manana.setDate(manana.getDate() + 2);",
+                                    "var yyyy = manana.getFullYear();",
+                                    "var mm = String(manana.getMonth() + 1).padStart(2, '0');",
+                                    "var dd = String(manana.getDate()).padStart(2, '0');",
+                                    "pm.variables.set('fecha_validacion_reserva', yyyy + '-' + mm + '-' + dd);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        },
+                        {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test(\"Status code es 200 OK\", function () {",
+                                    "    pm.response.to.have.status(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test(\"Validación de disponibilidad y capacidad procesada\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.be.an('object');",
+                                    "    pm.expect(jsonData).to.have.any.keys('resultado', 'estado', 'bool', 'mensaje');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -2232,7 +2280,7 @@
                                 },
                                 {
                                     "key": "fecha",
-                                    "value": "2026-11-07",
+                                    "value": "{{fecha_validacion_reserva}}",
                                     "type": "text"
                                 },
                                 {
@@ -2268,18 +2316,35 @@
                     "name": "Reservaciones - Registrar Reserva",
                     "event": [
                         {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "var dia = new Date();",
+                                    "dia.setDate(dia.getDate() + 3);",
+                                    "var yyyy = dia.getFullYear();",
+                                    "var mm = String(dia.getMonth() + 1).padStart(2, '0');",
+                                    "var dd = String(dia.getDate()).padStart(2, '0');",
+                                    "pm.variables.set('fecha_nueva_reserva', yyyy + '-' + mm + '-' + dd);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        },
+                        {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test(\"Status code es 200 OK\", function () {",
+                                    "    pm.response.to.have.status(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test(\"Reservación registrada correctamente\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.be.an('object');",
+                                    "    var id = jsonData.id_reservacion || (jsonData.response && jsonData.response.id_reservacion) || (jsonData.datos && jsonData.datos.id_reservacion);",
+                                    "    if (id) {",
+                                    "        pm.collectionVariables.set('test_id_reservacion', id);",
+                                    "        console.log('Nueva reservación creada con ID:', id);",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -2322,7 +2387,7 @@
                                 },
                                 {
                                     "key": "fecha",
-                                    "value": "2026-11-09",
+                                    "value": "{{fecha_nueva_reserva}}",
                                     "type": "text"
                                 },
                                 {
@@ -2353,18 +2418,33 @@
                     "name": "Reservaciones - Modificar Reserva",
                     "event": [
                         {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "var targetId = pm.collectionVariables.get('test_id_reservacion') || 'RESV20261025140000001';",
+                                    "pm.variables.set('target_id_reserva', targetId);",
+                                    "var dia = new Date();",
+                                    "dia.setDate(dia.getDate() + 4);",
+                                    "var yyyy = dia.getFullYear();",
+                                    "var mm = String(dia.getMonth() + 1).padStart(2, '0');",
+                                    "var dd = String(dia.getDate()).padStart(2, '0');",
+                                    "pm.variables.set('fecha_mod_reserva', yyyy + '-' + mm + '-' + dd);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        },
+                        {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test(\"Status code es 200 OK\", function () {",
+                                    "    pm.response.to.have.status(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test(\"Modificación de reservación procesada\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.be.an('object');",
+                                    "    pm.expect(jsonData).to.have.any.keys('resultado', 'estado', 'mensaje');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -2402,7 +2482,7 @@
                                 },
                                 {
                                     "key": "id_reservacion",
-                                    "value": "RESV20261025140000001",
+                                    "value": "{{target_id_reserva}}",
                                     "type": "text"
                                 },
                                 {
@@ -2412,7 +2492,7 @@
                                 },
                                 {
                                     "key": "fecha",
-                                    "value": "2026-11-10",
+                                    "value": "{{fecha_mod_reserva}}",
                                     "type": "text"
                                 },
                                 {
@@ -2443,18 +2523,27 @@
                     "name": "Reservaciones - Eliminar/Cancelar",
                     "event": [
                         {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "var targetId = pm.collectionVariables.get('test_id_reservacion') || 'RESV20261025140000001';",
+                                    "pm.variables.set('target_id_reserva', targetId);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        },
+                        {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test(\"Status code es 200 OK\", function () {",
+                                    "    pm.response.to.have.status(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test(\"Eliminación o cancelación de reservación procesada\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.be.an('object');",
+                                    "    pm.expect(jsonData).to.have.any.keys('resultado', 'estado', 'mensaje');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -2492,7 +2581,7 @@
                                 },
                                 {
                                     "key": "id_reservacion",
-                                    "value": "RESV20261025140000001",
+                                    "value": "{{target_id_reserva}}",
                                     "type": "text"
                                 }
                             ]
@@ -2506,15 +2595,20 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test(\"Status code es 200 OK\", function () {",
+                                    "    pm.response.to.have.status(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test(\"Retorna lista estructurada de mesas\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.be.an('object');",
+                                    "    var listaMesas = jsonData.datos || (jsonData.response && jsonData.response.datos) || [];",
+                                    "    pm.expect(listaMesas).to.be.an('array');",
+                                    "    if (listaMesas.length > 0) {",
+                                    "        var id = listaMesas[0].id_mesa || listaMesas[0].id;",
+                                    "        pm.collectionVariables.set('test_id_mesa', id);",
+                                    "        console.log('ID de mesa capturado:', id);",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -2558,18 +2652,27 @@
                     "name": "Mesas - Cambiar Estado (Disponible/Ocupada)",
                     "event": [
                         {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "var targetMesa = pm.collectionVariables.get('test_id_mesa') || 'MESA20261025140000001';",
+                                    "pm.variables.set('target_id_mesa', targetMesa);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        },
+                        {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test(\"Status code es 200 OK\", function () {",
+                                    "    pm.response.to.have.status(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test(\"Cambio de estado de mesa procesado\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.be.an('object');",
+                                    "    pm.expect(jsonData).to.have.any.keys('resultado', 'estado', 'mensaje');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -2607,7 +2710,7 @@
                                 },
                                 {
                                     "key": "id_mesa",
-                                    "value": "MESA20261025140000001",
+                                    "value": "{{target_id_mesa}}",
                                     "type": "text"
                                 },
                                 {
@@ -3971,15 +4074,20 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test(\"Status code es 200 OK\", function () {",
+                                    "    pm.response.to.have.status(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test(\"Retorna catálogo administrativo de noticias\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.be.an('object');",
+                                    "    var noticias = jsonData.datos || (jsonData.response && jsonData.response.datos) || [];",
+                                    "    pm.expect(noticias).to.be.an('array');",
+                                    "    if (noticias.length > 0) {",
+                                    "        var id = noticias[0].id_noticia || noticias[0].id;",
+                                    "        pm.collectionVariables.set('test_id_noticia', id);",
+                                    "        console.log('ID de noticia capturado para tests:', id);",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4023,18 +4131,31 @@
                     "name": "Noticias - Registrar Noticia",
                     "event": [
                         {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "var stamp = Date.now().toString().slice(-4);",
+                                    "pm.variables.set('titulo_nueva_noticia', 'Terraza VIP Exclusiva ' + stamp);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        },
+                        {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test(\"Status code es 200 OK\", function () {",
+                                    "    pm.response.to.have.status(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test(\"Noticia registrada en el sistema\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.be.an('object');",
+                                    "    var id = jsonData.id_noticia || (jsonData.response && jsonData.response.id_noticia);",
+                                    "    if (id) {",
+                                    "        pm.collectionVariables.set('test_id_noticia', id);",
+                                    "        console.log('Nueva noticia registrada con ID:', id);",
+                                    "    }",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4072,7 +4193,7 @@
                                 },
                                 {
                                     "key": "titulo",
-                                    "value": "Nueva Terraza VIP",
+                                    "value": "{{titulo_nueva_noticia}}",
                                     "type": "text"
                                 },
                                 {
@@ -4098,18 +4219,27 @@
                     "name": "Noticias - Modificar Noticia",
                     "event": [
                         {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "var targetId = pm.collectionVariables.get('test_id_noticia') || 'NOTC20261022120000001';",
+                                    "pm.variables.set('target_id_noticia', targetId);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        },
+                        {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test(\"Status code es 200 OK\", function () {",
+                                    "    pm.response.to.have.status(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test(\"Modificación de noticia procesada\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.be.an('object');",
+                                    "    pm.expect(jsonData).to.have.any.keys('resultado', 'estado', 'mensaje');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4147,7 +4277,7 @@
                                 },
                                 {
                                     "key": "id_noticia",
-                                    "value": "NOTC20261022120000001",
+                                    "value": "{{target_id_noticia}}",
                                     "type": "text"
                                 },
                                 {
@@ -4178,18 +4308,27 @@
                     "name": "Noticias - Eliminar Noticia",
                     "event": [
                         {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "var targetId = pm.collectionVariables.get('test_id_noticia') || 'NOTC20261022120000001';",
+                                    "pm.variables.set('target_id_noticia', targetId);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        },
+                        {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test(\"Status code es 200 OK\", function () {",
+                                    "    pm.response.to.have.status(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test(\"Eliminación de noticia procesada\", function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData).to.be.an('object');",
+                                    "    pm.expect(jsonData).to.have.any.keys('resultado', 'estado', 'mensaje');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4227,7 +4366,7 @@
                                 },
                                 {
                                     "key": "id_noticia",
-                                    "value": "NOTC20261022120000001",
+                                    "value": "{{target_id_noticia}}",
                                     "type": "text"
                                 }
                             ]
@@ -4241,15 +4380,12 @@
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test(\"Status code es 200 OK\", function () {",
+                                    "    pm.response.to.have.status(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test(\"Portal público de noticias responde con interfaz válida\", function () {",
+                                    "    pm.expect(pm.response.text()).to.include('Noticias');",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4287,18 +4423,25 @@
                     "name": "Noticias - Ver Detalle Noticia",
                     "event": [
                         {
+                            "listen": "prerequest",
+                            "script": {
+                                "exec": [
+                                    "var targetId = pm.collectionVariables.get('test_id_noticia') || 'NOTC20261022120000001';",
+                                    "pm.variables.set('target_id_noticia', targetId);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        },
+                        {
                             "listen": "test",
                             "script": {
                                 "exec": [
-                                    "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "pm.test(\"Status code es 200 OK\", function () {",
+                                    "    pm.response.to.have.status(200);",
                                     "});",
-                                    "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
-                                    "    pm.test(\"Formato JSON válido\", function () {",
-                                    "        var jsonData = pm.response.json();",
-                                    "        pm.expect(jsonData).to.be.an('object');",
-                                    "    });",
-                                    "}"
+                                    "pm.test(\"Vista de detalle de noticia cargada\", function () {",
+                                    "    pm.expect(pm.response.text().length).to.be.above(100);",
+                                    "});"
                                 ],
                                 "type": "text/javascript"
                             }
@@ -4314,7 +4457,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/?page=Noticia&type=detalle&id=NOTC20261022120000001",
+                            "raw": "{{base_url}}/?page=Noticia&type=detalle&id={{target_id_noticia}}",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -4329,7 +4472,7 @@
                                 },
                                 {
                                     "key": "id",
-                                    "value": "NOTC20261022120000001"
+                                    "value": "{{target_id_noticia}}"
                                 }
                             ]
                         },
