@@ -5,6 +5,32 @@
         "description": "Colección integral de pruebas y verificación de todas las APIs del sistema SICGOV (Good Vibes).\nContiene las 37 áreas/controladores y más de 160 endpoints funcionales con tests automáticos, soporte para sesión administrativa y peticiones públicas.",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "var session = pm.environment.get('cookie_session') || pm.collectionVariables.get('cookie_session');",
+                    "if (session) {",
+                    "    pm.request.headers.upsert({ key: 'Cookie', value: 'PHPSESSID=' + session });",
+                    "}"
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost/SICGOV/public/",
+            "type": "string"
+        },
+        {
+            "key": "cookie_session",
+            "value": "",
+            "type": "string"
+        }
+    ],
     "item": [
         {
             "name": "01. Autenticación, Sesión y Perfil",
@@ -18,8 +44,14 @@
                             "script": {
                                 "exec": [
                                     "pm.test(\"Respuesta exitosa o procesada\", function () {",
-                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);",
+                                    "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 302, 400, 401, 403]);",
                                     "});",
+                                    "var sessionCookie = pm.cookies.get('PHPSESSID');",
+                                    "if (sessionCookie) {",
+                                    "    pm.environment.set('cookie_session', sessionCookie);",
+                                    "    pm.collectionVariables.set('cookie_session', sessionCookie);",
+                                    "    console.log('Sesión PHPSESSID guardada automáticamente: ' + sessionCookie);",
+                                    "}",
                                     "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
                                     "    pm.test(\"Formato JSON válido\", function () {",
                                     "        var jsonData = pm.response.json();",
@@ -1813,7 +1845,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/?page=Asistencia",
+                            "raw": "{{base_url}}/?page=Asistencia&type=publico",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -1821,10 +1853,14 @@
                                 {
                                     "key": "page",
                                     "value": "Asistencia"
+                                },
+                                {
+                                    "key": "type",
+                                    "value": "publico"
                                 }
                             ]
                         },
-                        "description": "",
+                        "description": "Registra marcaje de asistencia (ENTRADA / SALIDA) desde el terminal público o quiosco.",
                         "body": {
                             "mode": "urlencoded",
                             "urlencoded": [
@@ -1840,7 +1876,7 @@
                                 },
                                 {
                                     "key": "cedula_empleado",
-                                    "value": "12345678",
+                                    "value": "25261082",
                                     "type": "text"
                                 },
                                 {

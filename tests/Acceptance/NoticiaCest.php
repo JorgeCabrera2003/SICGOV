@@ -13,3 +13,4 @@ class NoticiaCest
         $I->seeElement('.news-top-bar');
     }
 }
+

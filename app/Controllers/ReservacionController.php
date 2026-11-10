@@ -48,7 +48,7 @@ if (isset($_POST['peticion'])) {
                 
                 if ($esPublico && $resp['estado'] == 1) {
                     $eventos = array_map(function($e) use ($datos) {
-                        if ($e['extendedProps']['cedula'] === $datos['cedula']) {
+                        if (!empty($datos['cedula']) && $e['extendedProps']['cedula'] === $datos['cedula']) {
                             return $e;
                         }
                         $hInicio = date("h:i A", strtotime($e['start']));

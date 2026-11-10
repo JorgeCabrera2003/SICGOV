@@ -12,3 +12,4 @@ class PrimerPasoCest
         $I->seeInTitle('Good Vibes');
     }
 }
+
