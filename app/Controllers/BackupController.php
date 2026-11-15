@@ -12,6 +12,27 @@ if ($type === 'backups') {
 
     Helper::verificarSesion();
 
+    $permisosMantenimiento = Helper::TraerPermisos("mantenimiento");
+    $esAdmin = isset($_SESSION['user']['rol']) && in_array(strtolower($_SESSION['user']['rol']), ['superusuario', 'administrador']);
+
+    // Blindaje RBAC: Solo usuarios con permisos de mantenimiento o administradores pueden acceder
+    if (!$esAdmin && (!isset($permisosMantenimiento['mantenimiento']['ver']) || $permisosMantenimiento['mantenimiento']['ver'] != 1)) {
+        if (!empty($peticion)) {
+            header('Content-Type: application/json');
+            header("HTTP/1.1 403 Forbidden");
+            echo json_encode([
+                'success' => false,
+                'resultado' => 403,
+                'icon' => 'error',
+                'mensaje' => 'Acceso denegado: No cuenta con permisos para gestionar respaldos del sistema.'
+            ]);
+            exit;
+        } else {
+            header('Location: ?page=Dashboard');
+            exit;
+        }
+    }
+
     if ($peticion === 'generar-respaldo') {
 
         $database = trim($_POST['database'] ?? '');
@@ -192,22 +213,30 @@ if ($type === 'backups') {
         try {
             $scriptPath = realpath(BASE_PATH . '/cron_backup.php');
             if ($scriptPath) {
-                $cronLine = "$cronExpr php $scriptPath";
-                $tmp = tempnam(sys_get_temp_dir(), 'cron');
-                exec("crontab -l > $tmp 2>/dev/null");
+                if (stripos(PHP_OS, 'WIN') === 0) {
+                    // Entorno Windows: compatibilidad transparente sin crontab
+                    Helper::Bitacora(
+                        'CONFIG_BACKUP',
+                        'Backup',
+                        "Programación actualizada en Windows: $frecuencia · $cronExpr (Programador interno de tareas)"
+                    );
+                } else {
+                    $cronLine = "$cronExpr php $scriptPath";
+                    $tmp = tempnam(sys_get_temp_dir(), 'cron');
+                    exec("crontab -l > $tmp 2>/dev/null");
 
-                $lines = file_exists($tmp) ? file($tmp, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : [];
+                    $lines = file_exists($tmp) ? file($tmp, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : [];
 
-                $newLines = array_filter($lines, fn($line) => !str_contains($line, $scriptPath));
-                $newLines[] = $cronLine;
+                    $newLines = array_filter($lines, fn($line) => !str_contains($line, $scriptPath));
+                    $newLines[] = $cronLine;
 
-                file_put_contents($tmp, implode("\n", $newLines) . "\n");
-                exec("crontab $tmp");
-                @unlink($tmp);
+                    file_put_contents($tmp, implode("\n", $newLines) . "\n");
+                    exec("crontab $tmp");
+                    @unlink($tmp);
+                }
             }
         } catch (\Throwable $e) {
-            Helper::ErrorLog("[Crontab Sync Error] " . $e->getMessage());
-
+            Helper::ErrorLog("[Scheduler Sync Error] " . $e->getMessage());
         }
 
         Helper::Bitacora(

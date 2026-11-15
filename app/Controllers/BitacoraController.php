@@ -5,8 +5,23 @@ namespace App\Controllers;
 use App\Helpers\Helper;
 use App\Models\Security\Bitacora;
 
-// ===== 1. VERIFICAR SESIÓN CON HELPER =====
+// ===== 1. VERIFICAR SESIÓN Y PERMISOS CON HELPER =====
 Helper::verificarSesion();
+
+$permisosBitacora = Helper::TraerPermisos("bitacora");
+$esAdmin = isset($_SESSION['user']['rol']) && in_array(strtolower($_SESSION['user']['rol']), ['superusuario', 'administrador']);
+
+if (!$esAdmin && (!isset($permisosBitacora['bitacora']['ver']) || $permisosBitacora['bitacora']['ver'] != 1)) {
+    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        header('Content-Type: application/json');
+        header("HTTP/1.1 403 Forbidden");
+        echo json_encode(['error' => 'Acceso no autorizado al módulo de bitácora']);
+        exit();
+    } else {
+        header('Location: ?page=Dashboard');
+        exit();
+    }
+}
 
 // ===== 2. CREAR MODELO =====
 $bitacora = new Bitacora();
@@ -85,16 +100,7 @@ if ($esAjax) {
             exit();
         }
 
-        $todos = $bitacora->Transaccion(['peticion' => 'listar']);
-        
-        $registro = null;
-        foreach ($todos as $r) {
-            if ($r['id_bitacora'] == $id) {
-                $registro = $r;
-                break;
-            }
-        }
-
+        $registro = $bitacora->Transaccion(['peticion' => 'buscar', 'id' => $id]);
         if ($registro) {
             echo json_encode(['success' => true, 'data' => $registro]);
         } else {

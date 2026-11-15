@@ -32,7 +32,9 @@ if (isset($_POST["peticion"])) {
 			$accion_permiso = true;
 		}
 
-		if (isset($permisosRol['rol']['modificar']) && $permisosRol['rol']['modificar'] == 1 && $_POST["peticion"] == "modificar") {
+		if ((isset($permisosRol['rol']['eliminar']) && $permisosRol['rol']['eliminar'] == 1) ||
+		    (isset($permisosRol['rol']['modificar']) && $permisosRol['rol']['modificar'] == 1) ||
+		    (isset($_SESSION['user']['rol']) && in_array(strtolower($_SESSION['user']['rol']), ['superusuario', 'administrador']))) {
 			$accion_permiso = true;
 		}
 
@@ -108,7 +110,9 @@ if (isset($_POST["peticion"])) {
 	if ($_POST["peticion"] == "eliminar") {
 		$accion_permiso = false;
 
-		if (isset($permisosRol['rol']['modificar']) && $permisosRol['rol']['modificar'] == 1 && $_POST["peticion"] == "modificar") {
+		if ((isset($permisosRol['rol']['eliminar']) && $permisosRol['rol']['eliminar'] == 1) ||
+		    (isset($permisosRol['rol']['modificar']) && $permisosRol['rol']['modificar'] == 1) ||
+		    (isset($_SESSION['user']['rol']) && in_array(strtolower($_SESSION['user']['rol']), ['superusuario', 'administrador']))) {
 			$accion_permiso = true;
 		}
 
@@ -136,7 +140,7 @@ if (isset($_POST["peticion"])) {
 			$json['response'] = ['resultado' => 403, 'mensaje' => 'Error, No tienes permiso para ' . $_POST["peticion"] . ' a un rol'];
 			$msg = "(" . $_SESSION['user']['cedula'] . "), permiso " . $_POST["peticion"] . " denegado";
 		}
-		Helper::Bitacora('ELIMINAR', 'ROL', $msg, $json['datos_anteriores'], $json['datos_nuevos']);
+		Helper::Bitacora('ELIMINAR', 'ROL', $msg, $json['datos_anteriores'] ?? null, $json['datos_nuevos'] ?? null);
 	}
 	//Fin del Eliminar
 
