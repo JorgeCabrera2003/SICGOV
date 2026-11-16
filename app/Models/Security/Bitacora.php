@@ -84,6 +84,7 @@ class Bitacora extends Database {
         if (isset($peticion['peticion'])) {
             $response = match ($peticion['peticion']) {
                 'listar' => $this->listarBitacora($peticion['filtros'] ?? []),
+                'buscar' => $this->buscarPorId($peticion['id'] ?? $this->id_bitacora),
                 'registrar' => $this->Registrar(),
                 default => false
             };
@@ -96,6 +97,40 @@ class Bitacora extends Database {
 
 
 
+
+    
+    private function buscarPorId($id) {
+        if (empty($id)) return null;
+        try {
+            $this->LlamarConexion("security");
+            $sql = "SELECT 
+                        b.id_bitacora,
+                        b.modulo,
+                        b.accion,
+                        b.detalle,
+                        b.ip_address,
+                        b.fecha,
+                        b.valores_anteriores,
+                        b.valores_nuevos,
+                        u.username,
+                        u.cedula,
+                        r.nombre_rol as rol
+                    FROM bitacora b
+                    LEFT JOIN usuario u ON b.cedula = u.cedula
+                    LEFT JOIN rol r ON u.id_rol = r.id_rol
+                    WHERE b.id_bitacora = :id
+                    LIMIT 1";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->bindValue(':id', $id, \PDO::PARAM_STR);
+            $stm->execute();
+            return $stm->fetch(\PDO::FETCH_ASSOC) ?: null;
+        } catch (\PDOException $e) {
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            return null;
+        } finally {
+            $this->DestruirConexion();
+        }
+    }
 
     private function listarBitacora($filtros = []) {
         $arreglo = [];

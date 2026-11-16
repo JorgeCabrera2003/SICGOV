@@ -1,0 +1,3 @@
+$kind: collection
+description: Módulo central de reservas de mesa, agenda interactiva, validación de capacidad en tiempo real y asignación de mesas.
+order: 4000

@@ -165,12 +165,13 @@ coverage/
 # Pruebas y Cobertura de Código
 # ---------------------------
 .phpunit.cache/
-coverage-report/
-coverage.xml
+.phpunit.cache
 phpunit
 phpunit.phar
-.phpunit.cache
+coverage-report/
+coverage.xml
 *.coverage
 
 # Archivos de trabajo scratch
 scratch/
+chromedriver.exe
