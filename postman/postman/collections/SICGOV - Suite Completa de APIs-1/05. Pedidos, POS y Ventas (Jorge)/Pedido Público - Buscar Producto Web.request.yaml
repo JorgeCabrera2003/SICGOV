@@ -1,0 +1,24 @@
+$kind: http-request
+description: Consulta pública de detalles de producto para el carrito web.
+url: "{{base_url}}?page=PedidoPublico&action=buscarProducto&id=PROD001"
+method: GET
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  page: PedidoPublico
+  action: buscarProducto
+  id: PROD001
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 7000

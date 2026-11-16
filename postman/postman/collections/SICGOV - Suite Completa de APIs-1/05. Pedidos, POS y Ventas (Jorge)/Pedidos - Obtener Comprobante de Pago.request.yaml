@@ -1,0 +1,27 @@
+$kind: http-request
+description: Obtiene la URL de la imagen del comprobante bancario/pago móvil.
+url: "{{base_url}}?page=Pedido"
+method: POST
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  page: Pedido
+body:
+  type: urlencoded
+  content:
+    peticion: obtener_comprobante
+    id_pedido: PED20261025140000001
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 4000

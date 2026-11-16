@@ -1,0 +1,29 @@
+$kind: http-request
+description: Obliga el cambio de clave en el primer inicio de sesión.
+url: "{{base_url}}?page=Perfil&type=forzar-cambiar-clave"
+method: POST
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  page: Perfil
+  type: forzar-cambiar-clave
+body:
+  type: urlencoded
+  content:
+    peticion: forzar-cambiar-clave
+    clave_nueva: AdminRoot2026*
+    clave_confirmar: AdminRoot2026*
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 8000

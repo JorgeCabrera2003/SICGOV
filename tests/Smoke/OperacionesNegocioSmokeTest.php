@@ -110,7 +110,6 @@ class OperacionesNegocioSmokeTest extends TestCase
 
         $this->assertIsArray($resultado, 'El catálogo del menú debe responder con un array de productos.');
     }
-
     /**
      * Humo 7: Comprueba que el módulo de Áreas pueda consultar el catálogo de áreas.
      */

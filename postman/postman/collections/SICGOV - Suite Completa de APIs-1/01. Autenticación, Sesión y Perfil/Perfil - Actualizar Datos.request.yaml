@@ -1,0 +1,31 @@
+$kind: http-request
+description: Modifica la información básica del perfil del usuario autenticado.
+url: "{{base_url}}?page=Perfil"
+method: POST
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  page: Perfil
+body:
+  type: urlencoded
+  content:
+    peticion: actualizar-perfil
+    nombre: Administrador
+    apellido: General
+    telefono: 0414-9998877
+    correo: admin@goodvibes.com
+    direccion: Cabudare Centro
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 9000
