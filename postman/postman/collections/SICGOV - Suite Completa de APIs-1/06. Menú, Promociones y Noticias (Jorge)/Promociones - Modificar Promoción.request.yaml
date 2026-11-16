@@ -1,0 +1,33 @@
+$kind: http-request
+url: "{{base_url}}?page=Promocion"
+method: POST
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  page: Promocion
+body:
+  type: urlencoded
+  content:
+    peticion: modificar
+    id_promocion: PROM20261025140000001
+    nombre: Súper Combo Actualizado
+    tipo_descuento: PORCENTAJE
+    valor_descuento: "25"
+    descripcion: Ahora con 25% de descuento.
+    fecha_inicio: 2026-11-04
+    fecha_fin: 2026-11-24
+    productos: '[{"id":"PROD001","cantidad":2}]'
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 8000

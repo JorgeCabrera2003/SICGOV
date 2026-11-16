@@ -1,0 +1,3 @@
+$kind: collection
+description: Módulo de procesamiento de órdenes, punto de venta (POS), órdenes web con comprobantes y máquina de estados.
+order: 5000

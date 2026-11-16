@@ -54,6 +54,12 @@ if ($type === 'index') {
 
             // PETICIÓN: EMPLEADOS SIN USUARIO 
             if ($_POST["peticion"] == "empleados-sin-usuario") {
+                if ((!isset($permisosUsuario['usuario']['registrar']) || $permisosUsuario['usuario']['registrar'] != 1) &&
+                    (!isset($permisosUsuario['usuario']['ver']) || $permisosUsuario['usuario']['ver'] != 1)) {
+                    header("HTTP/1.1 403 Forbidden");
+                    echo json_encode(['resultado' => 403, 'mensaje' => 'Acceso denegado a la nómina de empleados']);
+                    exit;
+                }
                 $json = $usuarioModel->Transaccion(['peticion' => 'empleados-sin-usuario']);
                 header("HTTP/1.1 " . ($json['HTTP_STATUS']['codigo'] ?? 200) . " " . ($json['HTTP_STATUS']['mensaje'] ?? "OK"));
                 echo json_encode($json['response'] ?? []);
@@ -145,8 +151,8 @@ if ($type === 'index') {
                     } elseif (mb_strlen($username) < 3) {
                         $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El nombre de usuario debe tener al menos 3 letras.'];
                         $bool_formulario = false;
-                    } elseif (!preg_match('/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ]+$/u', $username)) {
-                        $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El nombre de usuario debe contener solamente letras.'];
+                    } elseif (!preg_match('/^[a-zA-Z0-9._\-ÁÉÍÓÚáéíóúüñÑ]+$/u', $username)) {
+                        $json['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'El nombre de usuario solo puede contener letras, números, puntos, guiones y guiones bajos.'];
                         $bool_formulario = false;
                     }
                 }

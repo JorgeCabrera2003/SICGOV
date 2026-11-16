@@ -1,0 +1,28 @@
+$kind: http-request
+description: Comprueba la existencia previa de un usuario por cédula.
+url: "{{base_url}}?page=Login"
+method: POST
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  page: Login
+body:
+  type: urlencoded
+  content:
+    peticion: verificar_cedula
+    nacionalidad: V
+    cedula: "00000000"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 2000

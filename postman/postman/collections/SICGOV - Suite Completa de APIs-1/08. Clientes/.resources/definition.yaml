@@ -1,0 +1,3 @@
+$kind: collection
+description: Gestión de clientes y validación de documentos de identidad.
+order: 8000
