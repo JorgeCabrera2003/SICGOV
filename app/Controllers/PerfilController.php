@@ -119,8 +119,8 @@ if ($type === 'forzar-cambiar-clave') {
                     echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Sexo inválido (debe ser M o F)']);
                     exit;
                 }
-                if (empty($fecha_nacimiento) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_nacimiento) || $fecha_nacimiento >= date('Y-m-d')) {
-                    echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Fecha de nacimiento debe ser una fecha pasada válida (YYYY-MM-DD)']);
+                if (empty($fecha_nacimiento) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha_nacimiento) || $fecha_nacimiento >= date('Y-m-d') || $fecha_nacimiento > date('Y-m-d', strtotime('-18 years'))) {
+                    echo json_encode(['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Fecha de nacimiento inválida (debe ser mayor o igual a 18 años)']);
                     exit;
                 }
 

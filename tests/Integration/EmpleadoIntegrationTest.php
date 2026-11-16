@@ -150,14 +150,14 @@ class EmpleadoIntegrationTest extends TestCase
     #[Test]
     public function testDefectoAdmisionEmpleadoInfanteSinValidarEdadMinimaLegal(): void
     {
-        // Defecto EMP-BIZ-01:
-        // Persona.php:89 solo valida formato YYYY-MM-DD y que la fecha no esté en el futuro.
-        // No verifica la edad mínima legal laboral (14 o 18 años).
-        // Se puede registrar un infante de 4 años sin disparar ninguna excepción.
-        $fechaInfante = '2022-06-15'; // 4 años de edad
+        // Corrección de Defecto EMP-BIZ-01:
+        // Ahora Persona.php exige que la persona sea mayor o igual a 18 años.
+        // Se valida que registrar un infante de 4 años lance la excepción correspondiente.
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Debe ser mayor o igual a 18 años.');
 
+        $fechaInfante = '2022-06-15'; // 4 años de edad
         $this->empleadoModel->setFechaNacimiento($fechaInfante);
-        $this->assertEquals($fechaInfante, $this->empleadoModel->getFechaNacimiento(), "Defecto confirmado: Permite registrar empleados infantes");
     }
 
     #[Test]

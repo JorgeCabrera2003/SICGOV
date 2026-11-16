@@ -76,7 +76,7 @@ class Persona extends Database
         $this->apellido = $apellido;
     }
 
-    /** Fecha de nacimiento: obligatoria, formato YYYY-MM-DD, no puede ser hoy ni futura. */
+    /** Fecha de nacimiento: obligatoria, formato YYYY-MM-DD, no puede ser hoy ni futura y debe ser mayor o igual a 18 años. */
     public function setFechaNacimiento($fecha_nacimiento)
     {
         $fecha_nacimiento = trim($fecha_nacimiento ?? '');
@@ -89,6 +89,12 @@ class Persona extends Database
         if ($fecha_nacimiento >= date('Y-m-d')) {
             throw new Exception('La fecha de nacimiento debe ser anterior a hoy.');
         }
+
+        $fechaLimite = date('Y-m-d', strtotime('-18 years'));
+        if ($fecha_nacimiento > $fechaLimite) {
+            throw new Exception('Debe ser mayor o igual a 18 años.');
+        }
+
         $this->fecha_nacimiento = $fecha_nacimiento;
     }
 
@@ -166,6 +172,15 @@ class Persona extends Database
 
     public function getFechaNacimiento() {
          return $this->fecha_nacimiento;
+    }
+
+    public function getEdad(): ?int {
+        if (empty($this->fecha_nacimiento)) {
+            return null;
+        }
+        $fechaNac = new \DateTime($this->fecha_nacimiento);
+        $hoy = new \DateTime();
+        return $hoy->diff($fechaNac)->y;
     }
 
     public function getTelefono() {
