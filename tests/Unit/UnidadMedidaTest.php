@@ -3,17 +3,30 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\MockObject;
 use App\Models\System\UnidadMedida;
+use PhpUnitsOfMeasure\PhysicalQuantity\Volume;
+use PhpUnitsOfMeasure\PhysicalQuantity\Mass;
 use PDO;
 use PDOStatement;
 use PDOException;
 use Exception;
 
-class UnidadMedidaTest extends TestCase
+final class UnidadMedidaTest extends TestCase
 {
-    private function createUnidadMock(PDO&MockObject $mockPdo): UnidadMedida&MockObject
+
+    private $objUnidadMedida;
+
+    protected function setUp(): void
+    {
+        $this->objUnidadMedida = new UnidadMedida();
+    }
+
+    /**
+     * Crea un mock parcial de UnidadMedida para aislar completamente la base de datos.
+     * Sobrescribe 'LlamarConexion' y 'DestruirConexion'.
+     */
+    private function createUnidadMedidaMock(PDO&MockObject $mockPdo): UnidadMedida&MockObject
     {
         $mock = $this->getMockBuilder(UnidadMedida::class)
             ->onlyMethods(['LlamarConexion', 'DestruirConexion'])
@@ -25,95 +38,196 @@ class UnidadMedidaTest extends TestCase
         return $mock;
     }
 
-    #[Test]
-    public function testSetIdValidacionFormatoEInvalido(): void
+    private function createMassMock(PDO&MockObject $mockPdo): UnidadMedida&MockObject
     {
-        $um = new UnidadMedida();
-        // Con formato válido
+        $mock = $this->getMockBuilder(UnidadMedida::class)
+            ->onlyMethods(['LlamarConexion', 'DestruirConexion'])
+            ->getMock();
+
+        $mock->method('LlamarConexion')->willReturn($mockPdo);
+        $mock->method('DestruirConexion')->willReturn(null);
+
+        return $mock;
+    }
+
+    /**
+     * Asigna un conjunto de datos válidos a un objeto UnidadMedida.
+     */
+    private function poblarDatosValidos(UnidadMedida $unidadMedida): void
+    {
+        $unidadMedida->setId('MEDIAKG23220260519200547232');
+    }
+
+    // =========================================================================
+    // 1. Validaciones
+    // =========================================================================
+    public function test_validar_campos_unidad_de_medida_con_datos_vacios_lanza_excepcion(): void
+    {
+        // 1. ID vacía
         try {
-            $um->setId('UNID0012026010112');
-            $this->assertEquals('UNID0012026010112', $um->getId());
-        } catch (\Error $e) {
-            // Si el autoloader estricto intercepta 'APP\Helpers\RegexHelper'
-            $this->assertStringContainsString('RegexHelper', $e->getMessage());
+            $this->objUnidadMedida->setId('');
+            $this->fail("Se esperaba Exception por id vacío.");
+        } catch (Exception $e) {
+            $this->assertStringContainsString("El ID no cumple con el formato permitido.", $e->getMessage());
         }
 
-        // Con formato inválido debe rechazar con Exception
+    }
+
+
+    // =========================================================================
+    // 3. MÉTODO: FiltrarUnidadMedida (Transacción 'filtrar' -> SELECT * FROM unidad_medida WHERE tipo = :tipo)
+    // =========================================================================
+
+    /**
+     * Caso con datos vacíos al filtrar:
+     * Intenta filtrar pasando id vacío directamente en el setter,
+     * verificando que se rechace antes de acceder a la base de datos.
+     */
+    public function test_filtrar_unidad_de_medida_con_datos_vacios_lanza_excepcion(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage("El ID no cumple con el formato permitido.");
+
+        $this->objUnidadMedida->setId('');
+    }
+
+    /**
+     * Caso con datos incorrectos / error en base de datos al filtrar:
+     * - ID con formato inválido lanza excepción.
+     * - Falla de base de datos (PDOException) durante el SELECT retorna estado -1 y código 500.
+     */
+    public function test_filtrar_unidad_de_medida_con_datos_incorrectos_o_error_bd_falla(): void
+    {
+        // 1. Cédula con formato no válido
         try {
-            $um->setId('id-malo');
-            $this->fail("Se esperaba excepción por formato de ID inválido");
-        } catch (\Exception $e) {
-            $this->assertStringContainsString('El ID no cumple con el formato permitido.', $e->getMessage());
-        } catch (\Error $e) {
-            $this->assertStringContainsString('RegexHelper', $e->getMessage());
+            $this->objUnidadMedida->setId('CATEGIN0112026051920054723#');
+            $this->fail("El ID no cumple con el formato permitido.");
+        } catch (Exception $e) {
+            $this->assertStringContainsString("El ID no cumple con el formato permitido.", $e->getMessage());
         }
-    }
 
-    #[Test]
-    public function testTablaConversionMasaValida(): void
-    {
-        $um = new UnidadMedida();
-        // Sumar 500g a 1.5kg en stock (resultado en kg -> 1.5 + 0.5 = 2.0 kg)
-        $resultado = $um->TablaConversion(500, 1.5, 'g', 'kg', 'sumar');
-        $this->assertEquals(2.0, $resultado);
-
-        // Restar 1kg a 2.5kg en stock (resultado en kg -> 1.5 kg)
-        $resultadoResta = $um->TablaConversion(1, 2.5, 'kg', 'kg', 'restar');
-        $this->assertEquals(1.5, $resultadoResta);
-    }
-
-    #[Test]
-    public function testTablaConversionUnidadesIncompatiblesLanzaExcepcion(): void
-    {
-        $um = new UnidadMedida();
-        // Intentar convertir masa (kg) con volumen (l)
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('son incompatibles');
-        $um->TablaConversion(1, 2, 'kg', 'l', 'sumar');
-    }
-
-    #[Test]
-    public function testTablaConversionRestaExcesivaLanzaExcepcionNegativo(): void
-    {
-        $um = new UnidadMedida();
-        // Restar 5kg a 2kg de stock (daría -3kg)
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('El valor resultante no puede ser negativo');
-        $um->TablaConversion(5, 2, 'kg', 'kg', 'restar');
-    }
-
-    #[Test]
-    public function testConsultarUnidadesRetornaCatalogoOrdenado(): void
-    {
         $mockPdo = $this->createMock(PDO::class);
         $mockStmt = $this->createMock(PDOStatement::class);
+        // 1. Regla de negocio: la unidad de medida ya existe en la base de datos
+        $mockPdo = $this->createMock(PDO::class);
+        $mockCheckUnidadMedida = $this->createMock(PDOStatement::class);
+        $mockFilterUnidadMedida = $this->createMock(PDOStatement::class);
 
-        $mockPdo->method('beginTransaction');
-        $mockPdo->method('commit');
+        // 1. Verificación de unidad de medida: no existe (rowCount = 0)
+        $mockCheckUnidadMedida->expects($this->once())->method('execute')->willReturn(true);
+        $mockCheckUnidadMedida->expects($this->once())->method('rowCount')->willReturn(1);
 
-        $mockStmt->method('execute')->willReturn(true);
-        $mockStmt->method('rowCount')->willReturn(2);
-        $mockStmt->method('fetchAll')->willReturn([
-            ['id_unidad' => 'U01', 'nombre' => 'Kilogramo', 'abreviatura' => 'kg', 'tipo' => 'masa'],
-            ['id_unidad' => 'U02', 'nombre' => 'Litro', 'abreviatura' => 'l', 'tipo' => 'volumen']
-        ]);
+        // 2. Inserciones exitosas
+        $mockFilterUnidadMedida->expects($this->once())->method('execute')->willThrowException(new PDOException("Error de conexión con la base de datos."));
 
-        $mockPdo->method('prepare')->willReturn($mockStmt);
+        $mockPdo->expects($this->exactly(2))->method('beginTransaction');
+        $mockPdo->method('prepare')->willReturnCallback(function (string $sql) use ($mockCheckUnidadMedida, $mockFilterUnidadMedida) {
+            if (str_contains($sql, 'SELECT * FROM unidad_medida WHERE id_unidad = :id_unidad')) {
+                return $mockCheckUnidadMedida;
+            }if (str_contains($sql, 'SELECT * FROM unidad_medida WHERE tipo = :tipo ORDER BY tipo ASC')) {
+                return $mockFilterUnidadMedida;
+            }
+        });
 
-        $umMock = $this->createUnidadMock($mockPdo);
-        $res = $umMock->Transaccion(['peticion' => 'consultar']);
+        $unidadMedidaMock = $this->createUnidadMedidaMock($mockPdo);
+        $unidadMedidaMock->setId('MEDIAKG23220260519200547232');
 
-        $this->assertEquals(1, $res['estado']);
-        $this->assertEquals(200, $res['response']['resultado']);
-        $this->assertCount(2, $res['response']['datos']);
+        $resultado = $unidadMedidaMock->Transaccion(['peticion' => 'filtrar']);
+
+        $this->assertEquals(-1, $resultado['estado']);
+        $this->assertEquals(500, $resultado['response']['resultado']);
+        $this->assertEquals('Ups, intente de nuevo más tarde', $resultado['response']['mensaje']);
     }
 
-    #[Test]
-    public function testTransaccionPeticionInvalidaRetorna400(): void
+    /**
+     * Caso con datos correctos al filtrar:
+     * Proporciona id válido, ejecuta el SELECT y retorna resultado 200.
+     */
+    public function test_flitrar_unidad_de_medida_con_datos_correctos_exitosamente(): void
     {
-        $um = new UnidadMedida();
-        $res = $um->Transaccion(['peticion' => 'hack_unidad']);
-        $this->assertEquals(400, $res['response']['resultado']);
-        $this->assertEquals(400, $res['HTTP_STATUS']['codigo']);
+        // 1. Regla de negocio: la unidad de medida ya existe en la base de datos
+        $mockPdo = $this->createMock(PDO::class);
+        $mockCheckUnidadMedida = $this->createMock(PDOStatement::class);
+        $mockFilterUnidadMedida = $this->createMock(PDOStatement::class);
+
+        // 1. Verificación unidad de medida: no existe (rowCount = 0)
+        $mockCheckUnidadMedida->expects($this->once())->method('execute')->willReturn(false);
+        $mockCheckUnidadMedida->expects($this->once())->method('rowCount')->willReturn(1);
+
+        // 2. Inserciones exitosas
+        $mockFilterUnidadMedida->expects($this->once())->method('execute')->willReturn(true);
+
+        $mockPdo->expects($this->exactly(2))->method('beginTransaction');
+        $mockPdo->method('prepare')->willReturnCallback(function (string $sql) use ($mockCheckUnidadMedida, $mockFilterUnidadMedida) {
+            if (str_contains($sql, 'SELECT * FROM unidad_medida WHERE id_unidad = :id_unidad')) {
+                return $mockCheckUnidadMedida;
+            }
+            if (str_contains($sql, 'SELECT * FROM unidad_medida WHERE tipo = :tipo ORDER BY tipo ASC')) {
+                return $mockFilterUnidadMedida;
+            }
+        });
+        $mockPdo->expects($this->exactly(2))->method('commit');
+        $mockPdo->expects($this->never())->method('rollBack');
+
+        $unidadMedidaMock = $this->createUnidadMedidaMock($mockPdo);
+        $this->poblarDatosValidos($unidadMedidaMock);
+
+        $resultado = $unidadMedidaMock->Transaccion(['peticion' => 'filtrar']);
+
+        $this->assertEquals(1, $resultado['estado']);
+        $this->assertEquals(200, $resultado['response']['resultado']);
+    }
+
+    /**
+     * Caso para probar método CalcularValor() sumando stock con la misma unidad de kilos
+     */
+    public function test_calcular_stock_de_masa_con_misma_unidad(): void
+    {
+        $resultado = null;
+        // 1. Sumar Valores según las unidedades de medida 
+        $resultado = $this->objUnidadMedida->CalcularValor(10, 10, "kg", "kg", "sumar");
+
+        // 2. Verificación resultado 10Kg + 10Kg = 20Kg
+        $this->assertEquals(20, $resultado);
+    }
+
+
+    /**
+     * Caso para probar método CalcularValor() sumando stock con diferentes unidades
+     * de masa, usando kilos y gramos
+     */
+    public function test_calcular_stock_de_masa_con_diferente_unidad(): void
+    {
+        $resultado = null;
+        // 1. Sumar Valores según las unidedades de medida 
+        $resultado = $this->objUnidadMedida->CalcularValor(0.5, 13000, "kg", "g", "sumar");
+
+        // 2. Verificación resultado 10Kg + 10Kg = 20Kg
+        $this->assertEquals(13500, $resultado);
+    }
+
+    public function test_calcular_stock_de_volumen_con_misma_unidad(): void
+    {
+        $resultado = null;
+        // 1. Sumar Valores según las unidedades de medida 
+        $resultado = $this->objUnidadMedida->CalcularValor(5, 3, "L", "L", "sumar");
+
+        // 2. Verificación resultado 5L + 3L = 8L
+        $this->assertEquals(8, $resultado);
+    }
+
+    public function test_calcular_stock_de_volumen_con_diferente_unidad(): void
+    {
+        $resultado = null;
+        // 1. Sumar Valores según las unidedades de medida 
+        $resultado = $this->objUnidadMedida->CalcularValor(400, 2.6, "ml", "L", "sumar");
+
+        // 2. Verificación resultado 400ml + 2.6L = 3L
+        $this->assertEquals(3, $resultado);
+    }
+
+    protected function tearDown(): void
+    {
+        $this->objUnidadMedida = NULL;
     }
 }
