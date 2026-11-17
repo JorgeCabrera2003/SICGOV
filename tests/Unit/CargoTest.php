@@ -190,7 +190,7 @@ final class CargoTest extends TestCase
             $this->objCargo->setNombre('Juan#');
             $this->fail("Se esperaba Exception por números en el nombre.");
         } catch (Exception $e) {
-            $this->assertEquals("El Nombre de la Categoría no cumple con el formato permitido.", $e->getMessage());
+            $this->assertEquals("El Nombre del Cargo no cumple con el formato permitido.", $e->getMessage());
         }
 
         // 2. ID con caracteres no permitidos
@@ -198,7 +198,7 @@ final class CargoTest extends TestCase
             $this->objCargo->setId('CATEGIN011202605192005472@#');
             $this->fail("Se esperaba Exception por caracteres inválidos en ID.");
         } catch (Exception $e) {
-            $this->assertEquals("El ID de la Categoría no cumple con el formato permitido.", $e->getMessage());
+            $this->assertEquals("El ID del Cargo no cumple con el formato permitido.", $e->getMessage());
         }
 
         // 3. Conflicto de correo duplicado en la base de datos durante el UPDATE
