@@ -165,7 +165,15 @@ coverage/
 # Pruebas y Cobertura de Código
 # ---------------------------
 .phpunit.cache/
+<<<<<<< HEAD
+coverage-report/
+coverage.xml
+<<<<<<< HEAD
+*.coverage
+=======
+=======
 .phpunit.cache
+>>>>>>> 11076ec21f25532de7b32ca5d46b5899de08d443
 phpunit
 phpunit.phar
 coverage-report/
@@ -174,4 +182,8 @@ coverage.xml
 
 # Archivos de trabajo scratch
 scratch/
+<<<<<<< HEAD
+>>>>>>> b381f00e5af9268c4d53c967f32e1af626ee4d1b
+=======
 chromedriver.exe
+>>>>>>> 11076ec21f25532de7b32ca5d46b5899de08d443

@@ -141,6 +141,20 @@ class EmpleadoTest extends TestCase
             $this->assertEquals("La fecha de nacimiento debe ser anterior a hoy.", $e->getMessage());
         }
 
+        // 3.1. Fecha de nacimiento menor de 18 años (Menor de edad)
+        try {
+            $empleado->setFechaNacimiento(date('Y-m-d', strtotime('-17 years')));
+            $this->fail("Se esperaba Exception por empleado menor de edad (< 18 años).");
+        } catch (Exception $e) {
+            $this->assertEquals("Debe ser mayor o igual a 18 años.", $e->getMessage());
+        }
+
+        // 3.2. Fecha de nacimiento con exactamente 18 años es válida
+        $fechaExacta18 = date('Y-m-d', strtotime('-18 years'));
+        $empleado->setFechaNacimiento($fechaExacta18);
+        $this->assertEquals($fechaExacta18, $empleado->getFechaNacimiento());
+        $this->assertGreaterThanOrEqual(18, $empleado->getEdad());
+
         // 4. Regla de negocio: El empleado ya existe en la base de datos
         $mockPdo = $this->createMock(PDO::class);
         $mockCheckEmpleado = $this->createMock(PDOStatement::class);

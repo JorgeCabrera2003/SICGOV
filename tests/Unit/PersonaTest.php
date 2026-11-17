@@ -50,6 +50,22 @@ class PersonaTest extends TestCase
     }
 
     #[Test]
+    public function testSetNombreConNumerosLanzaExcepcion(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('El nombre solo puede contener letras y espacios.');
+        $this->persona->setNombre('Juan 123');
+    }
+
+    #[Test]
+    public function testSetNombreConSimbolosLanzaExcepcion(): void
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('El nombre solo puede contener letras y espacios.');
+        $this->persona->setNombre('Juan@Perez!');
+    }
+
+    #[Test]
     public function testSetApellidoValidoEInvalido(): void
     {
         $this->persona->setApellido('González Peña');
@@ -83,6 +99,13 @@ class PersonaTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('El teléfono debe incluir el prefijo');
         $this->persona->setTelefono('12345');
+    }
+
+    #[Test]
+    public function testSetTelefonoConLetrasOSimbolosLanzaExcepcion(): void
+    {
+        $this->expectException(Exception::class);
+        $this->persona->setTelefono('0414-abc-1234');
     }
 
     #[Test]

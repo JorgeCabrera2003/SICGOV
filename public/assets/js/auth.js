@@ -108,13 +108,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function soloLetras(e) {
         const char = String.fromCharCode(e.which || e.keyCode);
-        if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(char)) {
+        if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜçÇ\s]+$/.test(char)) {
+            e.preventDefault();
+        }
+    }
+
+    function soloNumeros(e) {
+        const char = String.fromCharCode(e.which || e.keyCode);
+        if (!/^\d+$/.test(char)) {
             e.preventDefault();
         }
     }
 
     function formatoNombres(input) {
-        let val = input.value.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+        let val = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜçÇ\s]/g, '').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
         input.value = val;
     }
 
@@ -156,7 +163,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (inputs.nombre) inputs.nombre.addEventListener('keypress', soloLetras);
         if (inputs.apellido) inputs.apellido.addEventListener('keypress', soloLetras);
         if (inputs.cedula) inputs.cedula.addEventListener('input', function () { this.value = this.value.replace(/\D/g, ''); });
-        if (inputs.numero_telefono) inputs.numero_telefono.addEventListener('input', function () { this.value = this.value.replace(/\D/g, ''); });
+        if (inputs.numero_telefono) {
+            inputs.numero_telefono.addEventListener('keypress', soloNumeros);
+            inputs.numero_telefono.addEventListener('input', function () { this.value = this.value.replace(/\D/g, ''); });
+        }
         if (inputs.username) inputs.username.addEventListener('input', function () { this.value = this.value.replace(/[^a-zA-Z]/g, ''); });
 
         let cedulaDisponible = true;
@@ -204,15 +214,17 @@ document.addEventListener('DOMContentLoaded', function () {
             // Nombre
             if (inputs.nombre) {
                 formatoNombres(inputs.nombre);
-                let valid = inputs.nombre.value.trim().length >= 3;
-                if (!aplicarValidacion(inputs.nombre, spans.nombre, valid, 'Mínimo 3 caracteres, solo letras.')) isValid = false;
+                let val = inputs.nombre.value.trim();
+                let valid = val.length >= 3 && /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜçÇ\s]+$/.test(val);
+                if (!aplicarValidacion(inputs.nombre, spans.nombre, valid, 'Mínimo 3 caracteres, solo letras sin números ni símbolos.')) isValid = false;
             }
 
             // Apellido
             if (inputs.apellido) {
                 formatoNombres(inputs.apellido);
-                let valid = inputs.apellido.value.trim().length >= 3;
-                if (!aplicarValidacion(inputs.apellido, spans.apellido, valid, 'Mínimo 3 caracteres, solo letras.')) isValid = false;
+                let val = inputs.apellido.value.trim();
+                let valid = val.length >= 3 && /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜçÇ\s]+$/.test(val);
+                if (!aplicarValidacion(inputs.apellido, spans.apellido, valid, 'Mínimo 3 caracteres, solo letras sin números ni símbolos.')) isValid = false;
             }
 
             // Cedula
@@ -229,8 +241,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Fecha
             if (inputs.fecha_nacimiento) {
-                let valid = inputs.fecha_nacimiento.value.trim() !== '';
-                if (!aplicarValidacion(inputs.fecha_nacimiento, spans.fecha_nacimiento, valid, 'Selecciona una fecha válida.')) isValid = false;
+                let val = inputs.fecha_nacimiento.value.trim();
+                let valid = false;
+                let msg = 'Selecciona una fecha válida.';
+                if (!val) {
+                    valid = false;
+                    msg = 'La fecha de nacimiento es obligatoria.';
+                } else {
+                    const hoy = new Date();
+                    const partesFecha = val.split('-').map(Number);
+                    if (partesFecha.length !== 3 || isNaN(partesFecha[0]) || isNaN(partesFecha[1]) || isNaN(partesFecha[2])) {
+                        valid = false;
+                        msg = 'El formato de la fecha no es válido.';
+                    } else {
+                        const [y, m, d] = partesFecha;
+                        let edad = hoy.getFullYear() - y;
+                        const mesDiff = hoy.getMonth() - (m - 1);
+                        if (mesDiff < 0 || (mesDiff === 0 && hoy.getDate() < d)) {
+                            edad--;
+                        }
+                        if (edad < 18) {
+                            valid = false;
+                            msg = 'Debes ser mayor o igual a 18 años.';
+                        } else {
+                            valid = true;
+                        }
+                    }
+                }
+                if (!aplicarValidacion(inputs.fecha_nacimiento, spans.fecha_nacimiento, valid, msg)) isValid = false;
             }
 
             // Sexo
