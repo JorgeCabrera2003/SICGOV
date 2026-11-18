@@ -227,6 +227,34 @@ class ClienteTest extends TestCase
         $this->assertEquals("La fecha de nacimiento debe ser anterior a hoy.", $excepcion->getMessage());
 
         // -----------------------------------------------------------------
+        // 3.1. Fecha de nacimiento menor de 18 años (Menor de edad)
+        // -----------------------------------------------------------------
+        // Arrange
+        $cliente = new Cliente();
+        $excepcion = null;
+        $fechaMenor = date('Y-m-d', strtotime('-17 years'));
+
+        // Act
+        try {
+            $cliente->setFechaNacimiento($fechaMenor);
+        } catch (Exception $e) {
+            $excepcion = $e;
+        }
+
+        // Assert
+        $this->assertNotNull($excepcion, "Se esperaba Exception por cliente menor de edad (< 18 años).");
+        $this->assertEquals("Debe ser mayor o igual a 18 años.", $excepcion->getMessage());
+
+        // -----------------------------------------------------------------
+        // 3.2. Fecha de nacimiento válida con exactamente 18 años
+        // -----------------------------------------------------------------
+        $clienteExacto18 = new Cliente();
+        $fechaExacta18 = date('Y-m-d', strtotime('-18 years'));
+        $clienteExacto18->setFechaNacimiento($fechaExacta18);
+        $this->assertEquals($fechaExacta18, $clienteExacto18->getFechaNacimiento());
+        $this->assertGreaterThanOrEqual(18, $clienteExacto18->getEdad());
+
+        // -----------------------------------------------------------------
         // 4. Regla de negocio: La cédula ya está registrada como cliente
         // -----------------------------------------------------------------
         // Arrange

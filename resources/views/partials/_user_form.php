@@ -14,7 +14,7 @@ $showConfirmPassword = $showConfirmPassword ?? true;
         <label for="nombre" class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
         <div class="input-group shadow-sm rounded">
             <span class="input-group-text"><i class="fa-solid fa-user"></i></span>
-            <input type="text" class="form-control" id="nombre" name="nombre" maxlength="100" placeholder="Ej: Juan" required>
+            <input type="text" class="form-control" id="nombre" name="nombre" maxlength="100" pattern="[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]+" placeholder="Ej: Juan" required>
         </div>
         <span id="snombre" style="width: fit-content;"></span>
     </div>
@@ -24,7 +24,7 @@ $showConfirmPassword = $showConfirmPassword ?? true;
         <label for="apellido" class="form-label fw-semibold">Apellido <span class="text-danger">*</span></label>
         <div class="input-group shadow-sm rounded">
             <span class="input-group-text"><i class="fa-regular fa-user"></i></span>
-            <input type="text" class="form-control" id="apellido" name="apellido" maxlength="100" placeholder="Ej: Perez" required>
+            <input type="text" class="form-control" id="apellido" name="apellido" maxlength="100" pattern="[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]+" placeholder="Ej: Perez" required>
         </div>
         <span id="sapellido" style="width: fit-content;"></span>
     </div>
@@ -51,7 +51,7 @@ $showConfirmPassword = $showConfirmPassword ?? true;
         <label for="fecha_nacimiento" class="form-label fw-semibold">Fecha de Nacimiento <span class="text-danger">*</span></label>
         <div class="input-group shadow-sm rounded">
             <span class="input-group-text"><i class="fa-solid fa-calendar-day"></i></span>
-            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" max="<?= date('Y-m-d', strtotime('-1 day')) ?>" required>
+            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" max="<?= date('Y-m-d', strtotime('-18 years')) ?>" required>
         </div>
         <span id="sfecha_nacimiento" style="width: fit-content;"></span>
     </div>
@@ -94,7 +94,7 @@ $showConfirmPassword = $showConfirmPassword ?? true;
                 <option value="0416">0416</option>
                 <option value="0426">0426</option>
             </select>
-            <input type="text" class="form-control" id="numero_telefono" maxlength="7" placeholder="Ej: 1234567" required>
+            <input type="tel" class="form-control" id="numero_telefono" maxlength="7" pattern="[0-9]{7}" inputmode="numeric" placeholder="Ej: 1234567" required>
         </div>
         <input type="hidden" id="telefono" name="telefono">
         <span id="stelefono" style="width: fit-content;"></span>

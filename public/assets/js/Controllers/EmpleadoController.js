@@ -235,18 +235,64 @@ function validarCamposEmpleado() {
 
   // ── Nombre ───────────────────────────────────────────
   const nombre = input.nombre.val().trim();
-  const nombreValido = nombre.length >= 3;
-  aplicar(input.nombre, $('#snombre'), nombreValido, 'El nombre debe tener al menos 3 caracteres.');
+  let nombreValido = false;
+  let msgNombre = '';
+  if (nombre.length === 0) {
+    msgNombre = 'El nombre es obligatorio.';
+  } else if (nombre.length < 3) {
+    msgNombre = 'El nombre debe tener al menos 3 caracteres.';
+  } else if (!/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ][a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]*$/.test(nombre)) {
+    msgNombre = 'El nombre solo puede contener letras y espacios.';
+  } else {
+    nombreValido = true;
+  }
+  aplicar(input.nombre, $('#snombre'), nombreValido, msgNombre);
 
   // ── Apellido ─────────────────────────────────────────
   const apellido = input.apellido.val().trim();
-  const apellidoValido = apellido.length >= 3;
-  aplicar(input.apellido, $('#sapellido'), apellidoValido, 'El apellido debe tener al menos 3 caracteres.');
+  let apellidoValido = false;
+  let msgApellido = '';
+  if (apellido.length === 0) {
+    msgApellido = 'El apellido es obligatorio.';
+  } else if (apellido.length < 3) {
+    msgApellido = 'El apellido debe tener al menos 3 caracteres.';
+  } else if (!/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ][a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]*$/.test(apellido)) {
+    msgApellido = 'El apellido solo puede contener letras y espacios.';
+  } else {
+    apellidoValido = true;
+  }
+  aplicar(input.apellido, $('#sapellido'), apellidoValido, msgApellido);
 
   // ── Fecha de Nacimiento ─────────────────────────────
   const fechaNac = input.fecha_nacimiento.val();
-  const fechaValida = fechaNac !== '';
-  aplicar(input.fecha_nacimiento, $('#sfecha_nacimiento'), fechaValida, 'La fecha de nacimiento es obligatoria.');
+  let fechaValida = false;
+  let msgFecha = '';
+
+  if (!fechaNac) {
+    fechaValida = false;
+    msgFecha = 'La fecha de nacimiento es obligatoria.';
+  } else {
+    const hoy = new Date();
+    const partesFecha = fechaNac.split('-').map(Number);
+    if (partesFecha.length !== 3 || isNaN(partesFecha[0]) || isNaN(partesFecha[1]) || isNaN(partesFecha[2])) {
+      fechaValida = false;
+      msgFecha = 'El formato de la fecha no es válido.';
+    } else {
+      const [y, m, d] = partesFecha;
+      let edad = hoy.getFullYear() - y;
+      const mesDiff = hoy.getMonth() - (m - 1);
+      if (mesDiff < 0 || (mesDiff === 0 && hoy.getDate() < d)) {
+        edad--;
+      }
+      if (edad < 18) {
+        fechaValida = false;
+        msgFecha = 'Debe ser mayor o igual a 18 años.';
+      } else {
+        fechaValida = true;
+      }
+    }
+  }
+  aplicar(input.fecha_nacimiento, $('#sfecha_nacimiento'), fechaValida, msgFecha);
 
   // ── Teléfono (opcional) ─────────────────────────────
   const prefijo = input.prefijo_telefono.val();
@@ -256,16 +302,16 @@ function validarCamposEmpleado() {
   let msgTel = '';
 
   if (numTel !== '') {
-    // Si escribió número → prefijo obligatorio
-    if (!prefijo || prefijo === 'default') {
+    // Si escribió número → solo números permitido
+    if (!/^\d+$/.test(numTel)) {
+      telValido = false;
+      msgTel = 'El teléfono solo puede contener números, sin letras ni símbolos.';
+    } else if (!prefijo || prefijo === 'default') {
       telValido = false;
       msgTel = 'Selecciona el prefijo del teléfono.';
     } else if (numTel.length !== 7) {
       telValido = false;
       msgTel = 'El número de teléfono debe tener exactamente 7 dígitos.';
-    } else if (!/^\d{7}$/.test(numTel)) {
-      telValido = false;
-      msgTel = 'El teléfono solo puede contener números.';
     }
   } else if (prefijo && prefijo !== 'default') {
     // Si seleccionó prefijo pero no escribió número
@@ -565,29 +611,60 @@ function capaValidar() {
     validarCamposEmpleado();
   }
 
-  // Bloqueo de teclas
+  // Función para validar teclas permitidas en tiempo real
+  function validarKeyPress(regex, e) {
+    const key = e.key;
+    if (e.ctrlKey || e.altKey || e.metaKey || !key || key.length > 1) {
+      return;
+    }
+    if (!regex.test(key)) {
+      e.preventDefault();
+    }
+  }
+
+  // Bloqueo de teclas en tiempo real
   input.cedula.on('keypress', function (e) {
-    validarKeyPress(/^[0-9]*$/, e);
+    validarKeyPress(/^[0-9]$/, e);
   });
   input.nombre.on('keypress', function (e) {
-    validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/, e);
+    validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]$/, e);
   });
   input.apellido.on('keypress', function (e) {
-    validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/, e);
+    validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]$/, e);
   });
   input.telefono.on('keypress', function (e) {
-    validarKeyPress(/^[0-9\b]*$/, e);
+    validarKeyPress(/^[0-9]$/, e);
   });
 
-  // Capitalización automática de primera letra
+  // Limpieza en tiempo real (impide pegar números o símbolos en nombre/apellido, y letras/símbolos en teléfono)
   input.nombre.on('input', function () {
-    const valor = $(this).val();
-    if (valor.length === 1) $(this).val(valor.toUpperCase());
+    const valorOriginal = $(this).val();
+    const limpio = valorOriginal.replace(/[^a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]/g, '');
+    if (valorOriginal !== limpio) {
+      $(this).val(limpio);
+    }
+    if (limpio.length === 1) $(this).val(limpio.toUpperCase());
     marcarYValidar.call(this);
   });
   input.apellido.on('input', function () {
-    const valor = $(this).val();
-    if (valor.length === 1) $(this).val(valor.toUpperCase());
+    const valorOriginal = $(this).val();
+    const limpio = valorOriginal.replace(/[^a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]/g, '');
+    if (valorOriginal !== limpio) {
+      $(this).val(limpio);
+    }
+    if (limpio.length === 1) $(this).val(limpio.toUpperCase());
+    marcarYValidar.call(this);
+  });
+  input.telefono.on('input', function () {
+    const valorOriginal = $(this).val();
+    const limpio = valorOriginal.replace(/\D/g, '');
+    if (valorOriginal !== limpio) {
+      $(this).val(limpio);
+    }
+    if (limpio === '') {
+      input.prefijo_telefono.val('default');
+      input.prefijo_telefono.removeClass('is-valid is-invalid');
+    }
     marcarYValidar.call(this);
   });
 

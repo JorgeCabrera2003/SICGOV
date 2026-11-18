@@ -185,8 +185,33 @@ $(document).ready(function () {
 
         // Fecha de Nacimiento
         const fechaNac = input.fecha_nacimiento.val();
-        const fechaValida = fechaNac !== '' && new Date(fechaNac) < new Date();
-        aplicar(input.fecha_nacimiento, $('#sfecha_nacimiento'), fechaValida, 'La fecha de nacimiento es obligatoria y debe ser válida.');
+        let fechaValida = false;
+        let msgFecha = '';
+        if (!fechaNac) {
+            fechaValida = false;
+            msgFecha = 'La fecha de nacimiento es obligatoria.';
+        } else {
+            const hoy = new Date();
+            const partesFecha = fechaNac.split('-').map(Number);
+            if (partesFecha.length !== 3 || isNaN(partesFecha[0]) || isNaN(partesFecha[1]) || isNaN(partesFecha[2])) {
+                fechaValida = false;
+                msgFecha = 'El formato de la fecha no es válido.';
+            } else {
+                const [y, m, d] = partesFecha;
+                let edad = hoy.getFullYear() - y;
+                const mesDiff = hoy.getMonth() - (m - 1);
+                if (mesDiff < 0 || (mesDiff === 0 && hoy.getDate() < d)) {
+                    edad--;
+                }
+                if (edad < 18) {
+                    fechaValida = false;
+                    msgFecha = 'Debes ser mayor o igual a 18 años.';
+                } else {
+                    fechaValida = true;
+                }
+            }
+        }
+        aplicar(input.fecha_nacimiento, $('#sfecha_nacimiento'), fechaValida, msgFecha);
 
         // Dirección
         const direccion = input.direccion.val().trim();
@@ -209,24 +234,40 @@ $(document).ready(function () {
             validarCamposPerfil();
         }
 
-        if (typeof validarKeyPress === 'function') {
-            input.nombre.on('keypress', function (e) { validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/, e); });
-            input.apellido.on('keypress', function (e) { validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ \b]*$/, e); });
+        function validarKeyPress(regex, e) {
+            const key = e.key;
+            if (e.ctrlKey || e.altKey || e.metaKey || !key || key.length > 1) {
+                return;
+            }
+            if (!regex.test(key)) {
+                e.preventDefault();
+            }
         }
+
+        input.nombre.on('keypress', function (e) { validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]$/, e); });
+        input.apellido.on('keypress', function (e) { validarKeyPress(/^[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]$/, e); });
+        input.telefono.on('keypress', function (e) { validarKeyPress(/^[0-9]$/, e); });
 
         input.nombre.on('input', function () {
             const val = $(this).val();
-            if (val.length === 1) $(this).val(val.toUpperCase());
+            const limpio = val.replace(/[^a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]/g, '');
+            if (val !== limpio) $(this).val(limpio);
+            if (limpio.length === 1) $(this).val(limpio.toUpperCase());
             marcarYValidar.call(this);
         });
         input.apellido.on('input', function () {
             const val = $(this).val();
-            if (val.length === 1) $(this).val(val.toUpperCase());
+            const limpio = val.replace(/[^a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]/g, '');
+            if (val !== limpio) $(this).val(limpio);
+            if (limpio.length === 1) $(this).val(limpio.toUpperCase());
             marcarYValidar.call(this);
         });
-
-        input.correo.on('input', marcarYValidar);
-        input.telefono.on('input', marcarYValidar);
+        input.telefono.on('input', function () {
+            const val = $(this).val();
+            const limpio = val.replace(/\D/g, '');
+            if (val !== limpio) $(this).val(limpio);
+            marcarYValidar.call(this);
+        });
         input.sexo.on('change', marcarYValidar);
         input.fecha_nacimiento.on('change', marcarYValidar);
         input.direccion.on('input', marcarYValidar);

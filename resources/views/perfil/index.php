@@ -237,7 +237,7 @@
                                 <div class="col-md-6 position-relative">
                                     <label for="fecha_nacimiento" class="form-label fw-bold">Fecha de Nacimiento <span class="text-danger">*</span></label>
                                     <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" 
-                                           value="<?= htmlspecialchars($perfil['fecha_nacimiento'] ?? '') ?>" required max="<?= date('Y-m-d', strtotime('-1 day')) ?>">
+                                           value="<?= htmlspecialchars($perfil['fecha_nacimiento'] ?? '') ?>" required max="<?= date('Y-m-d', strtotime('-18 years')) ?>">
                                     <span id="sfecha_nacimiento" style="width: fit-content;"></span>
                                 </div>
 
