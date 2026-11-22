@@ -50,4 +50,4 @@
 <script>
     const permisosDB = <?= json_encode($permisosEmpleado ?? []) ?>;
 </script>
-<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/EmpleadoController.js" defer></script>
+<script type="module" src="<?= BASE_URL ?>assets/js/Controllers/EmpleadoController.js" defer></script>

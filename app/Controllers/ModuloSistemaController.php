@@ -11,8 +11,12 @@ Helper::verificarSesion();
 $moduloSistemaModel = new ModuloSistema();
 $permisosModulo = Helper::TraerPermisos("modulo_sistema");
 
-$json['datos_nuevos'] = NULL;
-$json['datos_anteriores'] = NULL;
+$json = [
+    'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Solicitud Incorrecta'],
+    'response'    => ['resultado' => 400, 'mensaje' => 'Petición no válida'],
+    'datos_nuevos' => NULL,
+    'datos_anteriores' => NULL
+];
 if (isset($_POST["peticion"])) {
 
 	//Entrada
@@ -28,7 +32,7 @@ if (isset($_POST["peticion"])) {
 //Comprobar
 	if ($_POST["peticion"] == "comprobar") {
 		$accion_permiso = false;
-		if (isset($permisosModulo['modulo_sistema']['comprobar']) && $permisosModulo['modulo_sistema']['comprobar'] == 1) {
+		if ((isset($permisosModulo['modulo_sistema']['comprobar']) && $permisosModulo['modulo_sistema']['comprobar'] == 1) || (isset($_SESSION['user']['rol']) && in_array(strtolower($_SESSION['user']['rol']), ['superusuario', 'administrador']))) {
 			$accion_permiso = true;
 		}
 		if ($accion_permiso) {

@@ -86,43 +86,54 @@ class ModuloSistema extends Database
     private function ComprobarModuloSistema()
     {
         $dato = [];
-        $validacion = [];
 
         try {
             $this->LlamarConexion("security");
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM modulo";
+            $sql = "SELECT id_modulo, nombre, estatus FROM modulo";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->execute();
             $this->LlamarConexion()->commit();
 
-            $dato['comprobar'] = $stm->fetchAll(PDO::FETCH_ASSOC);
+            $dbModulos = $stm->fetchAll(PDO::FETCH_ASSOC);
+            $dato['comprobar'] = $dbModulos;
             $dato['resultado'] = "comprobar";
 
-            if ($stm->rowCount() == count(MODULOS)) {
+            // Indexar catálogo de base de datos para comprobación O(1)
+            $dbMap = [];
+            foreach ($dbModulos as $m) {
+                $dbMap[$m['id_modulo']] = $m['nombre'];
+            }
 
-                foreach (MODULOS as $indice) {
-                    foreach ($validacion as $llave) {
-                        if (($indice['id'] == $llave['id_modulo']) && ($indice['modulo'] == $llave['nombre_modulo'])) {
-                            $dato['bool'] = true;
-                            $dato['mensaje'] = "Módulos cumplen con la validación";
-                            $dato['icon'] = "success";
-                            break;
-                        } else {
-                            $dato['bool'] = false;
-                            $dato['mensaje'] = "Validación fallida";
-                            $dato['icon'] = "warning";
-                        }
+            $todosCoinciden = true;
+            if (count($dbModulos) === count(MODULOS)) {
+                foreach (MODULOS as $def) {
+                    if (!isset($dbMap[$def['id']]) || $dbMap[$def['id']] !== $def['modulo']) {
+                        $todosCoinciden = false;
+                        break;
                     }
                 }
             } else {
-                $dato['mensaje'] = "Error al comprobar módulos";
-                $dato['icon'] = "warning";
+                $todosCoinciden = false;
+            }
+
+            if ($todosCoinciden) {
+                $dato['bool'] = true;
+                $dato['mensaje'] = "Todos los módulos del sistema cumplen con la validación de integridad.";
+                $dato['icon'] = "success";
+            } else {
                 $dato['bool'] = false;
+                $dato['mensaje'] = "Discrepancia detectada entre la base de datos y la configuración física de módulos.";
+                $dato['icon'] = "warning";
             }
 
             $dato['estado'] = 1;
-            $dato['response'] = ['resultado' => 200, 'icon' => $dato['icon'], 'mensaje' => $dato['mensaje'], 'verificacion' => $dato['bool']];
+            $dato['response'] = [
+                'resultado' => 200,
+                'icon' => $dato['icon'],
+                'mensaje' => $dato['mensaje'],
+                'verificacion' => $dato['bool']
+            ];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => "OK"];
         } catch (\PDOException $e) {
             $this->LlamarConexion()->rollBack();

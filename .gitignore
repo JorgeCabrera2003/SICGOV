@@ -160,3 +160,17 @@ coverage/
 # NOTA: Mantener los .gitkeep
 # ---------------------------
 !.gitkeep
+
+# ---------------------------
+# Pruebas y Cobertura de Código
+# ---------------------------
+.phpunit.cache/
+coverage-report/
+coverage.xml
+*.coverage
+phpunit
+phpunit.phar
+
+# Archivos de trabajo scratch
+scratch/
+chromedriver.exe

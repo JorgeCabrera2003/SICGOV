@@ -62,19 +62,28 @@
 </div>
 
 <!-- Modal Comprobante -->
-<div class="modal fade" id="modalComprobante" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<div class="modal fade" id="modalComprobante" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title fw-bold"><i class="fas fa-image me-2"></i>Comprobante de Pago</h5>
+            <div class="modal-header bg-dark text-white py-3">
+                <h5 class="modal-title fw-bold"><i class="fas fa-image me-2 text-info"></i>Comprobante de Pago</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-center" id="comprobanteBody">
-                <img src="" id="imgComprobante" class="img-fluid rounded" alt="Comprobante" style="max-height: 70vh;">
+            <div class="modal-body text-center p-3" id="comprobanteBody">
+                <div class="comprobante-preview-wrapper p-2 bg-dark bg-opacity-10 rounded d-flex justify-content-center align-items-center" style="min-height: 260px;">
+                    <img src="" id="imgComprobante" class="img-fluid rounded shadow" alt="Comprobante" style="max-height: 65vh; object-fit: contain;">
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-success" id="btnVerificarPago" style="display:none;"><i class="fas fa-check me-2"></i>Marcar como Pagado</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            <div class="modal-footer d-flex justify-content-between">
+                <div>
+                    <a href="#" target="_blank" id="btnVerOriginal" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-external-link-alt me-1"></i> Abrir en tamaño completo
+                    </a>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-success btn-sm" id="btnVerificarPago" style="display:none;"><i class="fas fa-check me-2"></i>Marcar como Pagado</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                </div>
             </div>
         </div>
     </div>

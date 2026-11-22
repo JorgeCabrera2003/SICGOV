@@ -26,6 +26,8 @@
                         <option value="usuarios">Usuarios</option>
                         <option value="empleados">Empleados</option>
                         <option value="uploads">Cargas Generales</option>
+                        <option value="promociones">Promociones</option>
+                        <option value="perfiles">Perfiles</option>
                     </select>
                 </div>
                 <div class="col-md-3">
@@ -36,16 +38,16 @@
                         <option value="orphan">Huérfana (Sin uso)</option>
                     </select>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <label class="form-label small fw-bold text-uppercase opacity-75" style="color: var(--color-sidebar);">BÚSQUEDA RÁPIDA</label>
                     <div class="input-group shadow-sm rounded-3 overflow-hidden">
                         <span class="input-group-text border-0" style="color: var(--color-sidebar); background-color: var(--bg-tarjetas);"><i class="fas fa-search"></i></span>
                         <input type="text" id="search-input" class="form-control border-0" placeholder="Nombre de archivo..." style="color: var(--color-sidebar); background-color: var(--bg-tarjetas);">
                     </div>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
+                <div class="col-md-1 d-flex align-items-end">
                     <button id="btn-refresh" class="btn w-100 border-0 shadow-sm fw-bold" style="background-color: var(--color-bg-muted); color: var(--color-sidebar);">
-                        <i class="fas fa-sync-alt me-2"></i>Actualizar
+                        <i class="fas fa-sync-alt me-1"></i>
                     </button>
                 </div>
             </div>
@@ -54,17 +56,6 @@
 
     <!-- Grid de Imágenes -->
     <div id="media-grid" class="row g-4 media-manager__grid">
-        <!-- Se cargará vía AJAX. Estructura esperada de los items devueltos:
-        <div class="col-6 col-md-4 col-lg-3">
-            <div class="media-manager__item rounded-4 overflow-hidden position-relative h-100 d-flex flex-column">
-                <div class="media-manager__preview position-relative w-100 d-flex align-items-center justify-content-center">
-                    <span class="badge media-manager__badge position-absolute top-0 end-0 m-2 rounded-pill z-2">Estado</span>
-                    <img src="..." class="media-manager__image w-100 h-100 object-fit-cover">
-                </div>
-                ...
-            </div>
-        </div>
-        -->
         <div class="col-12 text-center py-5">
             <div class="spinner-border" style="color: var(--color-acento);" role="status">
                 <span class="visually-hidden">Cargando...</span>
@@ -134,28 +125,49 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden" style="background-color: var(--bg-tarjetas);">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" style="color: var(--color-sidebar);">Subir Nueva Imagen</h5>
+                <h5 class="modal-title fw-bold" style="color: var(--color-sidebar);">
+                    <i class="fas fa-cloud-upload-alt me-2" style="color: var(--color-acento);"></i>Subir Nueva Imagen
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="upload-form" enctype="multipart/form-data">
                 <div class="modal-body p-4">
+                    <!-- Zona drag & drop -->
+                    <div id="upload-drop-zone"
+                         class="rounded-3 p-4 text-center mb-4"
+                         style="border: 2px dashed var(--color-acento); background: rgba(255,193,7,0.04); cursor: pointer; transition: background 0.2s;"
+                         onclick="document.querySelector('#upload-form input[name=archivo]').click()">
+                        <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: var(--color-acento);"></i>
+                        <p class="mb-0 fw-semibold small" style="color: var(--color-sidebar);">
+                            Arrastra tu imagen aquí o haz clic para seleccionar
+                        </p>
+                        <span class="text-muted" style="font-size: 0.75rem;">JPG, PNG, GIF, WebP &middot; Máx. 10 MB</span>
+                    </div>
+
                     <div class="mb-4">
                         <label class="form-label fw-bold text-uppercase small opacity-75" style="color: var(--color-sidebar);">Destino</label>
-                        <select name="directorio" class="form-select bg-white border-0 shadow-sm p-3">
+                        <select name="directorio" class="form-select border-0 shadow-sm p-3" style="background: var(--bg-tarjetas); color: var(--color-sidebar);">
                             <option value="uploads">Cargas Generales</option>
                             <option value="noticias">Noticias</option>
                             <option value="productos">Productos</option>
                             <option value="usuarios">Usuarios</option>
+                            <option value="empleados">Empleados</option>
+                            <option value="promociones">Promociones</option>
+                            <option value="perfiles">Perfiles</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold text-uppercase small opacity-75" style="color: var(--color-sidebar);">Seleccionar Archivo</label>
-                        <input type="file" name="archivo" class="form-control bg-white border-0 shadow-sm p-3" accept="image/*" required>
+                        <label class="form-label fw-bold text-uppercase small opacity-75" style="color: var(--color-sidebar);">Archivo seleccionado</label>
+                        <input type="file" name="archivo" class="form-control border-0 shadow-sm p-3"
+                               style="background: var(--bg-tarjetas); color: var(--color-sidebar);"
+                               accept="image/jpeg,image/png,image/gif,image/webp" required>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0 px-4 pb-4">
                     <button type="button" class="btn fw-bold" style="background-color: transparent; color: var(--color-sidebar);" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn px-4 shadow-sm fw-bold" style="background-color: var(--color-acento); color: var(--color-sidebar);">Subir Ahora</button>
+                    <button type="submit" class="btn px-4 shadow-sm fw-bold rounded-pill" style="background-color: var(--color-acento); color: #1a1c20;">
+                        <i class="fas fa-upload me-2"></i>Subir Ahora
+                    </button>
                 </div>
             </form>
         </div>

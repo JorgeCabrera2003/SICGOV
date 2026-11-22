@@ -1,0 +1,33 @@
+{
+  "name": "mcp-notebook-bridge",
+  "version": "1.0.0",
+  "description": "MCP server to inspect and interact with Jupyter Notebooks (.ipynb)",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-notebook-bridge": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "jupyter",
+    "notebook",
+    "antigravity"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.5.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

@@ -59,30 +59,40 @@ const SICGOV = (function($) {
         // Detectar preferencia del sistema
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const savedTheme = localStorage.getItem(CONFIG.storage.theme);
+        const isDarkInitial = savedTheme === 'dark' || (!savedTheme && prefersDark);
 
-        // Aplicar tema guardado o preferencia del sistema
-        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-            document.documentElement.classList.add(CONFIG.classes.dark);
-            document.documentElement.setAttribute('data-bs-theme', 'dark');
-            $icon.removeClass(CONFIG.icons.moon).addClass(CONFIG.icons.sun);
-        } else {
-            document.documentElement.setAttribute('data-bs-theme', 'light');
-        }
-
-        // Evento click
-        $toggle.on('click', function(e) {
-            e.preventDefault();
-            
+        function applyTheme(isDark) {
             const html = document.documentElement;
-            html.classList.toggle(CONFIG.classes.dark);
-            
-            const isDark = html.classList.contains(CONFIG.classes.dark);
+            const body = document.body;
+
+            html.classList.toggle(CONFIG.classes.dark, isDark);
+            html.classList.toggle('dark-mode', isDark);
             html.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
-            
-            localStorage.setItem(CONFIG.storage.theme, isDark ? 'dark' : 'light');
-            
+
+            if (body) {
+                body.classList.toggle('dark', isDark);
+                body.classList.toggle('dark-mode', isDark);
+            }
+
             $icon.toggleClass(CONFIG.icons.moon, !isDark)
                  .toggleClass(CONFIG.icons.sun, isDark);
+
+            // Notificar a componentes/gráficos dinámicos (Chart.js, etc.)
+            window.dispatchEvent(new CustomEvent('themeChanged', { detail: { isDark } }));
+        }
+
+        // Aplicar tema inicial
+        applyTheme(isDarkInitial);
+
+        // Evento click
+        $toggle.off('click').on('click', function(e) {
+            e.preventDefault();
+            const currentIsDark = document.documentElement.classList.contains(CONFIG.classes.dark) ||
+                                  document.documentElement.getAttribute('data-bs-theme') === 'dark';
+            const newIsDark = !currentIsDark;
+            
+            localStorage.setItem(CONFIG.storage.theme, newIsDark ? 'dark' : 'light');
+            applyTheme(newIsDark);
         });
     }
 

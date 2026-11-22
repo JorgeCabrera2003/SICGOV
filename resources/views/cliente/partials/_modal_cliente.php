@@ -35,7 +35,7 @@
                         </div>
                         <div class="col-md-6 position-relative">
                             <label for="fecha_nacimiento" class="form-label fw-semibold">Fecha de Nacimiento <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" max="<?= date('Y-m-d', strtotime('-1 day')) ?>">
+                            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" max="<?= date('Y-m-d', strtotime('-18 years')) ?>">
                             <span id="sfecha_nacimiento" style="width: fit-content;"></span>
                         </div>
                     </div>
@@ -46,14 +46,14 @@
                             <label for="nombre" class="form-label fw-semibold">
                                 Nombre <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control" id="nombre" name="nombre" maxlength="80" required>
+                            <input type="text" class="form-control" id="nombre" name="nombre" maxlength="80" pattern="[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]+" required>
                             <span id="snombre" style="width: fit-content;"></span>
                         </div>
                         <div class="col-md-6 position-relative">
                             <label for="apellido" class="form-label fw-semibold">
                                 Apellido <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control" id="apellido" name="apellido" maxlength="80" required>
+                            <input type="text" class="form-control" id="apellido" name="apellido" maxlength="80" pattern="[a-zA-ZÁÉÍÓÚáéíóúüñÑçÇ ]+" required>
                             <span id="sapellido" style="width: fit-content;"></span>
                         </div>
                     </div>
@@ -72,7 +72,7 @@
                                     <option value="0416">0416</option>
                                     <option value="0426">0426</option>
                                 </select>
-                                <input type="text" class="form-control" id="telefono" name="telefono" maxlength="7" style="width: 67%;" placeholder="5539261">
+                                <input type="tel" class="form-control" id="telefono" name="telefono" maxlength="7" pattern="[0-9]{7}" inputmode="numeric" style="width: 67%;" placeholder="5539261">
                             </div>
                             <span id="stelefono" style="width: fit-content;"></span>
                         </div>

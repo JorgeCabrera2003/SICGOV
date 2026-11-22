@@ -49,10 +49,18 @@ class Database
 
                 self::$instances[$type] = new PDO($dsn, $user, $pass, $options);
             } catch (PDOException $e) {
-                die(" Error de Conexión ({$type}): " . $e->getMessage());
+                throw new PDOException("Error de Conexión ({$type}): " . $e->getMessage(), (int)$e->getCode(), $e);
             }
         }
         return self::$instances[$type];
+    }
+
+    /**
+     * Resetea las conexiones cacheadas (útil para pruebas y reconexiones)
+     */
+    public static function resetConnections(): void
+    {
+        self::$instances = [];
     }
 
     public static function getSystemDb()

@@ -61,14 +61,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Función para obtener colores y configuraciones según el tema activo
     function getThemeColors() {
-        const isDark = document.body.classList.contains('dark-mode');
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark' ||
+                       document.documentElement.classList.contains('dark') ||
+                       document.documentElement.classList.contains('dark-mode') ||
+                       document.body.classList.contains('dark-mode') ||
+                       document.body.classList.contains('dark');
         return {
             isDark: isDark,
-            text: isDark ? '#b2bec3' : '#2d3436',
-            grid: isDark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0, 0, 0, 0.05)',
+            text: isDark ? '#94a3b8' : '#2d3436',
+            grid: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
             border: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)',
-            tooltipBg: isDark ? '#1e272e' : '#ffffff',
-            tooltipText: isDark ? '#ffffff' : '#2d3436'
+            tooltipBg: isDark ? '#151a26' : '#ffffff',
+            tooltipText: isDark ? '#f8fafc' : '#2d3436'
         };
     }
 
@@ -859,15 +863,22 @@ document.addEventListener('DOMContentLoaded', () => {
     loadData();
 
     // Redibujar gráficos de forma fluida si cambia el tema
-    const themeToggleBtn = document.getElementById('theme-toggle');
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', () => {
-            setTimeout(() => {
-                if (rawData) {
-                    renderAllCharts(rawData);
-                }
-            }, 120);
-        });
+    function handleThemeChange() {
+        setTimeout(() => {
+            if (rawData) {
+                renderAllCharts(rawData);
+            }
+        }, 50);
     }
+
+    window.addEventListener('themeChanged', handleThemeChange);
+
+    const themeObserver = new MutationObserver(() => {
+        handleThemeChange();
+    });
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-bs-theme', 'class']
+    });
 });
 

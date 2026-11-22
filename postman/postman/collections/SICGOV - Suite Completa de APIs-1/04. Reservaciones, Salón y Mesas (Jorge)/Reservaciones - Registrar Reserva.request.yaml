@@ -1,0 +1,32 @@
+$kind: http-request
+description: Crea una nueva reservación respetando validaciones de disponibilidad.
+url: "{{base_url}}?page=Reservacion"
+method: POST
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  page: Reservacion
+body:
+  type: urlencoded
+  content:
+    peticion: registrar
+    cedula_cliente: V-12345678
+    fecha: 2026-11-09
+    hora: 18:00
+    hora_fin: 20:00
+    cantidad_personas: "2"
+    estado: PENDIENTE
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 3000

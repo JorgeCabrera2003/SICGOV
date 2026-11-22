@@ -566,17 +566,26 @@ class Asistencia extends Database {
         }
 
         $datos = json_decode($json, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            // Registrar el error pero devolver un array vacío para no interrumpir el flujo
-            Helper::ErrorLog("Error al decodificar JSON de observaciones: " . json_last_error_msg() . " - JSON: " . $json);
-            return [];
+        if (json_last_error() === JSON_ERROR_NONE && is_array($datos)) {
+            return $datos;
         }
 
-        if (!is_array($datos)) {
-            return [];
+        // Compatibilidad hacia atrás con texto plano legado
+        $lineas = array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $json)));
+        $observaciones = [];
+        foreach ($lineas as $idx => $linea) {
+            $textoLimpio = ltrim($linea, '- ');
+            if (!empty($textoLimpio)) {
+                $observaciones[] = [
+                    'id' => 'LEGACY_' . ($idx + 1),
+                    'texto' => $textoLimpio,
+                    'autor' => 'Sistema',
+                    'fecha' => date('Y-m-d H:i:s'),
+                    'eliminada' => false
+                ];
+            }
         }
-
-        return $datos;
+        return $observaciones;
     }
 
     /**

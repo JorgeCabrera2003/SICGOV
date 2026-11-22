@@ -31,6 +31,11 @@ class Reservacion extends Database
         $this->cantidad_personas = 1;
     }
 
+    public function LlamarConexion($nombreBD = 'business', ?PDO &$pdo = NULL)
+    {
+        return parent::LlamarConexion($nombreBD, $pdo);
+    }
+
     // =========================================================================
     // Getters y Setters con validaciones de formato
     // =========================================================================
@@ -50,6 +55,18 @@ class Reservacion extends Database
     }
 
     public function setCedulaCliente(string $cedula) { 
+        $cedula = trim($cedula);
+        
+        // Si solo contiene números, asumimos la nacionalidad 'V-' por defecto
+        if (preg_match('/^[0-9]{7,15}$/', $cedula)) {
+            $cedula = 'V-' . $cedula;
+        }
+        
+        // Si tiene la letra inicial pero no tiene el guion (ej: V12345678)
+        if (preg_match('/^[VEJPGvejpg]{1}[0-9]{7,15}$/', $cedula)) {
+            $cedula = strtoupper(substr($cedula, 0, 1)) . '-' . substr($cedula, 1);
+        }
+
         if (RegexHelper::ValidarFormatos($cedula, 'Cedula') == 0) {
             throw new Exception("El formato de la cédula del cliente no es válido.");
         }
@@ -75,6 +92,10 @@ class Reservacion extends Database
         if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
             throw new Exception("La fecha no tiene un formato válido (AAAA-MM-DD).");
         }
+        $partes = explode('-', $fecha);
+        if (!checkdate((int)$partes[1], (int)$partes[2], (int)$partes[0])) {
+            throw new Exception("La fecha no es una fecha válida en el calendario.");
+        }
         $this->fecha = $fecha; 
     }
 
@@ -83,7 +104,7 @@ class Reservacion extends Database
     }
 
     public function setHora(string $hora) { 
-        if (!preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $hora)) {
+        if (!preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/', $hora)) {
             throw new Exception("La hora de inicio no tiene un formato válido (HH:MM).");
         }
         $this->hora = $hora; 
@@ -94,7 +115,7 @@ class Reservacion extends Database
     }
 
     public function setHoraFin(string $hora) { 
-        if (!preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $hora)) {
+        if (!preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/', $hora)) {
             throw new Exception("La hora de fin no tiene un formato válido (HH:MM).");
         }
         $this->hora_fin = $hora; 
@@ -357,7 +378,9 @@ class Reservacion extends Database
                 'HTTP_STATUS' => ['codigo' => 200, 'mensaje' => "OK"]
             ];
         } catch (PDOException $e) {
-            $this->LlamarConexion()->rollBack();
+            if ($this->LlamarConexion()->inTransaction()) {
+                $this->LlamarConexion()->rollBack();
+            }
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             throw $e;
         }
@@ -404,7 +427,9 @@ class Reservacion extends Database
                 'HTTP_STATUS' => ['codigo' => 200, 'mensaje' => "OK"]
             ];
         } catch (PDOException $e) {
-            $this->LlamarConexion()->rollBack();
+            if ($this->LlamarConexion()->inTransaction()) {
+                $this->LlamarConexion()->rollBack();
+            }
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             throw $e;
         }
@@ -427,7 +452,9 @@ class Reservacion extends Database
                 'HTTP_STATUS' => ['codigo' => 200, 'mensaje' => "OK"]
             ];
         } catch (PDOException $e) {
-            $this->LlamarConexion()->rollBack();
+            if ($this->LlamarConexion()->inTransaction()) {
+                $this->LlamarConexion()->rollBack();
+            }
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             throw $e;
         }

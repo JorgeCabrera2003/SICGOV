@@ -48,7 +48,7 @@ class Insumo extends Database
     public function setId(string $id)
     {
         if (RegexHelper::ValidarFormatos($id, 'ID') == 0) {
-            throw new Exception("El ID de la Categoría no cumple con el formato permitido.");
+            throw new Exception("El ID del Insumo no cumple con el formato permitido.");
         }
         $this->id = $id;
     }
@@ -56,7 +56,7 @@ class Insumo extends Database
     public function setNombre(string $nombre)
     {
         if (RegexHelper::ValidarFormatos($nombre, 'Objeto') == 0) {
-            throw new Exception("El ID de la Categoría no cumple con el formato permitido.");
+            throw new Exception("El Nombre del Insumo no cumple con el formato permitido.");
         }
         $this->nombre = $nombre;
     }

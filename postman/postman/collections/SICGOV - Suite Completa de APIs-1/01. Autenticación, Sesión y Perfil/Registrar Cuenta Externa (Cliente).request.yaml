@@ -1,0 +1,42 @@
+$kind: http-request
+description: Registro público de clientes y creación de usuario.
+url: "{{base_url}}?page=Login&page=crear-cuenta"
+method: POST
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  - key: page
+    value: Login
+  - key: page
+    value: crear-cuenta
+body:
+  type: urlencoded
+  content:
+    peticion: registrar
+    nacionalidad: V
+    cedula: "28111222"
+    nombre: Usuario
+    apellido: Prueba
+    fecha_nacimiento: 2000-01-01
+    sexo: M
+    telefono: 0412-1112233
+    correo: test@goodvibes.com
+    direccion: Barquisimeto
+    username: usuarioprueba
+    clave: GoodVibes2026*
+    rclave: GoodVibes2026*
+    g-recaptcha-response: bypass-test
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 3000

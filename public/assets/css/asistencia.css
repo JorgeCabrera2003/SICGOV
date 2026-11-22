@@ -1,4 +1,4 @@
-/* Estilos para el modal de observaciones - Adaptable a modo claro/oscuro */
+﻿/* Estilos para el modal de observaciones - Adaptable a modo claro/oscuro */
 #modalObservacion .modal-content {
     background-color: var(--bg-tarjetas, #ffffff);
     color: var(--color-texto, #212529);

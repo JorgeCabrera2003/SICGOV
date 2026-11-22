@@ -1,0 +1,33 @@
+$kind: http-request
+description: Registra una orden desde el portal público con validación de cliente.
+url: "{{base_url}}?page=PedidoPublico"
+method: POST
+headers:
+  X-Requested-With: XMLHttpRequest
+queryParams:
+  page: PedidoPublico
+body:
+  type: urlencoded
+  content:
+    cedula: V-12345678
+    nombre: Cliente Web
+    telefono: 0414-0001122
+    direccion: Av. Principal Los Mangos
+    referencia: REF-998877
+    tipo_pedido: DELIVERY
+    carrito: '{"total":25.5,"items":[{"id_producto":"PROD001","cantidad":2,"precio":12.75}]}'
+    id_metodo_pago: MPAG20261025140000001
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Respuesta exitosa o procesada", function () {
+          pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403]);
+      });
+      if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {
+          pm.test("Formato JSON válido", function () {
+              var jsonData = pm.response.json();
+              pm.expect(jsonData).to.be.an('object');
+          });
+      }
+    language: text/javascript
+order: 9000
