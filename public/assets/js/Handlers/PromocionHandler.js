@@ -502,6 +502,9 @@ export async function DataTablePrincipal(arreglo) {
 
   // Construye HTML de botones igual que en proveedores (dropdown)
   function botonesAccion(row = {}, modulo = 'Promocion') {
+    const $tabla = $('#tablaPromocion');
+    const puedeModificar = $tabla.attr('data-puede-modificar') === '1';
+    const puedeEliminar = $tabla.attr('data-puede-eliminar') === '1';
     const dropdown = $('<div>').addClass('dropdown');
     const boton = $('<button>').addClass('btn btn-sm btn-light border dropdown-toggle')
       .attr('type', 'button')
@@ -538,7 +541,15 @@ export async function DataTablePrincipal(arreglo) {
       .html('<i class="fas fa-trash me-2"></i>Eliminar');
     itemEliminar.append(linkEliminar);
 
-    menu.append(itemEditar, itemNoticia, separador, itemEliminar);
+    if (puedeModificar) {
+      menu.append(itemEditar);
+    }
+
+    menu.append(itemNoticia);
+
+    if (puedeEliminar) {
+      menu.append(separador, itemEliminar);
+    }
     dropdown.append(boton, menu);
 
     return dropdown.prop('outerHTML');
