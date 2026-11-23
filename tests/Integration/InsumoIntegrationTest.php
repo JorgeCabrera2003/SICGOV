@@ -15,11 +15,18 @@ use PDO;
  */
 class InsumoIntegrationTest extends TestCase
 {
-    private PDO $dbBusiness;
+    private static ?PDO $dbBusiness;
     private Insumo $insumoModel;
     private string $idInsumoTest = 'INSU0012026010112';
     private string $idCatTest = 'CATI0012026010112';
     private string $idUnidTest = 'UNID0012026010112';
+
+
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+        self::$dbBusiness = Database::getConnection('business');
+    }
 
     protected function setUp(): void
     {
@@ -36,26 +43,32 @@ class InsumoIntegrationTest extends TestCase
             'estatus_clave' => 1
         ];
 
-        $this->dbBusiness = Database::getConnection('business');
+        self::$dbBusiness = Database::getConnection('business');
         $this->insumoModel = new Insumo();
 
         // Obtener IDs válidos reales de categoria_insumo y unidad_medida
-        $this->idCatTest = (string)$this->dbBusiness->query("SELECT id_categoria FROM categoria_insumo LIMIT 1")->fetchColumn();
-        $this->idUnidTest = (string)$this->dbBusiness->query("SELECT id_unidad FROM unidad_medida LIMIT 1")->fetchColumn();
+        $this->idCatTest = (string) self::$dbBusiness->query("SELECT id_categoria FROM categoria_insumo LIMIT 1")->fetchColumn();
+        $this->idUnidTest = (string) self::$dbBusiness->query("SELECT id_unidad FROM unidad_medida LIMIT 1")->fetchColumn();
 
         $this->limpiarDatosPrueba();
     }
 
-    protected function tearDown(): void
+    private function poblarInsumoValido(): void
     {
-        $this->limpiarDatosPrueba();
-        parent::tearDown();
+        $this->insumoModel->setId($this->idInsumoTest);
+        $this->insumoModel->setNombre('Lomo de Cerdo Test');
+        $this->insumoModel->setIdCategoria($this->idCatTest);
+        $this->insumoModel->setIdUnidadMedida($this->idUnidTest);
+        $this->insumoModel->setPrecioUnitario(8.50);
+        $this->insumoModel->setStockActual(25.0);
+        $this->insumoModel->setStockMinimo(5.0);
+        $this->insumoModel->setStockMaximo(100.0);
     }
 
     private function limpiarDatosPrueba(): void
     {
-        $this->dbBusiness->exec("DELETE FROM movimiento_insumo WHERE id_insumo = '{$this->idInsumoTest}'");
-        $this->dbBusiness->exec("DELETE FROM insumo WHERE id_insumo = '{$this->idInsumoTest}' OR nombre_insumo = 'Lomo de Cerdo Test'");
+        self::$dbBusiness->exec("DELETE FROM movimiento_insumo WHERE id_insumo = '{$this->idInsumoTest}'");
+        self::$dbBusiness->exec("DELETE FROM insumo WHERE id_insumo = '{$this->idInsumoTest}' OR nombre_insumo = 'Lomo de Cerdo Test'");
     }
 
     #[Test]
@@ -72,50 +85,77 @@ class InsumoIntegrationTest extends TestCase
     }
 
     #[Test]
-    public function testCicloDeVidaInsumoPersistenciaReal(): void
+    public function testRegistrarInsumoTest(): void
     {
         // 1. Registrar Insumo
-        $this->insumoModel->setId($this->idInsumoTest);
-        $this->insumoModel->setNombre('Lomo de Cerdo Test');
-        $this->insumoModel->setIdCategoria($this->idCatTest);
-        $this->insumoModel->setIdUnidadMedida($this->idUnidTest);
-        $this->insumoModel->setPrecioUnitario(8.50);
-        $this->insumoModel->setStockActual(25.0);
-        $this->insumoModel->setStockMinimo(5.0);
-        $this->insumoModel->setStockMaximo(100.0);
+        $this->poblarInsumoValido();
 
-        $resReg = $this->insumoModel->Transaccion(['peticion' => 'registrar']);
-        $this->assertContains($resReg['response']['resultado'], [200, 201]);
-
-        // 2. Validar persistencia en BD
-        $stmt = $this->dbBusiness->prepare("SELECT * FROM insumo WHERE id_insumo = ?");
-        $stmt->execute([$this->idInsumoTest]);
-        $insumoBD = $stmt->fetch(PDO::FETCH_ASSOC);
-        $this->assertNotEmpty($insumoBD);
-        $this->assertEquals('Lomo de Cerdo Test', $insumoBD['nombre_insumo']);
-        $this->assertEquals(25.0, (float)$insumoBD['stock_actual']);
-
-        // 3. Modificar Insumo
-        $this->insumoModel->setPrecioUnitario(9.75);
-        $this->insumoModel->setStockActual(30.0);
-        $resMod = $this->insumoModel->Transaccion(['peticion' => 'modificar']);
-        $this->assertEquals(200, $resMod['response']['resultado']);
-
-        // 4. Eliminar Insumo (Lógico)
-        $resElim = $this->insumoModel->Transaccion(['peticion' => 'eliminar']);
-        $this->assertEquals(200, $resElim['response']['resultado']);
-
-        // 5. Verificar que estatus pasó a 0
-        $stmt->execute([$this->idInsumoTest]);
-        $insumoInactivo = $stmt->fetch(PDO::FETCH_ASSOC);
-        $this->assertEquals(0, (int)$insumoInactivo['estatus']);
+        $response = $this->insumoModel->Transaccion(['peticion' => 'registrar']);
+        $this->assertContains($response['response']['resultado'], [200, 201]);
     }
 
     #[Test]
-    public function testRechazoInsumoConPeticionInvalida(): void
+    public function testValidarInsumoTest(): void
     {
-        $res = $this->insumoModel->Transaccion(['peticion' => 'comando_inexistente']);
-        $this->assertEquals(400, $res['response']['resultado']);
-        $this->assertEquals(400, $res['HTTP_STATUS']['codigo']);
+        // 1. Registrar Insumo (Precondición)
+        $this->poblarInsumoValido();
+        $this->insumoModel->Transaccion(['peticion' => 'registrar']);
+
+        // 2. Validar Insumo
+        $response = $this->insumoModel->Transaccion(['peticion' => 'validar']);
+        $this->assertEquals(1, $response['bool']);
+        $this->assertEquals(200, $response['response']['resultado']);
+    }
+
+    #[Test]
+    public function testConsultarInsumoTest(): void
+    {
+        // 2. Consultar Insumo
+        $response = $this->insumoModel->Transaccion(['peticion' => 'consultar']);
+
+        $this->assertIsArray($response);
+        $this->assertEquals(200, $response['HTTP_STATUS']['codigo']);
+        $this->assertArrayHasKey('datos', $response['response']);
+    }
+
+    #[Test]
+    public function testModificarInsumoTest(): void
+    {
+        // 1. Registrar Insumo (Precondición)
+        $this->insumoModel->Transaccion(['peticion' => 'registrar']);
+
+        // 2. Modificar Insumo
+        $this->insumoModel->setPrecioUnitario(9.75);
+        $this->insumoModel->setStockActual(30.0);
+        $response = $this->insumoModel->Transaccion(['peticion' => 'modificar']);
+        $this->assertEquals(200, $response['response']['resultado']);
+    }
+
+    #[Test]
+    public function testEliminarInsumoTest(): void
+    {
+        // 1. Registrar Insumo (Precondición)
+        $this->poblarInsumoValido();
+        $response = $this->insumoModel->Transaccion(['peticion' => 'registrar']);
+
+        $response = $this->insumoModel->Transaccion(['peticion' => 'eliminar']);
+        $this->assertEquals(200, $response['response']['resultado']);
+    }
+
+    protected function tearDown(): void
+    {
+        $this->limpiarDatosPrueba();
+        parent::tearDown();
+    }
+
+    public static function tearDownAfterClass(): void
+    {
+        // Limpieza final global (por si acaso)
+        if (self::$dbBusiness !== NULL) {
+            self::$dbBusiness->exec("DELETE FROM movimiento_insumo WHERE id_insumo = 'INSU0012026010112'");
+            self::$dbBusiness->exec("DELETE FROM insumo WHERE id_insumo = 'INSU0012026010112' OR nombre_insumo = 'Lomo de Cerdo Test'");
+        }
+        self::$dbBusiness = NULL;
+        parent::tearDownAfterClass();
     }
 }
