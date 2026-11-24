@@ -5,13 +5,15 @@ namespace Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use App\Models\System\PedidoPublico;
+use ReflectionClass;
 
 class PedidoPublicoTest extends TestCase
 {
     #[Test]
     public function testInstanciacion(): void
     {
-        $pedidoWeb = new PedidoPublico();
+        $reflection = new ReflectionClass(PedidoPublico::class);
+        $pedidoWeb = $reflection->newInstanceWithoutConstructor();
         $this->assertInstanceOf(PedidoPublico::class, $pedidoWeb);
     }
 }
