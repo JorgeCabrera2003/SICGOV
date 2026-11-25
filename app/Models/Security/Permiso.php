@@ -77,7 +77,7 @@ class Permiso extends Database
     public function setEstado(string $estado)
     {
         if($estado != 1 && $estado != 0){
-            throw new Exception('Estado no válidao.');
+            throw new Exception('Estado no válido.');
         }
         $this->estado = $estado;
     }
