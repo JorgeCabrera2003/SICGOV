@@ -52,8 +52,16 @@ export function EditarModal(operacion) {
   if (operacion == 'modificar') { titulo = "Cambiar Turno"; boton = "Actualizar"; }
   if (operacion == 'modificar_lote') { titulo = "Editar Horario"; boton = "Guardar cambios"; }
   if (operacion == 'eliminar') { titulo = "Eliminar Asignación"; boton = "Eliminar"; }
+  const puedeExtender = operacion === 'modificar_lote'
+    && typeof permisosHorarioDB !== 'undefined'
+    && permisosHorarioDB.horario?.modificar == 1
+    && permisosHorarioDB.horario?.registrar == 1;
+  operacionModalHorario = operacion;
+  cerrarPanelExtension();
+  $('#btnExtenderHorario').toggleClass('d-none', !puedeExtender);
   etiqueta_modal.titulo.text(titulo);
   etiqueta_modal.boton.text(boton);
+  etiqueta_modal.boton.prop('disabled', operacion === 'modificar_lote' && !hayCambiosHorario());
   etiqueta_modal.modal.modal("show");
 }
 
@@ -65,13 +73,145 @@ let fechaActualCalendario = new Date();
 let turnoActivo = null; // { id_turno, nombre, color }
 let asignaciones = {}; // { '2025-03-03': { id_turno, nombre, color }, ... }
 let asignacionesOriginales = {}; // Asignaciones existentes al abrir el editor
+let vistaPreviaExtension = {};
+let operacionModalHorario = null;
 let coloresTurnos = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336', '#00BCD4', '#795548', '#607D8B'];
 let coloresTurnosPorId = new Map();
+
+function hayCambiosHorario() {
+  const fechasActuales = Object.keys(asignaciones);
+  const fechasOriginales = Object.keys(asignacionesOriginales);
+  if (fechasActuales.length !== fechasOriginales.length) return true;
+
+  return fechasActuales.some(fecha =>
+    !asignacionesOriginales[fecha]
+    || String(asignaciones[fecha].id_turno) !== String(asignacionesOriginales[fecha].id_turno)
+  );
+}
+
+function actualizarEstadoGuardarCambios() {
+  if (operacionModalHorario === 'modificar_lote') {
+    EtiquetasModal('Horario').boton.prop('disabled', !hayCambiosHorario());
+  }
+}
 
 function esFechaPasada(fecha) {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
   return new Date(`${fecha}T00:00:00`) < hoy;
+}
+
+function diferenciaDias(fechaInicio, fechaFin) {
+  const inicio = new Date(`${fechaInicio}T00:00:00Z`);
+  const fin = new Date(`${fechaFin}T00:00:00Z`);
+  return Math.round((fin.getTime() - inicio.getTime()) / 86400000);
+}
+
+function sumarDias(fecha, dias) {
+  const resultado = new Date(`${fecha}T00:00:00Z`);
+  resultado.setUTCDate(resultado.getUTCDate() + dias);
+  return resultado.toISOString().slice(0, 10);
+}
+
+function invalidarVistaPreviaExtension() {
+  vistaPreviaExtension = {};
+  $('#btnAplicarExtension').prop('disabled', true);
+  $('#resumenExtension').empty().addClass('d-none');
+}
+
+function cerrarPanelExtension() {
+  invalidarVistaPreviaExtension();
+  $('#panelExtenderHorario').addClass('d-none');
+  $('#extensionOrigenInicio, #extensionOrigenFin, #extensionDestinoInicio').val('');
+}
+
+function generarVistaPreviaExtension() {
+  const origenInicio = $('#extensionOrigenInicio').val();
+  const origenFin = $('#extensionOrigenFin').val();
+  const destinoInicio = $('#extensionDestinoInicio').val();
+  const resumen = $('#resumenExtension');
+
+  invalidarVistaPreviaExtension();
+
+  if (!origenInicio || !origenFin || !destinoInicio) {
+    resumen.text('Complete las fechas desde/hasta del tramo origen y la fecha desde la que renovará.').removeClass('d-none');
+    return;
+  }
+  if (origenInicio > origenFin) {
+    resumen.text('La fecha «Desde» del tramo origen debe ser anterior o igual a «Hasta».').removeClass('d-none');
+    return;
+  }
+  if (destinoInicio <= origenFin || esFechaPasada(destinoInicio)) {
+    resumen.text('La renovación debe comenzar después del rango origen y no puede iniciar en una fecha pasada.').removeClass('d-none');
+    return;
+  }
+
+  const fechasOrigen = Object.keys(asignaciones).filter(fecha =>
+    fecha >= origenInicio && fecha <= origenFin
+  );
+  if (fechasOrigen.length === 0) {
+    resumen.text('El rango origen no contiene turnos asignados en el borrador actual.').removeClass('d-none');
+    return;
+  }
+
+  const duracionCiclo = diferenciaDias(origenInicio, origenFin) + 1;
+  const destinoFin = sumarDias(destinoInicio, duracionCiclo - 1);
+  const duracionDestino = duracionCiclo;
+  let propuestas = 0;
+  let existentesIguales = 0;
+  let conflictos = 0;
+  let diasSinTurno = 0;
+
+  for (let desplazamiento = 0; desplazamiento < duracionDestino; desplazamiento++) {
+    const fechaOrigen = sumarDias(origenInicio, desplazamiento % duracionCiclo);
+    const fechaDestino = sumarDias(destinoInicio, desplazamiento);
+    const turnoOrigen = asignaciones[fechaOrigen];
+    if (!turnoOrigen) {
+      diasSinTurno++;
+      continue;
+    }
+
+    const turnoDestino = asignaciones[fechaDestino];
+    vistaPreviaExtension[fechaDestino] = { ...turnoOrigen, fechaOrigen };
+    if (!turnoDestino) {
+      propuestas++;
+    } else if (turnoDestino.id_turno === turnoOrigen.id_turno) {
+      existentesIguales++;
+    } else {
+      conflictos++;
+    }
+  }
+
+  fechaActualCalendario = new Date(`${destinoInicio}T00:00:00`);
+  renderizarCalendario();
+  $('#btnAplicarExtension').prop('disabled', propuestas === 0);
+  resumen.text(
+    `Vista previa del ${destinoInicio} al ${destinoFin}: ${propuestas} turno(s) nuevo(s), ${existentesIguales} ya coinciden, `
+    + `${conflictos} conflicto(s) que no se sobrescribirán y ${diasSinTurno} día(s) libres según el tramo origen. `
+    + 'Recorra el calendario para revisar las fechas antes de agregar la propuesta.'
+  ).removeClass('d-none');
+}
+
+function aplicarExtensionAlBorrador() {
+  let agregados = 0;
+  Object.entries(vistaPreviaExtension).forEach(([fecha, turno]) => {
+    if (asignaciones[fecha]) return;
+    asignaciones[fecha] = {
+      id_turno: turno.id_turno,
+      nombre: turno.nombre,
+      color: turno.color,
+      id_planificador_turno: null
+    };
+    agregados++;
+  });
+
+  invalidarVistaPreviaExtension();
+  actualizarInputAsignaciones();
+  renderizarCalendario();
+  $('#resumenExtension')
+    .text(`${agregados} turno(s) agregado(s) al borrador. Pulsa «Guardar cambios» para guardarlos.`)
+    .removeClass('d-none');
+  GenerarMensaje('success', 7000, 'Extensión agregada', 'La propuesta está en el borrador; pulsa Guardar cambios para persistirla.');
 }
 
 // ==========================================
@@ -122,6 +262,7 @@ export function inicializarCalendario() {
   $('#botonesTurnos .btn-turno').removeClass('activo');
   asignaciones = {};
   asignacionesOriginales = {};
+  cerrarPanelExtension();
   renderizarCalendario();
 }
 
@@ -166,6 +307,7 @@ function renderizarCalendario() {
     const fecha = new Date(year, month, dia);
     const diaSemana = fecha.getDay();
     const asignado = asignaciones[fechaStr];
+    const propuesta = vistaPreviaExtension[fechaStr];
     let clases = 'dia-calendario d-flex align-items-center justify-content-center';
     let estilo = '';
 
@@ -173,6 +315,12 @@ function renderizarCalendario() {
     if (fecha.getTime() === hoy.getTime()) clases += ' hoy';
     if (fecha < hoy) clases += ' fecha-pasada';
     if (asignado) estilo = `background-color: ${asignado.color}; color: white; font-weight: bold;`;
+    if (propuesta && !asignado) {
+      clases += ' extension-preview';
+      estilo = `background-color: ${propuesta.color}; color: white; font-weight: bold;`;
+    } else if (propuesta && asignado && asignado.id_turno !== propuesta.id_turno) {
+      clases += ' extension-conflicto';
+    }
 
     const atributoFechaPasada = fecha < hoy ? ' aria-disabled="true" title="No se puede modificar una fecha pasada"' : '';
     const eventoClick = fecha < hoy ? '' : ` onclick="toggleDia(this, '${fechaStr}')"`;
@@ -200,6 +348,7 @@ function alternarSeleccionMasiva(fechas) {
     return;
   }
 
+  invalidarVistaPreviaExtension();
   fechas = fechas.filter(fecha => !esFechaPasada(fecha));
   if (fechas.length === 0) return;
 
@@ -246,6 +395,7 @@ window.toggleDia = function(elemento, fecha) {
     return;
   }
 
+  invalidarVistaPreviaExtension();
   // Si se seleccionó otro turno, reemplazarlo directamente.
   if (asignaciones[fecha] && turnoActivo && asignaciones[fecha].id_turno !== turnoActivo.id_turno) {
     asignaciones[fecha] = { ...turnoActivo, id_planificador_turno: asignaciones[fecha].id_planificador_turno };
@@ -281,6 +431,7 @@ function actualizarInputAsignaciones() {
     id_turno: info.id_turno
   }));
   $('#asignaciones').val(JSON.stringify(data));
+  actualizarEstadoGuardarCambios();
 
   if (data.length > 0) {
     $('#asignaciones').removeClass('is-valid is-invalid');
@@ -330,6 +481,7 @@ $('#btnSeleccionarTodos').on('click', function () {
     GenerarMensaje("warning", 3000, "Seleccione un turno", "Debe seleccionar un turno primero");
     return;
   }
+  invalidarVistaPreviaExtension();
   const year = fechaActualCalendario.getFullYear();
   const month = fechaActualCalendario.getMonth();
   const ultimoDia = new Date(year, month + 1, 0).getDate();
@@ -347,6 +499,7 @@ $('#btnDiasHabiles').on('click', function () {
     GenerarMensaje("warning", 3000, "Seleccione un turno", "Debe seleccionar un turno primero");
     return;
   }
+  invalidarVistaPreviaExtension();
   const year = fechaActualCalendario.getFullYear();
   const month = fechaActualCalendario.getMonth();
   const ultimoDia = new Date(year, month + 1, 0).getDate();
@@ -364,11 +517,34 @@ $('#btnDiasHabiles').on('click', function () {
 });
 
 $('#btnLimpiarSeleccion').on('click', function () {
+  invalidarVistaPreviaExtension();
   asignaciones = Object.fromEntries(
     Object.entries(asignaciones).filter(([fecha]) => esFechaPasada(fecha))
   );
   renderizarCalendario();
   actualizarInputAsignaciones();
+});
+
+$('#btnExtenderHorario').on('click', function () {
+  const panel = $('#panelExtenderHorario');
+  if (panel.hasClass('d-none')) {
+    panel.removeClass('d-none');
+  } else {
+    cerrarPanelExtension();
+    renderizarCalendario();
+  }
+});
+
+$('#btnVistaPreviaExtension').on('click', generarVistaPreviaExtension);
+$('#btnAplicarExtension').on('click', aplicarExtensionAlBorrador);
+$('#btnCerrarExtension').on('click', function () {
+  cerrarPanelExtension();
+  renderizarCalendario();
+});
+
+$('#extensionOrigenInicio, #extensionOrigenFin, #extensionDestinoInicio').on('change', function () {
+  invalidarVistaPreviaExtension();
+  renderizarCalendario();
 });
 
 // ==========================================

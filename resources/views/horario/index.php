@@ -87,7 +87,7 @@ include_once $basePath . '/resources/views/turno/partials/_modal_turno.php';
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.11/locales/es.global.min.js"></script>
-<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/HorarioController.js?v=20260917-3" defer></script>
+<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/HorarioController.js?v=20261124-1" defer></script>
 <?php if (($permisosTurno['turno']['ver'] ?? 0) == 1): ?>
     <script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/TurnoController.js" defer></script>
 <?php endif; ?>

@@ -10,6 +10,64 @@ use Exception;
 class NotificacionHelper extends Database
 {
     /**
+     * Registra alertas individuales de horarios próximos a vencer sin duplicarlas.
+     */
+    public static function registrarAlertasVencimientoHorario(string $id_usuario_destino, array $horarios): bool
+    {
+        $instancia = null;
+        $pdo = null;
+        try {
+            $id_usuario_destino = trim($id_usuario_destino);
+            if (preg_match('/^[0-9]{7,15}$/', $id_usuario_destino)) {
+                $id_usuario_destino = 'V-' . $id_usuario_destino;
+            }
+            if (preg_match('/^[VEJPGvejpg]{1}[0-9]{7,15}$/', $id_usuario_destino)) {
+                $id_usuario_destino = strtoupper(substr($id_usuario_destino, 0, 1)) . '-' . substr($id_usuario_destino, 1);
+            }
+
+            $instancia = new self();
+            $pdo = $instancia->LlamarConexion('security');
+            $pdo->beginTransaction();
+
+            $registrarAlerta = $pdo->prepare(
+                "INSERT IGNORE INTO notificacion
+                    (id_notificacion, cedula, titulo, mensaje, tipo, leido, estatus)
+                 VALUES (:id, :cedula, :titulo, :mensaje, 'ALERTA', 0, 1)"
+            );
+            foreach ($horarios as $horario) {
+                $fechaLegible = (new \DateTimeImmutable($horario['fecha_fin']))->format('d/m/Y');
+                $nombre = trim($horario['nombre'] . ' ' . $horario['apellido']);
+                $id = 'NOT' . strtoupper(substr(hash(
+                    'sha256',
+                    'horario-vencimiento|' . $id_usuario_destino . '|' . $horario['cedula'] . '|' . $horario['fecha_fin']
+                ), 0, 27));
+
+                $registrarAlerta->execute([
+                    'id' => $id,
+                    'cedula' => $id_usuario_destino,
+                    'titulo' => 'Horario próximo a vencer',
+                    'mensaje' => "El horario de {$nombre} tiene como última fecha asignada {$fechaLegible} "
+                        . "({$horario['dias_restantes']} día(s) restantes). "
+                        . 'Revise y extienda el horario desde el módulo Horarios.'
+                ]);
+            }
+
+            $pdo->commit();
+            $instancia->DestruirConexion();
+            return true;
+        } catch (Exception $e) {
+            if ($pdo && $pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            if ($instancia) {
+                $instancia->DestruirConexion();
+            }
+            Helper::ErrorLog("Error en NotificacionHelper::registrarAlertasVencimientoHorario: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Registra una notificación para un usuario específico en la base de datos de seguridad.
      * 
      * @param string $tipo Tipo de notificación: 'INFO', 'ALERTA', 'EXITO', 'ERROR'

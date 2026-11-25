@@ -162,10 +162,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Horario") {
                 $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para registrar horarios'];
             } else {
             try {
-                $asignaciones = json_decode($_POST["asignaciones"], true);
-                // DEBUG
-error_log("POST recibido: " . print_r($_POST, true));
-error_log("Asignaciones decodificadas: " . print_r($asignaciones, true));
+                $asignaciones = json_decode($_POST["asignaciones"] ?? '', true);
 
                 if (!is_array($asignaciones) || count($asignaciones) === 0) {
                     $json['response'] = ['resultado' => 400, 'mensaje' => 'Debe seleccionar al menos una fecha con turno'];
@@ -182,7 +179,6 @@ error_log("Asignaciones decodificadas: " . print_r($asignaciones, true));
                         $errores = [];
 
                         foreach ($asignaciones as $asignacion) {
-                            // Validar turno
                             $turnoModel->setIdTurno($asignacion['id_turno']);
                             $validarTurno = $turnoModel->Transaccion(['peticion' => 'validar']);
 

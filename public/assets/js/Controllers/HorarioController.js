@@ -1,4 +1,4 @@
-import * as horario from "../Handlers/HorarioHandler.js?v=20260917-3";
+import * as horario from "../Handlers/HorarioHandler.js?v=20261124-1";
 import * as AjaxHelper from "../Helpers/AjaxHelper.js?v=20260917-3";
 
 // MÓDULO DE HORARIOS
