@@ -147,7 +147,7 @@ class Permiso extends Database
             $this->LlamarConexion("security");
             $this->LlamarConexion()->beginTransaction();
             $query = "SELECT p.id_permiso, p.id_rol, p.id_modulo, p.accion, p.estatus, m.nombre
-            FROM permiso AS p 
+            FROM permiso AS p
             INNER JOIN modulo AS m ON p.id_modulo = m.id_modulo
             WHERE p.id_rol = :rol";
 
@@ -189,6 +189,7 @@ class Permiso extends Database
         } catch (\PDOException $e) {
             $this->LlamarConexion()->rollBack();
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            $dato['estado'] = -1;
             $dato['response'] = ['resultado' => 500, 'mensaje' => "Error interno del servidor", 'permiso' => []];
             $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => "Error interno del servidor"];
         }
