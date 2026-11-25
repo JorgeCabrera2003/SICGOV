@@ -59,7 +59,7 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setDocumentoLegal('');
             $this->fail("Se esperaba Exception por id vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El ID del Proveedor no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("El documento legal debe tener un prefijo válido (V, E, J, P, G) seguido de 7 a 12 dígitos.", $e->getMessage());
         }
 
         // 2. Nombre vacío
@@ -67,7 +67,7 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setNombre('');
             $this->fail("Se esperaba Exception por nombre vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El Nombre del Proveedor no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("Nombre no válido. Debe tener al menos entre 3 a 150 carácteres", $e->getMessage());
         }
 
         // 3. Dirección vacío
@@ -75,7 +75,7 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setDireccion('');
             $this->fail("Se esperaba Exception por id de vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El ID de la Categoría no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("Dirección no válida", $e->getMessage());
         }
 
         // 4. Teléfono vacío
@@ -83,9 +83,16 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setTelefono('');
             $this->fail("Se esperaba Exception por id vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El ID de la Unidad de Medida no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("Teléfono no válido. Debe tener el siguiente formato: 0424-1234567", $e->getMessage());
         }
 
+        // 5. Correo Electrónico vacío
+        try {
+            $this->objProveedor->setCorreo('');
+            $this->fail("Se esperaba Exception por id vacío.");
+        } catch (Exception $e) {
+            $this->assertStringContainsString("El formato del correo electrónico no es válido.", $e->getMessage());
+        }
     }
 
     /**
@@ -101,7 +108,7 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setDocumentoLegal('');
             $this->fail("Se esperaba Exception por id vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El ID del Proveedor no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("El documento legal debe tener un prefijo válido (V, E, J, P, G) seguido de 7 a 12 dígitos.", $e->getMessage());
         }
 
         // 2. Nombre vacío
@@ -109,7 +116,7 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setNombre('');
             $this->fail("Se esperaba Exception por nombre vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El Nombre del Proveedor no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("Nombre no válido. Debe tener al menos entre 3 a 150 carácteres", $e->getMessage());
         }
 
         // 3. Dirección vacío
@@ -117,7 +124,7 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setDireccion('');
             $this->fail("Se esperaba Exception por id de vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El ID de la Categoría no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("Dirección no válida", $e->getMessage());
         }
 
         // 4. Teléfono vacío
@@ -125,10 +132,18 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setTelefono('');
             $this->fail("Se esperaba Exception por id vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El ID de la Unidad de Medida no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("Teléfono no válido. Debe tener el siguiente formato: 0424-1234567", $e->getMessage());
         }
 
-        // 9. Regla de negocio: la categoria proveedor ya existe en la base de datos
+        // 5. Correo Electrónico vacío
+        try {
+            $this->objProveedor->setCorreo('');
+            $this->fail("Se esperaba Exception por id vacío.");
+        } catch (Exception $e) {
+            $this->assertStringContainsString("El formato del correo electrónico no es válido.", $e->getMessage());
+        }
+
+        // 6. Regla de negocio: proveedor ya existe en la base de datos
         $mockPdo = $this->createMock(PDO::class);
         $mockCheckProveedor = $this->createMock(PDOStatement::class);
 
@@ -159,13 +174,19 @@ final class ProveedorTest extends TestCase
         // 1. Inserciones exitosas
         $mockInsertProveedor->expects($this->once())->method('execute')->willReturn(true);
 
-        $mockPdo->expects($this->exactly(1))->method('beginTransaction');
-        $mockPdo->method('prepare')->willReturnCallback(function (string $sql) use ($mockInsertProveedor) {
+        $mockCheckProveedor->expects($this->once())->method('execute')->willReturn(true);
+
+        $mockPdo->expects($this->exactly(2))->method('beginTransaction');
+        $mockPdo->method('prepare')->willReturnCallback(function (string $sql) use ($mockInsertProveedor, $mockCheckProveedor) {
             if (str_contains($sql, 'INSERT INTO proveedor')) {
                 return $mockInsertProveedor;
             }
+
+            if(str_contains($sql, 'SELECT * FROM proveedor WHERE documento_legal = :documento_legal')){
+                return $mockCheckProveedor;
+            }  
         });
-        $mockPdo->expects($this->exactly(1))->method('commit');
+        $mockPdo->expects($this->exactly(2))->method('commit');
         $mockPdo->expects($this->never())->method('rollBack');
 
         $proveedorMock = $this->createProveedorMock($mockPdo);
@@ -194,7 +215,7 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setDocumentoLegal('');
             $this->fail("Se esperaba Exception por id vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El ID del Proveedor no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("El documento legal debe tener un prefijo válido (V, E, J, P, G) seguido de 7 a 12 dígitos.", $e->getMessage());
         }
 
         // 2. Nombre vacío
@@ -202,7 +223,7 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setNombre('');
             $this->fail("Se esperaba Exception por nombre vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El Nombre del Proveedor no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("Nombre no válido. Debe tener al menos entre 3 a 150 carácteres", $e->getMessage());
         }
 
         // 3. Dirección vacío
@@ -210,7 +231,7 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setDireccion('');
             $this->fail("Se esperaba Exception por id de vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El ID de la Categoría no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("Dirección no válida", $e->getMessage());
         }
 
         // 4. Teléfono vacío
@@ -218,7 +239,15 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setTelefono('');
             $this->fail("Se esperaba Exception por id vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El ID de la Unidad de Medida no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("Teléfono no válido. Debe tener el siguiente formato: 0424-1234567", $e->getMessage());
+        }
+
+        // 5. Correo Electrónico vacío
+        try {
+            $this->objProveedor->setCorreo('');
+            $this->fail("Se esperaba Exception por id vacío.");
+        } catch (Exception $e) {
+            $this->assertStringContainsString("El formato del correo electrónico no es válido.", $e->getMessage());
         }
     }
 
@@ -230,12 +259,12 @@ final class ProveedorTest extends TestCase
     public function test_modificar_proveedor_con_datos_incorrectos_falla(): void
     {
 
-        // 1. Docunebto Legal vacía
+               // 1. Docunebto Legal vacía
         try {
             $this->objProveedor->setDocumentoLegal('');
             $this->fail("Se esperaba Exception por id vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El ID del Proveedor no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("El documento legal debe tener un prefijo válido (V, E, J, P, G) seguido de 7 a 12 dígitos.", $e->getMessage());
         }
 
         // 2. Nombre vacío
@@ -243,7 +272,7 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setNombre('');
             $this->fail("Se esperaba Exception por nombre vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El Nombre del Proveedor no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("Nombre no válido. Debe tener al menos entre 3 a 150 carácteres", $e->getMessage());
         }
 
         // 3. Dirección vacío
@@ -251,7 +280,7 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setDireccion('');
             $this->fail("Se esperaba Exception por id de vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El ID de la Categoría no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("Dirección no válida", $e->getMessage());
         }
 
         // 4. Teléfono vacío
@@ -259,10 +288,18 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setTelefono('');
             $this->fail("Se esperaba Exception por id vacío.");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El ID de la Unidad de Medida no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("Teléfono no válido. Debe tener el siguiente formato: 0424-1234567", $e->getMessage());
         }
 
-        // 8. Conflicto de correo duplicado en la base de datos durante el UPDATE
+        // 5. Correo Electrónico vacío
+        try {
+            $this->objProveedor->setCorreo('');
+            $this->fail("Se esperaba Exception por id vacío.");
+        } catch (Exception $e) {
+            $this->assertStringContainsString("El formato del correo electrónico no es válido.", $e->getMessage());
+        }
+
+        // 6. Conflicto de correo duplicado en la base de datos durante el UPDATE
         $mockPdo = $this->createMock(PDO::class);
         $mockStmt = $this->createMock(PDOStatement::class);
 
@@ -329,7 +366,7 @@ final class ProveedorTest extends TestCase
     public function test_eliminar_proveedor_con_datos_vacios_lanza_excepcion(): void
     {
         $this->expectException(Exception::class);
-        $this->expectExceptionMessage("El ID del Proveedor no cumple con el formato permitido.");
+        $this->expectExceptionMessage("El documento legal debe tener un prefijo válido (V, E, J, P, G) seguido de 7 a 12 dígitos.");
 
         $this->objProveedor->setDocumentoLegal('');
     }
@@ -346,7 +383,7 @@ final class ProveedorTest extends TestCase
             $this->objProveedor->setDocumentoLegal('J-32984132**');
             $this->fail("Se esperaba Exception por exceder la cantidad de carácteres en el campo ID");
         } catch (Exception $e) {
-            $this->assertStringContainsString("El ID del Proveedor no cumple con el formato permitido.", $e->getMessage());
+            $this->assertStringContainsString("El documento legal debe tener un prefijo válido (V, E, J, P, G) seguido de 7 a 12 dígitos.", $e->getMessage());
         }
 
         $mockPdo = $this->createMock(PDO::class);
@@ -365,7 +402,7 @@ final class ProveedorTest extends TestCase
 
         $mockPdo->expects($this->exactly(2))->method('beginTransaction');
         $mockPdo->method('prepare')->willReturnCallback(function (string $sql) use ($mockCheckProveedor, $mockDeleteProveedor) {
-            if (str_contains($sql, 'SELECT * FROM vw_proveedor WHERE id_proveedor = :id_proveedor')) {
+            if (str_contains($sql, 'SELECT * FROM proveedor WHERE documento_legal = :documento_legal')) {
                 return $mockCheckProveedor;
             }
             if (str_contains($sql, 'UPDATE proveedor')) {
@@ -374,7 +411,7 @@ final class ProveedorTest extends TestCase
         });
 
         $proveedorMock = $this->createProveedorMock($mockPdo);
-        $proveedorMock->setDocumentoLegal('INSUM00720260519200547232');
+        $proveedorMock->setDocumentoLegal('J-32984132');
 
         $resultado = $proveedorMock->Transaccion(['peticion' => 'eliminar']);
 
@@ -403,7 +440,7 @@ final class ProveedorTest extends TestCase
 
         $mockPdo->expects($this->exactly(2))->method('beginTransaction');
         $mockPdo->method('prepare')->willReturnCallback(function (string $sql) use ($mockCheckProveedor, $mockDeleteProveedor) {
-            if (str_contains($sql, 'SELECT * FROM vw_proveedor WHERE id_proveedor = :id_proveedor')) {
+            if (str_contains($sql, 'SELECT * FROM proveedor WHERE documento_legal = :documento_legal')) {
                 return $mockCheckProveedor;
             }
             if (str_contains($sql, 'UPDATE proveedor')) {

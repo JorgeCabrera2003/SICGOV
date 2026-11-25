@@ -1,8 +1,8 @@
 <?php
 
-namespace AppControllers;
+namespace App\Controllers;
 
-use AppHelpersHelper;
+use App\Helpers\Helper;
 
 Helper::verificarSesion();
 
