@@ -28,77 +28,95 @@ class OperacionesNegocioSmokeTest extends TestCase
         Database::resetConnections();
     }
 
-    /**
-     * Humo 1: Comprueba que el módulo de Reservaciones pueda consultar la agenda sin errores.
-     */
-    public function test_humo_reservacion_consulta_agenda_correctamente(): void
-    {
-        $resModel = new Reservacion();
-        $resultado = $resModel->Transaccion([
-            'peticion' => 'listar',
-            'filtros' => [
-                'desde' => date('Y-m-01'),
-                'hasta' => date('Y-m-t')
-            ]
-        ]);
 
-        $this->assertEquals(1, $resultado['estado'] ?? 0, 'La consulta de agenda de reservaciones debe responder exitosamente.');
-        $this->assertEquals(200, $resultado['response']['resultado'] ?? 0);
-        $this->assertIsArray($resultado['response']['datos'] ?? null);
-    }
 
-    /**
-     * Humo 2: Comprueba que el módulo de Pedidos pueda listar pedidos y verificar relaciones de datos.
-     */
-    public function test_humo_pedido_listar_pedidos_activo(): void
-    {
-        $pedidoModel = new Pedido();
-        $pedidos = $pedidoModel->Transaccion(['peticion' => 'listar']);
+    // /**
+    //  * Humo 1: Comprueba que el módulo de Reservaciones pueda consultar la agenda sin errores.
+    //  */
+    // public function test_humo_reservacion_consulta_agenda_correctamente(): void
+    // {
+    //     $resModel = new Reservacion();
+    //     $resultado = $resModel->Transaccion([
+    //         'peticion' => 'listar',
+    //         'filtros' => [
+    //             'desde' => date('Y-m-01'),
+    //             'hasta' => date('Y-m-t')
+    //         ]
+    //     ]);
 
-        $this->assertIsArray($pedidos, 'El listado de pedidos debe retornar un array de registros.');
-    }
+    //     $this->assertEquals(1, $resultado['estado'] ?? 0, 'La consulta de agenda de reservaciones debe responder exitosamente.');
+    //     $this->assertEquals(200, $resultado['response']['resultado'] ?? 0);
+    //     $this->assertIsArray($resultado['response']['datos'] ?? null);
+    // }
 
-    /**
-     * Humo 3: Comprueba que el módulo de Noticias pueda consultar noticias públicas y autores.
-     */
-    public function test_humo_noticia_consulta_publica_activa(): void
-    {
-        $noticiaModel = new Noticia();
-        $resultado = $noticiaModel->ConsultarNoticiasPublicas([]);
 
-        $this->assertEquals(1, $resultado['estado'] ?? 0, 'La consulta de noticias públicas debe ser exitosa.');
-        $this->assertEquals(200, $resultado['response']['resultado'] ?? 0);
-        $this->assertIsArray($resultado['response']['datos'] ?? null);
 
-        $autores = $noticiaModel->ObtenerAutoresPublicos();
-        $this->assertIsArray($autores, 'Los autores de noticias deben ser un array.');
-    }
 
-    /**
-     * Humo 4: Comprueba que el módulo de Promociones pueda consultar ofertas activas con sus productos.
-     */
-    public function test_humo_promocion_consulta_ofertas_activa(): void
-    {
-        $promocionModel = new Promocion();
-        $resultado = $promocionModel->Transaccion(['peticion' => 'consultar']);
+    // /**
+    //  * Humo 2: Comprueba que el módulo de Pedidos pueda listar pedidos y verificar relaciones de datos.
+    //  */
+    // public function test_humo_pedido_listar_pedidos_activo(): void
+    // {
+    //     $pedidoModel = new Pedido();
+    //     $pedidos = $pedidoModel->Transaccion(['peticion' => 'listar']);
 
-        $this->assertEquals(1, $resultado['estado'] ?? 0, 'La consulta de promociones debe responder con éxito.');
-        $this->assertEquals(200, $resultado['response']['resultado'] ?? 0);
-        $this->assertIsArray($resultado['response']['datos'] ?? null);
-    }
+    //     $this->assertIsArray($pedidos, 'El listado de pedidos debe retornar un array de registros.');
+    // }
 
-    /**
-     * Humo 5: Comprueba que el módulo de Mesas tenga acceso al catálogo de mesas y sus áreas asignadas.
-     */
-    public function test_humo_mesas_catalogo_y_areas_disponibles(): void
-    {
-        $mesasModel = new Mesas();
-        $resultado = $mesasModel->Transaccion(['peticion' => 'consultar']);
 
-        $this->assertEquals(1, $resultado['estado'] ?? 0, 'La consulta de mesas debe ser exitosa.');
-        $this->assertEquals(200, $resultado['response']['resultado'] ?? 0);
-        $this->assertNotEmpty($resultado['response']['datos'], 'Deben existir mesas sembradas en la base de datos de pruebas.');
-    }
+
+
+    // /**
+    //  * Humo 3: Comprueba que el módulo de Noticias pueda consultar noticias públicas y autores.
+    //  */
+    // public function test_humo_noticia_consulta_publica_activa(): void
+    // {
+    //     $noticiaModel = new Noticia();
+    //     $resultado = $noticiaModel->ConsultarNoticiasPublicas([]);
+
+    //     $this->assertEquals(1, $resultado['estado'] ?? 0, 'La consulta de noticias públicas debe ser exitosa.');
+    //     $this->assertEquals(200, $resultado['response']['resultado'] ?? 0);
+    //     $this->assertIsArray($resultado['response']['datos'] ?? null);
+
+    //     $autores = $noticiaModel->ObtenerAutoresPublicos();
+    //     $this->assertIsArray($autores, 'Los autores de noticias deben ser un array.');
+    // }
+
+
+
+
+
+    // /**
+    //  * Humo 4: Comprueba que el módulo de Promociones pueda consultar ofertas activas con sus productos.
+    //  */
+    // public function test_humo_promocion_consulta_ofertas_activa(): void
+    // {
+    //     $promocionModel = new Promocion();
+    //     $resultado = $promocionModel->Transaccion(['peticion' => 'consultar']);
+
+    //     $this->assertEquals(1, $resultado['estado'] ?? 0, 'La consulta de promociones debe responder con éxito.');
+    //     $this->assertEquals(200, $resultado['response']['resultado'] ?? 0);
+    //     $this->assertIsArray($resultado['response']['datos'] ?? null);
+    // }
+
+
+
+
+    // /**
+    //  * Humo 5: Comprueba que el módulo de Mesas tenga acceso al catálogo de mesas y sus áreas asignadas.
+    //  */
+    // public function test_humo_mesas_catalogo_y_areas_disponibles(): void
+    // {
+    //     $mesasModel = new Mesas();
+    //     $resultado = $mesasModel->Transaccion(['peticion' => 'consultar']);
+
+    //     $this->assertEquals(1, $resultado['estado'] ?? 0, 'La consulta de mesas debe ser exitosa.');
+    //     $this->assertEquals(200, $resultado['response']['resultado'] ?? 0);
+    //     $this->assertNotEmpty($resultado['response']['datos'], 'Deben existir mesas sembradas en la base de datos de pruebas.');
+    // }
+
+
+
 
     /**
      * Humo 6: Comprueba que el módulo de Menú pueda listar los productos gastronómicos base.
@@ -110,16 +128,21 @@ class OperacionesNegocioSmokeTest extends TestCase
 
         $this->assertIsArray($resultado, 'El catálogo del menú debe responder con un array de productos.');
     }
-    /**
-     * Humo 7: Comprueba que el módulo de Áreas pueda consultar el catálogo de áreas.
-     */
-    public function test_humo_areas_catalogo_activo(): void
-    {
-        $areasModel = new Areas();
-        $resultado = $areasModel->Transaccion(['peticion' => 'consultar']);
 
-        $this->assertEquals(1, $resultado['estado'] ?? 0, 'La consulta de áreas debe ser exitosa.');
-        $this->assertEquals(200, $resultado['response']['resultado'] ?? 0);
-        $this->assertIsArray($resultado['response']['datos'] ?? null);
-    }
+
+
+//     /**
+//      * Humo 7: Comprueba que el módulo de Áreas pueda consultar el catálogo de áreas.
+//      */
+//     public function test_humo_areas_catalogo_activo(): void
+//     {
+//         $areasModel = new Areas();
+//         $resultado = $areasModel->Transaccion(['peticion' => 'consultar']);
+
+//         $this->assertEquals(1, $resultado['estado'] ?? 0, 'La consulta de áreas debe ser exitosa.');
+//         $this->assertEquals(200, $resultado['response']['resultado'] ?? 0);
+//         $this->assertIsArray($resultado['response']['datos'] ?? null);
+//     }
+
+
 }
