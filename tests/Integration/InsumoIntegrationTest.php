@@ -62,7 +62,7 @@ class InsumoIntegrationTest extends TestCase
         $this->insumoModel->setPrecioUnitario(8.50);
         $this->insumoModel->setStockActual(25.0);
         $this->insumoModel->setStockMinimo(5.0);
-        $this->insumoModel->setStockMaximo(100.0);
+        $this->insumoModel->setStockMaximo(20.0);
     }
 
     private function limpiarDatosPrueba(): void
@@ -72,7 +72,7 @@ class InsumoIntegrationTest extends TestCase
     }
 
     #[Test]
-    public function testConsultarInsumosEstructuraYVelocidad(): void
+    public function testConsultarRendimientoInsumosEstructuraYVelocidad(): void
     {
         $tInicio = microtime(true);
         $res = $this->insumoModel->Transaccion(['peticion' => 'consultar']);
@@ -91,7 +91,12 @@ class InsumoIntegrationTest extends TestCase
         $this->poblarInsumoValido();
 
         $response = $this->insumoModel->Transaccion(['peticion' => 'registrar']);
+
+        // 2. Verificar que existe el registro en la BD
+        $validar = $this->insumoModel->Transaccion(['peticion' => 'validar']);
+
         $this->assertContains($response['response']['resultado'], [200, 201]);
+        $this->assertEquals(1, $validar['bool']);
     }
 
     #[Test]
@@ -122,24 +127,34 @@ class InsumoIntegrationTest extends TestCase
     public function testModificarInsumoTest(): void
     {
         // 1. Registrar Insumo (Precondición)
+        $this->poblarInsumoValido();
         $this->insumoModel->Transaccion(['peticion' => 'registrar']);
 
         // 2. Modificar Insumo
         $this->insumoModel->setPrecioUnitario(9.75);
-        $this->insumoModel->setStockActual(30.0);
+        $this->insumoModel->setStockMinimo(8.0);
         $response = $this->insumoModel->Transaccion(['peticion' => 'modificar']);
+        
+        $modificacion = $this->insumoModel->Transaccion(['peticion' => 'validar']);
+
         $this->assertEquals(200, $response['response']['resultado']);
+        $this->assertEquals(8.0, $modificacion['response']['registro']['stock_minimo']);
+        $this->assertEquals(9.75, $modificacion['response']['registro']['precio_unitario']);
     }
 
     #[Test]
     public function testEliminarInsumoTest(): void
     {
-        // 1. Registrar Insumo (Precondición)
+        // 1. Eliminar Insumo (Precondición)
         $this->poblarInsumoValido();
-        $response = $this->insumoModel->Transaccion(['peticion' => 'registrar']);
+        $this->insumoModel->Transaccion(['peticion' => 'registrar']);
 
         $response = $this->insumoModel->Transaccion(['peticion' => 'eliminar']);
+        $validacion = $this->insumoModel->Transaccion(['peticion' => 'validar']);
+
+
         $this->assertEquals(200, $response['response']['resultado']);
+        $this->assertEquals(0, $validacion['response']['registro']['estatus']);
     }
 
     protected function tearDown(): void
