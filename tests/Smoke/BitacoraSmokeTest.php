@@ -41,6 +41,8 @@ class BitacoraSmokeTest extends TestCase
         parent::tearDown();
     }
 
+
+
     /**
      * Verifica que Helper::Bitacora() registre una entrada de auditoría correctamente en MySQL.
      */
@@ -83,6 +85,9 @@ class BitacoraSmokeTest extends TestCase
         $this->assertJson($registro['valores_nuevos']);
     }
 
+
+
+
     /**
      * Verifica que Helper::Bitacora() maneje limpiamente la ausencia de usuario autenticado
      * retornando false sin lanzar excepciones fatales.
@@ -100,6 +105,9 @@ class BitacoraSmokeTest extends TestCase
         $this->assertFalse($resultado, 'Bitacora debe retornar false cuando no hay cédula en sesión.');
     }
 
+
+
+    
     /**
      * Verifica que el modelo Bitacora pueda listar los eventos auditados.
      */
