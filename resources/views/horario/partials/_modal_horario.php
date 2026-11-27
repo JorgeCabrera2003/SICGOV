@@ -92,16 +92,67 @@
                         </div>
                     </div>
 
+                    <div id="panelExtenderHorario" class="card border mt-3 d-none">
+                        <div class="card-header bg-light py-2 fw-semibold">Elegir tramo</div>
+                        <div class="card-body">
+                            <p class="small text-muted mb-3">
+                                Seleccione el rango de fechas que desea renovarlo.
+                            </p>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label for="extensionOrigenInicio" class="form-label">Desde</label>
+                                    <input type="date" class="form-control" id="extensionOrigenInicio">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="extensionOrigenFin" class="form-label">Hasta</label>
+                                    <input type="date" class="form-control" id="extensionOrigenFin">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="extensionDestinoInicio" class="form-label">Renovar desde</label>
+                                    <input type="date" class="form-control" id="extensionDestinoInicio">
+                                </div>
+                            </div>
+                            <div id="resumenExtension" class="small text-muted mt-3 mb-2 d-none" role="status"></div>
+                            <div class="d-flex flex-wrap align-items-center gap-2 small text-muted">
+                                <span>Vista previa:</span>
+                                <span class="d-inline-flex align-items-center gap-1">
+                                    <span class="extension-legend-sample extension-legend-new" aria-hidden="true"></span>
+                                    <span>borde azul punteado = nuevo turno;</span>
+                                </span>
+                                <span class="d-inline-flex align-items-center gap-1">
+                                    <span class="extension-legend-sample extension-legend-conflict" aria-hidden="true"></span>
+                                    <span>rojo = conflicto.</span>
+                                </span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="btnVistaPreviaExtension">
+                                    <i class="fas fa-eye me-1"></i>Vista previa
+                                </button>
+                                <button type="button" class="btn btn-sm btn-warning text-dark" id="btnAplicarExtension" disabled>
+                                    <i class="fas fa-plus me-1"></i>Agregar al horario
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="btnCerrarExtension">
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <input type="hidden" name="asignaciones" id="asignaciones">
 
                 </div>
 
-                <div class="modal-footer border-top-0">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        Cancelar
+                <div class="modal-footer border-top-0 justify-content-between">
+                    <button type="button" class="btn btn-outline-warning text-dark d-none" id="btnExtenderHorario">
+                        <i class="fas fa-copy me-1"></i>Extender horario
                     </button>
-                    <button type="button" class="btn btn-warning text-dark fw-semibold" id="btnHorarioForm">
-                    </button>
+                    <div class="d-flex gap-2 ms-auto">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="button" class="btn btn-warning text-dark fw-semibold" id="btnHorarioForm">
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -133,6 +184,27 @@
     }
     .dia-calendario.hoy {
         border: 2px solid #0d6efd !important;
+    }
+    .dia-calendario.extension-preview {
+        outline: 3px dotted #0d6efd;
+        outline-offset: -3px;
+    }
+    .dia-calendario.extension-conflicto {
+        outline: 3px solid #dc3545;
+        outline-offset: -3px;
+    }
+    .extension-legend-sample {
+        display: inline-block;
+        width: 1.15rem;
+        height: 1.15rem;
+        border-radius: 0.25rem;
+        background-color: #4caf50;
+    }
+    .extension-legend-new {
+        border: 2px dotted #0d6efd;
+    }
+    .extension-legend-conflict {
+        border: 2px solid #dc3545;
     }
     .dia-calendario.fin-semana {
         color: #dc3545;

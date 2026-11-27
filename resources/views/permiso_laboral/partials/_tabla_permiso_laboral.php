@@ -11,6 +11,7 @@
                 <th>Días</th>
                 <th>Estado</th>
                 <th>Rango de Fechas</th>
+                <th>Comprobante</th>
                 <th></th>
             </tr>
         </thead>

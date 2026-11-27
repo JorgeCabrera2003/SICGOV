@@ -88,7 +88,6 @@ class Empleado extends Persona
                     INNER JOIN persona p ON e.cedula = p.cedula
                     LEFT JOIN cargo c ON e.id_cargo = c.id_cargo
                     WHERE e.estatus = 1";
-
             if ($soloSinHorario) {
                 $sql .= " AND NOT EXISTS (
                               SELECT 1

@@ -52,8 +52,16 @@ export function EditarModal(operacion) {
   if (operacion == 'modificar') { titulo = "Cambiar Turno"; boton = "Actualizar"; }
   if (operacion == 'modificar_lote') { titulo = "Editar Horario"; boton = "Guardar cambios"; }
   if (operacion == 'eliminar') { titulo = "Eliminar Asignación"; boton = "Eliminar"; }
+  const puedeExtender = operacion === 'modificar_lote'
+    && typeof permisosHorarioDB !== 'undefined'
+    && permisosHorarioDB.horario?.modificar == 1
+    && permisosHorarioDB.horario?.registrar == 1;
+  operacionModalHorario = operacion;
+  cerrarPanelExtension();
+  $('#btnExtenderHorario').toggleClass('d-none', !puedeExtender);
   etiqueta_modal.titulo.text(titulo);
   etiqueta_modal.boton.text(boton);
+  etiqueta_modal.boton.prop('disabled', operacion === 'modificar_lote' && !hayCambiosHorario());
   etiqueta_modal.modal.modal("show");
 }
 
@@ -65,13 +73,155 @@ let fechaActualCalendario = new Date();
 let turnoActivo = null; // { id_turno, nombre, color }
 let asignaciones = {}; // { '2025-03-03': { id_turno, nombre, color }, ... }
 let asignacionesOriginales = {}; // Asignaciones existentes al abrir el editor
+let vistaPreviaExtension = {};
+let operacionModalHorario = null;
 let coloresTurnos = ['#4CAF50', '#2196F3', '#FF9800', '#9C27B0', '#F44336', '#00BCD4', '#795548', '#607D8B'];
 let coloresTurnosPorId = new Map();
+
+function hayCambiosHorario() {
+  const fechasActuales = Object.keys(asignaciones);
+  const fechasOriginales = Object.keys(asignacionesOriginales);
+  if (fechasActuales.length !== fechasOriginales.length) return true;
+
+  return fechasActuales.some(fecha =>
+    !asignacionesOriginales[fecha]
+    || String(asignaciones[fecha].id_turno) !== String(asignacionesOriginales[fecha].id_turno)
+  );
+}
+
+function actualizarEstadoGuardarCambios() {
+  if (operacionModalHorario === 'modificar_lote') {
+    EtiquetasModal('Horario').boton.prop('disabled', !hayCambiosHorario());
+  }
+}
+
+function puedeAgregarAsignaciones() {
+  return operacionModalHorario !== 'modificar_lote'
+    || permisosHorarioDB.horario?.registrar == 1;
+}
+
+function puedeEliminarAsignaciones() {
+  return operacionModalHorario !== 'modificar_lote'
+    || permisosHorarioDB.horario?.eliminar == 1;
+}
 
 function esFechaPasada(fecha) {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
   return new Date(`${fecha}T00:00:00`) < hoy;
+}
+
+function diferenciaDias(fechaInicio, fechaFin) {
+  const inicio = new Date(`${fechaInicio}T00:00:00Z`);
+  const fin = new Date(`${fechaFin}T00:00:00Z`);
+  return Math.round((fin.getTime() - inicio.getTime()) / 86400000);
+}
+
+function sumarDias(fecha, dias) {
+  const resultado = new Date(`${fecha}T00:00:00Z`);
+  resultado.setUTCDate(resultado.getUTCDate() + dias);
+  return resultado.toISOString().slice(0, 10);
+}
+
+function invalidarVistaPreviaExtension() {
+  vistaPreviaExtension = {};
+  $('#btnAplicarExtension').prop('disabled', true);
+  $('#resumenExtension').empty().addClass('d-none');
+}
+
+function cerrarPanelExtension() {
+  invalidarVistaPreviaExtension();
+  $('#panelExtenderHorario').addClass('d-none');
+  $('#extensionOrigenInicio, #extensionOrigenFin, #extensionDestinoInicio').val('');
+}
+
+function generarVistaPreviaExtension() {
+  const origenInicio = $('#extensionOrigenInicio').val();
+  const origenFin = $('#extensionOrigenFin').val();
+  const destinoInicio = $('#extensionDestinoInicio').val();
+  const resumen = $('#resumenExtension');
+
+  invalidarVistaPreviaExtension();
+
+  if (!origenInicio || !origenFin || !destinoInicio) {
+    resumen.text('Complete las fechas desde/hasta del tramo origen y la fecha desde la que renovará.').removeClass('d-none');
+    return;
+  }
+  if (origenInicio > origenFin) {
+    resumen.text('La fecha «Desde» del tramo origen debe ser anterior o igual a «Hasta».').removeClass('d-none');
+    return;
+  }
+  if (destinoInicio <= origenFin || esFechaPasada(destinoInicio)) {
+    resumen.text('La renovación debe comenzar después del rango origen y no puede iniciar en una fecha pasada.').removeClass('d-none');
+    return;
+  }
+
+  const fechasOrigen = Object.keys(asignaciones).filter(fecha =>
+    fecha >= origenInicio && fecha <= origenFin
+  );
+  if (fechasOrigen.length === 0) {
+    resumen.text('El rango origen no contiene turnos asignados en el borrador actual.').removeClass('d-none');
+    return;
+  }
+
+  const duracionCiclo = diferenciaDias(origenInicio, origenFin) + 1;
+  const destinoFin = sumarDias(destinoInicio, duracionCiclo - 1);
+  const duracionDestino = duracionCiclo;
+  let propuestas = 0;
+  let existentesIguales = 0;
+  let conflictos = 0;
+  let diasSinTurno = 0;
+
+  for (let desplazamiento = 0; desplazamiento < duracionDestino; desplazamiento++) {
+    const fechaOrigen = sumarDias(origenInicio, desplazamiento % duracionCiclo);
+    const fechaDestino = sumarDias(destinoInicio, desplazamiento);
+    const turnoOrigen = asignaciones[fechaOrigen];
+    if (!turnoOrigen) {
+      diasSinTurno++;
+      continue;
+    }
+
+    const turnoDestino = asignaciones[fechaDestino];
+    vistaPreviaExtension[fechaDestino] = { ...turnoOrigen, fechaOrigen };
+    if (!turnoDestino) {
+      propuestas++;
+    } else if (turnoDestino.id_turno === turnoOrigen.id_turno) {
+      existentesIguales++;
+    } else {
+      conflictos++;
+    }
+  }
+
+  fechaActualCalendario = new Date(`${destinoInicio}T00:00:00`);
+  renderizarCalendario();
+  $('#btnAplicarExtension').prop('disabled', propuestas === 0);
+  resumen.text(
+    `Vista previa del ${destinoInicio} al ${destinoFin}: ${propuestas} turno(s) nuevo(s), ${existentesIguales} ya coinciden, `
+    + `${conflictos} conflicto(s) que no se sobrescribirán y ${diasSinTurno} día(s) libres según el tramo origen. `
+    + 'Recorra el calendario para revisar las fechas antes de agregar la propuesta.'
+  ).removeClass('d-none');
+}
+
+function aplicarExtensionAlBorrador() {
+  let agregados = 0;
+  Object.entries(vistaPreviaExtension).forEach(([fecha, turno]) => {
+    if (asignaciones[fecha]) return;
+    asignaciones[fecha] = {
+      id_turno: turno.id_turno,
+      nombre: turno.nombre,
+      color: turno.color,
+      id_planificador_turno: null
+    };
+    agregados++;
+  });
+
+  invalidarVistaPreviaExtension();
+  actualizarInputAsignaciones();
+  renderizarCalendario();
+  $('#resumenExtension')
+    .text(`${agregados} turno(s) agregado(s) al borrador. Pulsa «Guardar cambios» para guardarlos.`)
+    .removeClass('d-none');
+  GenerarMensaje('success', 7000, 'Extensión agregada', 'La propuesta está en el borrador; pulsa Guardar cambios para persistirla.');
 }
 
 // ==========================================
@@ -122,6 +272,7 @@ export function inicializarCalendario() {
   $('#botonesTurnos .btn-turno').removeClass('activo');
   asignaciones = {};
   asignacionesOriginales = {};
+  cerrarPanelExtension();
   renderizarCalendario();
 }
 
@@ -166,6 +317,7 @@ function renderizarCalendario() {
     const fecha = new Date(year, month, dia);
     const diaSemana = fecha.getDay();
     const asignado = asignaciones[fechaStr];
+    const propuesta = vistaPreviaExtension[fechaStr];
     let clases = 'dia-calendario d-flex align-items-center justify-content-center';
     let estilo = '';
 
@@ -173,6 +325,12 @@ function renderizarCalendario() {
     if (fecha.getTime() === hoy.getTime()) clases += ' hoy';
     if (fecha < hoy) clases += ' fecha-pasada';
     if (asignado) estilo = `background-color: ${asignado.color}; color: white; font-weight: bold;`;
+    if (propuesta && !asignado) {
+      clases += ' extension-preview';
+      estilo = `background-color: ${propuesta.color}; color: white; font-weight: bold;`;
+    } else if (propuesta && asignado && asignado.id_turno !== propuesta.id_turno) {
+      clases += ' extension-conflicto';
+    }
 
     const atributoFechaPasada = fecha < hoy ? ' aria-disabled="true" title="No se puede modificar una fecha pasada"' : '';
     const eventoClick = fecha < hoy ? '' : ` onclick="toggleDia(this, '${fechaStr}')"`;
@@ -200,6 +358,7 @@ function alternarSeleccionMasiva(fechas) {
     return;
   }
 
+  invalidarVistaPreviaExtension();
   fechas = fechas.filter(fecha => !esFechaPasada(fecha));
   if (fechas.length === 0) return;
 
@@ -207,16 +366,35 @@ function alternarSeleccionMasiva(fechas) {
     asignaciones[fecha]?.id_turno === turnoActivo.id_turno
   );
 
+  let omitidas = 0;
   fechas.forEach(fecha => {
     if (todasAsignadasAlTurno) {
-      delete asignaciones[fecha];
-    } else {
+      if (asignaciones[fecha] && puedeEliminarAsignaciones()) {
+        delete asignaciones[fecha];
+      } else if (asignaciones[fecha]) {
+        omitidas++;
+      }
+    } else if (asignaciones[fecha]) {
+      if (permisosHorarioDB.horario?.modificar == 1) {
+        asignaciones[fecha] = {
+          ...turnoActivo,
+          id_planificador_turno: asignaciones[fecha].id_planificador_turno
+        };
+      } else {
+        omitidas++;
+      }
+    } else if (puedeAgregarAsignaciones()) {
       asignaciones[fecha] = { ...turnoActivo };
+    } else {
+      omitidas++;
     }
   });
 
   renderizarCalendario();
   actualizarInputAsignaciones();
+  if (omitidas > 0) {
+    GenerarMensaje('warning', 6000, 'Permisos insuficientes', `${omitidas} fecha(s) no se modificaron por falta de permisos.`);
+  }
 }
 
 window.seleccionarColumna = function(indiceColumna) {
@@ -246,18 +424,31 @@ window.toggleDia = function(elemento, fecha) {
     return;
   }
 
+  invalidarVistaPreviaExtension();
   // Si se seleccionó otro turno, reemplazarlo directamente.
   if (asignaciones[fecha] && turnoActivo && asignaciones[fecha].id_turno !== turnoActivo.id_turno) {
+    if (operacionModalHorario === 'modificar_lote' && permisosHorarioDB.horario?.modificar != 1) {
+      GenerarMensaje('warning', 4000, 'Permiso requerido', 'No tienes permiso para modificar asignaciones.');
+      return;
+    }
     asignaciones[fecha] = { ...turnoActivo, id_planificador_turno: asignaciones[fecha].id_planificador_turno };
     console.log(`🔄 Actualizado: ${fecha} -> ${turnoActivo.nombre}`);
   }
   // Si ya tiene asignación y no se seleccionó otro turno, quitarla.
   else if (asignaciones[fecha]) {
+    if (!puedeEliminarAsignaciones()) {
+      GenerarMensaje('warning', 4000, 'Permiso requerido', 'No tienes permiso para eliminar asignaciones.');
+      return;
+    }
     delete asignaciones[fecha];
     console.log(`❌ Quitado: ${fecha}`);
   } 
   // Si no tiene y hay turno activo, asignar
   else if (turnoActivo) {
+    if (!puedeAgregarAsignaciones()) {
+      GenerarMensaje('warning', 4000, 'Permiso requerido', 'No tienes permiso para registrar asignaciones.');
+      return;
+    }
     asignaciones[fecha] = { ...turnoActivo };
     console.log(`✅ Asignado: ${fecha} -> ${turnoActivo.nombre}`);
   }
@@ -281,6 +472,7 @@ function actualizarInputAsignaciones() {
     id_turno: info.id_turno
   }));
   $('#asignaciones').val(JSON.stringify(data));
+  actualizarEstadoGuardarCambios();
 
   if (data.length > 0) {
     $('#asignaciones').removeClass('is-valid is-invalid');
@@ -330,16 +522,32 @@ $('#btnSeleccionarTodos').on('click', function () {
     GenerarMensaje("warning", 3000, "Seleccione un turno", "Debe seleccionar un turno primero");
     return;
   }
+  if (!puedeAgregarAsignaciones()) {
+    GenerarMensaje('warning', 4000, 'Permiso requerido', 'No tienes permiso para registrar asignaciones.');
+    return;
+  }
+  invalidarVistaPreviaExtension();
   const year = fechaActualCalendario.getFullYear();
   const month = fechaActualCalendario.getMonth();
   const ultimoDia = new Date(year, month + 1, 0).getDate();
+  let omitidas = 0;
   for (let dia = 1; dia <= ultimoDia; dia++) {
     const fechaStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
     if (esFechaPasada(fechaStr)) continue;
-    asignaciones[fechaStr] = { ...turnoActivo };
+    if (!asignaciones[fechaStr] || permisosHorarioDB.horario?.modificar == 1) {
+      asignaciones[fechaStr] = {
+        ...turnoActivo,
+        id_planificador_turno: asignaciones[fechaStr]?.id_planificador_turno || null
+      };
+    } else {
+      omitidas++;
+    }
   }
   renderizarCalendario();
   actualizarInputAsignaciones();
+  if (omitidas > 0) {
+    GenerarMensaje('warning', 6000, 'Permisos insuficientes', `${omitidas} fecha(s) no se modificaron por falta de permisos.`);
+  }
 });
 
 $('#btnDiasHabiles').on('click', function () {
@@ -347,28 +555,71 @@ $('#btnDiasHabiles').on('click', function () {
     GenerarMensaje("warning", 3000, "Seleccione un turno", "Debe seleccionar un turno primero");
     return;
   }
+  if (!puedeAgregarAsignaciones()) {
+    GenerarMensaje('warning', 4000, 'Permiso requerido', 'No tienes permiso para registrar asignaciones.');
+    return;
+  }
+  invalidarVistaPreviaExtension();
   const year = fechaActualCalendario.getFullYear();
   const month = fechaActualCalendario.getMonth();
   const ultimoDia = new Date(year, month + 1, 0).getDate();
+  let omitidas = 0;
   for (let dia = 1; dia <= ultimoDia; dia++) {
     const fecha = new Date(year, month, dia);
     const diaSemana = fecha.getDay();
     if (diaSemana >= 1 && diaSemana <= 5) {
       const fechaStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
       if (esFechaPasada(fechaStr)) continue;
-      asignaciones[fechaStr] = { ...turnoActivo };
+      if (!asignaciones[fechaStr] || permisosHorarioDB.horario?.modificar == 1) {
+        asignaciones[fechaStr] = {
+          ...turnoActivo,
+          id_planificador_turno: asignaciones[fechaStr]?.id_planificador_turno || null
+        };
+      } else {
+        omitidas++;
+      }
     }
   }
   renderizarCalendario();
   actualizarInputAsignaciones();
+  if (omitidas > 0) {
+    GenerarMensaje('warning', 6000, 'Permisos insuficientes', `${omitidas} fecha(s) no se modificaron por falta de permisos.`);
+  }
 });
 
 $('#btnLimpiarSeleccion').on('click', function () {
+  if (!puedeEliminarAsignaciones()) {
+    GenerarMensaje('warning', 4000, 'Permiso requerido', 'No tienes permiso para eliminar asignaciones.');
+    return;
+  }
+  invalidarVistaPreviaExtension();
   asignaciones = Object.fromEntries(
     Object.entries(asignaciones).filter(([fecha]) => esFechaPasada(fecha))
   );
   renderizarCalendario();
   actualizarInputAsignaciones();
+});
+
+$('#btnExtenderHorario').on('click', function () {
+  const panel = $('#panelExtenderHorario');
+  if (panel.hasClass('d-none')) {
+    panel.removeClass('d-none');
+  } else {
+    cerrarPanelExtension();
+    renderizarCalendario();
+  }
+});
+
+$('#btnVistaPreviaExtension').on('click', generarVistaPreviaExtension);
+$('#btnAplicarExtension').on('click', aplicarExtensionAlBorrador);
+$('#btnCerrarExtension').on('click', function () {
+  cerrarPanelExtension();
+  renderizarCalendario();
+});
+
+$('#extensionOrigenInicio, #extensionOrigenFin, #extensionDestinoInicio').on('change', function () {
+  invalidarVistaPreviaExtension();
+  renderizarCalendario();
 });
 
 // ==========================================
@@ -435,8 +686,20 @@ export async function EnviarDatos(operacion) {
         json = await AjaxHelper.enviaAjax(peticion, "");
 
         if (typeof json.resultado === 'number' && (json.resultado >= 200 && json.resultado <= 299)) {
-          modal.modal.modal("hide");
-          GenerarMensaje(json.icon, 10000, json.mensaje, null);
+            const errores = Array.isArray(json.errores) ? json.errores : [];
+            if (errores.length > 0) {
+              if ((json.exitosos || 0) > 0) modal.modal.modal("hide");
+              const detalle = errores.map(error => `${error.fecha}: ${error.mensaje}`).join('\n');
+              Swal.fire({
+                icon: (json.exitosos || 0) > 0 ? 'warning' : 'error',
+                title: json.mensaje,
+                text: detalle,
+                confirmButtonText: 'Aceptar'
+              });
+            } else {
+              modal.modal.modal("hide");
+              GenerarMensaje(json.icon, 10000, json.mensaje, null);
+            }
         }
         modal.boton.prop('disabled', false);
       }
@@ -478,7 +741,7 @@ export async function EnviarDatos(operacion) {
 
     modal.boton.prop('disabled', true);
     let operaciones = 0;
-    let errores = 0;
+    const errores = [];
 
     if (altas.length > 0) {
       const registro = new FormData();
@@ -490,8 +753,12 @@ export async function EnviarDatos(operacion) {
         id_turno: item.id_turno
       }))));
       const respuesta = await AjaxHelper.enviaAjax(registro, '');
-      if (respuesta.resultado >= 200 && respuesta.resultado <= 299) operaciones += altas.length;
-      else errores++;
+      operaciones += Number(respuesta.exitosos || 0);
+      if (Array.isArray(respuesta.errores)) {
+        errores.push(...respuesta.errores);
+      } else if (respuesta.resultado < 200 || respuesta.resultado >= 300) {
+        errores.push(...altas.map(item => ({ fecha: item.fecha, mensaje: respuesta.mensaje || 'No se pudo guardar.' })));
+      }
     }
 
     for (const cambio of cambios) {
@@ -502,7 +769,7 @@ export async function EnviarDatos(operacion) {
       modificar.append('id_turno', cambio.id_turno);
       const respuesta = await AjaxHelper.enviaAjax(modificar, '');
       if (respuesta.resultado >= 200 && respuesta.resultado <= 299) operaciones++;
-      else errores++;
+      else errores.push({ fecha: cambio.fecha, mensaje: respuesta.mensaje || 'No se pudo cambiar el turno.' });
     }
 
     for (const baja of bajas) {
@@ -512,17 +779,23 @@ export async function EnviarDatos(operacion) {
       eliminar.append('id_planificador_turno', baja.id_planificador_turno);
       const respuesta = await AjaxHelper.enviaAjax(eliminar, '');
       if (respuesta.resultado >= 200 && respuesta.resultado <= 299) operaciones++;
-      else errores++;
+      else errores.push({ fecha: baja.fecha, mensaje: respuesta.mensaje || 'No se pudo eliminar la asignación.' });
     }
 
     modal.boton.prop('disabled', false);
-    if (errores === 0) {
+    if (errores.length === 0) {
       modal.modal.modal('hide');
       GenerarMensaje('success', 10000, 'Horario actualizado', `${operaciones} operación(es) aplicada(s)`);
       return { resultado: 200 };
     }
 
-    GenerarMensaje('warning', 10000, 'Actualización parcial', `${operaciones} operación(es) aplicada(s), ${errores} con error`);
+    const detalleErrores = errores.map(error => `${error.fecha}: ${error.mensaje}`).join('\n');
+    Swal.fire({
+      icon: operaciones > 0 ? 'warning' : 'error',
+      title: operaciones > 0 ? 'Actualización parcial' : 'No se actualizó el horario',
+      text: `${operaciones} operación(es) aplicada(s), ${errores.length} con error.\n${detalleErrores}`,
+      confirmButtonText: 'Aceptar'
+    });
     return { resultado: 207 };
   }
 
@@ -562,24 +835,48 @@ export async function EnviarFormulario(btn_string) {
 // SELECTS
 // ==========================================
 
-export async function CrearSelectEmpleados(soloSinHorario = false) {
+export async function CrearSelectEmpleados() {
   const datos = new FormData();
   datos.append("modulo", "Empleado");
   datos.append("peticion", "consultar");
-  if (soloSinHorario) datos.append("solo_sin_horario", "1");
   
   try {
     const json = await AjaxHelper.enviaAjax(datos, "?page=Horario");
     if (json.resultado >= 200 && json.resultado <= 299) {
+      const puedeVerTodos = typeof permisosHorarioDB !== 'undefined'
+        && permisosHorarioDB.horario?.ver_todos == 1;
+      const cedulaSesion = String(cedulaSesionHorario || '');
       const empleados = Array.isArray(json.datos)
-        ? json.datos.map(item => ({ nombre: item.nombre + " " + item.apellido, valor: item.cedula }))
+        ? json.datos
+          .filter(item => puedeVerTodos || String(item.cedula) === cedulaSesion)
+          .map(item => {
+          const nombre = [item.nombre, item.apellido].filter(Boolean).join(' ');
+          return { nombre: nombre ? `${nombre} - ${item.cedula}` : item.cedula, valor: item.cedula };
+        })
         : [];
 
-      if (empleados.length === 0) {
-        $('#empleado').empty();
-      } else {
-        SelectHelper.RenderizarSelect($('#empleado'), empleados, "Seleccione un Empleado");
+      const $empleado = $('#empleado');
+      if ($empleado.hasClass('select2-hidden-accessible')) {
+        $empleado.select2('destroy');
       }
+
+      if (empleados.length === 0) {
+        $empleado.empty();
+      } else {
+        SelectHelper.RenderizarSelect($empleado, empleados, "Seleccione un Empleado");
+      }
+      if (!puedeVerTodos && cedulaSesion !== '') {
+        $empleado.val(cedulaSesion).trigger('change');
+      }
+      $empleado.prop('disabled', !puedeVerTodos);
+
+      $empleado.select2({
+        theme: 'bootstrap-5',
+        dropdownParent: $('#modalHorario'),
+        placeholder: 'Seleccione un Empleado',
+        width: '100%',
+        minimumResultsForSearch: 0
+      });
     }
   } catch (error) { console.log(error); }
 }
@@ -610,12 +907,12 @@ export function LimpiarFormulario() {
   let input = EtiquetasFormulario('input');
   let span = EtiquetasFormulario('span');
   input.id_horario.val("").prop("disabled", true);
-  input.empleado.val("default").prop("disabled", false);
+  input.empleado.val("default").prop("disabled", false).trigger('change');
   input.empleado.removeClass("is-valid is-invalid").removeData('touched');
   span.empleado.removeClass("valid-feedback invalid-feedback invalid-tooltip d-inline-block").text("").hide();
   $('#asignaciones').removeClass("is-valid is-invalid").removeData('touched').val("");
   span.sfecha.removeClass("valid-feedback invalid-feedback invalid-tooltip d-inline-block").text("").hide();
-  CrearSelectEmpleados(true);
+  CrearSelectEmpleados();
   asignacionesOriginales = {};
   inicializarCalendario();
   EtiquetasModal("Horario").boton.prop('disabled', false);
@@ -624,11 +921,11 @@ export function LimpiarFormulario() {
 }
 
 export function CapaValidar() {
-  CrearSelectEmpleados();
   const puedeGestionarHorarios = (typeof permisosHorarioDB !== 'undefined')
     && (permisosHorarioDB.horario?.registrar == 1 || permisosHorarioDB.horario?.modificar == 1);
   const puedeVerTurnos = (typeof permisosTurnoDB !== 'undefined')
     && permisosTurnoDB.turno?.ver == 1;
+  if (puedeGestionarHorarios) CrearSelectEmpleados();
   if (puedeGestionarHorarios || puedeVerTurnos) CrearSelectTurnos();
   inicializarCalendario();
 }
@@ -667,7 +964,7 @@ export async function DataTablePrincipal(arreglo) {
     columns: [
       { data: 'fecha', render: data => data ? new Date(data + 'T00:00:00').toLocaleDateString('es-ES', { day:'2-digit', month:'2-digit', year:'numeric' }) : '' },
       { data: null, render: row => row.nombre + " " + row.apellido },
-      { data: null, render: row => `<span class="badge bg-primary"><i class="fas fa-clock me-1"></i>${row.nombre_turno} ${row.hora_inicio} - ${row.hora_fin}</span>` },
+      { data: null, render: row => `<span class="badge ${Number(row.estatus_turno) === 1 ? 'bg-primary' : 'bg-secondary'}"><i class="fas fa-clock me-1"></i>${row.nombre_turno} ${row.hora_inicio} - ${row.hora_fin}${Number(row.estatus_turno) === 1 ? '' : ' (inactivo)'}</span>` },
       { data: null, render: () => RenderBotonesAccion() }
     ],
     order: [[0, 'asc']],
@@ -698,7 +995,7 @@ $(document).on('turnosActualizados', async function() {
 // FULLCALENDAR - AGENDA GLOBAL
 // ==========================================
 
-export function inicializarCalendarioAgenda(calendarEl) {
+export function inicializarCalendarioAgenda(calendarEl, vista = 'todos') {
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'es',
@@ -720,6 +1017,7 @@ export function inicializarCalendarioAgenda(calendarEl) {
             const formData = new FormData();
             formData.append('modulo', 'Horario');
             formData.append('peticion', 'consultar');
+            formData.append('vista', vista);
             formData.append('fecha_inicio', fetchInfo.startStr.split('T')[0]);
             formData.append('fecha_fin', fetchInfo.endStr.split('T')[0]);
 
@@ -733,14 +1031,16 @@ export function inicializarCalendarioAgenda(calendarEl) {
                         
                         return {
                             id: item.id_planificador_turno,
-                            title: `${item.nombre} ${item.apellido} - ${item.nombre_turno}`,
+                            title: `${item.nombre} ${item.apellido} - ${item.nombre_turno}${Number(item.estatus_turno) === 1 ? '' : ' (inactivo)'}`,
                             start: item.fecha,
                             allDay: true,
-                            backgroundColor: colores[colorIndex],
-                            borderColor: colores[colorIndex],
+                            backgroundColor: Number(item.estatus_turno) === 1 ? colores[colorIndex] : '#6c757d',
+                            borderColor: Number(item.estatus_turno) === 1 ? colores[colorIndex] : '#6c757d',
                             extendedProps: {
                                 cedula: item.cedula_empleado,
+                                nombreEmpleado: [item.nombre, item.apellido].filter(Boolean).join(' '),
                                 turno: item.nombre_turno,
+                                turnoActivo: Number(item.estatus_turno) === 1,
                                 hora_inicio: item.hora_inicio,
                                 hora_fin: item.hora_fin
                             }
@@ -758,15 +1058,27 @@ export function inicializarCalendarioAgenda(calendarEl) {
         eventClick: function (info) {
             // Mostrar info del turno asignado
             const props = info.event.extendedProps;
+            const puedeGestionar = typeof permisosHorarioDB !== 'undefined'
+                && (
+                    permisosHorarioDB.horario?.modificar == 1
+                    || permisosHorarioDB.horario?.eliminar == 1
+                );
             Swal.fire({
                 title: info.event.title,
                 html: `
                     <p><strong>Turno:</strong> ${props.turno}</p>
                     <p><strong>Horario:</strong> ${formatearHora12(props.hora_inicio)} - ${formatearHora12(props.hora_fin)}</p>
                     <p><strong>Fecha:</strong> ${info.event.startStr}</p>
+                    ${props.turnoActivo ? '' : '<p class="text-warning"><strong>Este turno está inactivo; sigue vigente para esta asignación existente.</strong></p>'}
                 `,
                 icon: 'info',
-                confirmButtonText: 'Cerrar'
+                showCancelButton: puedeGestionar,
+                confirmButtonText: puedeGestionar ? 'Gestionar horario' : 'Cerrar',
+                cancelButtonText: 'Cerrar'
+            }).then((result) => {
+                if (result.isConfirmed && puedeGestionar) {
+                    editarHorarioEmpleado(props.cedula, props.nombreEmpleado);
+                }
             });
         }
     });
@@ -810,22 +1122,23 @@ export async function DataTableEmpleados(arreglo) {
         data: null,
         render: function(row) {
           return (row.turnos || [])
-            .map(turno => `<span class="badge bg-primary me-1 mb-1"><i class="fas fa-clock me-1"></i>${turno.nombre}</span>`)
+            .map(turno => `<span class="badge ${turno.activo ? 'bg-primary' : 'bg-secondary'} me-1 mb-1"><i class="fas fa-clock me-1"></i>${turno.nombre}${turno.activo ? '' : ' (inactivo)'}</span>`)
             .join('');
         }
       },
       {
         data: null,
         render: function(row) {
-          const puedeVerHorario = (typeof permisosHorarioDB !== 'undefined') && permisosHorarioDB.horario?.ver_horario == 1;
+          const puedeVerHorario = (typeof permisosHorarioDB !== 'undefined') && permisosHorarioDB.horario?.ver == 1;
           const puedeModificar = (typeof permisosHorarioDB !== 'undefined') && permisosHorarioDB.horario?.modificar == 1;
-          if (!puedeVerHorario && !puedeModificar) return '';
+          const puedeEliminar = (typeof permisosHorarioDB !== 'undefined') && permisosHorarioDB.horario?.eliminar == 1;
+          if (!puedeVerHorario && !puedeModificar && !puedeEliminar) return '';
           const acciones = `
               ${puedeVerHorario ? `<li><a class="dropdown-item btn-ver-horario text-info" href="#" data-cedula="${row.cedula_empleado}" data-nombre="${row.nombre} ${row.apellido}">
                 <i class="fas fa-eye me-2"></i>Ver Horario
               </a></li>` : ''}
-              ${puedeModificar ? `<li><a class="dropdown-item btn-editar-horario text-primary" href="#" data-cedula="${row.cedula_empleado}" data-nombre="${row.nombre} ${row.apellido}">
-                <i class="fas fa-edit me-2"></i>Editar Horario
+              ${puedeModificar || puedeEliminar ? `<li><a class="dropdown-item btn-editar-horario text-primary" href="#" data-cedula="${row.cedula_empleado}" data-nombre="${row.nombre} ${row.apellido}">
+                <i class="fas fa-edit me-2"></i>Gestionar Horario
               </a></li>` : ''}`;
           return `<div class="dropdown">
             <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown">
@@ -845,6 +1158,9 @@ async function obtenerHorarioEmpleado(cedula) {
   const peticion = new FormData();
   peticion.append('modulo', 'Horario');
   peticion.append('peticion', 'consultar');
+  if (typeof permisosHorarioDB !== 'undefined' && permisosHorarioDB.horario?.ver_todos == 1) {
+    peticion.append('vista', 'todos');
+  }
   peticion.append('empleado_cedula', cedula);
 
   const respuestaHorario = await AjaxHelper.enviaAjax(peticion, '?page=Horario');

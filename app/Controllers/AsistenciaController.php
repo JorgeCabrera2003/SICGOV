@@ -3,15 +3,12 @@
 namespace App\Controllers;
 
 use App\Helpers\Helper;
-use App\Helpers\RegexHelper;
 use App\Models\System\Asistencia;
-use App\Models\System\Empleado;
 use Exception;
 
 $type = $_REQUEST['type'] ?? 'index';
 
 $asistenciaModel = new Asistencia();
-$empleadoModel = new Empleado();
 
 if ($type === 'publico') {
 
@@ -24,36 +21,21 @@ if ($type === 'publico') {
         if ($_POST['peticion'] === 'registrar') {
             try {
                 $idAsistencia = Helper::generarId('ASIS');
-                $horaActual = date('H:i:s');
-                $fechaHoy = date('Y-m-d');
                 $cedulaCompleta = trim(($_POST['tipo_doc'] ?? '') . ($_POST['cedula_empleado'] ?? ''));
 
-                $empleadoModel->set_cedula($cedulaCompleta);
-                $empleado = $empleadoModel->obtenerDatos();
-
-                if (!$empleado) {
-                    $json = [
-                        'HTTP_STATUS' => ['codigo' => 404, 'mensaje' => 'No encontrado'],
-                        'response' => ['resultado' => 404, 'icon' => 'error', 'mensaje' => 'Empleado no encontrado.']
-                    ];
-                } else {
-                    $asistenciaModel->setIdAsistencia($idAsistencia);
-                    $asistenciaModel->setCedulaEmpleado($cedulaCompleta);
-                    $asistenciaModel->setTipoMarcacion($_POST['tipo_marcacion'] ?? '');
-                    $asistenciaModel->setFecha($fechaHoy);
-                    $asistenciaModel->setHora($horaActual);
-                    $turnoAsignado = $asistenciaModel->obtenerTurnoAsignado();
-                    $asistenciaModel->setEstado($asistenciaModel->calcularEstadoAsistencia(
-                        $_POST['tipo_marcacion'] ?? '',
-                        $horaActual,
-                        $turnoAsignado['hora_inicio'] ?? null,
-                        isset($turnoAsignado['minuto_tolerancia']) ? (int) $turnoAsignado['minuto_tolerancia'] : null,
-                        $turnoAsignado['hora_fin'] ?? null
-                    ));
-                    $asistenciaModel->setObservacion($_POST['observacion'] ?? '');
-
-                    $json = $asistenciaModel->Transaccion(['peticion' => 'registrar']);
-                }
+                $asistenciaModel->setIdAsistencia($idAsistencia);
+                $asistenciaModel->prepararMarcacion(
+                    $cedulaCompleta,
+                    $_POST['tipo_marcacion'] ?? '',
+                    $_POST['observacion'] ?? ''
+                );
+                $json = $asistenciaModel->Transaccion(['peticion' => 'registrar']);
+            } catch (\PDOException $e) {
+                Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+                $json = [
+                    'HTTP_STATUS' => ['codigo' => 500, 'mensaje' => 'Error interno del servidor'],
+                    'response' => ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'No se pudo registrar la asistencia. Inténtelo nuevamente.']
+                ];
             } catch (Exception $e) {
                 $json = [
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Datos no válidos'],
@@ -71,16 +53,22 @@ if ($type === 'publico') {
                 }
                 $cedulaCompleta = $tipoDoc . $cedula;
 
-                $empleadoModel->set_cedula($cedulaCompleta);
-                $empleado = $empleadoModel->obtenerDatos();
+                $asistenciaModel->setCedulaEmpleado($cedulaCompleta);
+                $empleadoActivo = $asistenciaModel->empleadoActivo();
 
-                if (!$empleado) {
+                if (!$empleadoActivo) {
                     throw new Exception('Empleado no encontrado.');
                 }
 
                 $json = [
                     'HTTP_STATUS' => ['codigo' => 200, 'mensaje' => 'OK'],
-                    'response' => ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Empleado encontrado.', 'datos' => $empleado]
+                    'response' => ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Empleado activo.', 'datos' => ['activo' => true]]
+                ];
+            } catch (\PDOException $e) {
+                Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+                $json = [
+                    'HTTP_STATUS' => ['codigo' => 500, 'mensaje' => 'Error interno del servidor'],
+                    'response' => ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'No se pudo verificar el empleado. Inténtelo nuevamente.']
                 ];
             } catch (Exception $e) {
                 $json = [
@@ -103,7 +91,7 @@ if ($type === 'publico') {
     $extra_css = [
         BASE_URL . '/assets/css/landing.css?v=' . time()
     ];
-    $extra_js_modules = [BASE_URL . '/assets/js/Controllers/AsistenciaPublicController.js'];
+    $extra_js_modules = [BASE_URL . '/assets/js/Controllers/AsistenciaPublicController.js?v=' . time()];
 
     require_once BASE_PATH . '/resources/views/layout/head.php';
 
@@ -121,12 +109,33 @@ if ($type === 'publico') {
 }
 
 Helper::verificarSesion();
+
+if (!isset($_POST['peticion']) && empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $permisosAsistencia = Helper::TraerPermisos('asistencia');
 $tienePermisoAsistencia = static function (string $accion) use ($permisosAsistencia): bool {
     return ($permisosAsistencia['asistencia'][$accion] ?? 0) == 1;
 };
 
 if (isset($_POST['peticion'])) {
+    $accionesMutables = ['registrar', 'agregar_observacion', 'eliminar_observacion'];
+    if (in_array($_POST['peticion'], $accionesMutables, true)) {
+        $tokenSesion = $_SESSION['csrf_token'] ?? '';
+        $tokenSolicitud = $_POST['csrf_token'] ?? '';
+        if ($tokenSesion === '' || $tokenSolicitud === '' || !hash_equals($tokenSesion, $tokenSolicitud)) {
+            header('Content-Type: application/json');
+            http_response_code(403);
+            echo json_encode([
+                'resultado' => 403,
+                'icon' => 'error',
+                'mensaje' => 'Token de seguridad inválido. Actualiza la página e inténtalo de nuevo.'
+            ]);
+            exit;
+        }
+    }
+
     $json = [
         'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Solicitud no válida'],
         'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Solicitud no válida']
@@ -143,30 +152,26 @@ if (isset($_POST['peticion'])) {
         if ($accion_permiso) {
             try {
                 $idAsistencia = Helper::generarId('ASIS');
-                $horaActual = date('H:i:s');
-                $fechaHoy = date('Y-m-d');
                 $cedulaCompleta = trim(($_POST['tipo_doc'] ?? '') . ($_POST['cedula_empleado'] ?? ''));
 
                 $asistenciaModel->setIdAsistencia($idAsistencia);
-                $asistenciaModel->setCedulaEmpleado($cedulaCompleta);
-                $asistenciaModel->setTipoMarcacion($_POST['tipo_marcacion'] ?? '');
-                $asistenciaModel->setFecha($fechaHoy);
-                $asistenciaModel->setHora($horaActual);
-                $turnoAsignado = $asistenciaModel->obtenerTurnoAsignado();
-                $asistenciaModel->setEstado($asistenciaModel->calcularEstadoAsistencia(
+                $asistenciaModel->prepararMarcacion(
+                    $cedulaCompleta,
                     $_POST['tipo_marcacion'] ?? '',
-                    $horaActual,
-                    $turnoAsignado['hora_inicio'] ?? null,
-                    isset($turnoAsignado['minuto_tolerancia']) ? (int) $turnoAsignado['minuto_tolerancia'] : null,
-                    $turnoAsignado['hora_fin'] ?? null
-                ));
-                $asistenciaModel->setObservacion($_POST['observacion'] ?? '');
+                    $_POST['observacion'] ?? ''
+                );
 
                 $json = $asistenciaModel->Transaccion(['peticion' => 'registrar']);
 
                 if (isset($json['estado']) && $json['estado'] == 1) {
                     Helper::Bitacora('REGISTRAR', 'ASISTENCIA', "Registro de asistencia {$idAsistencia} para {$cedulaCompleta}");
                 }
+            } catch (\PDOException $e) {
+                Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+                $json = [
+                    'HTTP_STATUS' => ['codigo' => 500, 'mensaje' => 'Error interno del servidor'],
+                    'response' => ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'No se pudo registrar la asistencia. Inténtelo nuevamente.']
+                ];
             } catch (Exception $e) {
                 $json = [
                     'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Datos no válidos'],

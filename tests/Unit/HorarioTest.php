@@ -71,30 +71,78 @@ class HorarioTest extends TestCase
     }
 
     #[Test]
-    public function testRegistrarAsignacionDuplicadaRetorna409(): void
+    public function testRegistrarAsignacionNuevaExitosamente(): void
     {
         $mockPdo = $this->createMock(PDO::class);
-        $mockStmtValidar = $this->createMock(PDOStatement::class);
+        $mockValidacion = $this->createMock(PDOStatement::class);
+        $mockInsert = $this->createMock(PDOStatement::class);
+        $mockPdo->expects($this->exactly(2))->method('beginTransaction')->willReturn(true);
+        $mockPdo->expects($this->exactly(2))->method('prepare')
+            ->willReturnOnConsecutiveCalls($mockValidacion, $mockInsert);
+        $mockValidacion->expects($this->once())->method('execute')->willReturn(true);
+        $mockValidacion->expects($this->once())->method('rowCount')->willReturn(0);
+        $mockInsert->expects($this->once())->method('execute')->willReturn(true);
+        $mockPdo->expects($this->exactly(2))->method('commit')->willReturn(true);
 
-        $mockStmtValidar->method('execute')->willReturn(true);
-        $mockStmtValidar->method('rowCount')->willReturn(1); // Ya existe en la fecha
-        $mockStmtValidar->method('fetch')->willReturn(['id_planificador_turno' => 'HORA01']);
+        $horario = $this->createHorarioMock($mockPdo);
+        $horario->setId('HORA0012026010112');
+        $horario->setCedulaEmpleado('V-12345678');
+        $horario->setIdTurno('TUR0012026010112');
+        $horario->setFecha('2026-11-25');
 
-        $mockPdo->method('prepare')->willReturn($mockStmtValidar);
-        $mockPdo->method('beginTransaction');
-        $mockPdo->method('commit');
+        $resultado = $horario->Transaccion(['peticion' => 'registrar']);
 
-        $horarioMock = $this->createHorarioMock($mockPdo);
-        $horarioMock->setId('HORA0012026010112');
-        $horarioMock->setCedulaEmpleado('V-12345678');
-        $horarioMock->setIdTurno('TUR0012026010112');
-        $horarioMock->setFecha('2026-11-25');
+        $this->assertSame(1, $resultado['estado']);
+        $this->assertSame(201, $resultado['response']['resultado']);
+    }
 
-        $res = $horarioMock->Transaccion(['peticion' => 'registrar']);
+    #[Test]
+    public function testModificarAsignacionConCedulaRetornaExito(): void
+    {
+        $mockPdo = $this->createMock(PDO::class);
+        $mockStmt = $this->createMock(PDOStatement::class);
+        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
+        $mockPdo->expects($this->once())->method('prepare')
+            ->with($this->callback(function (string $sql): bool {
+                $this->assertStringContainsString('AND cedula_empleado = :cedula_empleado', $sql);
+                return true;
+            }))
+            ->willReturn($mockStmt);
+        $mockStmt->expects($this->once())->method('execute')->willReturn(true);
+        $mockStmt->expects($this->once())->method('rowCount')->willReturn(1);
+        $mockPdo->expects($this->once())->method('commit')->willReturn(true);
 
-        $this->assertEquals(-1, $res['estado']);
-        $this->assertEquals(409, $res['response']['resultado']);
-        $this->assertEquals(409, $res['HTTP_STATUS']['codigo']);
+        $horario = $this->createHorarioMock($mockPdo);
+        $horario->setId('HORA0012026010112');
+        $horario->setIdTurno('TUR0022026010112');
+
+        $resultado = $horario->Transaccion([
+            'peticion' => 'modificar',
+            'cedula_empleado' => 'V-12345678',
+        ]);
+
+        $this->assertSame(200, $resultado['response']['resultado']);
+    }
+
+    #[Test]
+    public function testEliminarAsignacionExistenteRetornaExito(): void
+    {
+        $mockPdo = $this->createMock(PDO::class);
+        $mockStmt = $this->createMock(PDOStatement::class);
+        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
+        $mockPdo->expects($this->once())->method('prepare')
+            ->with($this->stringContains('DELETE FROM planificador_turno'))
+            ->willReturn($mockStmt);
+        $mockStmt->expects($this->once())->method('execute')->willReturn(true);
+        $mockStmt->expects($this->once())->method('rowCount')->willReturn(1);
+        $mockPdo->expects($this->once())->method('commit')->willReturn(true);
+
+        $horario = $this->createHorarioMock($mockPdo);
+        $horario->setId('HORA0012026010112');
+
+        $resultado = $horario->Transaccion(['peticion' => 'eliminar']);
+
+        $this->assertSame(200, $resultado['response']['resultado']);
     }
 
     #[Test]
@@ -105,4 +153,5 @@ class HorarioTest extends TestCase
         $this->assertEquals(400, $res['response']['resultado']);
         $this->assertEquals(400, $res['HTTP_STATUS']['codigo']);
     }
+
 }

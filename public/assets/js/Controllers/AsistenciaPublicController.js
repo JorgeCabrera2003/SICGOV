@@ -10,11 +10,9 @@ const SELECTOR = {
     btnRegister: '#btnRegisterAttendance',
     employeeInfo: '#employeeInfo',
     employeeName: '#employeeName',
-    employeeRole: '#employeeRole',
 };
 
 let empleadoVerificado = false;
-let empleadoDatos = null;
 
 $(document).ready(function () {
     $(SELECTOR.btnVerify).on('click', verificarEmpleado);
@@ -25,7 +23,6 @@ $(document).ready(function () {
 
 function limpiarVerificacion() {
     empleadoVerificado = false;
-    empleadoDatos = null;
     $(SELECTOR.employeeInfo).addClass('d-none');
     $(SELECTOR.employeeName).text('');
     $(SELECTOR.tipoMarcacion).prop('disabled', true).val('default');
@@ -83,18 +80,14 @@ async function verificarEmpleado() {
 
     const json = await AjaxHelper.enviaAjax(peticion, ENDPOINT);
 
-    if (json && json.resultado === 200 && json.datos) {
+    if (json && json.resultado === 200 && json.datos?.activo === true) {
         empleadoVerificado = true;
-        empleadoDatos = json.datos;
-        const nombreEmpleado = empleadoDatos.nombre || empleadoDatos.nombre_personal || empleadoDatos.cedula_personal || 'Empleado';
-        const apellidoEmpleado = empleadoDatos.apellido || empleadoDatos.apellido_personal || '';
-        $(SELECTOR.employeeName).text(`${nombreEmpleado}${apellidoEmpleado ? ' ' + apellidoEmpleado : ''}`);
+        $(SELECTOR.employeeName).text('Empleado activo');
         $(SELECTOR.employeeInfo).removeClass('d-none');
         $(SELECTOR.tipoMarcacion).prop('disabled', false);
         $(SELECTOR.btnRegister).prop('disabled', false);
     } else {
         empleadoVerificado = false;
-        empleadoDatos = null;
         $(SELECTOR.employeeInfo).addClass('d-none');
         $(SELECTOR.tipoMarcacion).prop('disabled', true).val('default');
         $(SELECTOR.btnRegister).prop('disabled', true);
@@ -149,5 +142,4 @@ function limpiarForm() {
     SistemaValidacion.limpiarEstilosCampo($(SELECTOR.cedula));
     SistemaValidacion.limpiarEstilosCampo($(SELECTOR.tipoMarcacion));
     empleadoVerificado = false;
-    empleadoDatos = null;
 }

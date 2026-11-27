@@ -173,6 +173,20 @@
                                     <label class="form-check-label" for="horario-modificar">Modificar</label>
                                 </div>
                             </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="eliminar" id="horario-eliminar">
+                                    <label class="form-check-label" for="horario-eliminar">Eliminar asignaciones</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="ver_todos" id="horario-ver_todos">
+                                    <label class="form-check-label" for="horario-ver_todos">Ver todos los horarios</label>
+                                </div>
+                            </div>
                         </div>
                     </fieldset>
                 </div>
@@ -202,6 +216,13 @@
                                     <input class="form-check-input permission-checkbox" data-id-permiso=""
                                         type="checkbox" role="switch" value="ver" id="permiso_laboral-ver">
                                     <label class="form-check-label" for="permiso_laboral-ver">Ver</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input permission-checkbox" data-id-permiso=""
+                                        type="checkbox" role="switch" value="ver_todos" id="permiso_laboral-ver_todos">
+                                    <label class="form-check-label" for="permiso_laboral-ver_todos">Ver todos los permisos</label>
                                 </div>
                             </div>
                             <div class="col-lg-6">

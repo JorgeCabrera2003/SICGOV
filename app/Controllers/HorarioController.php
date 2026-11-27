@@ -18,6 +18,8 @@ $permisosTurno = Helper::TraerPermisos('turno');
 $tienePermisoHorario = static function (string $accion) use ($permisosHorario): bool {
     return ($permisosHorario['horario'][$accion] ?? 0) == 1;
 };
+$puedeVerTodosHorarios = $tienePermisoHorario('ver_todos');
+$cedulaSesion = (string)($_SESSION['user']['cedula'] ?? '');
 
 // ==========================================
 // MÓDULO: HORARIO
@@ -35,23 +37,34 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Horario") {
                 $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para registrar horarios'];
             } else {
             try {
+                if (!is_scalar($_POST['cedula_empleado'] ?? '') || !is_scalar($_POST['id_turno'] ?? null) || !is_scalar($_POST['fecha'] ?? null)) {
+                    throw new Exception('Los datos del horario no son válidos.');
+                }
+                $cedulaEmpleado = $puedeVerTodosHorarios
+                    ? (string)($_POST["cedula_empleado"] ?? '')
+                    : $cedulaSesion;
+                if ($cedulaEmpleado === '') {
+                    throw new Exception('No se pudo identificar al empleado de la sesión.');
+                }
                 $id = Helper::generarId("PLAN");
 
-                $empleadoModel->set_cedula($_POST["cedula_empleado"]);
+                $empleadoModel->set_cedula($cedulaEmpleado);
                 $datosEmpleado = $empleadoModel->obtenerDatos();
 
                 if (!$datosEmpleado || !isset($datosEmpleado['cedula_empleado'])) {
                     $json['response'] = ['resultado' => 404, 'mensaje' => 'El Empleado seleccionado no existe o no está activo'];
                     $json['HTTP_STATUS'] = ['codigo' => 404, 'mensaje' => 'Empleado no encontrado'];
                 } else {
-                    $turnoModel->setIdTurno($_POST["id_turno"]);
+                    $turnoModel->setIdTurno((string)$_POST["id_turno"]);
                     $validarTurno = $turnoModel->Transaccion(['peticion' => 'validar']);
 
-                    if ($validarTurno['bool'] == 1) {
+                    if (($validarTurno['bool'] ?? 0) === -1) {
+                        $json = $validarTurno;
+                    } elseif (($validarTurno['bool'] ?? 0) == 1) {
                         $horarioModel->setId($id);
-                        $horarioModel->setCedulaEmpleado($_POST["cedula_empleado"]);
-                        $horarioModel->setIdTurno($_POST["id_turno"]);
-                        $horarioModel->setFecha($_POST["fecha"]);
+                        $horarioModel->setCedulaEmpleado($cedulaEmpleado);
+                        $horarioModel->setIdTurno((string)$_POST["id_turno"]);
+                        $horarioModel->setFecha((string)$_POST["fecha"]);
 
                         $responseHorario = $horarioModel->Transaccion(['peticion' => 'registrar']);
                         $json = $responseHorario;
@@ -59,10 +72,10 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Horario") {
                         if ($responseHorario['estado'] == 1) {
                             $json['response'] = ['resultado' => 201, 'icon' => 'success', 'mensaje' => 'Turno asignado exitosamente'];
                             $json['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => 'Turno asignado exitosamente'];
-                            Helper::Bitacora('REGISTRAR', 'HORARIO', "Se asignó el turno {$_POST['id_turno']} al empleado {$_POST['cedula_empleado']} para la fecha {$_POST['fecha']}");
+                            Helper::Bitacora('REGISTRAR', 'HORARIO', "Se asignó el turno {$_POST['id_turno']} al empleado {$cedulaEmpleado} para la fecha {$_POST['fecha']}");
                         }
                     } else {
-                        $json['response'] = ['resultado' => 404, 'mensaje' => 'El Turno seleccionado no existe'];
+                        $json['response'] = ['resultado' => 404, 'mensaje' => 'El turno seleccionado no existe o está inactivo'];
                         $json['HTTP_STATUS'] = ['codigo' => 404, 'mensaje' => 'Turno no encontrado'];
                     }
                 }
@@ -82,14 +95,22 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Horario") {
                 $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para modificar horarios'];
             } else {
             try {
-                $turnoModel->setIdTurno($_POST["id_turno"]);
+                if (!is_scalar($_POST['id_turno'] ?? null) || !is_scalar($_POST['id_planificador_turno'] ?? null)) {
+                    throw new Exception('Los datos de la asignación no son válidos.');
+                }
+                $turnoModel->setIdTurno((string)$_POST["id_turno"]);
                 $validarTurno = $turnoModel->Transaccion(['peticion' => 'validar']);
 
-                if ($validarTurno['bool'] == 1) {
-                    $horarioModel->setId($_POST["id_planificador_turno"]);
-                    $horarioModel->setIdTurno($_POST["id_turno"]);
+                if (($validarTurno['bool'] ?? 0) === -1) {
+                    $json = $validarTurno;
+                } elseif (($validarTurno['bool'] ?? 0) == 1) {
+                    $horarioModel->setId((string)$_POST["id_planificador_turno"]);
+                    $horarioModel->setIdTurno((string)$_POST["id_turno"]);
 
-                    $responseHorario = $horarioModel->Transaccion(['peticion' => 'modificar']);
+                    $responseHorario = $horarioModel->Transaccion([
+                        'peticion' => 'modificar',
+                        'cedula_empleado' => $puedeVerTodosHorarios ? null : $cedulaSesion
+                    ]);
                     $json = $responseHorario;
 
                     if ($responseHorario['estado'] == 1) {
@@ -98,7 +119,7 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Horario") {
                         Helper::Bitacora('MODIFICAR', 'HORARIO', "Se modificó la asignación de horario {$_POST['id_planificador_turno']} al turno {$_POST['id_turno']}");
                     }
                 } else {
-                    $json['response'] = ['resultado' => 404, 'mensaje' => 'El Turno seleccionado no existe'];
+                    $json['response'] = ['resultado' => 404, 'mensaje' => 'El turno seleccionado no existe o está inactivo'];
                     $json['HTTP_STATUS'] = ['codigo' => 404, 'mensaje' => 'Turno no encontrado'];
                 }
             } catch (Exception $exception) {
@@ -112,8 +133,16 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Horario") {
         if ($_POST["peticion"] == "consultar") {
             $filtros = [];
             
-            if (isset($_POST['empleado_cedula']) && !empty($_POST['empleado_cedula'])) {
-                $filtros['cedula_empleado'] = $_POST['empleado_cedula'];
+            $vistaSolicitada = is_string($_POST['vista'] ?? null) ? $_POST['vista'] : 'mis';
+            if ($puedeVerTodosHorarios && $vistaSolicitada === 'todos') {
+                if (!empty($_POST['empleado_cedula'])) {
+                    $filtros['cedula_empleado'] = $_POST['empleado_cedula'];
+                }
+            } elseif ($cedulaSesion !== '') {
+                $filtros['cedula_empleado'] = $cedulaSesion;
+            } else {
+                $json['HTTP_STATUS'] = ['codigo' => 403, 'mensaje' => 'Usuario no válido'];
+                $json['response'] = ['resultado' => 403, 'mensaje' => 'No se pudo identificar al usuario actual', 'datos' => []];
             }
             
             if (isset($_POST['fecha_inicio']) && !empty($_POST['fecha_inicio'])) {
@@ -123,7 +152,9 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Horario") {
                 $filtros['fecha_fin'] = $_POST['fecha_fin'];
             }
 
-            if ($tienePermisoHorario('ver')) {
+            if (isset($json['response']['resultado']) && $json['response']['resultado'] === 403) {
+                // La sesión no tiene una cédula asociada a un empleado.
+            } elseif ($tienePermisoHorario('ver')) {
                 $json = $horarioModel->Transaccion([
                     'peticion' => 'consultar',
                     'filtros' => $filtros
@@ -141,8 +172,14 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Horario") {
                 $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para eliminar horarios'];
             } else {
             try {
-                $horarioModel->setId($_POST["id_planificador_turno"]);
-                $json = $horarioModel->Transaccion(['peticion' => 'eliminar']);
+                if (!is_scalar($_POST['id_planificador_turno'] ?? null)) {
+                    throw new Exception('La asignación no es válida.');
+                }
+                $horarioModel->setId((string)$_POST["id_planificador_turno"]);
+                $json = $horarioModel->Transaccion([
+                    'peticion' => 'eliminar',
+                    'cedula_empleado' => $puedeVerTodosHorarios ? null : $cedulaSesion
+                ]);
                 if (isset($json['estado']) && $json['estado'] == 1) {
                     Helper::Bitacora('ELIMINAR', 'HORARIO', "Se eliminó la asignación de horario {$_POST['id_planificador_turno']}");
                 }
@@ -162,16 +199,26 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Horario") {
                 $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para registrar horarios'];
             } else {
             try {
-                $asignaciones = json_decode($_POST["asignaciones"], true);
-                // DEBUG
-error_log("POST recibido: " . print_r($_POST, true));
-error_log("Asignaciones decodificadas: " . print_r($asignaciones, true));
+                $asignacionesJson = $_POST["asignaciones"] ?? '';
+                if (!is_string($asignacionesJson)) {
+                    throw new Exception('La lista de asignaciones no es válida.');
+                }
+                $asignaciones = json_decode($asignacionesJson, true);
 
                 if (!is_array($asignaciones) || count($asignaciones) === 0) {
                     $json['response'] = ['resultado' => 400, 'mensaje' => 'Debe seleccionar al menos una fecha con turno'];
                     $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Sin asignaciones'];
                 } else {
-                    $empleadoModel->set_cedula($_POST["cedula_empleado"]);
+                    if (!is_scalar($_POST['cedula_empleado'] ?? '')) {
+                        throw new Exception('El empleado seleccionado no es válido.');
+                    }
+                    $cedulaEmpleado = $puedeVerTodosHorarios
+                        ? (string)($_POST["cedula_empleado"] ?? '')
+                        : $cedulaSesion;
+                    if ($cedulaEmpleado === '') {
+                        throw new Exception('No se pudo identificar al empleado de la sesión.');
+                    }
+                    $empleadoModel->set_cedula($cedulaEmpleado);
                     $datosEmpleado = $empleadoModel->obtenerDatos();
 
                     if (!$datosEmpleado || !isset($datosEmpleado['cedula_empleado'])) {
@@ -182,35 +229,61 @@ error_log("Asignaciones decodificadas: " . print_r($asignaciones, true));
                         $errores = [];
 
                         foreach ($asignaciones as $asignacion) {
-                            // Validar turno
-                            $turnoModel->setIdTurno($asignacion['id_turno']);
-                            $validarTurno = $turnoModel->Transaccion(['peticion' => 'validar']);
+                            $fecha = is_array($asignacion) && is_scalar($asignacion['fecha'] ?? null)
+                                ? (string)$asignacion['fecha']
+                                : 'Fecha no válida';
+                            try {
+                                if (!is_array($asignacion)
+                                    || !is_scalar($asignacion['id_turno'] ?? null)
+                                    || !is_scalar($asignacion['fecha'] ?? null)
+                                ) {
+                                    throw new Exception('Faltan datos de fecha o turno.');
+                                }
 
-                            if ($validarTurno['bool'] == 1) {
-                                $id = Helper::generarId("PLAN");
-                                $horarioModel->setId($id);
-                                $horarioModel->setCedulaEmpleado($_POST["cedula_empleado"]);
-                                $horarioModel->setIdTurno($asignacion['id_turno']);
-                                $horarioModel->setFecha($asignacion['fecha']);
+                                $turnoModel->setIdTurno((string)$asignacion['id_turno']);
+                                $validarTurno = $turnoModel->Transaccion(['peticion' => 'validar']);
+                                if (($validarTurno['bool'] ?? 0) === -1) {
+                                    throw new Exception($validarTurno['response']['mensaje'] ?? 'No se pudo validar el turno.');
+                                }
+                                if (($validarTurno['bool'] ?? 0) !== 1) {
+                                    throw new Exception('El turno no existe o está inactivo.');
+                                }
+
+                                $horarioModel->setId(Helper::generarId("PLAN"));
+                                $horarioModel->setCedulaEmpleado($cedulaEmpleado);
+                                $horarioModel->setIdTurno((string)$asignacion['id_turno']);
+                                $horarioModel->setFecha((string)$asignacion['fecha']);
 
                                 $response = $horarioModel->Transaccion(['peticion' => 'registrar']);
-                                
-                                if ($response['estado'] == 1) {
+                                if (($response['estado'] ?? 0) === 1) {
                                     $registrosExitosos++;
                                 } else {
-                                    $errores[] = $asignacion['fecha'];
+                                    throw new Exception($response['response']['mensaje'] ?? 'No se pudo guardar la asignación.');
                                 }
+                            } catch (Exception $exception) {
+                                $errores[] = [
+                                    'fecha' => $fecha,
+                                    'mensaje' => $exception->getMessage()
+                                ];
                             }
                         }
 
+                        $hayErrores = count($errores) > 0;
+                        $codigo = $hayErrores ? 207 : 201;
+                        $mensajeHttp = $hayErrores ? 'Multi-Status' : 'Created';
+                        $mensaje = $hayErrores
+                            ? "Se asignaron {$registrosExitosos} turno(s); " . count($errores) . " fecha(s) tuvieron error."
+                            : "Se asignaron {$registrosExitosos} turno(s) exitosamente";
                         $json['response'] = [
-                            'resultado' => 201,
-                            'icon' => 'success',
-                            'mensaje' => "Se asignaron {$registrosExitosos} turno(s) exitosamente"
+                            'resultado' => $codigo,
+                            'icon' => $hayErrores ? ($registrosExitosos > 0 ? 'warning' : 'error') : 'success',
+                            'mensaje' => $mensaje,
+                            'exitosos' => $registrosExitosos,
+                            'errores' => $errores
                         ];
-                        $json['HTTP_STATUS'] = ['codigo' => 201, 'mensaje' => 'OK'];
+                        $json['HTTP_STATUS'] = ['codigo' => $codigo, 'mensaje' => $mensajeHttp];
                         if ($registrosExitosos > 0) {
-                            Helper::Bitacora('REGISTRAR LOTE', 'HORARIO', "Se asignaron {$registrosExitosos} turno(s) al empleado {$_POST['cedula_empleado']}");
+                            Helper::Bitacora('REGISTRAR LOTE', 'HORARIO', "Se asignaron {$registrosExitosos} turno(s) al empleado {$cedulaEmpleado}");
                         }
                     }
                 }
@@ -270,6 +343,7 @@ Helper::cargarVista(
     'Horarios - Good Vibes',
     [
         'ver' => $permisosHorario['horario']['ver'] ?? 0,
+        'verTodos' => $puedeVerTodosHorarios,
         'permisosHorario' => $permisosHorario,
         'permisosTurno' => $permisosTurno
     ]

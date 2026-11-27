@@ -33,22 +33,62 @@ class Turno extends Database
 
     public function setNombre(string $nombre)
     {
+        $nombre = trim($nombre);
+        if ($nombre === '' || strlen($nombre) > 50) {
+            throw new \InvalidArgumentException('El nombre del turno es obligatorio y no debe superar 50 caracteres.');
+        }
         $this->nombre = $nombre;
     }
 
     public function setHoraInicio(string $hora)
     {
-        $this->hora_inicio = $hora;
+        $this->hora_inicio = $this->normalizarHora($hora);
     }
 
     public function setHoraFin(string $hora)
     {
-        $this->hora_fin = $hora;
+        $this->hora_fin = $this->normalizarHora($hora);
     }
 
     public function setMinutoTolerancia(int $minutos)
     {
+        if ($minutos < 0) {
+            throw new \InvalidArgumentException('La tolerancia no puede ser negativa.');
+        }
+        if ($minutos > 2147483647) {
+            throw new \InvalidArgumentException('La tolerancia supera el rango permitido.');
+        }
         $this->minuto_tolerancia = $minutos;
+    }
+
+    private function normalizarHora(string $hora): string
+    {
+        $hora = trim($hora);
+        $formato = preg_match('/^\d{2}:\d{2}$/', $hora) ? '!H:i' : '!H:i:s';
+        $horaValidada = \DateTimeImmutable::createFromFormat($formato, $hora);
+        $errores = \DateTimeImmutable::getLastErrors();
+        if (
+            $horaValidada === false
+            || ($errores !== false && ($errores['warning_count'] > 0 || $errores['error_count'] > 0))
+            || !preg_match('/^\d{2}:\d{2}(?::\d{2})?$/', $hora)
+        ) {
+            throw new \InvalidArgumentException('La hora debe ser válida y usar el formato HH:MM.');
+        }
+
+        return $horaValidada->format('H:i:s');
+    }
+
+    private function validarDatosTurno(): void
+    {
+        if ($this->hora_inicio === '' || $this->hora_fin === '') {
+            throw new \InvalidArgumentException('Las horas de inicio y fin son obligatorias.');
+        }
+        if ($this->hora_inicio === $this->hora_fin) {
+            throw new \InvalidArgumentException('La hora de inicio y fin no pueden ser iguales.');
+        }
+        if ($this->minuto_tolerancia < 0) {
+            throw new \InvalidArgumentException('La tolerancia no puede ser negativa.');
+        }
     }
 
     public function setEstatus(int $estatus)
@@ -76,6 +116,9 @@ class Turno extends Database
 
         if (isset($peticion['peticion'])) {
             $op = $peticion['peticion'];
+            if (in_array($op, ['registrar', 'modificar'], true)) {
+                $this->validarDatosTurno();
+            }
             switch ($op) {
                 case 'registrar':
                     $response = $this->RegistrarTurno();
@@ -236,7 +279,7 @@ class Turno extends Database
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT * FROM turno WHERE id_turno = :id_turno";
+            $sql = "SELECT * FROM turno WHERE id_turno = :id_turno AND estatus = 1";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':id_turno', $this->id_turno);
             $stm->execute();

@@ -109,8 +109,8 @@ function renderAsistenciaHoyTable(datos) {
   const filas = datos.map((item) => ({
     empleado: formatearEmpleadoHoy(item),
     entrada: formatearCeldaAsistencia(item, item.hora_entrada, item.estado_entrada, 'entrada'),
-    descanso_in: formatearCeldaAsistencia(item, item.hora_descanso_in, null, 'descanso'),
-    descanso_out: formatearCeldaAsistencia(item, item.hora_descanso_out, null, 'descanso'),
+    descanso_in: formatearCeldaAsistencia(item, item.hora_descanso_in, item.estado_descanso_in, 'descanso'),
+    descanso_out: formatearCeldaAsistencia(item, item.hora_descanso_out, item.estado_descanso_out, 'descanso'),
     salida: formatearCeldaAsistencia(item, item.hora_salida, item.estado_salida, 'salida')
   }));
 
@@ -139,9 +139,21 @@ function renderAsistenciaHoyTable(datos) {
 function formatearEmpleadoHoy(item) {
   const nombre = item.nombre_empleado && item.nombre_empleado.trim()
     ? item.nombre_empleado
-    : item.cedula_empleado;
+    : '';
+  const cedula = formatearCedula(item.cedula_empleado);
 
-  return nombre;
+  if (!nombre) {
+    return $('<div>').text(cedula).html();
+  }
+
+  const nombreSeguro = $('<div>').text(nombre).html();
+  const cedulaSegura = $('<div>').text(`(${cedula})`).html();
+  return `<div style="line-height:1.2;"><strong>${nombreSeguro}</strong><br><small class="text-muted">${cedulaSegura}</small></div>`;
+}
+
+function formatearCedula(cedula) {
+  const valor = String(cedula || '').trim();
+  return valor.replace(/^([A-Za-z])[-\s]*(?=\d)/, '$1-');
 }
 
 function formatearCeldaAsistencia(item, hora, estado, tipo) {
@@ -150,21 +162,34 @@ function formatearCeldaAsistencia(item, hora, estado, tipo) {
   }
 
   if (tipo === 'descanso') {
-    return hora ? formatearHora(hora) : '-';
+    if (!hora) return '-';
+    if (estado === 'DIA_SIN_TURNO') {
+      return `${formatearHora(hora)}<span class="d-block badge bg-info text-dark mt-1">Día sin Turno</span>`;
+    }
+    return formatearHora(hora);
   }
 
   return formatearMarcacion(hora, estado, tipo);
 }
 
 function formatearMarcacion(hora, estado, tipo) {
-  if (!hora) return '-';
+  if (!hora) {
+    if (tipo === 'entrada' && estado === 'FALTA') {
+      return '<span class="badge bg-danger">Falta</span>';
+    }
+    return '-';
+  }
+
+  if (tipo === 'salida' && estado !== 'DIA_SIN_TURNO' && estado !== 'FALTA' && estado !== 'SALIDA_ANTICIPADA') {
+    return formatearHora(hora);
+  }
 
   const textos = tipo === 'salida'
-    ? { A_TIEMPO: 'A tiempo', FALTA: 'Salida anticipada' }
-    : { A_TIEMPO: 'A tiempo', TARDE: 'Tarde', FALTA: 'Falta' };
+    ? { DIA_SIN_TURNO: 'Día sin Turno', FALTA: 'Salida anticipada', SALIDA_ANTICIPADA: 'Salida anticipada' }
+    : { A_TIEMPO: 'A tiempo', TARDE: 'Tarde', FALTA: 'Falta', DIA_SIN_TURNO: 'Día sin Turno' };
   const clases = tipo === 'salida'
-    ? { A_TIEMPO: 'bg-success', FALTA: 'bg-danger' }
-    : { A_TIEMPO: 'bg-success', TARDE: 'bg-warning text-dark', FALTA: 'bg-danger' };
+    ? { DIA_SIN_TURNO: 'bg-info text-dark', FALTA: 'bg-warning text-dark', SALIDA_ANTICIPADA: 'bg-warning text-dark' }
+    : { A_TIEMPO: 'bg-success', TARDE: 'bg-warning text-dark', FALTA: 'bg-danger', DIA_SIN_TURNO: 'bg-info text-dark' };
 
   if (!estado || !textos[estado]) {
     return formatearHora(hora);

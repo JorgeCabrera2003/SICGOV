@@ -204,8 +204,8 @@ function validarHoras() {
   const inicio = input.hora_inicio.val();
   const fin = input.hora_fin.val();
 
-  if (inicio && fin && inicio >= fin) {
-    FeedbackToltipInput(input.hora_fin, span.hora_fin, "La hora fin debe ser mayor a la hora inicio", 0);
+  if (inicio && fin && inicio === fin) {
+    FeedbackToltipInput(input.hora_fin, span.hora_fin, "La hora de inicio y fin no pueden ser iguales", 0);
   } else if (inicio && fin) {
     FeedbackToltipInput(input.hora_fin, span.hora_fin, "", 1);
   }
@@ -231,8 +231,14 @@ function ValidarEnvio() {
     bool = false;
   }
 
-  if (input.hora_inicio.val() && input.hora_fin.val() && input.hora_inicio.val() >= input.hora_fin.val()) {
-    FeedbackToltipInput(input.hora_fin, span.hora_fin, "La hora fin debe ser mayor a la hora inicio", 0);
+  if (input.hora_inicio.val() && input.hora_fin.val() && input.hora_inicio.val() === input.hora_fin.val()) {
+    FeedbackToltipInput(input.hora_fin, span.hora_fin, "La hora de inicio y fin no pueden ser iguales", 0);
+    bool = false;
+  }
+
+  const tolerancia = input.minuto_tolerancia.val();
+  if (tolerancia !== '' && (!/^\d+$/.test(tolerancia) || Number(tolerancia) < 0)) {
+    FeedbackToltipInput(input.minuto_tolerancia, span.minuto_tolerancia, "La tolerancia debe ser un entero no negativo", 0);
     bool = false;
   }
 

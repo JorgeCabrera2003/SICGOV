@@ -31,6 +31,7 @@ class PermisoLaboral extends Database
     private $fecha_aprobacion;
     private $estado;
     private $estatus;
+    private $comprobante;
 
     public function __construct()
     {
@@ -43,6 +44,7 @@ class PermisoLaboral extends Database
         $this->fecha_aprobacion = null;
         $this->estado = "PENDIENTE";
         $this->estatus = 1;
+        $this->comprobante = null;
     }
 
     public function setId(string $id)
@@ -71,18 +73,40 @@ class PermisoLaboral extends Database
 
     public function setFechaInicio(string $fecha)
     {
-        if (empty(trim($fecha))) {
-            throw new Exception("La fecha de inicio es obligatoria.");
+        $fecha = $this->validarFecha($fecha, 'inicio');
+        if ($this->fecha_fin !== '' && $fecha > $this->fecha_fin) {
+            throw new Exception("La fecha de inicio no puede ser posterior a la fecha de fin.");
         }
         $this->fecha_inicio = $fecha;
     }
 
     public function setFechaFin(string $fecha)
     {
-        if (empty(trim($fecha))) {
-            throw new Exception("La fecha de fin es obligatoria.");
+        $fecha = $this->validarFecha($fecha, 'fin');
+        if ($this->fecha_inicio !== '' && $fecha < $this->fecha_inicio) {
+            throw new Exception("La fecha de fin no puede ser anterior a la fecha de inicio.");
         }
         $this->fecha_fin = $fecha;
+    }
+
+    private function validarFecha(string $fecha, string $tipo): string
+    {
+        $fecha = trim($fecha);
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
+            throw new Exception("La fecha de {$tipo} debe tener el formato YYYY-MM-DD.");
+        }
+
+        $fechaValidada = \DateTimeImmutable::createFromFormat('!Y-m-d', $fecha);
+        $errores = \DateTimeImmutable::getLastErrors();
+        if (
+            $fechaValidada === false
+            || ($errores !== false && ($errores['warning_count'] > 0 || $errores['error_count'] > 0))
+            || $fechaValidada->format('Y-m-d') !== $fecha
+        ) {
+            throw new Exception("La fecha de {$tipo} no es válida.");
+        }
+
+        return $fecha;
     }
 
     public function setEstado(string $estado)
@@ -110,6 +134,15 @@ class PermisoLaboral extends Database
         $this->estatus = $estatus;
     }
 
+    public function setComprobante(?string $comprobante)
+    {
+        $comprobante = ($comprobante !== null) ? trim($comprobante) : '';
+        if ($comprobante !== '' && !preg_match('/^just_[a-f0-9]{32}\.(jpg|png|gif|webp)$/', $comprobante)) {
+            throw new Exception("El comprobante no es válido.");
+        }
+        $this->comprobante = $comprobante !== '' ? $comprobante : null;
+    }
+
     public function getId()
     {
         return $this->id;
@@ -124,7 +157,7 @@ class PermisoLaboral extends Database
         if (isset($peticion['peticion'])) {
             $response = match ($peticion['peticion']) {
                 'registrar' => $this->RegistrarPermiso(),
-                'consultar' => $this->ConsultarPermisos(),
+                'consultar' => $this->ConsultarPermisos($peticion['cedula_empleado'] ?? null),
                 'actualizar', 'modificar' => $this->ModificarPermiso(),
                 'aprobar' => $this->CambiarEstadoPermiso('APROBADO'),
                 'rechazar' => $this->CambiarEstadoPermiso('RECHAZADO'),
@@ -140,24 +173,69 @@ class PermisoLaboral extends Database
         return $response;
     }
 
-    private function ConsultarPermisos()
+    public function ObtenerComprobante(string $id, ?string $cedulaEmpleado = null): ?string
+    {
+        try {
+            $sql = "SELECT comprobante FROM permiso_laboral WHERE id_permiso = :id_permiso AND estatus = 1";
+            $params = [':id_permiso' => $id];
+            if ($cedulaEmpleado !== null) {
+                $sql .= " AND cedula_empleado = :cedula_empleado";
+                $params[':cedula_empleado'] = $cedulaEmpleado;
+            }
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->execute($params);
+            $comprobante = $stm->fetchColumn();
+            return $comprobante === false || $comprobante === '' ? null : (string)$comprobante;
+        } catch (PDOException $e) {
+            Helper::ErrorLog($e->getMessage() . ' en ' . $e->getFile() . ' línea ' . $e->getLine());
+            throw new Exception('Error consultando el comprobante del permiso.');
+        } finally {
+            $this->DestruirConexion();
+        }
+    }
+
+    public function PerteneceAEmpleado(string $id, string $cedulaEmpleado): bool
+    {
+        try {
+            $stm = $this->LlamarConexion()->prepare(
+                "SELECT 1 FROM permiso_laboral WHERE id_permiso = :id_permiso AND cedula_empleado = :cedula_empleado AND estatus = 1"
+            );
+            $stm->execute([
+                ':id_permiso' => $id,
+                ':cedula_empleado' => $cedulaEmpleado
+            ]);
+            return $stm->fetchColumn() !== false;
+        } catch (PDOException $e) {
+            Helper::ErrorLog($e->getMessage() . ' en ' . $e->getFile() . ' línea ' . $e->getLine());
+            return false;
+        } finally {
+            $this->DestruirConexion();
+        }
+    }
+
+    private function ConsultarPermisos(?string $cedulaEmpleado = null)
     {
         $dato = [];
         $arreglo = [];
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "SELECT pl.id_permiso, pl.id_tipo_permiso, pl.cedula_empleado, pl.fecha_inicio, pl.fecha_fin, pl.fecha_aprobacion, pl.estado, pl.estatus,
+            $sql = "SELECT pl.id_permiso, pl.id_tipo_permiso, pl.cedula_empleado, pl.fecha_inicio, pl.fecha_fin, pl.fecha_aprobacion, pl.estado, pl.estatus, pl.comprobante,
                     tp.nombre AS tipo_nombre,
                     CONCAT(p.nombre, ' ', p.apellido) AS empleado
                     FROM permiso_laboral pl
                     INNER JOIN tipo_permiso tp ON tp.id_tipo_permiso = pl.id_tipo_permiso
                     INNER JOIN empleado e ON e.cedula = pl.cedula_empleado
                     INNER JOIN persona p ON p.cedula = e.cedula
-                    WHERE pl.estatus = 1
-                    ORDER BY pl.fecha_solicitud DESC";
+                    WHERE pl.estatus = 1";
+            $params = [];
+            if ($cedulaEmpleado !== null) {
+                $sql .= " AND pl.cedula_empleado = :cedula_empleado";
+                $params[':cedula_empleado'] = $cedulaEmpleado;
+            }
+            $sql .= " ORDER BY pl.fecha_solicitud DESC";
             $stm = $this->LlamarConexion()->prepare($sql);
-            $stm->execute();
+            $stm->execute($params);
             $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
             $this->LlamarConexion()->commit();
             $stm = null;
@@ -184,8 +262,8 @@ class PermisoLaboral extends Database
             try {
                 $this->LlamarConexion();
                 $this->LlamarConexion()->beginTransaction();
-                $sql = "INSERT INTO permiso_laboral (id_permiso, id_tipo_permiso, cedula_empleado, fecha_inicio, fecha_fin, estado)
-                        VALUES (:id_permiso, :id_tipo_permiso, :cedula_empleado, :fecha_inicio, :fecha_fin, :estado)";
+                $sql = "INSERT INTO permiso_laboral (id_permiso, id_tipo_permiso, cedula_empleado, fecha_inicio, fecha_fin, estado, comprobante)
+                        VALUES (:id_permiso, :id_tipo_permiso, :cedula_empleado, :fecha_inicio, :fecha_fin, :estado, :comprobante)";
 
                 $stm = $this->LlamarConexion()->prepare($sql);
                 $stm->bindParam(':id_permiso', $this->id);
@@ -194,6 +272,7 @@ class PermisoLaboral extends Database
                 $stm->bindParam(':fecha_inicio', $this->fecha_inicio);
                 $stm->bindParam(':fecha_fin', $this->fecha_fin);
                 $stm->bindParam(':estado', $this->estado);
+                $stm->bindParam(':comprobante', $this->comprobante);
                 $stm->execute();
                 $this->LlamarConexion()->commit();
 
@@ -222,7 +301,8 @@ class PermisoLaboral extends Database
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "UPDATE permiso_laboral SET id_tipo_permiso = :id_tipo_permiso, cedula_empleado = :cedula_empleado, fecha_inicio = :fecha_inicio, fecha_fin = :fecha_fin
+            $sql = "UPDATE permiso_laboral SET id_tipo_permiso = :id_tipo_permiso, cedula_empleado = :cedula_empleado, fecha_inicio = :fecha_inicio, fecha_fin = :fecha_fin,
+                    comprobante = COALESCE(:comprobante, comprobante)
                     WHERE id_permiso = :id_permiso AND estatus = 1";
 
             $stm = $this->LlamarConexion()->prepare($sql);
@@ -230,6 +310,7 @@ class PermisoLaboral extends Database
             $stm->bindParam(':cedula_empleado', $this->cedula_empleado);
             $stm->bindParam(':fecha_inicio', $this->fecha_inicio);
             $stm->bindParam(':fecha_fin', $this->fecha_fin);
+            $stm->bindParam(':comprobante', $this->comprobante);
             $stm->bindParam(':id_permiso', $this->id);
             $stm->execute();
             $this->LlamarConexion()->commit();
@@ -255,12 +336,21 @@ class PermisoLaboral extends Database
         try {
             $this->LlamarConexion();
             $this->LlamarConexion()->beginTransaction();
-            $sql = "UPDATE permiso_laboral SET estado = :estado, fecha_aprobacion = :fecha_aprobacion WHERE id_permiso = :id_permiso AND estatus = 1";
+            $sql = "UPDATE permiso_laboral SET estado = :estado, fecha_aprobacion = :fecha_aprobacion
+                    WHERE id_permiso = :id_permiso AND estatus = 1 AND estado = 'PENDIENTE'";
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':estado', $estado);
             $stm->bindParam(':fecha_aprobacion', $this->fecha_aprobacion);
             $stm->bindParam(':id_permiso', $this->id);
             $stm->execute();
+            if ($stm->rowCount() === 0) {
+                $this->LlamarConexion()->rollBack();
+                $dato['estado'] = -1;
+                $dato['response'] = ['resultado' => 409, 'mensaje' => 'El permiso no está pendiente o no existe.'];
+                $dato['HTTP_STATUS'] = ['codigo' => 409, 'mensaje' => 'Conflicto'];
+                $this->DestruirConexion();
+                return $dato;
+            }
             $this->LlamarConexion()->commit();
             $stm = null;
 
