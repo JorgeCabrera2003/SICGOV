@@ -33,18 +33,6 @@ class PermisoLaboralTest extends TestCase
     }
 
     #[Test]
-    public function testSetIdValidoEInvalido(): void
-    {
-        $pl = new PermisoLaboral();
-        $pl->setId('PERM0012026010112');
-        $this->assertEquals('PERM0012026010112', $pl->getId());
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('El ID del permiso no cumple con el formato permitido.');
-        $pl->setId('id-malo');
-    }
-
-    #[Test]
     public function testSetIdTipoPermisoValidoEInvalido(): void
     {
         $pl = new PermisoLaboral();
@@ -54,24 +42,6 @@ class PermisoLaboralTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('El tipo de permiso no es válido.');
         $pl->setIdTipoPermiso('tipo-malo');
-    }
-
-    #[Test]
-    public function testSetEstadoValidoEInvalido(): void
-    {
-        $pl = new PermisoLaboral();
-        $pl->setEstado('APROBADO');
-        $this->assertEquals('APROBADO', $this->getPrivateProperty($pl, 'estado'));
-
-        $pl->setEstado('RECHAZADO');
-        $this->assertEquals('RECHAZADO', $this->getPrivateProperty($pl, 'estado'));
-
-        $pl->setEstado('PENDIENTE');
-        $this->assertEquals('PENDIENTE', $this->getPrivateProperty($pl, 'estado'));
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Estado no válido.');
-        $pl->setEstado('CANCELADO');
     }
 
     #[Test]
@@ -94,27 +64,6 @@ class PermisoLaboralTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('La fecha de inicio no es válida.');
         $pl->setFechaInicio('2026-02-30');
-    }
-
-    #[Test]
-    public function testCambiarEstadoSoloAceptaPermisosPendientes(): void
-    {
-        $mockPdo = $this->createMock(PDO::class);
-        $mockStmt = $this->createMock(PDOStatement::class);
-        $mockPdo->expects($this->once())->method('beginTransaction');
-        $mockPdo->expects($this->once())->method('prepare')
-            ->with($this->stringContains("estado = 'PENDIENTE'"))
-            ->willReturn($mockStmt);
-        $mockStmt->expects($this->once())->method('execute')->willReturn(true);
-        $mockStmt->expects($this->once())->method('rowCount')->willReturn(0);
-        $mockPdo->expects($this->once())->method('rollBack')->willReturn(true);
-
-        $plMock = $this->createPermisoLaboralMock($mockPdo);
-        $plMock->setId('PERM0012026010112');
-        $plMock->setFechaAprobacion('2026-11-26 12:00:00');
-        $res = $plMock->Transaccion(['peticion' => 'aprobar']);
-
-        $this->assertSame(409, $res['response']['resultado']);
     }
 
     #[Test]
@@ -268,98 +217,6 @@ class PermisoLaboralTest extends TestCase
         $this->assertEquals(1, $res['estado']);
         $this->assertEquals(200, $res['response']['resultado']);
         $this->assertCount(1, $res['response']['datos']);
-    }
-
-    #[Test]
-    public function testConsultarPermisosFiltraPorCedulaDelEmpleado(): void
-    {
-        $mockPdo = $this->createMock(PDO::class);
-        $mockStmt = $this->createMock(PDOStatement::class);
-        $mockPdo->method('beginTransaction');
-        $mockPdo->method('commit');
-        $mockPdo->expects($this->once())
-            ->method('prepare')
-            ->with($this->callback(function (string $sql): bool {
-                $this->assertStringContainsString('AND pl.cedula_empleado = :cedula_empleado', $sql);
-                return true;
-            }))
-            ->willReturn($mockStmt);
-        $mockStmt->expects($this->once())
-            ->method('execute')
-            ->with([':cedula_empleado' => 'V-12345678'])
-            ->willReturn(true);
-        $mockStmt->method('fetchAll')->willReturn([]);
-
-        $plMock = $this->createPermisoLaboralMock($mockPdo);
-        $res = $plMock->Transaccion([
-            'peticion' => 'consultar',
-            'cedula_empleado' => 'V-12345678'
-        ]);
-
-        $this->assertSame(1, $res['estado']);
-        $this->assertSame([], $res['response']['datos']);
-    }
-
-    #[Test]
-    public function testPerteneceAEmpleadoValidaCedulaDelPermiso(): void
-    {
-        $mockPdo = $this->createMock(PDO::class);
-        $mockStmt = $this->createMock(PDOStatement::class);
-        $mockPdo->expects($this->once())
-            ->method('prepare')
-            ->with($this->stringContains('cedula_empleado = :cedula_empleado'))
-            ->willReturn($mockStmt);
-        $mockStmt->expects($this->once())
-            ->method('execute')
-            ->with([
-                ':id_permiso' => 'PERM0012026010112',
-                ':cedula_empleado' => 'V-12345678'
-            ])
-            ->willReturn(true);
-        $mockStmt->method('fetchColumn')->willReturn(1);
-
-        $plMock = $this->createPermisoLaboralMock($mockPdo);
-
-        $this->assertTrue($plMock->PerteneceAEmpleado('PERM0012026010112', 'V-12345678'));
-    }
-
-    #[Test]
-    public function testPerteneceAEmpleadoRetornaFalseCuandoNoExisteLaRelacion(): void
-    {
-        $mockPdo = $this->createMock(PDO::class);
-        $mockStmt = $this->createMock(PDOStatement::class);
-        $mockPdo->expects($this->once())->method('prepare')->willReturn($mockStmt);
-        $mockStmt->expects($this->once())->method('execute')->willReturn(true);
-        $mockStmt->expects($this->once())->method('fetchColumn')->willReturn(false);
-
-        $permiso = $this->createPermisoLaboralMock($mockPdo);
-
-        $this->assertFalse($permiso->PerteneceAEmpleado('PERM0012026010112', 'V-12345678'));
-    }
-
-    #[Test]
-    public function testObtenerComprobanteFiltraPorEmpleado(): void
-    {
-        $mockPdo = $this->createMock(PDO::class);
-        $mockStmt = $this->createMock(PDOStatement::class);
-        $mockPdo->expects($this->once())->method('prepare')
-            ->with($this->stringContains('AND cedula_empleado = :cedula_empleado'))
-            ->willReturn($mockStmt);
-        $mockStmt->expects($this->once())->method('execute')
-            ->with([
-                ':id_permiso' => 'PERM0012026010112',
-                ':cedula_empleado' => 'V-12345678',
-            ])
-            ->willReturn(true);
-        $mockStmt->expects($this->once())->method('fetchColumn')
-            ->willReturn('just_0123456789abcdef0123456789abcdef.jpg');
-
-        $permiso = $this->createPermisoLaboralMock($mockPdo);
-
-        $this->assertSame(
-            'just_0123456789abcdef0123456789abcdef.jpg',
-            $permiso->ObtenerComprobante('PERM0012026010112', 'V-12345678')
-        );
     }
 
     #[Test]

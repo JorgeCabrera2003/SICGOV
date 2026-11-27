@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\MockObject\MockObject;
 use App\Models\System\Promocion;
 use PDO;
@@ -12,10 +13,6 @@ use Exception;
 
 class PromocionTest extends TestCase
 {
-    /**
-     * Crea un mock parcial de Promocion para aislar completamente la base de datos.
-     * Sobrescribe 'LlamarConexion' y 'DestruirConexion'.
-     */
     private function createPromocionMock(PDO&MockObject $mockPdo): Promocion&MockObject
     {
         $mock = $this->getMockBuilder(Promocion::class)
@@ -28,9 +25,6 @@ class PromocionTest extends TestCase
         return $mock;
     }
 
-    /**
-     * Asigna valores válidos a una instancia de Promocion.
-     */
     private function poblarPromocionValida(Promocion $promocion): void
     {
         $promocion->setIdPromocion('PROM20261025140000001');
@@ -45,18 +39,12 @@ class PromocionTest extends TestCase
         $promocion->setImagen('uploads/promociones/promo1.jpg');
         $promocion->setProductos([
             ['id' => 'PROD20261025140000001', 'cantidad' => 2],
-            ['id' => 'PROD20261025140000002', 'cantidad' => 1]
+            ['id' => 'PROD20261025140000002', 'cantidad' => 1],
         ]);
     }
 
-    // =========================================================================
-    // 1. SETTERS, GETTERS Y SANITIZACIÓN DE DATOS
-    // =========================================================================
-
-    /**
-     * Prueba que los setters y getters conserven fielmente los datos asignados.
-     */
-    public function test_setters_y_getters_con_datos_validos(): void
+    #[Test]
+    public function testSettersYGettersConDatosValidos(): void
     {
         $promo = new Promocion();
         $this->poblarPromocionValida($promo);
@@ -73,22 +61,17 @@ class PromocionTest extends TestCase
         $this->assertEquals('uploads/promociones/promo1.jpg', $promo->getImagen());
     }
 
-    /**
-     * Prueba la sanitización rigurosa de valor_descuento (comas por puntos, limpieza de símbolos).
-     */
-    public function test_normaliza_valores_de_descuento_validos_y_rechaza_texto(): void
+    #[Test]
+    public function testNormalizaValoresDeDescuentoValidosYRechazaTexto(): void
     {
         $promo = new Promocion();
 
-        // 1. Número con coma decimal: '25,50' -> 25.5
         $promo->setValorDescuento('25,50');
         $this->assertEquals(25.5, $promo->getValorDescuento());
 
-        // 2. Número con símbolo de porcentaje: '20%' -> 20.0
         $promo->setValorDescuento('20%');
         $this->assertEquals(20.0, $promo->getValorDescuento());
 
-        // 3. Número con símbolo de moneda y texto: '$ 150.75 USD' -> 150.75
         $promo->setValorDescuento('$ 150.75 USD');
         $this->assertEquals(150.75, $promo->getValorDescuento());
 
@@ -96,7 +79,8 @@ class PromocionTest extends TestCase
         $promo->setValorDescuento('gratis');
     }
 
-    public function test_fecha_fin_vacia_se_guarda_como_null(): void
+    #[Test]
+    public function testFechaFinVaciaSeGuardaComoNull(): void
     {
         $promo = new Promocion();
         $promo->setFechaInicio('2026-11-01');
@@ -105,7 +89,8 @@ class PromocionTest extends TestCase
         $this->assertNull($promo->getFechaFin());
     }
 
-    public function test_fecha_fin_anterior_a_inicio_es_rechazada(): void
+    #[Test]
+    public function testFechaFinAnteriorAInicioEsRechazada(): void
     {
         $promo = new Promocion();
         $promo->setFechaInicio('2026-11-10');
@@ -115,7 +100,8 @@ class PromocionTest extends TestCase
         $promo->setFechaFin('2026-11-09');
     }
 
-    public function test_promocion_rechaza_porcentaje_mayor_a_cien(): void
+    #[Test]
+    public function testPromocionRechazaPorcentajeMayorACien(): void
     {
         $promo = new Promocion();
         $promo->setNombre('Oferta');
@@ -128,7 +114,8 @@ class PromocionTest extends TestCase
         $promo->Transaccion(['peticion' => 'registrar']);
     }
 
-    public function test_promocion_rechaza_descuento_cero_y_valores_no_numericos(): void
+    #[Test]
+    public function testPromocionRechazaDescuentoCeroYValoresNoNumericos(): void
     {
         $promo = new Promocion();
         $promo->setTipoDescuento('MONTO_FIJO');
@@ -140,7 +127,8 @@ class PromocionTest extends TestCase
         $promo->Transaccion(['peticion' => 'registrar']);
     }
 
-    public function test_promocion_rechaza_descuento_negativo(): void
+    #[Test]
+    public function testPromocionRechazaDescuentoNegativo(): void
     {
         $promo = new Promocion();
 
@@ -149,7 +137,8 @@ class PromocionTest extends TestCase
         $promo->setValorDescuento('-1');
     }
 
-    public function test_promocion_rechaza_tipo_de_descuento_invalido(): void
+    #[Test]
+    public function testPromocionRechazaTipoDeDescuentoInvalido(): void
     {
         $promo = new Promocion();
 
@@ -158,7 +147,8 @@ class PromocionTest extends TestCase
         $promo->setTipoDescuento('GRATIS');
     }
 
-    public function test_fecha_de_inicio_inexistente_es_rechazada(): void
+    #[Test]
+    public function testFechaDeInicioInexistenteEsRechazada(): void
     {
         $promo = new Promocion();
 
@@ -167,10 +157,8 @@ class PromocionTest extends TestCase
         $promo->setFechaInicio('2026-02-30');
     }
 
-    /**
-     * Prueba el manejo seguro de la imagen (limpieza de espacios en blanco y null si está vacía).
-     */
-    public function test_set_imagen_limpia_espacios_y_asigna_null_si_vacio(): void
+    #[Test]
+    public function testSetImagenLimpiaEspaciosYAsignaNullSiVacio(): void
     {
         $promo = new Promocion();
 
@@ -184,31 +172,21 @@ class PromocionTest extends TestCase
         $this->assertEquals('uploads/img.png', $promo->getImagen());
     }
 
-    /**
-     * Prueba el dispatcher Transaccion con petición no válida o vacía.
-     */
-    public function test_transaccion_con_peticion_no_valida_retorna_400(): void
+    #[Test]
+    public function testTransaccionConPeticionNoValidaRetorna400(): void
     {
         $promo = new Promocion();
 
-        // Petición no soportada
         $resultado = $promo->Transaccion(['peticion' => 'accion_inexistente']);
         $this->assertEquals(400, $resultado['response']['resultado']);
         $this->assertEquals(400, $resultado['HTTP_STATUS']['codigo']);
 
-        // Sin parámetro peticion
-        $resultado2 = $promo->Transaccion([]);
-        $this->assertEquals(400, $resultado2['response']['resultado']);
+        $resultado = $promo->Transaccion([]);
+        $this->assertEquals(400, $resultado['response']['resultado']);
     }
 
-    // =========================================================================
-    // 2. CONSULTAR PROMOCIÓN
-    // =========================================================================
-
-    /**
-     * Prueba la consulta exitosa de promociones con productos asociados.
-     */
-    public function test_consultar_promocion_exitoso(): void
+    #[Test]
+    public function testConsultarPromocionExitoso(): void
     {
         $mockPdo = $this->createMock(PDO::class);
         $mockStm = $this->createMock(PDOStatement::class);
@@ -225,8 +203,8 @@ class PromocionTest extends TestCase
                 'valor_descuento' => 50,
                 'producto_nombre' => 'Hamburguesa Clásica',
                 'producto_ids' => 'PROD001',
-                'producto_list' => 'PROD001:::Hamburguesa Clásica:::2:::10.00'
-            ]
+                'producto_list' => 'PROD001:::Hamburguesa Clásica:::2:::10.00',
+            ],
         ]);
         $mockPdo->expects($this->once())->method('commit')->willReturn(true);
 
@@ -239,10 +217,8 @@ class PromocionTest extends TestCase
         $this->assertEquals('2x1 Hamburguesas', $resultado['response']['datos'][0]['nombre']);
     }
 
-    /**
-     * Prueba que consultar promocion capture PDOException, ejecute rollback y retorne 500.
-     */
-    public function test_consultar_promocion_con_error_bd_hace_rollback_y_retorna_500(): void
+    #[Test]
+    public function testConsultarPromocionConErrorBdHaceRollbackYRetorna500(): void
     {
         $mockPdo = $this->createMock(PDO::class);
         $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
@@ -257,40 +233,27 @@ class PromocionTest extends TestCase
         $this->assertEquals(500, $resultado['HTTP_STATUS']['codigo']);
     }
 
-    // =========================================================================
-    // 3. REGISTRAR PROMOCIÓN
-    // =========================================================================
-
-    /**
-     * Prueba el registro exitoso de una promoción incluyendo su planificador de productos.
-     */
-    public function test_registrar_promocion_exitoso_con_productos(): void
+    #[Test]
+    public function testRegistrarPromocionExitosoConProductos(): void
     {
         $mockPdo = $this->createMock(PDO::class);
         $mockStmInsert = $this->createMock(PDOStatement::class);
         $mockStmPlan = $this->createMock(PDOStatement::class);
 
         $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
-
-        // Se preparan 2 consultas: insert en promocion e insert en planificador_promocion
-        $mockPdo->expects($this->exactly(2))
-            ->method('prepare')
+        $mockPdo->expects($this->exactly(2))->method('prepare')
             ->willReturnOnConsecutiveCalls($mockStmInsert, $mockStmPlan);
-
         $mockStmInsert->expects($this->once())->method('execute')->willReturn(true);
-
-        // Se insertarán 2 productos según la configuración de productos
         $mockStmPlan->expects($this->exactly(2))->method('execute')->willReturn(true);
-
         $mockPdo->expects($this->once())->method('commit')->willReturn(true);
 
         $promo = $this->createPromocionMock($mockPdo);
         $this->poblarPromocionValida($promo);
         $promo->setProductos([
             ['id' => 'PROD001', 'cantidad' => 1],
-            ['id' => 'PROD002', 'cantidad' => 1]
+            ['id' => 'PROD002', 'cantidad' => 1],
         ]);
-        $promo->setImagen(null); // Sin imagen para no invocar Database::getConnection('security')
+        $promo->setImagen(null);
 
         $resultado = $promo->Transaccion(['peticion' => 'registrar']);
 
@@ -299,10 +262,8 @@ class PromocionTest extends TestCase
         $this->assertEquals('Promoción registrada exitosamente', $resultado['response']['mensaje']);
     }
 
-    /**
-     * Prueba que ante un error en la base de datos al registrar, se realice rollback y retorne 500.
-     */
-    public function test_registrar_promocion_falla_por_pdoexception(): void
+    #[Test]
+    public function testRegistrarPromocionFallaPorPdoException(): void
     {
         $mockPdo = $this->createMock(PDO::class);
         $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
@@ -319,14 +280,8 @@ class PromocionTest extends TestCase
         $this->assertEquals(500, $resultado['HTTP_STATUS']['codigo']);
     }
 
-    // =========================================================================
-    // 4. MODIFICAR PROMOCIÓN
-    // =========================================================================
-
-    /**
-     * Prueba la actualización exitosa de una promoción reemplazando productos asociados.
-     */
-    public function test_modificar_promocion_exitoso(): void
+    #[Test]
+    public function testModificarPromocionExitoso(): void
     {
         $mockPdo = $this->createMock(PDO::class);
         $mockStmUpdate = $this->createMock(PDOStatement::class);
@@ -334,22 +289,16 @@ class PromocionTest extends TestCase
         $mockStmInsertPlan = $this->createMock(PDOStatement::class);
 
         $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
-
-        $mockPdo->expects($this->exactly(3))
-            ->method('prepare')
+        $mockPdo->expects($this->exactly(3))->method('prepare')
             ->willReturnOnConsecutiveCalls($mockStmUpdate, $mockStmDeletePlan, $mockStmInsertPlan);
-
         $mockStmUpdate->expects($this->once())->method('execute')->willReturn(true);
         $mockStmDeletePlan->expects($this->once())->method('execute')->willReturn(true);
         $mockStmInsertPlan->expects($this->once())->method('execute')->willReturn(true);
-
         $mockPdo->expects($this->once())->method('commit')->willReturn(true);
 
         $promo = $this->createPromocionMock($mockPdo);
         $this->poblarPromocionValida($promo);
-        $promo->setProductos([
-            ['id' => 'PROD_NUEVO', 'cantidad' => 1]
-        ]);
+        $promo->setProductos([['id' => 'PROD_NUEVO', 'cantidad' => 1]]);
         $promo->setImagen(null);
 
         $resultado = $promo->Transaccion(['peticion' => 'modificar']);
@@ -359,7 +308,8 @@ class PromocionTest extends TestCase
         $this->assertEquals('Promoción actualizada exitosamente', $resultado['response']['mensaje']);
     }
 
-    public function test_modificar_promocion_con_error_bd_hace_rollback_y_retorna_500(): void
+    #[Test]
+    public function testModificarPromocionConErrorBdHaceRollbackYRetorna500(): void
     {
         $mockPdo = $this->createMock(PDO::class);
         $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
@@ -379,14 +329,8 @@ class PromocionTest extends TestCase
         $this->assertSame(500, $resultado['HTTP_STATUS']['codigo']);
     }
 
-    // =========================================================================
-    // 5. VALIDAR Y ELIMINAR PROMOCIÓN
-    // =========================================================================
-
-    /**
-     * Prueba la validación de existencia: cuando la promoción sí existe en la BD.
-     */
-    public function test_validar_promocion_existente(): void
+    #[Test]
+    public function testValidarPromocionExistente(): void
     {
         $mockPdo = $this->createMock(PDO::class);
         $mockStm = $this->createMock(PDOStatement::class);
@@ -399,7 +343,7 @@ class PromocionTest extends TestCase
             'id_promocion' => 'PROM001',
             'nombre' => '2x1 Viernes',
             'tipo_descuento' => 'PORCENTAJE',
-            'valor_descuento' => 50
+            'valor_descuento' => 50,
         ]);
         $mockPdo->expects($this->once())->method('commit')->willReturn(true);
 
@@ -413,10 +357,8 @@ class PromocionTest extends TestCase
         $this->assertEquals('2x1 Viernes', $resultado['response']['registro']['nombre']);
     }
 
-    /**
-     * Prueba la validación de existencia: cuando la promoción no existe.
-     */
-    public function test_validar_promocion_inexistente(): void
+    #[Test]
+    public function testValidarPromocionInexistente(): void
     {
         $mockPdo = $this->createMock(PDO::class);
         $mockStm = $this->createMock(PDOStatement::class);
@@ -436,10 +378,8 @@ class PromocionTest extends TestCase
         $this->assertEquals(200, $resultado['response']['resultado']);
     }
 
-    /**
-     * Prueba la eliminación de una promoción que no existe: debe retornar 404.
-     */
-    public function test_eliminar_promocion_inexistente_retorna_404(): void
+    #[Test]
+    public function testEliminarPromocionInexistenteRetorna404(): void
     {
         $mockPdo = $this->createMock(PDO::class);
         $mockStm = $this->createMock(PDOStatement::class);
@@ -460,29 +400,21 @@ class PromocionTest extends TestCase
         $this->assertEquals('Registro no encontrado', $resultado['response']['mensaje']);
     }
 
-    /**
-     * Prueba la eliminación exitosa de una promoción existente.
-     */
-    public function test_eliminar_promocion_existente_exitoso(): void
+    #[Test]
+    public function testEliminarPromocionExistenteExitoso(): void
     {
         $mockPdo = $this->createMock(PDO::class);
         $mockStmSelect = $this->createMock(PDOStatement::class);
         $mockStmDelete = $this->createMock(PDOStatement::class);
 
-        // 2 transacciones: 1 en ValidarPromocion y 1 en EliminarPromocion
         $mockPdo->expects($this->exactly(2))->method('beginTransaction')->willReturn(true);
         $mockPdo->expects($this->exactly(2))->method('commit')->willReturn(true);
-
-        $mockPdo->expects($this->exactly(2))
-            ->method('prepare')
+        $mockPdo->expects($this->exactly(2))->method('prepare')
             ->willReturnOnConsecutiveCalls($mockStmSelect, $mockStmDelete);
 
-        // Select de validación
         $mockStmSelect->expects($this->once())->method('execute')->willReturn(true);
         $mockStmSelect->expects($this->once())->method('rowCount')->willReturn(1);
         $mockStmSelect->expects($this->once())->method('fetch')->willReturn(['id_promocion' => 'PROM001']);
-
-        // Delete de eliminación
         $mockStmDelete->expects($this->once())->method('execute')->willReturn(true);
 
         $promo = $this->createPromocionMock($mockPdo);
@@ -495,4 +427,3 @@ class PromocionTest extends TestCase
         $this->assertEquals('Promoción eliminada exitosamente', $resultado['response']['mensaje']);
     }
 }
-

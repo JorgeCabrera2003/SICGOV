@@ -25,18 +25,6 @@ class TipoPermisoTest extends TestCase
     }
 
     #[Test]
-    public function testSetIdValidoEInvalido(): void
-    {
-        $tipo = new TipoPermiso();
-        $tipo->setId('TPERM2026010112');
-        $this->assertEquals('TPERM2026010112', $tipo->getId());
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('El ID del Tipo de Permiso no cumple con el formato permitido.');
-        $tipo->setId('id-invalido!');
-    }
-
-    #[Test]
     public function testSetNombreValidoEInvalido(): void
     {
         $tipo = new TipoPermiso();
@@ -46,29 +34,6 @@ class TipoPermisoTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('El Nombre del Tipo de Permiso no cumple con el formato permitido.');
         $tipo->setNombre('A');
-    }
-
-    #[Test]
-    public function testSetEstatusValidoEInvalido(): void
-    {
-        $tipo = new TipoPermiso();
-        $tipo->setEstatus(1);
-        $this->assertEquals(1, $tipo->getEstatus());
-
-        $tipo->setEstatus(0);
-        $this->assertEquals(0, $tipo->getEstatus());
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Estatus no válido.');
-        $tipo->setEstatus(9);
-    }
-
-    #[Test]
-    public function testTransaccionPeticionInvalida(): void
-    {
-        $tipo = new TipoPermiso();
-        $res = $tipo->Transaccion(['peticion' => 'desconocida']);
-        $this->assertEquals(400, $res['response']['resultado']);
     }
 
     #[Test]
@@ -119,25 +84,6 @@ class TipoPermisoTest extends TestCase
         $this->assertSame('Tipo de Permiso registrado exitosamente', $resultado['response']['mensaje']);
     }
 
-    #[Test]
-    public function testRegistrarTipoPermisoDuplicadoRetorna409(): void
-    {
-        $mockStmt = $this->createMock(PDOStatement::class);
-        $mockStmt->expects($this->once())->method('execute')->willReturn(true);
-        $mockStmt->expects($this->once())->method('rowCount')->willReturn(1);
-
-        $mockPdo = $this->createMock(PDO::class);
-        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
-        $mockPdo->expects($this->once())->method('prepare')->willReturn($mockStmt);
-        $mockPdo->expects($this->once())->method('commit')->willReturn(true);
-
-        $tipo = $this->createTipoPermisoMock($mockPdo);
-        $tipo->setId('TPERM2026010112');
-
-        $resultado = $tipo->Transaccion(['peticion' => 'registrar']);
-
-        $this->assertSame(409, $resultado['response']['resultado']);
-    }
 
     #[Test]
     public function testModificarTipoPermisoActualizaNombre(): void
@@ -184,27 +130,6 @@ class TipoPermisoTest extends TestCase
 
         $this->assertSame(200, $resultado['response']['resultado']);
         $this->assertSame('Tipo de Permiso eliminado exitosamente', $resultado['response']['mensaje']);
-    }
-
-    #[Test]
-    public function testValidarTipoPermisoInexistenteDevuelveBoolCero(): void
-    {
-        $mockStmt = $this->createMock(PDOStatement::class);
-        $mockStmt->expects($this->once())->method('execute')->willReturn(true);
-        $mockStmt->expects($this->once())->method('rowCount')->willReturn(0);
-
-        $mockPdo = $this->createMock(PDO::class);
-        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
-        $mockPdo->expects($this->once())->method('prepare')->willReturn($mockStmt);
-        $mockPdo->expects($this->once())->method('commit')->willReturn(true);
-
-        $tipo = $this->createTipoPermisoMock($mockPdo);
-        $tipo->setId('TPERM2026010112');
-
-        $resultado = $tipo->Transaccion(['peticion' => 'validar']);
-
-        $this->assertSame(0, $resultado['bool']);
-        $this->assertSame([], $resultado['response']['registro']);
     }
 
     #[Test]

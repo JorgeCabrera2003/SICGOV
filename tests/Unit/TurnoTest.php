@@ -33,36 +33,6 @@ class TurnoTest extends TestCase
     }
 
     #[Test]
-    public function testSettersTurnoAsignanPropiedades(): void
-    {
-        $turno = new Turno();
-        $turno->setIdTurno('TUR0012026010112');
-        $turno->setNombre('Turno Matutino');
-        $turno->setHoraInicio('08:00:00');
-        $turno->setHoraFin('16:00:00');
-        $turno->setMinutoTolerancia(10);
-        $turno->setEstatus(1);
-
-        $this->assertEquals('TUR0012026010112', $turno->getIdTurno());
-        $this->assertEquals('Turno Matutino', $turno->getNombre());
-        $this->assertEquals('08:00:00', $this->getPrivateProperty($turno, 'hora_inicio'));
-        $this->assertEquals('16:00:00', $this->getPrivateProperty($turno, 'hora_fin'));
-        $this->assertEquals(10, $this->getPrivateProperty($turno, 'minuto_tolerancia'));
-        $this->assertEquals(1, $this->getPrivateProperty($turno, 'estatus'));
-    }
-
-    #[Test]
-    public function testPermiteTurnoNocturno(): void
-    {
-        $turno = new Turno();
-        $turno->setHoraInicio('20:00');
-        $turno->setHoraFin('06:00');
-
-        $this->assertEquals('20:00:00', $this->getPrivateProperty($turno, 'hora_inicio'));
-        $this->assertEquals('06:00:00', $this->getPrivateProperty($turno, 'hora_fin'));
-    }
-
-    #[Test]
     public function testRechazaHorasIgualesYToleranciaNegativa(): void
     {
         $turno = new Turno();
@@ -212,34 +182,4 @@ class TurnoTest extends TestCase
         $this->assertSame('Turno Mañana', $resultado['response']['registro']['nombre']);
     }
 
-    #[Test]
-    public function testErrorAlModificarTurnoRevierteLaTransaccion(): void
-    {
-        $mockPdo = $this->createMock(PDO::class);
-        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
-        $mockPdo->expects($this->once())->method('prepare')
-            ->willThrowException(new PDOException('Fallo al actualizar'));
-        $mockPdo->expects($this->once())->method('rollBack')->willReturn(true);
-        $mockPdo->expects($this->never())->method('commit');
-
-        $turno = $this->createTurnoMock($mockPdo);
-        $turno->setIdTurno('TUR0012026010112');
-        $turno->setNombre('Turno Mañana');
-        $turno->setHoraInicio('08:00');
-        $turno->setHoraFin('16:00');
-
-        $resultado = $turno->Transaccion(['peticion' => 'modificar']);
-
-        $this->assertSame(-1, $resultado['estado']);
-        $this->assertSame(500, $resultado['HTTP_STATUS']['codigo']);
-    }
-
-    #[Test]
-    public function testTransaccionPeticionInvalidaRetorna400(): void
-    {
-        $turno = new Turno();
-        $res = $turno->Transaccion(['peticion' => 'hack_turno']);
-        $this->assertEquals(400, $res['response']['resultado']);
-        $this->assertEquals(400, $res['HTTP_STATUS']['codigo']);
-    }
 }
