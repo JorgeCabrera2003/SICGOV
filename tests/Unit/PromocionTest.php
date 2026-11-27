@@ -76,7 +76,7 @@ class PromocionTest extends TestCase
     /**
      * Prueba la sanitización rigurosa de valor_descuento (comas por puntos, limpieza de símbolos).
      */
-    public function test_sanitizacion_valor_descuento(): void
+    public function test_normaliza_valores_de_descuento_validos_y_rechaza_texto(): void
     {
         $promo = new Promocion();
 
@@ -92,9 +92,79 @@ class PromocionTest extends TestCase
         $promo->setValorDescuento('$ 150.75 USD');
         $this->assertEquals(150.75, $promo->getValorDescuento());
 
-        // 4. Cadena no numérica
+        $this->expectException(Exception::class);
         $promo->setValorDescuento('gratis');
-        $this->assertEquals(0.0, $promo->getValorDescuento());
+    }
+
+    public function test_fecha_fin_vacia_se_guarda_como_null(): void
+    {
+        $promo = new Promocion();
+        $promo->setFechaInicio('2026-11-01');
+        $promo->setFechaFin('');
+
+        $this->assertNull($promo->getFechaFin());
+    }
+
+    public function test_fecha_fin_anterior_a_inicio_es_rechazada(): void
+    {
+        $promo = new Promocion();
+        $promo->setFechaInicio('2026-11-10');
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('La fecha de fin no puede ser anterior a la fecha de inicio.');
+        $promo->setFechaFin('2026-11-09');
+    }
+
+    public function test_promocion_rechaza_porcentaje_mayor_a_cien(): void
+    {
+        $promo = new Promocion();
+        $promo->setNombre('Oferta');
+        $promo->setTipoDescuento('PORCENTAJE');
+        $promo->setValorDescuento('100,01');
+        $promo->setFechaInicio('2026-11-01');
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('El porcentaje de descuento no puede superar el 100%.');
+        $promo->Transaccion(['peticion' => 'registrar']);
+    }
+
+    public function test_promocion_rechaza_descuento_cero_y_valores_no_numericos(): void
+    {
+        $promo = new Promocion();
+        $promo->setTipoDescuento('MONTO_FIJO');
+        $promo->setValorDescuento('0');
+        $promo->setFechaInicio('2026-11-01');
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('El valor del descuento debe ser mayor que cero.');
+        $promo->Transaccion(['peticion' => 'registrar']);
+    }
+
+    public function test_promocion_rechaza_descuento_negativo(): void
+    {
+        $promo = new Promocion();
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('El valor del descuento debe ser un número válido.');
+        $promo->setValorDescuento('-1');
+    }
+
+    public function test_promocion_rechaza_tipo_de_descuento_invalido(): void
+    {
+        $promo = new Promocion();
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('El tipo de descuento no es válido.');
+        $promo->setTipoDescuento('GRATIS');
+    }
+
+    public function test_fecha_de_inicio_inexistente_es_rechazada(): void
+    {
+        $promo = new Promocion();
+
+        $this->expectException(Exception::class);
+        $this->expectExceptionMessage('La fecha de inicio no es válida.');
+        $promo->setFechaInicio('2026-02-30');
     }
 
     /**
@@ -287,6 +357,26 @@ class PromocionTest extends TestCase
         $this->assertEquals(1, $resultado['estado']);
         $this->assertEquals(200, $resultado['response']['resultado']);
         $this->assertEquals('Promoción actualizada exitosamente', $resultado['response']['mensaje']);
+    }
+
+    public function test_modificar_promocion_con_error_bd_hace_rollback_y_retorna_500(): void
+    {
+        $mockPdo = $this->createMock(PDO::class);
+        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
+        $mockPdo->expects($this->once())->method('prepare')
+            ->willThrowException(new PDOException('Fallo al actualizar'));
+        $mockPdo->expects($this->once())->method('rollBack')->willReturn(true);
+        $mockPdo->expects($this->never())->method('commit');
+
+        $promo = $this->createPromocionMock($mockPdo);
+        $this->poblarPromocionValida($promo);
+        $promo->setImagen(null);
+
+        $resultado = $promo->Transaccion(['peticion' => 'modificar']);
+
+        $this->assertSame(-1, $resultado['estado']);
+        $this->assertSame(500, $resultado['response']['resultado']);
+        $this->assertSame(500, $resultado['HTTP_STATUS']['codigo']);
     }
 
     // =========================================================================

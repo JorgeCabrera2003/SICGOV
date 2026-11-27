@@ -26,6 +26,7 @@ export async function submitAsistenciaForm() {
 
   const peticion = new FormData();
   peticion.append('peticion', 'registrar');
+  peticion.append('csrf_token', window.CSRF_TOKEN || '');
   peticion.append('tipo_doc', $('#tipo_doc').val());
   peticion.append('cedula_empleado', $('#cedula_empleado').val().trim());
   peticion.append('tipo_marcacion', $('#tipo_marcacion').val());
@@ -68,21 +69,23 @@ export function renderDataTable(arreglo) {
         className: 'text-center',
         render: function (data, type, row) {
           const cedula = row.cedula_empleado || data.cedula_empleado || '';
-          const formattedCedula = cedula.length > 1 ? cedula.charAt(0) + '-' + cedula.slice(1) : cedula;
+          const formattedCedula = formatearCedula(cedula);
           const nombre = row.primer_nombre || '';
           const apellido = row.primer_apellido || '';
           const nombreCompleto = `${nombre}${nombre && apellido ? ' ' : ''}${apellido}`.trim();
+          const nombreSeguro = $('<div>').text(nombreCompleto).html();
+          const cedulaSegura = $('<div>').text(formattedCedula).html();
 
           if (type === 'display') {
             if (nombreCompleto) {
               return `
                 <div style="line-height:1.2;">
-                  <strong>${nombreCompleto}</strong><br>
-                  <small class="text-muted">(${formattedCedula})</small>
+                  <strong>${nombreSeguro}</strong><br>
+                  <small class="text-muted">(${cedulaSegura})</small>
                 </div>
               `;
             }
-            return `<div>${formattedCedula}</div>`;
+            return `<div>${cedulaSegura}</div>`;
           }
 
           if (type === 'filter') {
@@ -106,8 +109,8 @@ export function renderDataTable(arreglo) {
       {
         data: 'estado',
         className: 'text-center',
-        render: function (data, type) {
-          const estado = formatoEstado(data);
+        render: function (data, type, row) {
+          const estado = formatoEstadoMarcacion(row.tipo_marcacion, data);
           if (type === 'display') {
             return `<span class="badge rounded-pill ${estado.style}">${estado.label}</span>`;
           }
@@ -260,7 +263,7 @@ export function openObservacionModal(button) {
   }
 
   currentAsistenciaRow = row;
-  const estado = formatoEstado(row.estado);
+  const estado = formatoEstadoMarcacion(row.tipo_marcacion, row.estado);
   const tipo = formatoTipoMarcacion(row.tipo_marcacion);
 
   // Decodificar observaciones
@@ -285,7 +288,7 @@ export function openObservacionModal(button) {
 
   // Formatear la cédula para mostrar
   const cedula = row.cedula_empleado || '';
-  const formattedCedula = cedula.length > 1 ? cedula.charAt(0) + '-' + cedula.slice(1) : cedula;
+  const formattedCedula = formatearCedula(cedula);
   
   // Construir nombre completo con cédula
   const nombreCompleto = row.primer_nombre ? `${row.primer_nombre} ${row.primer_apellido || ''}`.trim() : 'Empleado';
@@ -321,6 +324,7 @@ async function submitObservacion() {
 
   const peticion = new FormData();
   peticion.append('peticion', 'agregar_observacion');
+  peticion.append('csrf_token', window.CSRF_TOKEN || '');
   peticion.append('id_asistencia', currentAsistenciaRow.id_asistencia);
   peticion.append('observacion', observacion);
 
@@ -349,6 +353,7 @@ async function eliminarObservacion(idObservacion) {
 
   const peticion = new FormData();
   peticion.append('peticion', 'eliminar_observacion');
+  peticion.append('csrf_token', window.CSRF_TOKEN || '');
   peticion.append('id_asistencia', currentAsistenciaRow.id_asistencia);
   peticion.append('id_observacion', idObservacion);
 
@@ -408,13 +413,12 @@ function renderObservacionesPrevias(observaciones) {
     // Si el autor es una cédula, intentar obtener el nombre (esto podría mejorarse con una consulta)
     // Por ahora mostramos la cédula formateada
     if (autorNombre !== 'Sistema') {
-      const autorFormateado = autorNombre.length > 1 ? autorNombre.charAt(0) + '-' + autorNombre.slice(1) : autorNombre;
-      autorNombre = autorFormateado;
+      autorNombre = formatearCedula(autorNombre);
     }
     
-    const $meta = $('<small>').addClass('text-muted d-block').html(
-      `Autor: ${autorNombre} - Fecha: ${formatDateTime(obs.fecha)}`
-    );
+    const $meta = $('<small>')
+      .addClass('text-muted d-block')
+      .text(`Autor: ${autorNombre} - Fecha: ${formatDateTime(obs.fecha)}`);
     $content.append($text, $meta);
 
     if ($('#modalObservacion').attr('data-puede-eliminar') === '1') {
@@ -521,6 +525,11 @@ function formatearHora(hora) {
   return `${horas.toString().padStart(2, '0')}:${minutos} ${ampm}`;
 }
 
+function formatearCedula(cedula) {
+  const valor = String(cedula || '').trim();
+  return valor.replace(/^([A-Za-z])[-\s]*(?=\d)/, '$1-');
+}
+
 function formatoTipoMarcacion(tipo) {
   const mapa = {
     ENTRADA: { label: 'Entrada' },
@@ -537,11 +546,26 @@ function formatoEstado(estado) {
   const mapa = {
     A_TIEMPO: { label: 'A Tiempo', style: 'bg-success text-white' },
     TARDE: { label: 'Tarde', style: 'bg-warning text-dark' },
-    FALTA: { label: 'Falta', style: 'bg-danger text-white' }
+    FALTA: { label: 'Falta', style: 'bg-danger text-white' },
+    DIA_SIN_TURNO: { label: 'Día sin Turno', style: 'bg-info text-dark' },
+    SALIDA_ANTICIPADA: { label: 'Salida anticipada', style: 'bg-warning text-dark' }
   };
 
   const item = mapa[estado] || { label: estado ? estado.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, c => c.toUpperCase()) : '', style: 'bg-secondary text-white' };
   return { label: item.label, style: item.style };
+}
+
+function formatoEstadoMarcacion(tipoMarcacion, estado) {
+  if (tipoMarcacion === 'SALIDA' && estado === 'A_TIEMPO') {
+    return { label: 'Salida registrada', style: 'bg-secondary text-white' };
+  }
+  if (tipoMarcacion === 'SALIDA' && estado === 'SALIDA_ANTICIPADA') {
+    return { label: 'Salida anticipada', style: 'bg-warning text-dark' };
+  }
+  if (tipoMarcacion === 'SALIDA' && estado === 'FALTA') {
+    return { label: 'Salida anticipada', style: 'bg-warning text-dark' };
+  }
+  return formatoEstado(estado);
 }
 
 export function resetForm() {

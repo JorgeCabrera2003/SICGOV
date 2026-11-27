@@ -90,8 +90,8 @@ class Horario extends Database
             $response = match ($peticion['peticion']) {
                 'registrar' => $this->RegistrarAsignacion(),
                 'consultar' => $this->ConsultarAsignaciones($peticion['filtros'] ?? []),
-                'modificar' => $this->ModificarAsignacion(),
-                'eliminar'  => $this->EliminarAsignacion(),
+                'modificar' => $this->ModificarAsignacion($peticion['cedula_empleado'] ?? null),
+                'eliminar'  => $this->EliminarAsignacion($peticion['cedula_empleado'] ?? null),
                 'validar'   => $this->ValidarAsignacion(),
                 default     => $response
             };
@@ -106,6 +106,10 @@ class Horario extends Database
     {
         $dato = [];
         $validacion = $this->ValidarAsignacion();
+
+        if (($validacion['bool'] ?? 0) === -1) {
+            return $validacion;
+        }
 
         if ($validacion['bool'] == 1) {
             $dato['estado'] = -1;
@@ -145,7 +149,7 @@ class Horario extends Database
         return $dato;
     }
 
-    private function ModificarAsignacion()
+    private function ModificarAsignacion(?string $cedulaEmpleado = null)
     {
         $dato = [];
         try {
@@ -154,10 +158,16 @@ class Horario extends Database
 
             $sql = "UPDATE planificador_turno SET id_turno = :id_turno
                     WHERE id_planificador_turno = :id";
+            if ($cedulaEmpleado !== null) {
+                $sql .= " AND cedula_empleado = :cedula_empleado";
+            }
 
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':id', $this->id);
             $stm->bindParam(':id_turno', $this->id_turno);
+            if ($cedulaEmpleado !== null) {
+                $stm->bindParam(':cedula_empleado', $cedulaEmpleado);
+            }
             $stm->execute();
 
             $this->LlamarConexion()->commit();
@@ -183,7 +193,7 @@ class Horario extends Database
         return $dato;
     }
 
-    private function EliminarAsignacion()
+    private function EliminarAsignacion(?string $cedulaEmpleado = null)
     {
         $dato = [];
         try {
@@ -191,8 +201,14 @@ class Horario extends Database
             $this->LlamarConexion()->beginTransaction();
 
             $sql = "DELETE FROM planificador_turno WHERE id_planificador_turno = :id";
+            if ($cedulaEmpleado !== null) {
+                $sql .= " AND cedula_empleado = :cedula_empleado";
+            }
             $stm = $this->LlamarConexion()->prepare($sql);
             $stm->bindParam(':id', $this->id);
+            if ($cedulaEmpleado !== null) {
+                $stm->bindParam(':cedula_empleado', $cedulaEmpleado);
+            }
             $stm->execute();
 
             $this->LlamarConexion()->commit();
@@ -228,7 +244,7 @@ class Horario extends Database
 
             $sql = "SELECT pt.id_planificador_turno, pt.fecha, pt.cedula_empleado,
                            p.nombre, p.apellido, t.id_turno, t.nombre as nombre_turno, 
-                           t.hora_inicio, t.hora_fin
+                           t.hora_inicio, t.hora_fin, t.estatus AS estatus_turno
                     FROM planificador_turno pt
                     INNER JOIN empleado e ON pt.cedula_empleado = e.cedula
                     INNER JOIN persona p ON e.cedula = p.cedula

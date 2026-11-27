@@ -98,7 +98,7 @@
                             <div class="col-12 text-start">
                                 <div id="employeeInfo" class="d-none border rounded-2 px-3 py-2" style="border-color: var(--color-border) !important; background-color: var(--color-principal);">
                                     <span style="font-size: .95rem; color: var(--color-texto);">
-                                        Empleado: <strong id="employeeName" style="color: var(--color-sidebar);"></strong>
+                                        Verificación: <strong id="employeeName" style="color: var(--color-sidebar);"></strong>
                                     </span>
                                 </div>
                             </div>

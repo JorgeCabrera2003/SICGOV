@@ -26,19 +26,35 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Turno") {
                 $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para ' . $_POST["peticion"] . ' turnos'];
             } else {
                 try {
+                $campos = [
+                    'nombre' => $_POST['nombre'] ?? '',
+                    'hora_inicio' => $_POST['hora_inicio'] ?? '',
+                    'hora_fin' => $_POST['hora_fin'] ?? '',
+                    'id_turno' => $_POST['id_turno'] ?? ''
+                ];
+                foreach ($campos as $campo => $valor) {
+                    if (!is_scalar($valor)) {
+                        throw new Exception("El campo {$campo} no es válido.");
+                    }
+                }
+
                 if ($_POST["peticion"] == "registrar") {
                     $id = Helper::generarId("TUR");
                     $turnoModel->setIdTurno($id);
                 }
                 
                 if ($_POST["peticion"] == "modificar") {
-                    $turnoModel->setIdTurno($_POST['id_turno']);
+                    $turnoModel->setIdTurno((string)$campos['id_turno']);
                 }
 
-                $turnoModel->setNombre($_POST['nombre'] ?? '');
-                $turnoModel->setHoraInicio($_POST['hora_inicio'] ?? '');
-                $turnoModel->setHoraFin($_POST['hora_fin'] ?? '');
-                $turnoModel->setMinutoTolerancia(intval($_POST['minuto_tolerancia'] ?? 15));
+                $turnoModel->setNombre((string)$campos['nombre']);
+                $turnoModel->setHoraInicio((string)$campos['hora_inicio']);
+                $turnoModel->setHoraFin((string)$campos['hora_fin']);
+                $tolerancia = $_POST['minuto_tolerancia'] ?? '15';
+                if (!is_scalar($tolerancia) || filter_var((string)$tolerancia, FILTER_VALIDATE_INT) === false) {
+                    throw new Exception('La tolerancia debe ser un número entero válido.');
+                }
+                $turnoModel->setMinutoTolerancia((int)$tolerancia);
                 $turnoModel->setEstatus(1);
 
                 $json = $turnoModel->Transaccion(['peticion' => $_POST["peticion"]]);
@@ -74,7 +90,11 @@ if (isset($_POST["modulo"]) && $_POST["modulo"] == "Turno") {
                 $json['response'] = ['resultado' => 403, 'mensaje' => 'No tienes permiso para eliminar turnos'];
             } else {
                 try {
-                $turnoModel->setIdTurno($_POST['id_turno']);
+                $idTurno = $_POST['id_turno'] ?? null;
+                if (!is_scalar($idTurno)) {
+                    throw new Exception('El ID del turno no es válido.');
+                }
+                $turnoModel->setIdTurno((string)$idTurno);
                 $json = $turnoModel->Transaccion(['peticion' => 'eliminar']);
                 if (isset($json['estado']) && $json['estado'] == 1) {
                     Helper::Bitacora('ELIMINAR', 'TURNO', "Se eliminó el turno " . $_POST['id_turno']);

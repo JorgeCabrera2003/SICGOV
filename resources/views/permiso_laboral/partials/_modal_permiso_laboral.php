@@ -9,7 +9,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
 
-            <form id="formPermiso">
+            <form id="formPermiso" enctype="multipart/form-data">
                 <div class="modal-body">
                     <input type="hidden" id="id_permiso" name="id_permiso">
 
@@ -37,6 +37,27 @@
                             <input type="date" id="permiso-fecha-fin" class="form-control" required>
                             <div class="form-label" id="spermiso-fecha-fin"></div>
                         </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="permiso-comprobante" class="form-label">Comprobante o Justificativo</label>
+                        <div id="permiso-comprobante-actual" class="mb-2 text-center" style="display: none;">
+                            <a id="permiso-comprobante-enlace" target="_blank" rel="noopener noreferrer">
+                                <img id="permiso-comprobante-preview" src="#" alt="Comprobante del permiso" class="img-thumbnail" style="max-height: 140px;">
+                            </a>
+                        </div>
+                        <div class="card border border-2 border-dashed rounded-3">
+                            <div class="card-body p-3 text-center">
+                                <div id="permiso-comprobante-nuevo" class="mb-2" style="display: none;">
+                                    <img id="permiso-comprobante-preview-nuevo" src="#" alt="Vista previa del comprobante" class="img-thumbnail" style="max-height: 140px;">
+                                </div>
+                                <input type="file" id="permiso-comprobante" name="comprobante" class="form-control d-none" accept="image/jpeg,image/png">
+                                <label for="permiso-comprobante" class="btn btn-sm btn-outline-warning shadow-sm">
+                                    <i class="fas fa-upload me-1"></i>Subir comprobante
+                                </label>
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mt-1">Imagen JPG, PNG. máximo 10 MB.</small>
                     </div>
 
                 </div>

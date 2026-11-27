@@ -4,9 +4,16 @@ import * as AjaxHelper from "../Helpers/AjaxHelper.js?v=20260917-3";
 // MÓDULO DE HORARIOS
 
 let calendarAgenda = null;
+let calendarPersonal = null;
 
 $(document).ready(function () {
-  inicializarCalendarioAgenda();
+  const calendarioPersonal = document.getElementById('calendarHorarioPersonal');
+  if (calendarioPersonal) {
+    calendarPersonal = horario.inicializarCalendarioAgenda(calendarioPersonal, 'mis');
+  }
+  if (permisosHorarioDB.horario?.ver_todos == 1) {
+    inicializarCalendarioAgenda();
+  }
   iniciarValidaciones();
 });
 
@@ -28,8 +35,11 @@ function inicializarCalendarioAgenda() {
 $("#btnHorarioForm").on("click", async function () {
   let respuesta = await horario.EnviarFormulario($(this).text());
   if (typeof respuesta.resultado === 'number' && (respuesta.resultado >= 200 && respuesta.resultado <= 299)) {
+    if (calendarPersonal) calendarPersonal.refetchEvents();
     if (calendarAgenda) calendarAgenda.refetchEvents();
-    await crearDataTable();
+    if (permisosHorarioDB.horario?.ver_todos == 1 && $("#empleadosSection").is(":visible")) {
+      await crearDataTableEmpleados();
+    }
   }
 });
 
@@ -71,46 +81,11 @@ $('#modalTurno').on('hidden.bs.modal', async function () {
 });
 
 // ==========================================
-// SELECTORES: TODOS LOS HORARIOS / HISTÓRICO
-// ==========================================
-
-$("#btnAgendaGlobal").on("click", function () {
-  $(this).removeClass('btn-outline-warning').addClass('btn-warning text-dark fw-semibold');
-  $("#btnHistorico").removeClass('btn-warning text-dark fw-semibold').addClass('btn-outline-warning');
-  $("#agendaGlobalContainer").removeClass('d-none');
-  $("#historicoHorarioSection").addClass('d-none');
-  if (calendarAgenda) calendarAgenda.render();
-});
-
-$("#btnHistorico").on("click", function () {
-  $(this).removeClass('btn-outline-warning').addClass('btn-warning text-dark fw-semibold');
-  $("#btnAgendaGlobal").removeClass('btn-warning text-dark fw-semibold').addClass('btn-outline-warning');
-  $("#agendaGlobalContainer").addClass('d-none');
-  $("#historicoHorarioSection").removeClass('d-none');
-  crearDataTable();
-});
-
-// ==========================================
 // VALIDACIÓN Y DATATABLE
 // ==========================================
 
 function iniciarValidaciones() {
   horario.CapaValidar();
-}
-
-async function crearDataTable() {
-  const peticion = new FormData();
-  peticion.append("modulo", "Horario");
-  peticion.append("peticion", "consultar");
-
-  try {
-    const json = await AjaxHelper.enviaAjax(peticion, "?page=Horario");
-    if (Array.isArray(json.datos)) {
-      horario.DataTablePrincipal(json.datos);
-    }
-  } catch (error) {
-    console.log(error);
-  }
 }
 
 async function rellenar(pos, accion) {
@@ -237,6 +212,28 @@ $("#btnEmpleados").on("click", function () {
   crearDataTableEmpleados();
 });
 
+$("#btnMiHorario").on("click", function () {
+  $(this).removeClass('btn-outline-warning').addClass('btn-warning text-dark fw-semibold');
+  $("#btnTodosHorarios").removeClass('btn-warning text-dark fw-semibold').addClass('btn-outline-warning');
+  $("#miHorarioContainer").removeClass('d-none');
+  $("#todosHorariosContainer").addClass('d-none');
+  if (calendarPersonal) {
+    calendarPersonal.render();
+    calendarPersonal.refetchEvents();
+  }
+});
+
+$("#btnTodosHorarios").on("click", function () {
+  $(this).removeClass('btn-outline-warning').addClass('btn-warning text-dark fw-semibold');
+  $("#btnMiHorario").removeClass('btn-warning text-dark fw-semibold').addClass('btn-outline-warning');
+  $("#miHorarioContainer").addClass('d-none');
+  $("#todosHorariosContainer").removeClass('d-none');
+  if (calendarAgenda) {
+    calendarAgenda.render();
+    calendarAgenda.refetchEvents();
+  }
+});
+
 // ==========================================
 // TABLA DE EMPLEADOS
 // ==========================================
@@ -245,6 +242,7 @@ async function crearDataTableEmpleados() {
   const peticion = new FormData();
   peticion.append("modulo", "Horario");
   peticion.append("peticion", "consultar");
+  peticion.append("vista", "todos");
 
   try {
     const json = await AjaxHelper.enviaAjax(peticion, "?page=Horario");
@@ -258,7 +256,10 @@ async function crearDataTableEmpleados() {
 
         const empleado = empleadosPorCedula.get(item.cedula_empleado);
         if (item.nombre_turno && !empleado.turnos.some(turno => turno.nombre === item.nombre_turno)) {
-          empleado.turnos.push({ nombre: item.nombre_turno });
+          empleado.turnos.push({
+            nombre: item.nombre_turno,
+            activo: Number(item.estatus_turno) === 1
+          });
         }
       });
 

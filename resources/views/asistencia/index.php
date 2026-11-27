@@ -106,4 +106,4 @@ include_once 'partials/_modal_observacion.php';
 ?>
 
 <!-- Recursos específicos de la página -->
-<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/AsistenciaController.js" defer></script>
+<script type="module" src="<?= BASE_URL ?>/assets/js/Controllers/AsistenciaController.js?v=<?= time() ?>" defer></script>

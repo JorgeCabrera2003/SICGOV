@@ -12,19 +12,27 @@ function Etiquetas() {
       cedula: $('#permiso-cedula'),
       tipo: $('#permiso-tipo'),
       inicio: $('#permiso-fecha-inicio'),
-      fin: $('#permiso-fecha-fin')
+      fin: $('#permiso-fecha-fin'),
+      comprobante: $('#permiso-comprobante')
     }
   }
 }
 
 function AplicarEmpleadoSesion() {
   const e = Etiquetas();
-  const cedulaSesion = window.PERMISO_SESSION_USER?.cedula;
+  const usuarioSesion = window.PERMISO_SESSION_USER || {};
+  const cedulaSesion = usuarioSesion.cedula;
   if (!cedulaSesion) return;
-  const option = e.input.cedula.find(`option[value="${cedulaSesion}"]`);
-  if (option.length) {
-    e.input.cedula.val(cedulaSesion);
+  const option = e.input.cedula.find('option').filter(function () {
+    return this.value === String(cedulaSesion);
+  });
+  if (!option.length) {
+    const nombre = [usuarioSesion.nombre || usuarioSesion.username, usuarioSesion.apellido]
+      .filter(Boolean)
+      .join(' ');
+    e.input.cedula.append(new Option(nombre || cedulaSesion, cedulaSesion));
   }
+  e.input.cedula.val(cedulaSesion);
 }
 
 export function EditarModal(operacion) {
@@ -38,6 +46,7 @@ export function EditarModal(operacion) {
   e.boton.text(boton);
   if (operacion === 'registrar') {
     AplicarEmpleadoSesion();
+    e.input.cedula.prop('disabled', !window.PERMISO_PUEDE_VER_TODOS);
   }
   e.modal.modal('show');
 }
@@ -58,17 +67,27 @@ export async function CargarSelects() {
     console.error('No se pudieron cargar los tipos de permiso:', error);
   }
 
-  const pet2 = new FormData();
-  pet2.append('peticion','consultar_empleados');
-  pet2.append('modulo','PermisoLaboral');
-  try {
-    let j2 = await AjaxHelper.enviaAjax(pet2, '?page=PermisoLaboral');
-    if (Array.isArray(j2.datos)) {
-      e.input.cedula.empty();
-      j2.datos.forEach(emp => e.input.cedula.append(new Option(emp.nombre + ' ' + emp.apellido, emp.cedula)));
-      AplicarEmpleadoSesion();
+  e.input.cedula.empty();
+  if (window.PERMISO_PUEDE_VER_TODOS) {
+    const pet2 = new FormData();
+    pet2.append('peticion','consultar_empleados');
+    pet2.append('modulo','PermisoLaboral');
+    try {
+      const j2 = await AjaxHelper.enviaAjax(pet2, '?page=PermisoLaboral');
+      if (Array.isArray(j2.datos)) {
+        j2.datos.forEach(emp => e.input.cedula.append(new Option(emp.nombre + ' ' + emp.apellido, emp.cedula)));
+        e.input.cedula.prop('disabled', false);
+        AplicarEmpleadoSesion();
+      }
+    } catch(error) {
+      e.input.cedula.append(new Option('No hay empleados disponibles', '', true, true));
+      e.input.cedula.prop('disabled', true);
+      console.error('No se pudieron cargar los empleados:', error);
     }
-  } catch(e){}
+  } else {
+    AplicarEmpleadoSesion();
+    e.input.cedula.prop('disabled', true);
+  }
 }
 
 export async function EnviarFormulario(etiqueta) {
@@ -86,6 +105,7 @@ export async function EnviarFormulario(etiqueta) {
     pet.append('cedula_empleado', e.input.cedula.val());
     pet.append('fecha_inicio', e.input.inicio.val());
     pet.append('fecha_fin', e.input.fin.val());
+    if (e.input.comprobante[0].files[0]) pet.append('comprobante', e.input.comprobante[0].files[0]);
   }
   if (accion === 'modificar') {
     pet.append('peticion','modificar');
@@ -94,6 +114,7 @@ export async function EnviarFormulario(etiqueta) {
     pet.append('cedula_empleado', e.input.cedula.val());
     pet.append('fecha_inicio', e.input.inicio.val());
     pet.append('fecha_fin', e.input.fin.val());
+    if (e.input.comprobante[0].files[0]) pet.append('comprobante', e.input.comprobante[0].files[0]);
   }
   if (accion === 'eliminar') {
     pet.append('peticion','eliminar');
@@ -110,10 +131,15 @@ export async function EnviarFormulario(etiqueta) {
 export function Limpiar() {
   const e = Etiquetas();
   e.input.id.val('').prop('disabled', false);
-  e.input.cedula.val('').prop('disabled', false);
+  e.input.cedula.val('').prop('disabled', !window.PERMISO_PUEDE_VER_TODOS);
+  if (!window.PERMISO_PUEDE_VER_TODOS) AplicarEmpleadoSesion();
   e.input.tipo.val('').prop('disabled', false);
   e.input.inicio.val('').prop('disabled', false);
   e.input.fin.val('').prop('disabled', false);
+  e.input.comprobante.val('').prop('disabled', false);
+  $('#permiso-comprobante-actual, #permiso-comprobante-nuevo').hide();
+  $('#permiso-comprobante-preview, #permiso-comprobante-preview-nuevo').attr('src', '#');
+  $('#permiso-comprobante-enlace').removeAttr('href');
   e.boton.prop('disabled', false);
 }
 
@@ -155,6 +181,11 @@ export async function DataTablePermisos(arreglo) {
           const inicio = formatearFecha(row.fecha_inicio);
           const fin = formatearFecha(row.fecha_fin);
           return `${inicio} / ${fin}`;
+        } },
+      { data: null, render: function(row){
+          if (!row.comprobante) return '<span class="text-muted">-</span>';
+          const url = `?page=PermisoLaboral&comprobante=${encodeURIComponent(row.id_permiso)}`;
+          return `<a class="btn btn-sm btn-outline-warning" href="${url}" target="_blank" rel="noopener noreferrer"><i class="fas fa-image me-1"></i>Ver</a>`;
         } },
       { data: null, render: function(){
           const puedeModificar = $('#tablaPermisoLaboral').attr('data-puede-modificar') === '1';
@@ -236,9 +267,15 @@ export async function EditarForm(datos, accion) {
   const e = Etiquetas();
   const bool = (accion === 'eliminar');
   e.input.id.val(datos.id_permiso).prop('disabled', true);
-  e.input.cedula.val(datos.cedula_empleado).prop('disabled', bool);
+  e.input.cedula.val(datos.cedula_empleado).prop('disabled', bool || !window.PERMISO_PUEDE_VER_TODOS);
   e.input.tipo.val(datos.id_tipo_permiso).prop('disabled', bool);
   e.input.inicio.val(datos.fecha_inicio).prop('disabled', bool);
   e.input.fin.val(datos.fecha_fin).prop('disabled', bool);
+  if (datos.comprobante) {
+    const url = `?page=PermisoLaboral&comprobante=${encodeURIComponent(datos.id_permiso)}`;
+    $('#permiso-comprobante-preview').attr('src', url);
+    $('#permiso-comprobante-enlace').attr('href', url);
+    $('#permiso-comprobante-actual').show();
+  }
   EditarModal(accion);
 }

@@ -25,35 +25,6 @@
                     background: linear-gradient(135deg, rgba(255, 193, 7, 0.16) 0%, rgba(255, 193, 7, 0.04) 100%) !important;
                     border-bottom: 1px solid rgba(255, 193, 7, 0.25) !important;
                 }
-                html[data-bs-theme="dark"] #modalPromocion #btnAbrirGaleriaPromocion,
-                .dark #modalPromocion #btnAbrirGaleriaPromocion {
-                    color: #ffc107 !important;
-                    border-color: #ffc107 !important;
-                    background-color: rgba(255, 193, 7, 0.1) !important;
-                    transition: all 0.2s ease-in-out;
-                }
-                html[data-bs-theme="dark"] #modalPromocion #btnAbrirGaleriaPromocion:hover,
-                .dark #modalPromocion #btnAbrirGaleriaPromocion:hover {
-                    background-color: #ffc107 !important;
-                    color: #111315 !important;
-                    box-shadow: 0 0 16px rgba(255, 193, 7, 0.45) !important;
-                }
-                html[data-bs-theme="light"] #modalPromocion #btnAbrirGaleriaPromocion,
-                :root:not(.dark) #modalPromocion #btnAbrirGaleriaPromocion {
-                    color: #92400e;
-                    border-color: #f59e0b;
-                    background-color: rgba(245, 158, 11, 0.08);
-                }
-                html[data-bs-theme="light"] #modalPromocion #btnAbrirGaleriaPromocion:hover,
-                :root:not(.dark) #modalPromocion #btnAbrirGaleriaPromocion:hover {
-                    color: #ffffff;
-                    background-color: #d97706;
-                }
-                html[data-bs-theme="dark"] #modalPromocion .promo-preview-container,
-                .dark #modalPromocion .promo-preview-container {
-                    background-color: rgba(255, 255, 255, 0.03) !important;
-                    border-color: rgba(255, 255, 255, 0.12) !important;
-                }
                 html[data-bs-theme="dark"] #modalPromocion .border-end,
                 .dark #modalPromocion .border-end {
                     border-color: rgba(255, 255, 255, 0.1) !important;
@@ -154,19 +125,25 @@
                                 <label class="form-label fw-semibold">
                                     <i class="fas fa-image me-1 text-warning"></i> Imagen de la Promoción
                                 </label>
-                                <div class="d-flex gap-2 mb-2">
-                                    <button type="button" class="btn btn-outline-warning w-100 fw-semibold d-flex align-items-center justify-content-center" id="btnAbrirGaleriaPromocion">
-                                        <i class="fas fa-images me-2"></i>Elegir de Galería
-                                    </button>
-                                    <button type="button" class="btn btn-outline-danger" id="btnQuitarImagenPromocion" style="display: none;" title="Quitar imagen">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                                <div class="card border border-2 border-dashed rounded-3">
+                                    <div class="card-body p-3 text-center">
+                                        <div id="previewImagenPromocionContainer" style="display: none;" class="mb-2">
+                                            <img id="previewImagenPromocion" src="#" alt="Vista previa de la promoción" class="img-thumbnail" style="max-height: 120px;">
+                                        </div>
+                                        <input class="form-control d-none" type="file" id="imagen_promocion" accept="image/jpeg,image/png,image/gif,image/webp">
+                                        <input type="hidden" id="imagen_galeria" name="imagen_galeria">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <label for="imagen_promocion" class="btn btn-sm btn-outline-primary shadow-sm"><i class="fas fa-upload"></i> Subir</label>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary shadow-sm" id="btnAbrirGaleriaPromocion">
+                                                <i class="fas fa-image"></i> Galería
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" id="btnQuitarImagenPromocion" style="display: none;" title="Quitar imagen">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <input type="hidden" id="imagen_galeria" name="imagen_galeria">
-                                <div id="previewImagenPromocionContainer" style="display: none;" class="p-2 border rounded bg-body-tertiary text-center promo-preview-container">
-                                    <img id="previewImagenPromocion" src="#" alt="Vista previa" class="img-fluid rounded shadow-sm" style="max-height: 130px; object-fit: contain;">
-                                </div>
-                                <small class="text-muted d-block mt-1">Selecciona una imagen del gestor de galería multimedia.</small>
+                                <small class="text-muted d-block mt-1">Sube una imagen o reutiliza una de la galería multimedia.</small>
                             </div>
 
                         </div>

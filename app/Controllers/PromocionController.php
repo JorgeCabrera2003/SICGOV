@@ -34,9 +34,30 @@ if (isset($_POST["peticion"])) {
             $bool_formulario = true;
             $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
             $msg = "(" . $_SESSION['user']['cedula'] . "), envió solicitud no válida";
+            $imagenSubida = null;
 
             try {
                 $str_mensaje = NULL;
+                $campos = [
+                    'id_promocion' => $_POST['id_promocion'] ?? '',
+                    'productos' => $_POST['productos'] ?? '',
+                    'id_producto' => $_POST['id_producto'] ?? '',
+                    'nombre' => $_POST['nombre'] ?? '',
+                    'tipo_descuento' => $_POST['tipo_descuento'] ?? '',
+                    'valor_descuento' => $_POST['valor_descuento'] ?? '',
+                    'descripcion' => $_POST['descripcion'] ?? '',
+                    'fecha_inicio' => $_POST['fecha_inicio'] ?? '',
+                    'fecha_fin' => $_POST['fecha_fin'] ?? '',
+                    'hora_inicio' => $_POST['hora_inicio'] ?? '',
+                    'hora_fin' => $_POST['hora_fin'] ?? '',
+                    'imagen_galeria' => $_POST['imagen_galeria'] ?? ''
+                ];
+                foreach ($campos as $campo => $valor) {
+                    if (!is_scalar($valor)) {
+                        throw new Exception("El campo {$campo} no es válido.");
+                    }
+                    $campos[$campo] = (string)$valor;
+                }
 
                 if ($_POST["peticion"] == "registrar") {
                     $str_mensaje = "registró";
@@ -45,12 +66,12 @@ if (isset($_POST["peticion"])) {
 
                 if ($_POST["peticion"] == "modificar") {
                     $str_mensaje = "modificó";
-                    $promocionModel->setIdPromocion($_POST["id_promocion"] ?? '');
+                    $promocionModel->setIdPromocion($campos['id_promocion']);
                 }
 
                 $productoIds = [];
-                if (!empty($_POST["productos"])) {
-                    $decoded = json_decode($_POST["productos"], true);
+                if (!empty($campos['productos'])) {
+                    $decoded = json_decode($campos['productos'], true);
                     if (is_array($decoded)) {
                         foreach ($decoded as $producto) {
                             if (is_array($producto) && !empty($producto['id'])) {
@@ -64,8 +85,8 @@ if (isset($_POST["peticion"])) {
                             }
                         }
                     }
-                } elseif (!empty($_POST["id_producto"])) {
-                    $productoIds[] = ['id' => $_POST["id_producto"], 'cantidad' => 1];
+                } elseif (!empty($campos['id_producto'])) {
+                    $productoIds[] = ['id' => $campos['id_producto'], 'cantidad' => 1];
                 }
 
                 if (empty($productoIds)) {
@@ -73,15 +94,52 @@ if (isset($_POST["peticion"])) {
                 }
 
                 $promocionModel->setProductos($productoIds);
-                $promocionModel->setNombre($_POST["nombre"] ?? '');
-                $promocionModel->setTipoDescuento($_POST["tipo_descuento"] ?? '');
-                $promocionModel->setValorDescuento($_POST["valor_descuento"] ?? '');
-                $promocionModel->setDescripcion($_POST["descripcion"] ?? '');
-                $promocionModel->setFechaInicio($_POST["fecha_inicio"] ?? '');
-                $promocionModel->setFechaFin($_POST["fecha_fin"] ?? '');
-                $promocionModel->setHoraInicio($_POST["hora_inicio"] ?? '');
-                $promocionModel->setHoraFin($_POST["hora_fin"] ?? '');
-                $promocionModel->setImagen($_POST["imagen_galeria"] ?? '');
+                $promocionModel->setNombre($campos['nombre']);
+                $promocionModel->setTipoDescuento($campos['tipo_descuento']);
+                $promocionModel->setValorDescuento($campos['valor_descuento']);
+                $promocionModel->setDescripcion($campos['descripcion']);
+                $promocionModel->setFechaInicio($campos['fecha_inicio']);
+                $promocionModel->setFechaFin($campos['fecha_fin']);
+                $promocionModel->setHoraInicio($campos['hora_inicio']);
+                $promocionModel->setHoraFin($campos['hora_fin']);
+                $imagen = trim($campos['imagen_galeria']);
+                if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] !== UPLOAD_ERR_NO_FILE) {
+                    $archivo = $_FILES['imagen'];
+                    if ($archivo['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($archivo['tmp_name'])) {
+                        throw new Exception('No se pudo recibir la imagen seleccionada.');
+                    }
+                    if ($archivo['size'] > 10 * 1024 * 1024) {
+                        throw new Exception('La imagen no puede superar los 10 MB.');
+                    }
+
+                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                    if ($finfo === false) {
+                        throw new Exception('No se pudo validar el formato de la imagen.');
+                    }
+                    $mime = finfo_file($finfo, $archivo['tmp_name']);
+                    finfo_close($finfo);
+                    $extensiones = [
+                        'image/jpeg' => 'jpg',
+                        'image/png' => 'png',
+                        'image/gif' => 'gif',
+                        'image/webp' => 'webp'
+                    ];
+                    if (!isset($extensiones[$mime])) {
+                        throw new Exception('Formato de imagen no permitido. Usa JPG, PNG, GIF o WebP.');
+                    }
+
+                    $directorio = BASE_PATH . '/public/assets/img/promociones/';
+                    if (!is_dir($directorio) && !mkdir($directorio, 0755, true) && !is_dir($directorio)) {
+                        throw new Exception('No se pudo preparar el directorio para guardar la imagen.');
+                    }
+                    $nombreArchivo = bin2hex(random_bytes(16)) . '.' . $extensiones[$mime];
+                    if (!move_uploaded_file($archivo['tmp_name'], $directorio . $nombreArchivo)) {
+                        throw new Exception('No se pudo guardar la imagen de la promoción.');
+                    }
+                    $imagenSubida = $directorio . $nombreArchivo;
+                    $imagen = '/assets/img/promociones/' . $nombreArchivo;
+                }
+                $promocionModel->setImagen($imagen);
 
                 $json = $promocionModel->Transaccion(['peticion' => $_POST["peticion"]]);
                 if (isset($json['estado']) && $json['estado'] == 1) {
@@ -93,8 +151,14 @@ if (isset($_POST["peticion"])) {
                     );
                 } else {
                     $msg = "(" . $_SESSION['user']['cedula'] . "), error al " . $_POST["peticion"] . " una promoción";
+                    if ($imagenSubida !== null && is_file($imagenSubida) && !unlink($imagenSubida)) {
+                        Helper::ErrorLog('No se pudo limpiar la imagen de una promoción fallida: ' . $imagenSubida);
+                    }
                 }
             } catch (Exception $exception) {
+                if ($imagenSubida !== null && is_file($imagenSubida) && !unlink($imagenSubida)) {
+                    Helper::ErrorLog('No se pudo limpiar la imagen tras un error: ' . $imagenSubida);
+                }
                 $json['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Datos no válidos'];
                 $json['response'] = ['resultado' => 400, 'mensaje' => $exception->getMessage()];
             }

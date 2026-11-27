@@ -36,6 +36,7 @@ function EtiquetasFormulario(etiquetas) {
 }
 
 export function SetPreviewImagen(ruta) {
+  $('#imagen_promocion').val('');
   if (ruta) {
     $('#imagen_galeria').val(ruta);
     const baseUrlClean = (typeof BASE_URL !== 'undefined') ? BASE_URL.replace(/\/$/, '') : '';
@@ -114,6 +115,8 @@ export async function EnviarDatos(operacion) {
     peticion.append('hora_fin', input.hora_fin.val());
     peticion.append('imagen_galeria', $('#imagen_galeria').val().trim());
     peticion.append('productos', input.productos.val());
+    const imagen = $('#imagen_promocion')[0]?.files?.[0];
+    if (imagen) peticion.append('imagen', imagen);
   }
 
   const json = await AjaxHelper.enviaAjax(peticion);
@@ -445,10 +448,24 @@ function ValidarEnvio() {
   if (input.valor_descuento.val().trim() === '' || normalizarValorDescuento(input.valor_descuento.val()) <= 0) {
     span.valor_descuento.text('Ingrese un valor de descuento válido');
     valido = false;
+  } else if (
+    input.tipo_descuento.val() === 'PORCENTAJE'
+    && normalizarValorDescuento(input.valor_descuento.val()) > 100
+  ) {
+    span.valor_descuento.text('El porcentaje no puede superar el 100%');
+    valido = false;
   }
 
   if (input.fecha_inicio.val().trim() === '') {
     span.fecha_inicio.text('Fecha de inicio obligatoria');
+    valido = false;
+  }
+  if (
+    input.fecha_inicio.val()
+    && input.fecha_fin.val()
+    && input.fecha_fin.val() < input.fecha_inicio.val()
+  ) {
+    span.fecha_fin.text('La fecha de fin no puede ser anterior a la fecha de inicio');
     valido = false;
   }
 
@@ -469,11 +486,11 @@ export async function DataTablePrincipal(arreglo) {
     if (!row || !row.fecha_inicio) return false;
     const now = new Date();
     const fechaInicio = row.fecha_inicio;
-    const fechaFin = row.fecha_fin || row.fecha_inicio;
     const horaInicio = row.hora_inicio || '00:00';
     const horaFin = row.hora_fin || '23:59';
     const inicio = new Date(fechaInicio + 'T' + horaInicio + ':00');
-    const fin = new Date(fechaFin + 'T' + horaFin + ':00');
+    if (!row.fecha_fin) return now >= inicio;
+    const fin = new Date(row.fecha_fin + 'T' + horaFin + ':00');
     return now >= inicio && now <= fin;
   }
 
@@ -671,6 +688,7 @@ export function LimpiarFormulario() {
   input.fecha_fin.val('');
   input.hora_inicio.val('');
   input.hora_fin.val('');
+  $('#imagen_promocion').val('');
 
   SetPreviewImagen(null);
   $('#btnCrearNoticiaModal').hide();

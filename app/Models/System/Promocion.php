@@ -43,7 +43,7 @@ class Promocion extends Database
         $this->valor_descuento = 0.0;
         $this->descripcion = "";
         $this->fecha_inicio = "";
-        $this->fecha_fin = "";
+        $this->fecha_fin = null;
         $this->hora_inicio = "";
         $this->hora_fin = "";
         $this->imagen = null;
@@ -62,12 +62,17 @@ class Promocion extends Database
     }
 
     public function setTipoDescuento(string $tipo_descuento) {
+        if (!in_array($tipo_descuento, ['PORCENTAJE', 'MONTO_FIJO'], true)) {
+            throw new Exception('El tipo de descuento no es válido.');
+        }
         $this->tipo_descuento = $tipo_descuento;
     }
 
     public function setValorDescuento(string $valor_descuento) {
-        $valor_descuento = preg_replace('/[^0-9,\.]/', '', $valor_descuento);
-        $valor_descuento = str_replace(',', '.', $valor_descuento);
+        if (!preg_match('/^\s*\$?\s*(\d+(?:[,.]\d{1,2})?)\s*(?:%|USD)?\s*$/i', $valor_descuento, $coincidencias)) {
+            throw new Exception('El valor del descuento debe ser un número válido.');
+        }
+        $valor_descuento = str_replace(',', '.', $coincidencias[1]);
         $this->valor_descuento = floatval($valor_descuento);
     }
 
@@ -76,11 +81,60 @@ class Promocion extends Database
     }
 
     public function setFechaInicio(string $fecha_inicio) {
-        $this->fecha_inicio = $fecha_inicio;
+        $this->fecha_inicio = $this->validarFecha($fecha_inicio, 'inicio');
+        if ($this->fecha_fin !== null && $this->fecha_fin !== '' && $this->fecha_inicio > $this->fecha_fin) {
+            throw new Exception('La fecha de inicio no puede ser posterior a la fecha de fin.');
+        }
     }
 
     public function setFechaFin(string $fecha_fin) {
-        $this->fecha_fin = $fecha_fin;
+        $fecha_fin = trim($fecha_fin);
+        if ($fecha_fin === '') {
+            $this->fecha_fin = null;
+            return;
+        }
+
+        $this->fecha_fin = $this->validarFecha($fecha_fin, 'fin');
+        if ($this->fecha_inicio !== '' && $this->fecha_fin < $this->fecha_inicio) {
+            throw new Exception('La fecha de fin no puede ser anterior a la fecha de inicio.');
+        }
+    }
+
+    private function validarFecha(string $fecha, string $tipo): string {
+        $fecha = trim($fecha);
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
+            throw new Exception("La fecha de {$tipo} debe tener el formato YYYY-MM-DD.");
+        }
+
+        $fechaValidada = \DateTimeImmutable::createFromFormat('!Y-m-d', $fecha);
+        $errores = \DateTimeImmutable::getLastErrors();
+        if (
+            $fechaValidada === false
+            || ($errores !== false && ($errores['warning_count'] > 0 || $errores['error_count'] > 0))
+            || $fechaValidada->format('Y-m-d') !== $fecha
+        ) {
+            throw new Exception("La fecha de {$tipo} no es válida.");
+        }
+
+        return $fecha;
+    }
+
+    private function validarDatosPromocion(): void {
+        if (!in_array($this->tipo_descuento, ['PORCENTAJE', 'MONTO_FIJO'], true)) {
+            throw new Exception('El tipo de descuento no es válido.');
+        }
+        if ($this->valor_descuento <= 0) {
+            throw new Exception('El valor del descuento debe ser mayor que cero.');
+        }
+        if ($this->tipo_descuento === 'PORCENTAJE' && $this->valor_descuento > 100) {
+            throw new Exception('El porcentaje de descuento no puede superar el 100%.');
+        }
+        if ($this->fecha_inicio === '') {
+            throw new Exception('La fecha de inicio es obligatoria.');
+        }
+        if ($this->fecha_fin !== null && $this->fecha_fin < $this->fecha_inicio) {
+            throw new Exception('La fecha de fin no puede ser anterior a la fecha de inicio.');
+        }
     }
 
     public function setHoraInicio(string $hora_inicio) {
@@ -158,6 +212,10 @@ class Promocion extends Database
         $response['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => "Envió solicitud no válida"];
         $response['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => "Solicitud no válida"];
 
+        if (in_array($peticion['peticion'] ?? null, ['registrar', 'modificar'], true)) {
+            $this->validarDatosPromocion();
+        }
+
         if (isset($peticion['peticion'])) {
             $response = match ($peticion['peticion']) {
                 'registrar' => $this->RegistrarPromocion(),
@@ -233,7 +291,11 @@ class Promocion extends Database
             $stm->bindParam(':valor_descuento', $this->valor_descuento);
             $stm->bindParam(':descripcion', $this->descripcion);
             $stm->bindParam(':fecha_inicio', $this->fecha_inicio);
-            $stm->bindParam(':fecha_fin', $this->fecha_fin);
+            $stm->bindValue(
+                ':fecha_fin',
+                $this->fecha_fin,
+                $this->fecha_fin === null ? PDO::PARAM_NULL : PDO::PARAM_STR
+            );
             $stm->bindParam(':hora_inicio', $this->hora_inicio);
             $stm->bindParam(':hora_fin', $this->hora_fin);
             $stm->bindParam(':imagen', $this->imagen);
@@ -320,7 +382,11 @@ class Promocion extends Database
             $stm->bindParam(':valor_descuento', $this->valor_descuento);
             $stm->bindParam(':descripcion', $this->descripcion);
             $stm->bindParam(':fecha_inicio', $this->fecha_inicio);
-            $stm->bindParam(':fecha_fin', $this->fecha_fin);
+            $stm->bindValue(
+                ':fecha_fin',
+                $this->fecha_fin,
+                $this->fecha_fin === null ? PDO::PARAM_NULL : PDO::PARAM_STR
+            );
             $stm->bindParam(':hora_inicio', $this->hora_inicio);
             $stm->bindParam(':hora_fin', $this->hora_fin);
             $stm->bindParam(':imagen', $this->imagen);

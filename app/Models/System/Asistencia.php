@@ -94,6 +94,105 @@ class Asistencia extends Database {
         $this->observacion = $observacion;
     }
 
+    public function prepararMarcacion(string $cedulaEmpleado, string $tipoMarcacion, string $observacion = '', ?\DateTimeImmutable $momento = null): void {
+        $momento = $momento ?? new \DateTimeImmutable('now');
+        $this->setCedulaEmpleado($cedulaEmpleado);
+
+        if (!in_array($tipoMarcacion, ['ENTRADA', 'DESCANSO_IN', 'DESCANSO_OUT', 'SALIDA'], true)) {
+            throw new \InvalidArgumentException('Tipo de marcación inválido.');
+        }
+
+        $fechaActual = $momento->format('Y-m-d');
+        $horaActual = $momento->format('H:i:s');
+        $turno = $this->obtenerContextoTurno($fechaActual, $horaActual);
+        $fechaTurno = $turno['fecha_turno'] ?? $fechaActual;
+
+        $this->setFecha($fechaTurno);
+        $this->setHora($horaActual);
+        $this->setTipoMarcacion($tipoMarcacion);
+        $this->setEstado($this->calcularEstadoMarcacion(
+            $tipoMarcacion,
+            $horaActual,
+            $turno,
+            $fechaTurno,
+            $momento
+        ));
+        $this->setObservacion($observacion);
+    }
+
+    public function empleadoActivo(): bool {
+        $this->LlamarConexion();
+
+        try {
+            $sql = "SELECT estatus FROM empleado WHERE cedula = :cedula LIMIT 1";
+            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm->execute([':cedula' => $this->cedulaEmpleado]);
+            return (int) $stm->fetchColumn() === 1;
+        } finally {
+            $this->DestruirConexion();
+        }
+    }
+
+    public function obtenerContextoTurno(string $fechaActual, string $horaActual): ?array {
+        $this->LlamarConexion();
+
+        try {
+            $fechaAnterior = (new \DateTimeImmutable($fechaActual))->modify('-1 day')->format('Y-m-d');
+            $sqlAnterior = "SELECT t.hora_inicio, t.hora_fin, t.minuto_tolerancia,
+                                   pt.fecha AS fecha_turno,
+                                   EXISTS (
+                                       SELECT 1 FROM asistencia a
+                                       WHERE a.cedula_empleado = pt.cedula_empleado
+                                         AND a.fecha = pt.fecha
+                                         AND a.tipo_marcacion = 'ENTRADA'
+                                   ) AS tiene_entrada,
+                                   EXISTS (
+                                       SELECT 1 FROM asistencia a
+                                       WHERE a.cedula_empleado = pt.cedula_empleado
+                                         AND a.fecha = pt.fecha
+                                         AND a.tipo_marcacion = 'SALIDA'
+                                   ) AS tiene_salida
+                            FROM planificador_turno pt
+                            INNER JOIN turno t ON t.id_turno = pt.id_turno
+                            WHERE pt.cedula_empleado = :cedula
+                              AND pt.fecha = :fecha_anterior
+                              AND t.hora_fin < t.hora_inicio
+                            LIMIT 1";
+            $stm = $this->LlamarConexion()->prepare($sqlAnterior);
+            $stm->execute([
+                ':cedula' => $this->cedulaEmpleado,
+                ':fecha_anterior' => $fechaAnterior,
+            ]);
+            $turnoAnterior = $stm->fetch(PDO::FETCH_ASSOC);
+
+            if (
+                $turnoAnterior
+                && (int) $turnoAnterior['tiene_salida'] === 0
+                && ($horaActual <= $turnoAnterior['hora_fin'] || (int) $turnoAnterior['tiene_entrada'] === 1)
+            ) {
+                return $turnoAnterior;
+            }
+
+            $sqlActual = "SELECT t.hora_inicio, t.hora_fin, t.minuto_tolerancia,
+                                 pt.fecha AS fecha_turno
+                          FROM planificador_turno pt
+                          INNER JOIN turno t ON t.id_turno = pt.id_turno
+                          WHERE pt.cedula_empleado = :cedula
+                            AND pt.fecha = :fecha_actual
+                          LIMIT 1";
+            $stm = $this->LlamarConexion()->prepare($sqlActual);
+            $stm->execute([
+                ':cedula' => $this->cedulaEmpleado,
+                ':fecha_actual' => $fechaActual,
+            ]);
+            $turnoActual = $stm->fetch(PDO::FETCH_ASSOC);
+
+            return $turnoActual ?: null;
+        } finally {
+            $this->DestruirConexion();
+        }
+    }
+
     // Este setter ya no se usa con la nueva lógica, pero lo mantengo por compatibilidad
     // public function setIndiceObservacion(int $indice): void {
     //     $this->indiceObservacion = $indice;
@@ -157,11 +256,61 @@ class Asistencia extends Database {
 
     //OPERACIONES A LA BASE DE DATOS
     private function ValidarAsistencia(): array {
-        return [
-            'estado' => 0,
-            'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Función de validación no implementada'],
-            'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Función no implementada']
-        ];
+        try {
+            if ($this->cedulaEmpleado === '' || $this->fecha === '' || $this->tipoMarcacion === '') {
+                throw new \InvalidArgumentException('Datos de marcación incompletos.');
+            }
+
+            $this->LlamarConexion();
+            $sqlEmpleado = "SELECT estatus FROM empleado WHERE cedula = :cedula LIMIT 1";
+            $stmEmpleado = $this->LlamarConexion()->prepare($sqlEmpleado);
+            $stmEmpleado->execute([':cedula' => $this->cedulaEmpleado]);
+            if ((int) $stmEmpleado->fetchColumn() !== 1) {
+                throw new \DomainException('El empleado no existe o no está activo.');
+            }
+
+            $sqlMarcaciones = "SELECT tipo_marcacion
+                               FROM asistencia
+                               WHERE cedula_empleado = :cedula
+                                 AND fecha = :fecha
+                               ORDER BY id_asistencia ASC";
+            $stmMarcaciones = $this->LlamarConexion()->prepare($sqlMarcaciones);
+            $stmMarcaciones->execute([
+                ':cedula' => $this->cedulaEmpleado,
+                ':fecha' => $this->fecha,
+            ]);
+            self::validarSecuenciaMarcacion(
+                $stmMarcaciones->fetchAll(PDO::FETCH_COLUMN),
+                $this->tipoMarcacion
+            );
+
+            return [
+                'estado' => 1,
+                'response' => ['resultado' => 200, 'mensaje' => 'La marcación puede registrarse.'],
+                'HTTP_STATUS' => ['codigo' => 200, 'mensaje' => 'OK']
+            ];
+        } catch (\DomainException $e) {
+            return [
+                'estado' => 0,
+                'response' => ['resultado' => 409, 'icon' => 'warning', 'mensaje' => $e->getMessage()],
+                'HTTP_STATUS' => ['codigo' => 409, 'mensaje' => 'Conflict']
+            ];
+        } catch (\InvalidArgumentException $e) {
+            return [
+                'estado' => 0,
+                'response' => ['resultado' => 400, 'icon' => 'error', 'mensaje' => $e->getMessage()],
+                'HTTP_STATUS' => ['codigo' => 400, 'mensaje' => 'Datos no válidos']
+            ];
+        } catch (\PDOException $e) {
+            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
+            return [
+                'estado' => -1,
+                'response' => ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde'],
+                'HTTP_STATUS' => ['codigo' => 500, 'mensaje' => 'Error interno del servidor']
+            ];
+        } finally {
+            $this->DestruirConexion();
+        }
     }
 
     private function ConsultarAsistencia(): array {
@@ -206,52 +355,160 @@ class Asistencia extends Database {
     private function ConsultarAsistenciaHoy(): array {
         $dato = [];
         $arreglo = [];
+        $db = null;
+        $momento = new \DateTimeImmutable('now');
+        $fechaActual = $momento->format('Y-m-d');
+        $fechaAnterior = $momento->modify('-1 day')->format('Y-m-d');
 
         try {
-            $this->LlamarConexion();
-            $this->LlamarConexion()->beginTransaction();
+            $db = $this->LlamarConexion();
+            $db->beginTransaction();
 
-            $sql = "SELECT v.cedula AS cedula_empleado,
-                           CONCAT(v.nombre, ' ', v.apellido) AS nombre_empleado,
-                           MAX(CASE WHEN a.tipo_marcacion = 'ENTRADA' THEN a.hora END) AS hora_entrada,
-                           MAX(CASE WHEN a.tipo_marcacion = 'DESCANSO_IN' THEN a.hora END) AS hora_descanso_in,
-                           MAX(CASE WHEN a.tipo_marcacion = 'DESCANSO_OUT' THEN a.hora END) AS hora_descanso_out,
-                           MAX(CASE WHEN a.tipo_marcacion = 'SALIDA' THEN a.hora END) AS hora_salida,
-                           MAX(CASE WHEN a.tipo_marcacion = 'ENTRADA' THEN a.estado END) AS estado_entrada,
-                                                     MAX(CASE WHEN a.tipo_marcacion = 'SALIDA' THEN a.estado END) AS estado_salida,
-                                                     EXISTS (
-                                                             SELECT 1
-                                                             FROM permiso_laboral pl
-                                                             WHERE pl.cedula_empleado = v.cedula
-                                                                 AND pl.estado = 'APROBADO'
-                                                                 AND pl.estatus = 1
-                                                                 AND CURDATE() BETWEEN pl.fecha_inicio AND pl.fecha_fin
-                                                     ) AS tiene_permiso
-                    FROM vw_directorio_empleados v
-                    LEFT JOIN asistencia a ON a.cedula_empleado = v.cedula AND a.fecha = CURDATE()
-                                        WHERE EXISTS (
-                                                SELECT 1
-                                                FROM planificador_turno pt
-                                                WHERE pt.cedula_empleado = v.cedula
-                                                    AND pt.fecha = CURDATE()
-                                        )
-                    GROUP BY v.cedula, v.nombre, v.apellido
-                    ORDER BY v.nombre, v.apellido";
-            $stm = $this->LlamarConexion()->prepare($sql);
-            $stm->execute();
+            $sql = "SELECT e.cedula AS cedula_empleado,
+                           CONCAT(p.nombre, ' ', p.apellido) AS nombre_empleado,
+                           jornada.fecha_turno,
+                           jornada.hora_inicio,
+                           jornada.hora_fin,
+                           jornada.minuto_tolerancia,
+                           jornada.sin_turno,
+                           a.id_asistencia,
+                           a.tipo_marcacion,
+                           a.hora,
+                           a.estado,
+                           EXISTS (
+                               SELECT 1
+                               FROM permiso_laboral pl
+                               WHERE pl.cedula_empleado = e.cedula
+                                 AND pl.estado = 'APROBADO'
+                                 AND pl.estatus = 1
+                                 AND jornada.fecha_turno BETWEEN pl.fecha_inicio AND pl.fecha_fin
+                           ) AS tiene_permiso
+                    FROM empleado e
+                    INNER JOIN persona p ON p.cedula = e.cedula
+                    INNER JOIN (
+                        SELECT pt.cedula_empleado, pt.fecha AS fecha_turno,
+                               t.hora_inicio, t.hora_fin, t.minuto_tolerancia, 0 AS sin_turno
+                        FROM planificador_turno pt
+                        INNER JOIN turno t ON t.id_turno = pt.id_turno
+                        WHERE pt.fecha = :fecha_turno_actual
+                        UNION ALL
+                        SELECT pt.cedula_empleado, pt.fecha AS fecha_turno,
+                               t.hora_inicio, t.hora_fin, t.minuto_tolerancia, 0 AS sin_turno
+                        FROM planificador_turno pt
+                        INNER JOIN turno t ON t.id_turno = pt.id_turno
+                        WHERE pt.fecha = :fecha_turno_anterior
+                          AND t.hora_fin < t.hora_inicio
+                          AND NOT EXISTS (
+                              SELECT 1 FROM asistencia a
+                              WHERE a.cedula_empleado = pt.cedula_empleado
+                                AND a.fecha = pt.fecha
+                                AND a.tipo_marcacion = 'SALIDA'
+                          )
+                          AND (
+                              :hora_actual <= t.hora_fin
+                              OR (
+                                  EXISTS (
+                                      SELECT 1 FROM asistencia a
+                                      WHERE a.cedula_empleado = pt.cedula_empleado
+                                        AND a.fecha = pt.fecha
+                                        AND a.tipo_marcacion = 'ENTRADA'
+                                  )
+                              )
+                          )
+                        UNION ALL
+                        SELECT a.cedula_empleado, a.fecha AS fecha_turno,
+                               NULL AS hora_inicio, NULL AS hora_fin, NULL AS minuto_tolerancia, 1 AS sin_turno
+                        FROM asistencia a
+                        WHERE a.fecha = :fecha_marcacion_actual
+                          AND NOT EXISTS (
+                              SELECT 1
+                              FROM planificador_turno pt
+                              INNER JOIN turno t ON t.id_turno = pt.id_turno
+                              WHERE pt.cedula_empleado = a.cedula_empleado
+                                AND pt.fecha = a.fecha
+                          )
+                        GROUP BY a.cedula_empleado, a.fecha
+                    ) jornada ON jornada.cedula_empleado = e.cedula
+                    LEFT JOIN asistencia a
+                      ON a.cedula_empleado = jornada.cedula_empleado
+                     AND a.fecha = jornada.fecha_turno
+                    WHERE e.estatus = 1
+                    ORDER BY p.nombre, p.apellido, jornada.fecha_turno, a.id_asistencia";
+            $stm = $db->prepare($sql);
+            $stm->execute([
+                ':fecha_turno_actual' => $fechaActual,
+                ':fecha_turno_anterior' => $fechaAnterior,
+                ':hora_actual' => $momento->format('H:i:s'),
+                ':fecha_marcacion_actual' => $fechaActual,
+            ]);
 
-            if ($stm->rowCount() > 0) {
-                $arreglo = $stm->fetchAll(PDO::FETCH_ASSOC);
+            $jornadas = [];
+            foreach ($stm->fetchAll(PDO::FETCH_ASSOC) as $fila) {
+                $clave = $fila['cedula_empleado'] . '|' . $fila['fecha_turno'];
+                if (!isset($jornadas[$clave])) {
+                    $turno = $fila['sin_turno'] ? null : [
+                        'hora_inicio' => $fila['hora_inicio'],
+                        'hora_fin' => $fila['hora_fin'],
+                        'minuto_tolerancia' => $fila['minuto_tolerancia'],
+                    ];
+                    $jornadas[$clave] = [
+                        'cedula_empleado' => $fila['cedula_empleado'],
+                        'nombre_empleado' => $fila['nombre_empleado'],
+                        'fecha_turno' => $fila['fecha_turno'],
+                        'hora_entrada' => null,
+                        'hora_descanso_in' => null,
+                        'hora_descanso_out' => null,
+                        'hora_salida' => null,
+                        'estado_entrada' => null,
+                        'estado_descanso_in' => null,
+                        'estado_descanso_out' => null,
+                        'estado_salida' => null,
+                        'tiene_permiso' => (int) $fila['tiene_permiso'],
+                        'turno' => $turno,
+                    ];
+                }
+
+                if (!$fila['id_asistencia']) {
+                    continue;
+                }
+
+                $campos = [
+                    'ENTRADA' => ['hora_entrada', 'estado_entrada'],
+                    'DESCANSO_IN' => ['hora_descanso_in', 'estado_descanso_in'],
+                    'DESCANSO_OUT' => ['hora_descanso_out', 'estado_descanso_out'],
+                    'SALIDA' => ['hora_salida', 'estado_salida'],
+                ];
+                if (isset($campos[$fila['tipo_marcacion']])) {
+                    [$campoHora, $campoEstado] = $campos[$fila['tipo_marcacion']];
+                    $jornadas[$clave][$campoHora] = $fila['hora'];
+                    if ($campoEstado !== null) {
+                        $jornadas[$clave][$campoEstado] = $fila['estado'];
+                    }
+                }
             }
 
-            $this->LlamarConexion()->commit();
+            foreach ($jornadas as $jornada) {
+                if ($jornada['hora_entrada'] === null && $jornada['turno'] !== null
+                    && $jornada['tiene_permiso'] !== 1
+                    && self::debeMarcarFalta($jornada['turno'], $jornada['fecha_turno'], $momento)
+                ) {
+                    $jornada['estado_entrada'] = 'FALTA';
+                }
+                unset($jornada['turno']);
+                unset($jornada['fecha_turno']);
+                $arreglo[] = $jornada;
+            }
+
+            $db->commit();
             $stm = null;
 
             $dato['estado'] = 1;
             $dato['response'] = ['resultado' => 200, 'mensaje' => 'OK', 'datos' => $arreglo];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
         } catch (\PDOException $e) {
-            $this->LlamarConexion()->rollBack();
+            if ($db instanceof PDO && $db->inTransaction()) {
+                $db->rollBack();
+            }
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             $dato['estado'] = -1;
             $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde', 'datos' => []];
@@ -264,13 +521,37 @@ class Asistencia extends Database {
 
     private function RegistrarAsistencia(): array {
         $dato = [];
+        $db = null;
         $dato['estado'] = 0;
         $dato['response'] = ['resultado' => 400, 'icon' => 'error', 'mensaje' => 'Función de registro no implementada'];
         $dato['HTTP_STATUS'] = ['codigo' => 400, 'mensaje' => 'Función no implementada'];
 
         try {
-            $this->LlamarConexion();
-            $this->LlamarConexion()->beginTransaction();
+            $db = $this->LlamarConexion();
+            $db->beginTransaction();
+
+            $sqlEmpleado = "SELECT estatus FROM empleado WHERE cedula = :cedula FOR UPDATE";
+            $stmEmpleado = $db->prepare($sqlEmpleado);
+            $stmEmpleado->execute([':cedula' => $this->cedulaEmpleado]);
+            if ((int) $stmEmpleado->fetchColumn() !== 1) {
+                throw new \DomainException('El empleado no existe o no está activo.');
+            }
+
+            $sqlMarcaciones = "SELECT tipo_marcacion
+                               FROM asistencia
+                               WHERE cedula_empleado = :cedula
+                                 AND fecha = :fecha
+                               ORDER BY id_asistencia ASC
+                               FOR UPDATE";
+            $stmMarcaciones = $db->prepare($sqlMarcaciones);
+            $stmMarcaciones->execute([
+                ':cedula' => $this->cedulaEmpleado,
+                ':fecha' => $this->fecha,
+            ]);
+            self::validarSecuenciaMarcacion(
+                $stmMarcaciones->fetchAll(PDO::FETCH_COLUMN),
+                $this->tipoMarcacion
+            );
 
             // Si la observación es un texto plano simple y no está vacía, la convertimos al nuevo formato JSON.
             $observacionJson = $this->observacion;
@@ -296,7 +577,7 @@ class Asistencia extends Database {
             $sql = "INSERT INTO asistencia (id_asistencia, cedula_empleado, tipo_marcacion, fecha, hora, estado, observacion)
                     VALUES (:id_asistencia, :cedula_empleado, :tipo_marcacion, :fecha, :hora, :estado, :observacion)";
 
-            $stm = $this->LlamarConexion()->prepare($sql);
+            $stm = $db->prepare($sql);
             $stm->execute([
                 ':id_asistencia' => $this->idAsistencia,
                 ':cedula_empleado' => $this->cedulaEmpleado,
@@ -307,20 +588,31 @@ class Asistencia extends Database {
                 ':observacion' => $observacionJson
             ]);
 
-            $this->LlamarConexion()->commit();
+            $db->commit();
             $stm = null;
 
             $dato['estado'] = 1;
             $dato['response'] = ['resultado' => 200, 'icon' => 'success', 'mensaje' => 'Asistencia registrada correctamente'];
             $dato['HTTP_STATUS'] = ['codigo' => 200, 'mensaje' => 'OK'];
+        } catch (\DomainException $e) {
+            if ($db instanceof PDO && $db->inTransaction()) {
+                $db->rollBack();
+            }
+            $dato['estado'] = 0;
+            $dato['response'] = ['resultado' => 409, 'icon' => 'warning', 'mensaje' => $e->getMessage()];
+            $dato['HTTP_STATUS'] = ['codigo' => 409, 'mensaje' => 'Conflict'];
         } catch (\PDOException $e) {
-            $this->LlamarConexion()->rollBack();
+            if ($db instanceof PDO && $db->inTransaction()) {
+                $db->rollBack();
+            }
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             $dato['estado'] = -1;
             $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde'];
             $dato['HTTP_STATUS'] = ['codigo' => 500, 'mensaje' => 'Error interno del servidor'];
         } catch (Exception $e) {
-            $this->LlamarConexion()->rollBack();
+            if ($db instanceof PDO && $db->inTransaction()) {
+                $db->rollBack();
+            }
             Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
             $dato['estado'] = -1;
             $dato['response'] = ['resultado' => 500, 'icon' => 'error', 'mensaje' => 'Ups, intente de nuevo más tarde'];
@@ -502,55 +794,144 @@ class Asistencia extends Database {
     //FIN DE OPERACIONES A LA BASE DE DATOS
 
     /**
-     * Calcula el estado de la asistencia según el tipo de marcación y la hora actual.
-     * Este método se mantiene igual.
+     * Calcula la puntualidad de una entrada usando el turno asignado.
      */
-    public function calcularEstadoAsistencia(string $tipoMarcacion, string $horaActual, ?string $horaInicio = null, ?int $minutoTolerancia = null, ?string $horaFin = null): string {
-        try {
-            $horaRegistro = new \DateTime($horaActual);
-            $tolerancia = max(0, $minutoTolerancia ?? 10);
+    public function calcularEstadoAsistencia(
+        string $tipoMarcacion,
+        string $horaActual,
+        ?string $horaInicio = null,
+        ?int $minutoTolerancia = null,
+        ?string $horaFin = null,
+        ?string $fechaTurno = null,
+        ?string $fechaMarcacion = null
+    ): string {
+        $fechaTurno = $fechaTurno ?? date('Y-m-d');
+        $fechaMarcacion = $fechaMarcacion ?? $fechaTurno;
+        $tolerancia = max(0, $minutoTolerancia ?? 15);
 
-            if ($tipoMarcacion === 'ENTRADA') {
-                $horaInicioTurno = new \DateTime($horaInicio ?: '08:00:00');
-                $limiteATiempo = (clone $horaInicioTurno)->add(new \DateInterval('PT' . $tolerancia . 'M'));
-                return $horaRegistro <= $limiteATiempo ? 'A_TIEMPO' : 'TARDE';
+        if ($tipoMarcacion === 'ENTRADA' && $horaInicio !== null) {
+            $horaRegistro = new \DateTimeImmutable($fechaMarcacion . ' ' . $horaActual);
+            $horaInicioTurno = new \DateTimeImmutable($fechaTurno . ' ' . $horaInicio);
+
+            if ($horaFin !== null && $horaFin < $horaInicio && $fechaMarcacion === $fechaTurno && $horaActual < $horaInicio) {
+                return 'A_TIEMPO';
             }
 
-            if ($tipoMarcacion === 'SALIDA' && $horaFin) {
-                $horaFinTurno = new \DateTime($horaFin);
-                $inicioSalidaPermitida = (clone $horaFinTurno)->sub(new \DateInterval('PT' . $tolerancia . 'M'));
-                return $horaRegistro >= $inicioSalidaPermitida ? 'A_TIEMPO' : 'FALTA';
+            $limiteATiempo = $horaInicioTurno->add(new \DateInterval('PT' . $tolerancia . 'M'));
+            return $horaRegistro <= $limiteATiempo ? 'A_TIEMPO' : 'TARDE';
+        }
+
+        if ($tipoMarcacion === 'SALIDA' && $horaFin !== null) {
+            $horaFinTurno = new \DateTimeImmutable($fechaTurno . ' ' . $horaFin);
+            if ($horaInicio !== null && $horaFin <= $horaInicio) {
+                $horaFinTurno = $horaFinTurno->modify('+1 day');
             }
-        } catch (\Exception $e) {
-            return 'A_TIEMPO';
+
+            $horaRegistro = new \DateTimeImmutable($fechaMarcacion . ' ' . $horaActual);
+            $salidaPermitidaDesde = $horaFinTurno->sub(new \DateInterval('PT' . $tolerancia . 'M'));
+            return $horaRegistro >= $salidaPermitidaDesde ? 'A_TIEMPO' : 'SALIDA_ANTICIPADA';
         }
 
         return 'A_TIEMPO';
     }
 
-    public function obtenerTurnoAsignado(): ?array {
-        try {
-            $this->LlamarConexion();
-            $sql = "SELECT t.hora_inicio, t.hora_fin, t.minuto_tolerancia
-                    FROM planificador_turno pt
-                    INNER JOIN turno t ON t.id_turno = pt.id_turno
-                    WHERE pt.cedula_empleado = :cedula
-                      AND pt.fecha = :fecha
-                      AND t.estatus = 1
-                    LIMIT 1";
-            $stm = $this->LlamarConexion()->prepare($sql);
-            $stm->execute([
-                ':cedula' => $this->cedulaEmpleado,
-                ':fecha' => $this->fecha
-            ]);
+    public function calcularEstadoMarcacion(
+        string $tipoMarcacion,
+        string $horaActual,
+        ?array $turno,
+        string $fechaTurno,
+        \DateTimeImmutable $momento
+    ): string {
+        if ($turno === null) {
+            return 'DIA_SIN_TURNO';
+        }
 
-            $turno = $stm->fetch(PDO::FETCH_ASSOC);
-            $this->DestruirConexion();
-            return $turno ?: null;
-        } catch (\PDOException $e) {
-            Helper::ErrorLog($e->getMessage() . " en " . $e->getFile() . " línea " . $e->getLine());
-            $this->DestruirConexion();
-            return null;
+        return $this->calcularEstadoAsistencia(
+            $tipoMarcacion,
+            $horaActual,
+            $turno['hora_inicio'] ?? null,
+            isset($turno['minuto_tolerancia']) ? (int) $turno['minuto_tolerancia'] : null,
+            $turno['hora_fin'] ?? null,
+            $fechaTurno,
+            $momento->format('Y-m-d')
+        );
+    }
+
+    public static function debeMarcarFalta(array $turno, string $fechaTurno, \DateTimeImmutable $momento): bool {
+        if (empty($turno['hora_inicio']) || empty($turno['hora_fin'])) {
+            return false;
+        }
+
+        $inicio = new \DateTimeImmutable($fechaTurno . ' ' . $turno['hora_inicio']);
+        $fin = new \DateTimeImmutable($fechaTurno . ' ' . $turno['hora_fin']);
+        if ($fin <= $inicio) {
+            $fin = $fin->modify('+1 day');
+        }
+
+        $duracionSegundos = $fin->getTimestamp() - $inicio->getTimestamp();
+        $mitad = $inicio->modify('+' . (int) floor($duracionSegundos / 2) . ' seconds');
+
+        return $momento >= $mitad;
+    }
+
+    public static function validarSecuenciaMarcacion(array $marcaciones, string $siguiente): void {
+        $estado = [
+            'entrada' => false,
+            'descanso_inicio' => false,
+            'descanso_fin' => false,
+            'salida' => false,
+        ];
+
+        foreach ($marcaciones as $marcacion) {
+            self::aplicarMarcacionAEstado($estado, (string) $marcacion, false);
+        }
+        self::aplicarMarcacionAEstado($estado, $siguiente, true);
+    }
+
+    private static function aplicarMarcacionAEstado(array &$estado, string $tipo, bool $esNueva): void {
+        $prefijo = $esNueva ? '' : 'Las marcaciones existentes tienen una secuencia inválida. ';
+
+        if ($estado['salida']) {
+            throw new \DomainException($prefijo . 'No se permiten marcaciones después de la salida.');
+        }
+
+        switch ($tipo) {
+            case 'ENTRADA':
+                if ($estado['entrada'] || $estado['descanso_inicio'] || $estado['descanso_fin']) {
+                    throw new \DomainException($prefijo . 'La entrada solo se puede marcar una vez y debe ser la primera.');
+                }
+                $estado['entrada'] = true;
+                return;
+
+            case 'DESCANSO_IN':
+                if (!$estado['entrada']) {
+                    throw new \DomainException($prefijo . 'Debe marcar la entrada antes de iniciar el descanso.');
+                }
+                if ($estado['descanso_inicio'] || $estado['descanso_fin']) {
+                    throw new \DomainException($prefijo . 'Solo se permite iniciar un descanso por turno.');
+                }
+                $estado['descanso_inicio'] = true;
+                return;
+
+            case 'DESCANSO_OUT':
+                if (!$estado['descanso_inicio']) {
+                    throw new \DomainException($prefijo . 'Debe iniciar el descanso antes de terminarlo.');
+                }
+                if ($estado['descanso_fin']) {
+                    throw new \DomainException($prefijo . 'El descanso solo se puede terminar una vez.');
+                }
+                $estado['descanso_fin'] = true;
+                return;
+
+            case 'SALIDA':
+                if (!$estado['entrada']) {
+                    throw new \DomainException($prefijo . 'Debe marcar la entrada antes de la salida.');
+                }
+                $estado['salida'] = true;
+                return;
+
+            default:
+                throw new \DomainException('Tipo de marcación inválido.');
         }
     }
 

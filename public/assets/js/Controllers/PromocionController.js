@@ -66,6 +66,19 @@ $('#btnAbrirGaleriaPromocion').on('click', function (e) {
   }
 });
 
+$('#imagen_promocion').on('change', function () {
+  const file = this.files?.[0];
+  if (!file) return;
+  $('#imagen_galeria').val('');
+  const reader = new FileReader();
+  reader.onload = function (event) {
+    $('#previewImagenPromocion').attr('src', event.target.result);
+    $('#previewImagenPromocionContainer').show();
+    $('#btnQuitarImagenPromocion').show();
+  };
+  reader.readAsDataURL(file);
+});
+
 $('#btnQuitarImagenPromocion').on('click', function (e) {
   e.preventDefault();
   promocion.SetPreviewImagen(null);
