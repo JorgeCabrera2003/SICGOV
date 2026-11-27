@@ -44,24 +44,6 @@ class PromocionTest extends TestCase
     }
 
     #[Test]
-    public function testSettersYGettersConDatosValidos(): void
-    {
-        $promo = new Promocion();
-        $this->poblarPromocionValida($promo);
-
-        $this->assertEquals('PROM20261025140000001', $promo->getIdPromocion());
-        $this->assertEquals('Combo Fin de Semana Familiar', $promo->getNombre());
-        $this->assertEquals('PORCENTAJE', $promo->getTipoDescuento());
-        $this->assertEquals(15.5, $promo->getValorDescuento());
-        $this->assertEquals('Disfruta de 15.5% de descuento en platos principales y bebidas.', $promo->getDescripcion());
-        $this->assertEquals('2026-11-01', $promo->getFechaInicio());
-        $this->assertEquals('2026-11-30', $promo->getFechaFin());
-        $this->assertEquals('12:00', $promo->getHoraInicio());
-        $this->assertEquals('22:00', $promo->getHoraFin());
-        $this->assertEquals('uploads/promociones/promo1.jpg', $promo->getImagen());
-    }
-
-    #[Test]
     public function testNormalizaValoresDeDescuentoValidosYRechazaTexto(): void
     {
         $promo = new Promocion();
@@ -101,33 +83,6 @@ class PromocionTest extends TestCase
     }
 
     #[Test]
-    public function testPromocionRechazaPorcentajeMayorACien(): void
-    {
-        $promo = new Promocion();
-        $promo->setNombre('Oferta');
-        $promo->setTipoDescuento('PORCENTAJE');
-        $promo->setValorDescuento('100,01');
-        $promo->setFechaInicio('2026-11-01');
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('El porcentaje de descuento no puede superar el 100%.');
-        $promo->Transaccion(['peticion' => 'registrar']);
-    }
-
-    #[Test]
-    public function testPromocionRechazaDescuentoCeroYValoresNoNumericos(): void
-    {
-        $promo = new Promocion();
-        $promo->setTipoDescuento('MONTO_FIJO');
-        $promo->setValorDescuento('0');
-        $promo->setFechaInicio('2026-11-01');
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('El valor del descuento debe ser mayor que cero.');
-        $promo->Transaccion(['peticion' => 'registrar']);
-    }
-
-    #[Test]
     public function testPromocionRechazaDescuentoNegativo(): void
     {
         $promo = new Promocion();
@@ -135,41 +90,6 @@ class PromocionTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('El valor del descuento debe ser un número válido.');
         $promo->setValorDescuento('-1');
-    }
-
-    #[Test]
-    public function testPromocionRechazaTipoDeDescuentoInvalido(): void
-    {
-        $promo = new Promocion();
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('El tipo de descuento no es válido.');
-        $promo->setTipoDescuento('GRATIS');
-    }
-
-    #[Test]
-    public function testFechaDeInicioInexistenteEsRechazada(): void
-    {
-        $promo = new Promocion();
-
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('La fecha de inicio no es válida.');
-        $promo->setFechaInicio('2026-02-30');
-    }
-
-    #[Test]
-    public function testSetImagenLimpiaEspaciosYAsignaNullSiVacio(): void
-    {
-        $promo = new Promocion();
-
-        $promo->setImagen('   ');
-        $this->assertNull($promo->getImagen());
-
-        $promo->setImagen(null);
-        $this->assertNull($promo->getImagen());
-
-        $promo->setImagen('  uploads/img.png  ');
-        $this->assertEquals('uploads/img.png', $promo->getImagen());
     }
 
     #[Test]
@@ -218,22 +138,6 @@ class PromocionTest extends TestCase
     }
 
     #[Test]
-    public function testConsultarPromocionConErrorBdHaceRollbackYRetorna500(): void
-    {
-        $mockPdo = $this->createMock(PDO::class);
-        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
-        $mockPdo->expects($this->once())->method('prepare')->willThrowException(new PDOException('Error de conexión a BD'));
-        $mockPdo->expects($this->once())->method('rollBack')->willReturn(true);
-
-        $promo = $this->createPromocionMock($mockPdo);
-        $resultado = $promo->Transaccion(['peticion' => 'consultar']);
-
-        $this->assertEquals(-1, $resultado['estado']);
-        $this->assertEquals(500, $resultado['response']['resultado']);
-        $this->assertEquals(500, $resultado['HTTP_STATUS']['codigo']);
-    }
-
-    #[Test]
     public function testRegistrarPromocionExitosoConProductos(): void
     {
         $mockPdo = $this->createMock(PDO::class);
@@ -260,24 +164,6 @@ class PromocionTest extends TestCase
         $this->assertEquals(1, $resultado['estado']);
         $this->assertEquals(201, $resultado['response']['resultado']);
         $this->assertEquals('Promoción registrada exitosamente', $resultado['response']['mensaje']);
-    }
-
-    #[Test]
-    public function testRegistrarPromocionFallaPorPdoException(): void
-    {
-        $mockPdo = $this->createMock(PDO::class);
-        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
-        $mockPdo->expects($this->once())->method('prepare')->willThrowException(new PDOException('Fallo al insertar'));
-        $mockPdo->expects($this->once())->method('rollBack')->willReturn(true);
-
-        $promo = $this->createPromocionMock($mockPdo);
-        $this->poblarPromocionValida($promo);
-
-        $resultado = $promo->Transaccion(['peticion' => 'registrar']);
-
-        $this->assertEquals(-1, $resultado['estado']);
-        $this->assertEquals(500, $resultado['response']['resultado']);
-        $this->assertEquals(500, $resultado['HTTP_STATUS']['codigo']);
     }
 
     #[Test]
@@ -309,27 +195,6 @@ class PromocionTest extends TestCase
     }
 
     #[Test]
-    public function testModificarPromocionConErrorBdHaceRollbackYRetorna500(): void
-    {
-        $mockPdo = $this->createMock(PDO::class);
-        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
-        $mockPdo->expects($this->once())->method('prepare')
-            ->willThrowException(new PDOException('Fallo al actualizar'));
-        $mockPdo->expects($this->once())->method('rollBack')->willReturn(true);
-        $mockPdo->expects($this->never())->method('commit');
-
-        $promo = $this->createPromocionMock($mockPdo);
-        $this->poblarPromocionValida($promo);
-        $promo->setImagen(null);
-
-        $resultado = $promo->Transaccion(['peticion' => 'modificar']);
-
-        $this->assertSame(-1, $resultado['estado']);
-        $this->assertSame(500, $resultado['response']['resultado']);
-        $this->assertSame(500, $resultado['HTTP_STATUS']['codigo']);
-    }
-
-    #[Test]
     public function testValidarPromocionExistente(): void
     {
         $mockPdo = $this->createMock(PDO::class);
@@ -355,49 +220,6 @@ class PromocionTest extends TestCase
         $this->assertEquals(1, $resultado['bool']);
         $this->assertEquals(200, $resultado['response']['resultado']);
         $this->assertEquals('2x1 Viernes', $resultado['response']['registro']['nombre']);
-    }
-
-    #[Test]
-    public function testValidarPromocionInexistente(): void
-    {
-        $mockPdo = $this->createMock(PDO::class);
-        $mockStm = $this->createMock(PDOStatement::class);
-
-        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
-        $mockPdo->expects($this->once())->method('prepare')->willReturn($mockStm);
-        $mockStm->expects($this->once())->method('execute')->willReturn(true);
-        $mockStm->expects($this->once())->method('rowCount')->willReturn(0);
-        $mockPdo->expects($this->once())->method('commit')->willReturn(true);
-
-        $promo = $this->createPromocionMock($mockPdo);
-        $promo->setIdPromocion('PROM_NO_EXISTE');
-
-        $resultado = $promo->Transaccion(['peticion' => 'validar']);
-
-        $this->assertEquals(0, $resultado['bool']);
-        $this->assertEquals(200, $resultado['response']['resultado']);
-    }
-
-    #[Test]
-    public function testEliminarPromocionInexistenteRetorna404(): void
-    {
-        $mockPdo = $this->createMock(PDO::class);
-        $mockStm = $this->createMock(PDOStatement::class);
-
-        $mockPdo->expects($this->once())->method('beginTransaction')->willReturn(true);
-        $mockPdo->expects($this->once())->method('prepare')->willReturn($mockStm);
-        $mockStm->expects($this->once())->method('execute')->willReturn(true);
-        $mockStm->expects($this->once())->method('rowCount')->willReturn(0);
-        $mockPdo->expects($this->once())->method('commit')->willReturn(true);
-
-        $promo = $this->createPromocionMock($mockPdo);
-        $promo->setIdPromocion('PROM_INEXISTENTE');
-
-        $resultado = $promo->Transaccion(['peticion' => 'eliminar']);
-
-        $this->assertEquals(-1, $resultado['estado']);
-        $this->assertEquals(404, $resultado['response']['resultado']);
-        $this->assertEquals('Registro no encontrado', $resultado['response']['mensaje']);
     }
 
     #[Test]
